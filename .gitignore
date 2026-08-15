@@ -58,3 +58,12 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+# User editor settings (local only, not for sharing)
+/UserSettings/
+
+# Unity Server analysis cache
+/.server-analysis/
+
+# VS config file
+.vsconfig
+
