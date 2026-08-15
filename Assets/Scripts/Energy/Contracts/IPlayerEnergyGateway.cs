@@ -7,6 +7,7 @@ public sealed class PlayerEnergyState
 {
     public int Current;
     public int Maximum;
+    public long NextRecoveryUnixTime;
 }
 
 public sealed class EnergyConsumeResult
@@ -26,5 +27,11 @@ public interface IPlayerEnergyGateway
         string playerId,
         int amount,
         string requestId,
+        CancellationToken cancellationToken);
+
+    Task<PlayerEnergyState> GrantEnergyAsync(
+        string playerId,
+        int amount,
+        string rewardTransactionId,
         CancellationToken cancellationToken);
 }

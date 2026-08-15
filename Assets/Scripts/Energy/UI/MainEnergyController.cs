@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Threading;
 using TMPro;
 using UnityEngine;
@@ -10,13 +11,26 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class MainEnergyController : MonoBehaviour
 {
+    private const int RewardedAdEnergy = 10;
+    private const string EnergyRewardPlacement = "energy_reward";
+
+    private GameObject addEnergyPanel;
     private Button startButton;
+    private Button addEnergyButton;
+    private Button closeEnergyPanelButton;
+    private Button videoButton;
     private TMP_Text currentAmountText;
     private TMP_Text maximumAmountText;
     private TMP_Text tipText;
+    private TMP_Text rewardAmountText;
     private IPlayerEnergyGateway energyGateway;
+    private IRewardedAdService rewardedAdService;
     private CancellationTokenSource lifetimeCancellation;
+    private Coroutine recoveryRefreshCoroutine;
+    private PlayerEnergyState currentEnergyState;
     private bool requestInProgress;
+    private bool refreshInProgress;
+    private bool adInProgress;
     private bool transitionRequested;
 
     private void Awake()
@@ -30,9 +44,15 @@ public sealed class MainEnergyController : MonoBehaviour
             return;
         }
 
+        rewardedAdService = new MockRewardedAdService(transform, currentAmountText.font);
         tipText.text = string.Empty;
+        rewardAmountText.text = "+" + RewardedAdEnergy;
         maximumAmountText.text = "/" + LocalPlayerEnergyGateway.MaximumEnergy;
+        addEnergyPanel.SetActive(false);
         startButton.onClick.AddListener(OnStartClicked);
+        addEnergyButton.onClick.AddListener(ShowAddEnergyPanel);
+        closeEnergyPanelButton.onClick.AddListener(HideAddEnergyPanel);
+        videoButton.onClick.AddListener(OnVideoClicked);
     }
 
     private async void Start()
@@ -50,6 +70,7 @@ public sealed class MainEnergyController : MonoBehaviour
             PlayerEnergyState state = await energyGateway.GetEnergyAsync(
                 playerId, lifetimeCancellation.Token);
             RefreshEnergy(state);
+            recoveryRefreshCoroutine = StartCoroutine(RecoveryRefreshRoutine(playerId));
         }
         catch (OperationCanceledException)
         {
@@ -64,13 +85,50 @@ public sealed class MainEnergyController : MonoBehaviour
     private void OnDestroy()
     {
         if (startButton != null) startButton.onClick.RemoveListener(OnStartClicked);
+        if (addEnergyButton != null) addEnergyButton.onClick.RemoveListener(ShowAddEnergyPanel);
+        if (closeEnergyPanelButton != null) closeEnergyPanelButton.onClick.RemoveListener(HideAddEnergyPanel);
+        if (videoButton != null) videoButton.onClick.RemoveListener(OnVideoClicked);
+        if (recoveryRefreshCoroutine != null) StopCoroutine(recoveryRefreshCoroutine);
         lifetimeCancellation?.Cancel();
         lifetimeCancellation?.Dispose();
     }
 
+    private IEnumerator RecoveryRefreshRoutine(string playerId)
+    {
+        WaitForSecondsRealtime interval = new WaitForSecondsRealtime(1f);
+        while (true)
+        {
+            yield return interval;
+            RefreshRecoveredEnergy(playerId);
+        }
+    }
+
+    private async void RefreshRecoveredEnergy(string playerId)
+    {
+        if (refreshInProgress || requestInProgress || transitionRequested) return;
+        refreshInProgress = true;
+        try
+        {
+            PlayerEnergyState state = await energyGateway.GetEnergyAsync(
+                playerId, lifetimeCancellation.Token);
+            RefreshEnergy(state);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+        }
+        finally
+        {
+            refreshInProgress = false;
+        }
+    }
+
     private async void OnStartClicked()
     {
-        if (requestInProgress || transitionRequested) return;
+        if (requestInProgress || adInProgress || transitionRequested || addEnergyPanel.activeSelf) return;
 
         string playerId = GetPlayerId();
         if (string.IsNullOrEmpty(playerId) || SceneLoader.Instance == null)
@@ -118,9 +176,84 @@ public sealed class MainEnergyController : MonoBehaviour
         }
     }
 
+    private void ShowAddEnergyPanel()
+    {
+        if (requestInProgress || adInProgress || transitionRequested) return;
+        ShowTip(string.Empty);
+        addEnergyPanel.SetActive(true);
+        startButton.interactable = false;
+        UpdateEnergyPanelButtons();
+    }
+
+    private void HideAddEnergyPanel()
+    {
+        if (adInProgress) return;
+        addEnergyPanel.SetActive(false);
+        if (!requestInProgress && !transitionRequested) startButton.interactable = true;
+    }
+
+    private async void OnVideoClicked()
+    {
+        if (adInProgress || requestInProgress || transitionRequested || currentEnergyState == null ||
+            currentEnergyState.Current >= currentEnergyState.Maximum)
+        {
+            return;
+        }
+
+        string playerId = GetPlayerId();
+        if (string.IsNullOrEmpty(playerId))
+        {
+            Debug.LogError("Cannot grant an ad reward without a player session.");
+            return;
+        }
+
+        adInProgress = true;
+        requestInProgress = true;
+        SetAdControlsInteractable(false);
+        string transactionId = Guid.NewGuid().ToString("N");
+
+        try
+        {
+            RewardedAdResult result = await rewardedAdService.ShowAsync(
+                EnergyRewardPlacement, lifetimeCancellation.Token);
+            if (result != RewardedAdResult.Completed) return;
+
+            PlayerEnergyState state = await energyGateway.GrantEnergyAsync(
+                playerId,
+                RewardedAdEnergy,
+                transactionId,
+                lifetimeCancellation.Token);
+            RefreshEnergy(state);
+            addEnergyPanel.SetActive(false);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+        }
+        finally
+        {
+            requestInProgress = false;
+            adInProgress = false;
+            SetAdControlsInteractable(true);
+            if (!transitionRequested && startButton != null)
+            {
+                startButton.interactable = !addEnergyPanel.activeSelf;
+            }
+        }
+    }
+
     private bool ResolveView()
     {
         startButton = transform.Find("StartBtn")?.GetComponent<Button>();
+        addEnergyButton = transform.Find("EnergyBg/AddBtn")?.GetComponent<Button>();
+        addEnergyPanel = transform.Find("AddEnergyPanel")?.gameObject;
+        Transform addEnergyRoot = addEnergyPanel != null ? addEnergyPanel.transform : null;
+        closeEnergyPanelButton = addEnergyRoot?.Find("BG/CloseBtn")?.GetComponent<Button>();
+        videoButton = addEnergyRoot?.Find("BG/VideoBtn")?.GetComponent<Button>();
+        rewardAmountText = addEnergyRoot?.Find("BG/Text/Image/REnergy")?.GetComponent<TMP_Text>();
         currentAmountText = transform.Find("EnergyBg/RAmount")?.GetComponent<TMP_Text>();
         maximumAmountText = transform.Find("EnergyBg/MaxAmount")?.GetComponent<TMP_Text>();
         tipText = FindDescendant(transform, "TipText")?.GetComponent<TMP_Text>();
@@ -130,11 +263,12 @@ public sealed class MainEnergyController : MonoBehaviour
             tipText = CreateTipText(currentAmountText);
         }
 
-        bool complete = startButton != null && currentAmountText != null &&
-                        maximumAmountText != null && tipText != null;
+        bool complete = startButton != null && addEnergyButton != null && addEnergyPanel != null &&
+                        closeEnergyPanelButton != null && videoButton != null && rewardAmountText != null &&
+                        currentAmountText != null && maximumAmountText != null && tipText != null;
         if (!complete)
         {
-            Debug.LogError("MainEnergyController is missing StartBtn, RAmount, MaxAmount, or TipText.");
+            Debug.LogError("MainEnergyController is missing energy, rewarded-ad, or TipText UI.");
         }
         return complete;
     }
@@ -163,8 +297,29 @@ public sealed class MainEnergyController : MonoBehaviour
     private void RefreshEnergy(PlayerEnergyState state)
     {
         if (state == null) return;
+        currentEnergyState = state;
         currentAmountText.text = state.Current.ToString();
         maximumAmountText.text = "/" + state.Maximum;
+        if (state.Current >= LocalPlayerEnergyGateway.GameStartCost && tipText.text == "Not enough")
+        {
+            ShowTip(string.Empty);
+        }
+        UpdateEnergyPanelButtons();
+    }
+
+    private void SetAdControlsInteractable(bool interactable)
+    {
+        if (addEnergyButton != null) addEnergyButton.interactable = interactable;
+        if (closeEnergyPanelButton != null) closeEnergyPanelButton.interactable = interactable;
+        UpdateEnergyPanelButtons();
+    }
+
+    private void UpdateEnergyPanelButtons()
+    {
+        if (videoButton == null) return;
+        bool canReceiveEnergy = currentEnergyState != null &&
+                                currentEnergyState.Current < currentEnergyState.Maximum;
+        videoButton.interactable = canReceiveEnergy && !adInProgress && !requestInProgress;
     }
 
     private void ShowTip(string message)
