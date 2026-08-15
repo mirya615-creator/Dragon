@@ -127,9 +127,6 @@ public sealed class SceneLoader : MonoBehaviour
     {
         switch (sceneName)
         {
-            case "Main":
-                BindButton("StartBtn", "Game");
-                break;
             case "Game":
                 BindButton("ReturnBtn", "Main");
                 break;
