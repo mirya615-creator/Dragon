@@ -20,12 +20,15 @@ public sealed class LoginController : MonoBehaviour
 
     private GameObject loginPanel;
     private GameObject signUpPanel;
+    private GameObject googleConfirmPanel;
     private TMP_InputField loginEmailInput;
     private TMP_InputField loginPasswordInput;
     private TMP_InputField signUpEmailInput;
     private TMP_InputField signUpPasswordInput;
     private TMP_InputField signUpCodeInput;
     private TMP_Text errorText;
+    private TMP_Text googleAccountText;
+    private Image googleAvatarImage;
     private Button openSignUpButton;
     private Button signUpButton;
     private Button cancelSignUpButton;
@@ -34,9 +37,13 @@ public sealed class LoginController : MonoBehaviour
     private Button verificationCodeButton;
     private Button passwordModeButton;
     private Button signUpVerificationCodeButton;
+    private Button googleButton;
+    private Button googleConfirmButton;
+    private Button googleCancelButton;
     private TMP_Text verificationCodeButtonLabel;
     private TMP_Text signUpVerificationCodeButtonLabel;
     private IAuthGateway authGateway;
+    private IGoogleOAuthProvider googleOAuthProvider;
     private GuestIdentityService guestIdentityService;
     private CancellationTokenSource lifetimeCancellation;
     private bool requestInProgress;
@@ -50,11 +57,14 @@ public sealed class LoginController : MonoBehaviour
     private string signUpVerificationEmail = string.Empty;
     private string signUpVerificationCodeButtonDefaultText = string.Empty;
     private EmailLoginMode loginMode = EmailLoginMode.Password;
+    private PendingGoogleIdentity pendingGoogleIdentity;
+    private Sprite defaultGoogleAvatarSprite;
 
     private void Awake()
     {
         lifetimeCancellation = new CancellationTokenSource();
         authGateway = new LocalAuthGateway();
+        googleOAuthProvider = new MockGoogleOAuthProvider();
         guestIdentityService = new GuestIdentityService();
 
         if (!ResolveView())
@@ -83,6 +93,12 @@ public sealed class LoginController : MonoBehaviour
         }
         if (codeCooldownCoroutine != null) StopCoroutine(codeCooldownCoroutine);
         if (signUpCodeCooldownCoroutine != null) StopCoroutine(signUpCodeCooldownCoroutine);
+        if (googleButton != null) googleButton.onClick.RemoveListener(OnGoogleClicked);
+        if (googleConfirmButton != null) googleConfirmButton.onClick.RemoveListener(OnGoogleConfirmClicked);
+        if (googleCancelButton != null) googleCancelButton.onClick.RemoveListener(CancelGoogleConfirmation);
+
+        googleOAuthProvider?.CancelPendingSignIn();
+        DisposePendingGoogleIdentity();
 
         lifetimeCancellation?.Cancel();
         lifetimeCancellation?.Dispose();
@@ -99,6 +115,7 @@ public sealed class LoginController : MonoBehaviour
 
         loginPanel = FindRequired(mainPanel, "LoginPanel")?.gameObject;
         signUpPanel = FindRequired(mainPanel, "SignUpPanel")?.gameObject;
+        googleConfirmPanel = FindRequired(mainPanel, "GoogleConfirmPanel")?.gameObject;
         errorText = FindRequired(mainPanel, "ErrorText")?.GetComponent<TMP_Text>();
 
         Transform loginRoot = loginPanel != null ? loginPanel.transform : null;
@@ -110,6 +127,7 @@ public sealed class LoginController : MonoBehaviour
         openSignUpButton = GetRequired<Button>(loginRoot, "SignUp");
         loginButton = GetRequired<Button>(loginRoot, "LoginBtn");
         guestLoginButton = GetRequired<Button>(loginRoot, "GuestLoginBtn");
+        googleButton = GetRequired<Button>(loginRoot, "GoogleBtn");
         verificationCodeButton = GetRequired<Button>(loginRoot, "Vcode");
         passwordModeButton = GetRequired<Button>(loginRoot, "Pcode");
         verificationCodeButtonLabel = verificationCodeButton != null
@@ -132,12 +150,21 @@ public sealed class LoginController : MonoBehaviour
         signUpCodeControlsAvailable = signUpCodeInput != null && signUpVerificationCodeButton != null &&
                                       signUpVerificationCodeButtonLabel != null;
 
+        Transform googleRoot = googleConfirmPanel != null ? googleConfirmPanel.transform : null;
+        googleAvatarImage = GetRequired<Image>(googleRoot, "GoogleInform/GoogleImg");
+        googleAccountText = GetRequired<TMP_Text>(googleRoot, "GoogleInform/GoogleAccount");
+        googleConfirmButton = GetRequired<Button>(googleRoot, "ConfirmBtn");
+        googleCancelButton = GetRequired<Button>(googleRoot, "CancleBtn");
+        defaultGoogleAvatarSprite = googleAvatarImage != null ? googleAvatarImage.sprite : null;
+
         bool complete = loginEmailInput != null && loginPasswordInput != null &&
                         signUpEmailInput != null && signUpPasswordInput != null &&
                         errorText != null && openSignUpButton != null && signUpButton != null &&
                         cancelSignUpButton != null && loginButton != null && guestLoginButton != null &&
                         verificationCodeButton != null && passwordModeButton != null &&
-                        verificationCodeButtonLabel != null;
+                        verificationCodeButtonLabel != null && googleConfirmPanel != null &&
+                        googleButton != null && googleAvatarImage != null && googleAccountText != null &&
+                        googleConfirmButton != null && googleCancelButton != null;
         if (!complete) Debug.LogError("LoginController is missing one or more required UI components.");
         return complete;
     }
@@ -178,6 +205,9 @@ public sealed class LoginController : MonoBehaviour
             signUpVerificationCodeButton.onClick.AddListener(OnSendSignUpCodeClicked);
             signUpVerificationCodeButtonDefaultText = signUpVerificationCodeButtonLabel.text;
         }
+        googleButton.onClick.AddListener(OnGoogleClicked);
+        googleConfirmButton.onClick.AddListener(OnGoogleConfirmClicked);
+        googleCancelButton.onClick.AddListener(CancelGoogleConfirmation);
     }
 
     private void ShowSignUpPanel()
@@ -200,6 +230,7 @@ public sealed class LoginController : MonoBehaviour
         if (signUpCodeInput != null) signUpCodeInput.text = string.Empty;
         signUpVerificationEmail = string.Empty;
         signUpPanel.SetActive(false);
+        googleConfirmPanel.SetActive(false);
         loginPanel.SetActive(true);
         SetPasswordMode();
         loginEmailInput.ActivateInputField();
@@ -539,6 +570,115 @@ public sealed class LoginController : MonoBehaviour
         }
     }
 
+    private async void OnGoogleClicked()
+    {
+        if (requestInProgress) return;
+
+        try
+        {
+            SetBusy(true);
+            ClearError();
+            DisposePendingGoogleIdentity();
+            pendingGoogleIdentity = await googleOAuthProvider.SignInAsync(lifetimeCancellation.Token);
+            if (pendingGoogleIdentity == null || string.IsNullOrWhiteSpace(pendingGoogleIdentity.IdToken) ||
+                string.IsNullOrWhiteSpace(pendingGoogleIdentity.Email) || !pendingGoogleIdentity.EmailVerified)
+            {
+                DisposePendingGoogleIdentity();
+                throw new AuthException("INVALID_CREDENTIALS", "Google authentication failed.");
+            }
+
+            googleAccountText.text = pendingGoogleIdentity.Email;
+            googleAvatarImage.sprite = pendingGoogleIdentity.AvatarSprite != null
+                ? pendingGoogleIdentity.AvatarSprite
+                : defaultGoogleAvatarSprite;
+            googleAvatarImage.preserveAspect = true;
+            loginPanel.SetActive(false);
+            signUpPanel.SetActive(false);
+            googleConfirmPanel.SetActive(true);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (AuthException exception)
+        {
+            ShowMessage(exception.Message);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            ShowMessage("Google sign-in failed. Please try again.");
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private async void OnGoogleConfirmClicked()
+    {
+        if (requestInProgress || pendingGoogleIdentity == null) return;
+
+        try
+        {
+            SetBusy(true);
+            ClearError();
+            AuthSession session = await authGateway.GoogleLoginAsync(
+                pendingGoogleIdentity.IdToken,
+                guestIdentityService.CreateDeviceInfo(),
+                lifetimeCancellation.Token);
+            AuthSessionStore.Set(session);
+
+            if (SceneLoader.Instance == null)
+            {
+                throw new InvalidOperationException("SceneLoader is not available.");
+            }
+
+            googleConfirmPanel.SetActive(false);
+            DisposePendingGoogleIdentity();
+            SceneLoader.Instance.LoadSceneAsync("Main");
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (AuthException exception)
+        {
+            ShowMessage(exception.Message);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            ShowMessage("Google login failed. Please try again.");
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private void CancelGoogleConfirmation()
+    {
+        if (requestInProgress) return;
+        googleOAuthProvider.CancelPendingSignIn();
+        DisposePendingGoogleIdentity();
+        googleConfirmPanel.SetActive(false);
+        loginPanel.SetActive(true);
+        ClearError();
+    }
+
+    private void DisposePendingGoogleIdentity()
+    {
+        if (pendingGoogleIdentity != null && pendingGoogleIdentity.OwnsAvatarSprite &&
+            pendingGoogleIdentity.AvatarSprite != null)
+        {
+            Texture2D texture = pendingGoogleIdentity.AvatarSprite.texture;
+            Destroy(pendingGoogleIdentity.AvatarSprite);
+            if (texture != null) Destroy(texture);
+        }
+        pendingGoogleIdentity = null;
+        if (googleAvatarImage != null) googleAvatarImage.sprite = defaultGoogleAvatarSprite;
+        if (googleAccountText != null) googleAccountText.text = string.Empty;
+    }
+
     private void SetBusy(bool busy)
     {
         requestInProgress = busy;
@@ -556,6 +696,9 @@ public sealed class LoginController : MonoBehaviour
         {
             signUpVerificationCodeButton.interactable = !busy && !signUpCodeCooldownActive;
         }
+        if (googleButton != null) googleButton.interactable = !busy;
+        if (googleConfirmButton != null) googleConfirmButton.interactable = !busy;
+        if (googleCancelButton != null) googleCancelButton.interactable = !busy;
     }
 
     private void ClearError()

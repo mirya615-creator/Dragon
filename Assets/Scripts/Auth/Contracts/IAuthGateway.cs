@@ -28,4 +28,9 @@ public interface IAuthGateway
         string code,
         DeviceInfoDto deviceInfo,
         CancellationToken cancellationToken);
+
+    Task<AuthSession> GoogleLoginAsync(
+        string idToken,
+        DeviceInfoDto deviceInfo,
+        CancellationToken cancellationToken);
 }

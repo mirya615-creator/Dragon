@@ -13,6 +13,7 @@ public sealed class LocalAuthGateway : IAuthGateway
 {
     private const string AccountKeyPrefix = "dragonbound.local-auth.";
     private const string GuestKeyPrefix = "dragonbound.local-guest.";
+    private const string GoogleKeyPrefix = "dragonbound.local-google.";
     private const string EmailCodeKeyPrefix = "dragonbound.local-email-code.";
     private const int SaltSize = 16;
     private const int HashSize = 32;
@@ -220,6 +221,44 @@ public sealed class LocalAuthGateway : IAuthGateway
         PlayerPrefs.SetString(accountKey, JsonUtility.ToJson(account));
         PlayerPrefs.Save();
         return Task.CompletedTask;
+    }
+
+    public Task<AuthSession> GoogleLoginAsync(
+        string idToken,
+        DeviceInfoDto deviceInfo,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        const string mockPrefix = "mock-google:";
+        if (string.IsNullOrWhiteSpace(idToken) || !idToken.StartsWith(mockPrefix, StringComparison.Ordinal))
+        {
+            throw new AuthException("INVALID_CREDENTIALS", "Google authentication failed.");
+        }
+
+        string subject = idToken.Substring(mockPrefix.Length);
+        if (string.IsNullOrWhiteSpace(subject))
+        {
+            throw new AuthException("INVALID_CREDENTIALS", "Google authentication failed.");
+        }
+
+        string key = GoogleKeyPrefix + HashKey(subject);
+        string playerId = PlayerPrefs.GetString(key, string.Empty);
+        if (!Guid.TryParse(playerId, out _))
+        {
+            playerId = Guid.NewGuid().ToString();
+            PlayerPrefs.SetString(key, playerId);
+            PlayerPrefs.Save();
+        }
+
+        return Task.FromResult(new AuthSession
+        {
+            PlayerId = playerId,
+            AccessToken = string.Empty,
+            RefreshToken = string.Empty,
+            ExpiresIn = 0,
+            IsOffline = true,
+            IsGuest = false
+        });
     }
 
     private static string GetAccountKey(string normalizedEmail)
