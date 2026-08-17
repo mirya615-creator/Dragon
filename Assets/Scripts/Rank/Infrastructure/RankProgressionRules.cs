@@ -36,7 +36,7 @@ public static class RankProgressionRules
                 {
                     Level = level,
                     RankName = RankNames[level],
-                    Division = 3 - divisionIndex,
+                    Division = divisionIndex + 1,
                     CurrentStars = progressInLevel % requiredStars,
                     RequiredStars = requiredStars,
                     TotalRankStars = safeTotal

@@ -34,10 +34,18 @@ public sealed class RuneInventoryEntry
 }
 
 [Serializable]
+public sealed class HeroRuneLoadoutEntry
+{
+    public string HeroId;
+    public string RuneId;
+}
+
+[Serializable]
 public sealed class RuneProfile
 {
     public List<RuneInventoryEntry> Inventory = new List<RuneInventoryEntry>();
     public List<RuneReward> LastRunRewards = new List<RuneReward>();
+    public List<HeroRuneLoadoutEntry> Loadouts = new List<HeroRuneLoadoutEntry>();
 }
 
 public sealed class RuneDefinition

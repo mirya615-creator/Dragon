@@ -44,7 +44,7 @@ public sealed class LocalRuneRewardService
             }
         }
 
-        PlayerPrefs.SetString(profileKey, JsonUtility.ToJson(profile));
+        SaveProfile(profileKey, profile);
         PlayerPrefs.SetInt(settledKey, 1);
         PlayerPrefs.Save();
         return profile;
@@ -54,6 +54,52 @@ public sealed class LocalRuneRewardService
     {
         if (string.IsNullOrWhiteSpace(playerId)) return new RuneProfile();
         return LoadProfileByKey(GetProfileKey(playerId));
+    }
+
+    public bool TryEquipRune(
+        string playerId,
+        string heroId,
+        string runeId,
+        out RuneProfile updatedProfile)
+    {
+        if (string.IsNullOrWhiteSpace(playerId) ||
+            string.IsNullOrWhiteSpace(heroId) ||
+            RuneCatalog.Find(runeId) == null)
+        {
+            updatedProfile = new RuneProfile();
+            return false;
+        }
+
+        string profileKey = GetProfileKey(playerId);
+        RuneProfile profile = LoadProfileByKey(profileKey);
+        RuneInventoryEntry inventory = FindInventoryEntry(profile, runeId);
+        if (inventory == null)
+        {
+            updatedProfile = profile;
+            return false;
+        }
+
+        HeroRuneLoadoutEntry heroLoadout = FindHeroLoadout(profile, heroId);
+        int assignedToOtherHeroes = CountAssignedRunes(
+            profile,
+            runeId,
+            heroLoadout != null ? heroId : null);
+        if (inventory.OwnedCount <= assignedToOtherHeroes)
+        {
+            updatedProfile = profile;
+            return false;
+        }
+
+        if (heroLoadout == null)
+        {
+            heroLoadout = new HeroRuneLoadoutEntry { HeroId = heroId };
+            profile.Loadouts.Add(heroLoadout);
+        }
+        heroLoadout.RuneId = runeId;
+
+        SaveProfile(profileKey, profile);
+        updatedProfile = profile;
+        return true;
     }
 
     private static RuneProfile LoadProfileByKey(string profileKey)
@@ -67,6 +113,7 @@ public sealed class LocalRuneRewardService
             if (profile == null) return new RuneProfile();
             if (profile.Inventory == null) profile.Inventory = new List<RuneInventoryEntry>();
             if (profile.LastRunRewards == null) profile.LastRunRewards = new List<RuneReward>();
+            if (profile.Loadouts == null) profile.Loadouts = new List<HeroRuneLoadoutEntry>();
             return profile;
         }
         catch (Exception exception)
@@ -86,6 +133,44 @@ public sealed class LocalRuneRewardService
         var entry = new RuneInventoryEntry { RuneId = runeId };
         profile.Inventory.Add(entry);
         return entry;
+    }
+
+    private static RuneInventoryEntry FindInventoryEntry(RuneProfile profile, string runeId)
+    {
+        for (int index = 0; index < profile.Inventory.Count; index++)
+        {
+            if (profile.Inventory[index].RuneId == runeId) return profile.Inventory[index];
+        }
+        return null;
+    }
+
+    private static HeroRuneLoadoutEntry FindHeroLoadout(RuneProfile profile, string heroId)
+    {
+        for (int index = 0; index < profile.Loadouts.Count; index++)
+        {
+            if (profile.Loadouts[index].HeroId == heroId) return profile.Loadouts[index];
+        }
+        return null;
+    }
+
+    private static int CountAssignedRunes(
+        RuneProfile profile,
+        string runeId,
+        string excludedHeroId)
+    {
+        int count = 0;
+        for (int index = 0; index < profile.Loadouts.Count; index++)
+        {
+            HeroRuneLoadoutEntry loadout = profile.Loadouts[index];
+            if (loadout.RuneId == runeId && loadout.HeroId != excludedHeroId) count++;
+        }
+        return count;
+    }
+
+    private static void SaveProfile(string profileKey, RuneProfile profile)
+    {
+        PlayerPrefs.SetString(profileKey, JsonUtility.ToJson(profile));
+        PlayerPrefs.Save();
     }
 
     private static RuneReward CloneReward(RuneReward reward)

@@ -12,6 +12,7 @@ using UnityEngine.UI;
 public sealed class MainEnergyController : MonoBehaviour
 {
     private const int RewardedAdEnergy = 10;
+    private const int RewardedAdDailyLimit = 3;
     private const string EnergyRewardPlacement = "energy_reward";
 
     private GameObject addEnergyPanel;
@@ -31,7 +32,10 @@ public sealed class MainEnergyController : MonoBehaviour
     private bool requestInProgress;
     private bool refreshInProgress;
     private bool adInProgress;
+    private bool adStatusRefreshInProgress;
+    private bool adDailyLimitReached;
     private bool transitionRequested;
+    private int rewardedAdClaimsUsed;
 
     private void Awake()
     {
@@ -70,6 +74,11 @@ public sealed class MainEnergyController : MonoBehaviour
             PlayerEnergyState state = await energyGateway.GetEnergyAsync(
                 playerId, lifetimeCancellation.Token);
             RefreshEnergy(state);
+            DailyRewardStatus adStatus = await energyGateway.GetRewardedAdStatusAsync(
+                playerId,
+                RewardedAdDailyLimit,
+                lifetimeCancellation.Token);
+            RefreshAdStatus(adStatus);
             recoveryRefreshCoroutine = StartCoroutine(RecoveryRefreshRoutine(playerId));
         }
         catch (OperationCanceledException)
@@ -179,21 +188,61 @@ public sealed class MainEnergyController : MonoBehaviour
     private void ShowAddEnergyPanel()
     {
         if (requestInProgress || adInProgress || transitionRequested) return;
-        ShowTip(string.Empty);
+        ShowTip(adDailyLimitReached ? "Not enough" : string.Empty);
         addEnergyPanel.SetActive(true);
         startButton.interactable = false;
         UpdateEnergyPanelButtons();
+        RefreshAdStatusForOpenPanel();
     }
 
     private void HideAddEnergyPanel()
     {
         if (adInProgress) return;
         addEnergyPanel.SetActive(false);
+        ShowTip(string.Empty);
         if (!requestInProgress && !transitionRequested) startButton.interactable = true;
+    }
+
+    private async void RefreshAdStatusForOpenPanel()
+    {
+        if (adStatusRefreshInProgress) return;
+        string playerId = GetPlayerId();
+        if (string.IsNullOrEmpty(playerId)) return;
+
+        adStatusRefreshInProgress = true;
+        try
+        {
+            DailyRewardStatus status = await energyGateway.GetRewardedAdStatusAsync(
+                playerId,
+                RewardedAdDailyLimit,
+                lifetimeCancellation.Token);
+            RefreshAdStatus(status);
+            if (status.CanClaim) adDailyLimitReached = false;
+            ShowTip(adDailyLimitReached ? "Not enough" : string.Empty);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+        }
+        finally
+        {
+            adStatusRefreshInProgress = false;
+        }
     }
 
     private async void OnVideoClicked()
     {
+        if (rewardedAdClaimsUsed >= RewardedAdDailyLimit)
+        {
+            adDailyLimitReached = true;
+            ShowTip("Not enough");
+            UpdateEnergyPanelButtons();
+            return;
+        }
+
         if (adInProgress || requestInProgress || transitionRequested || currentEnergyState == null ||
             currentEnergyState.Current >= currentEnergyState.Maximum)
         {
@@ -218,13 +267,26 @@ public sealed class MainEnergyController : MonoBehaviour
                 EnergyRewardPlacement, lifetimeCancellation.Token);
             if (result != RewardedAdResult.Completed) return;
 
-            PlayerEnergyState state = await energyGateway.GrantEnergyAsync(
+            RewardedAdEnergyClaimResult claim = await energyGateway.ClaimRewardedAdEnergyAsync(
                 playerId,
                 RewardedAdEnergy,
+                RewardedAdDailyLimit,
                 transactionId,
                 lifetimeCancellation.Token);
-            RefreshEnergy(state);
+            rewardedAdClaimsUsed = claim.ClaimsUsed;
+            RefreshEnergy(claim.State);
+            if (!claim.Succeeded)
+            {
+                adDailyLimitReached = claim.LimitReached;
+                ShowTip(adDailyLimitReached ? "Not enough" : string.Empty);
+                return;
+            }
+
+            // Keep one final click available so the fourth attempt can explain
+            // the daily limit without opening the ad.
+            adDailyLimitReached = false;
             addEnergyPanel.SetActive(false);
+            ShowTip(string.Empty);
         }
         catch (OperationCanceledException)
         {
@@ -256,7 +318,11 @@ public sealed class MainEnergyController : MonoBehaviour
         rewardAmountText = addEnergyRoot?.Find("BG/Text/Image/REnergy")?.GetComponent<TMP_Text>();
         currentAmountText = transform.Find("EnergyBg/RAmount")?.GetComponent<TMP_Text>();
         maximumAmountText = transform.Find("EnergyBg/MaxAmount")?.GetComponent<TMP_Text>();
-        tipText = FindDescendant(transform, "TipText")?.GetComponent<TMP_Text>();
+        tipText = FindDescendant(addEnergyRoot, "TipText")?.GetComponent<TMP_Text>();
+        if (tipText == null)
+        {
+            tipText = FindDescendant(transform, "TipText")?.GetComponent<TMP_Text>();
+        }
 
         if (tipText == null && currentAmountText != null)
         {
@@ -300,10 +366,19 @@ public sealed class MainEnergyController : MonoBehaviour
         currentEnergyState = state;
         currentAmountText.text = state.Current.ToString();
         maximumAmountText.text = "/" + state.Maximum;
-        if (state.Current >= LocalPlayerEnergyGateway.GameStartCost && tipText.text == "Not enough")
+        if (!adDailyLimitReached &&
+            state.Current >= LocalPlayerEnergyGateway.GameStartCost &&
+            tipText.text == "Not enough")
         {
             ShowTip(string.Empty);
         }
+        UpdateEnergyPanelButtons();
+    }
+
+    private void RefreshAdStatus(DailyRewardStatus status)
+    {
+        if (status == null) return;
+        rewardedAdClaimsUsed = status.ClaimsUsed;
         UpdateEnergyPanelButtons();
     }
 
@@ -319,7 +394,11 @@ public sealed class MainEnergyController : MonoBehaviour
         if (videoButton == null) return;
         bool canReceiveEnergy = currentEnergyState != null &&
                                 currentEnergyState.Current < currentEnergyState.Maximum;
-        videoButton.interactable = canReceiveEnergy && !adInProgress && !requestInProgress;
+        bool canShowLimitFeedback = rewardedAdClaimsUsed >= RewardedAdDailyLimit &&
+                                    !adDailyLimitReached;
+        videoButton.interactable = (canReceiveEnergy || canShowLimitFeedback) &&
+                                   !adDailyLimitReached && !adInProgress &&
+                                   !requestInProgress;
     }
 
     private void ShowTip(string message)
