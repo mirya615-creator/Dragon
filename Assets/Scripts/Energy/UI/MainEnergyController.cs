@@ -14,18 +14,23 @@ public sealed class MainEnergyController : MonoBehaviour
     private const int RewardedAdEnergy = 10;
     private const int RewardedAdDailyLimit = 3;
     private const string EnergyRewardPlacement = "energy_reward";
+    private const int ShareRewardEnergy = 5;
+    private const int ShareDailyLimit = 4;
+    private const string EnergySharePlacement = "energy_share";
 
     private GameObject addEnergyPanel;
     private Button startButton;
     private Button addEnergyButton;
     private Button closeEnergyPanelButton;
     private Button videoButton;
+    private Button shareButton;
     private TMP_Text currentAmountText;
     private TMP_Text maximumAmountText;
     private TMP_Text tipText;
     private TMP_Text rewardAmountText;
     private IPlayerEnergyGateway energyGateway;
     private IRewardedAdService rewardedAdService;
+    private IShareService shareService;
     private CancellationTokenSource lifetimeCancellation;
     private Coroutine recoveryRefreshCoroutine;
     private PlayerEnergyState currentEnergyState;
@@ -34,8 +39,12 @@ public sealed class MainEnergyController : MonoBehaviour
     private bool adInProgress;
     private bool adStatusRefreshInProgress;
     private bool adDailyLimitReached;
+    private bool shareInProgress;
+    private bool shareStatusRefreshInProgress;
+    private bool shareDailyLimitReached;
     private bool transitionRequested;
     private int rewardedAdClaimsUsed;
+    private int sharesUsed;
 
     private void Awake()
     {
@@ -49,6 +58,7 @@ public sealed class MainEnergyController : MonoBehaviour
         }
 
         rewardedAdService = new MockRewardedAdService(transform, currentAmountText.font);
+        shareService = new MockShareService();
         tipText.text = string.Empty;
         rewardAmountText.text = "+" + RewardedAdEnergy;
         maximumAmountText.text = "/" + LocalPlayerEnergyGateway.MaximumEnergy;
@@ -57,6 +67,7 @@ public sealed class MainEnergyController : MonoBehaviour
         addEnergyButton.onClick.AddListener(ShowAddEnergyPanel);
         closeEnergyPanelButton.onClick.AddListener(HideAddEnergyPanel);
         videoButton.onClick.AddListener(OnVideoClicked);
+        shareButton.onClick.AddListener(OnShareClicked);
     }
 
     private async void Start()
@@ -79,6 +90,11 @@ public sealed class MainEnergyController : MonoBehaviour
                 RewardedAdDailyLimit,
                 lifetimeCancellation.Token);
             RefreshAdStatus(adStatus);
+            DailyShareStatus shareStatus = await energyGateway.GetShareStatusAsync(
+                playerId,
+                ShareDailyLimit,
+                lifetimeCancellation.Token);
+            RefreshShareStatus(shareStatus);
             recoveryRefreshCoroutine = StartCoroutine(RecoveryRefreshRoutine(playerId));
         }
         catch (OperationCanceledException)
@@ -97,6 +113,7 @@ public sealed class MainEnergyController : MonoBehaviour
         if (addEnergyButton != null) addEnergyButton.onClick.RemoveListener(ShowAddEnergyPanel);
         if (closeEnergyPanelButton != null) closeEnergyPanelButton.onClick.RemoveListener(HideAddEnergyPanel);
         if (videoButton != null) videoButton.onClick.RemoveListener(OnVideoClicked);
+        if (shareButton != null) shareButton.onClick.RemoveListener(OnShareClicked);
         if (recoveryRefreshCoroutine != null) StopCoroutine(recoveryRefreshCoroutine);
         lifetimeCancellation?.Cancel();
         lifetimeCancellation?.Dispose();
@@ -137,7 +154,8 @@ public sealed class MainEnergyController : MonoBehaviour
 
     private async void OnStartClicked()
     {
-        if (requestInProgress || adInProgress || transitionRequested || addEnergyPanel.activeSelf) return;
+        if (requestInProgress || adInProgress || shareInProgress ||
+            transitionRequested || addEnergyPanel.activeSelf) return;
 
         string playerId = GetPlayerId();
         if (string.IsNullOrEmpty(playerId) || SceneLoader.Instance == null)
@@ -187,17 +205,18 @@ public sealed class MainEnergyController : MonoBehaviour
 
     private void ShowAddEnergyPanel()
     {
-        if (requestInProgress || adInProgress || transitionRequested) return;
-        ShowTip(adDailyLimitReached ? "Not enough" : string.Empty);
+        if (requestInProgress || adInProgress || shareInProgress || transitionRequested) return;
+        ShowTip(adDailyLimitReached || shareDailyLimitReached ? "Not enough" : string.Empty);
         addEnergyPanel.SetActive(true);
         startButton.interactable = false;
         UpdateEnergyPanelButtons();
         RefreshAdStatusForOpenPanel();
+        RefreshShareStatusForOpenPanel();
     }
 
     private void HideAddEnergyPanel()
     {
-        if (adInProgress) return;
+        if (adInProgress || shareInProgress) return;
         addEnergyPanel.SetActive(false);
         ShowTip(string.Empty);
         if (!requestInProgress && !transitionRequested) startButton.interactable = true;
@@ -218,7 +237,7 @@ public sealed class MainEnergyController : MonoBehaviour
                 lifetimeCancellation.Token);
             RefreshAdStatus(status);
             if (status.CanClaim) adDailyLimitReached = false;
-            ShowTip(adDailyLimitReached ? "Not enough" : string.Empty);
+            ShowTip(adDailyLimitReached || shareDailyLimitReached ? "Not enough" : string.Empty);
         }
         catch (OperationCanceledException)
         {
@@ -233,6 +252,36 @@ public sealed class MainEnergyController : MonoBehaviour
         }
     }
 
+    private async void RefreshShareStatusForOpenPanel()
+    {
+        if (shareStatusRefreshInProgress) return;
+        string playerId = GetPlayerId();
+        if (string.IsNullOrEmpty(playerId)) return;
+
+        shareStatusRefreshInProgress = true;
+        try
+        {
+            DailyShareStatus status = await energyGateway.GetShareStatusAsync(
+                playerId,
+                ShareDailyLimit,
+                lifetimeCancellation.Token);
+            RefreshShareStatus(status);
+            if (status.CanShare) shareDailyLimitReached = false;
+            ShowTip(adDailyLimitReached || shareDailyLimitReached ? "Not enough" : string.Empty);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+        }
+        finally
+        {
+            shareStatusRefreshInProgress = false;
+        }
+    }
+
     private async void OnVideoClicked()
     {
         if (rewardedAdClaimsUsed >= RewardedAdDailyLimit)
@@ -243,7 +292,7 @@ public sealed class MainEnergyController : MonoBehaviour
             return;
         }
 
-        if (adInProgress || requestInProgress || transitionRequested || currentEnergyState == null ||
+        if (adInProgress || shareInProgress || requestInProgress || transitionRequested || currentEnergyState == null ||
             currentEnergyState.Current >= currentEnergyState.Maximum)
         {
             return;
@@ -258,7 +307,7 @@ public sealed class MainEnergyController : MonoBehaviour
 
         adInProgress = true;
         requestInProgress = true;
-        SetAdControlsInteractable(false);
+        SetRewardControlsInteractable(false);
         string transactionId = Guid.NewGuid().ToString("N");
 
         try
@@ -299,7 +348,104 @@ public sealed class MainEnergyController : MonoBehaviour
         {
             requestInProgress = false;
             adInProgress = false;
-            SetAdControlsInteractable(true);
+            SetRewardControlsInteractable(true);
+            if (!transitionRequested && startButton != null)
+            {
+                startButton.interactable = !addEnergyPanel.activeSelf;
+            }
+        }
+    }
+
+    private async void OnShareClicked()
+    {
+        if (sharesUsed >= ShareDailyLimit)
+        {
+            shareDailyLimitReached = true;
+            ShowTip("Not enough");
+            UpdateEnergyPanelButtons();
+            string limitPlayerId = GetPlayerId();
+            if (!string.IsNullOrEmpty(limitPlayerId))
+            {
+                try
+                {
+                    await energyGateway.AcknowledgeShareLimitAsync(
+                        limitPlayerId,
+                        ShareDailyLimit,
+                        lifetimeCancellation.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                }
+            }
+            return;
+        }
+
+        if (shareInProgress || adInProgress || requestInProgress || transitionRequested ||
+            currentEnergyState == null || currentEnergyState.Current >= currentEnergyState.Maximum)
+        {
+            return;
+        }
+
+        string playerId = GetPlayerId();
+        if (string.IsNullOrEmpty(playerId))
+        {
+            Debug.LogError("Cannot grant a share reward without a player session.");
+            return;
+        }
+
+        shareInProgress = true;
+        requestInProgress = true;
+        SetRewardControlsInteractable(false);
+        string transactionId = Guid.NewGuid().ToString("N");
+
+        try
+        {
+            ShareResult result = await shareService.ShareAsync(
+                new ShareRequest
+                {
+                    PlacementId = EnergySharePlacement,
+                    Message = "Play DragonBound with me!"
+                },
+                lifetimeCancellation.Token);
+            if (result != ShareResult.Completed) return;
+
+            ShareEnergyClaimResult claim = await energyGateway.ClaimShareEnergyAsync(
+                playerId,
+                ShareRewardEnergy,
+                ShareDailyLimit,
+                transactionId,
+                lifetimeCancellation.Token);
+            sharesUsed = claim.SharesUsed;
+            RefreshEnergy(claim.State);
+            if (!claim.Succeeded)
+            {
+                shareDailyLimitReached = claim.LimitReached;
+                ShowTip(shareDailyLimitReached ? "Not enough" : string.Empty);
+                return;
+            }
+
+            // Keep one final click available so the fifth attempt can explain
+            // the daily limit and then disable the button.
+            shareDailyLimitReached = false;
+            addEnergyPanel.SetActive(false);
+            ShowTip(string.Empty);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+        }
+        finally
+        {
+            requestInProgress = false;
+            shareInProgress = false;
+            SetRewardControlsInteractable(true);
             if (!transitionRequested && startButton != null)
             {
                 startButton.interactable = !addEnergyPanel.activeSelf;
@@ -315,6 +461,7 @@ public sealed class MainEnergyController : MonoBehaviour
         Transform addEnergyRoot = addEnergyPanel != null ? addEnergyPanel.transform : null;
         closeEnergyPanelButton = addEnergyRoot?.Find("BG/CloseBtn")?.GetComponent<Button>();
         videoButton = addEnergyRoot?.Find("BG/VideoBtn")?.GetComponent<Button>();
+        shareButton = addEnergyRoot?.Find("BG/ShareBtn")?.GetComponent<Button>();
         rewardAmountText = addEnergyRoot?.Find("BG/Text/Image/REnergy")?.GetComponent<TMP_Text>();
         currentAmountText = transform.Find("EnergyBg/RAmount")?.GetComponent<TMP_Text>();
         maximumAmountText = transform.Find("EnergyBg/MaxAmount")?.GetComponent<TMP_Text>();
@@ -330,11 +477,12 @@ public sealed class MainEnergyController : MonoBehaviour
         }
 
         bool complete = startButton != null && addEnergyButton != null && addEnergyPanel != null &&
-                        closeEnergyPanelButton != null && videoButton != null && rewardAmountText != null &&
+                        closeEnergyPanelButton != null && videoButton != null && shareButton != null &&
+                        rewardAmountText != null &&
                         currentAmountText != null && maximumAmountText != null && tipText != null;
         if (!complete)
         {
-            Debug.LogError("MainEnergyController is missing energy, rewarded-ad, or TipText UI.");
+            Debug.LogError("MainEnergyController is missing energy, reward, share, or TipText UI.");
         }
         return complete;
     }
@@ -366,7 +514,7 @@ public sealed class MainEnergyController : MonoBehaviour
         currentEnergyState = state;
         currentAmountText.text = state.Current.ToString();
         maximumAmountText.text = "/" + state.Maximum;
-        if (!adDailyLimitReached &&
+        if (!adDailyLimitReached && !shareDailyLimitReached &&
             state.Current >= LocalPlayerEnergyGateway.GameStartCost &&
             tipText.text == "Not enough")
         {
@@ -382,7 +530,15 @@ public sealed class MainEnergyController : MonoBehaviour
         UpdateEnergyPanelButtons();
     }
 
-    private void SetAdControlsInteractable(bool interactable)
+    private void RefreshShareStatus(DailyShareStatus status)
+    {
+        if (status == null) return;
+        sharesUsed = status.SharesUsed;
+        shareDailyLimitReached = status.LimitFeedbackConsumed;
+        UpdateEnergyPanelButtons();
+    }
+
+    private void SetRewardControlsInteractable(bool interactable)
     {
         if (addEnergyButton != null) addEnergyButton.interactable = interactable;
         if (closeEnergyPanelButton != null) closeEnergyPanelButton.interactable = interactable;
@@ -391,14 +547,19 @@ public sealed class MainEnergyController : MonoBehaviour
 
     private void UpdateEnergyPanelButtons()
     {
-        if (videoButton == null) return;
+        if (videoButton == null || shareButton == null) return;
         bool canReceiveEnergy = currentEnergyState != null &&
                                 currentEnergyState.Current < currentEnergyState.Maximum;
-        bool canShowLimitFeedback = rewardedAdClaimsUsed >= RewardedAdDailyLimit &&
-                                    !adDailyLimitReached;
-        videoButton.interactable = (canReceiveEnergy || canShowLimitFeedback) &&
+        bool canShowAdLimitFeedback = rewardedAdClaimsUsed >= RewardedAdDailyLimit &&
+                                      !adDailyLimitReached;
+        bool canShowShareLimitFeedback = sharesUsed >= ShareDailyLimit &&
+                                         !shareDailyLimitReached;
+        bool rewardRequestIdle = !adInProgress && !shareInProgress && !requestInProgress;
+        videoButton.interactable = (canReceiveEnergy || canShowAdLimitFeedback) &&
                                    !adDailyLimitReached && !adInProgress &&
-                                   !requestInProgress;
+                                   rewardRequestIdle;
+        shareButton.interactable = (canReceiveEnergy || canShowShareLimitFeedback) &&
+                                   !shareDailyLimitReached && rewardRequestIdle;
     }
 
     private void ShowTip(string message)

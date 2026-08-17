@@ -27,6 +27,24 @@ public sealed class GoldSettlementResult
     public bool Applied;
 }
 
+public sealed class GoldSpendResult
+{
+    public long Amount;
+    public long Balance;
+    public bool Success;
+    public bool Applied;
+}
+
+public static class PlayerGoldEvents
+{
+    public static event Action<string, long> BalanceChanged;
+
+    public static void RaiseBalanceChanged(string playerId, long balance)
+    {
+        BalanceChanged?.Invoke(playerId, balance);
+    }
+}
+
 /// <summary>
 /// Player gold boundary. A server-backed unary-call implementation can replace the local gateway.
 /// </summary>
@@ -42,5 +60,11 @@ public interface IPlayerGoldGateway
         MatchOutcome outcome,
         GoldClaimType claimType,
         string adVerificationId,
+        CancellationToken cancellationToken);
+
+    Task<GoldSpendResult> TrySpendAsync(
+        string playerId,
+        long amount,
+        string transactionId,
         CancellationToken cancellationToken);
 }

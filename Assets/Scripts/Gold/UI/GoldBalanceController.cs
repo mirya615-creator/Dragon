@@ -13,6 +13,7 @@ public sealed class GoldBalanceController : MonoBehaviour
     private TMP_Text amountText;
     private IPlayerGoldGateway goldGateway;
     private CancellationTokenSource lifetimeCancellation;
+    private string playerId;
 
     private void Awake()
     {
@@ -28,6 +29,7 @@ public sealed class GoldBalanceController : MonoBehaviour
         }
 
         amountText.text = "0";
+        PlayerGoldEvents.BalanceChanged += OnBalanceChanged;
     }
 
     private async void Start()
@@ -41,8 +43,9 @@ public sealed class GoldBalanceController : MonoBehaviour
 
         try
         {
+            playerId = session.PlayerId;
             PlayerGoldState state = await goldGateway.GetGoldAsync(
-                session.PlayerId,
+                playerId,
                 lifetimeCancellation.Token);
             amountText.text = state.Balance.ToString(CultureInfo.InvariantCulture);
         }
@@ -57,8 +60,15 @@ public sealed class GoldBalanceController : MonoBehaviour
 
     private void OnDestroy()
     {
+        PlayerGoldEvents.BalanceChanged -= OnBalanceChanged;
         lifetimeCancellation?.Cancel();
         lifetimeCancellation?.Dispose();
         lifetimeCancellation = null;
+    }
+
+    private void OnBalanceChanged(string changedPlayerId, long balance)
+    {
+        if (changedPlayerId != playerId || amountText == null) return;
+        amountText.text = balance.ToString(CultureInfo.InvariantCulture);
     }
 }

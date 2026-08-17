@@ -20,6 +20,9 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
     private const string RewardTransactionKeySegment = ".reward.";
     private const string RewardedAdDayKeySuffix = ".rewarded-ad-day";
     private const string RewardedAdCountKeySuffix = ".rewarded-ad-count";
+    private const string ShareDayKeySuffix = ".share-day";
+    private const string ShareCountKeySuffix = ".share-count";
+    private const string ShareLimitFeedbackDayKeySuffix = ".share-limit-feedback-day";
 
     public Task<PlayerEnergyState> GetEnergyAsync(
         string playerId,
@@ -178,6 +181,94 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
             true, daily.Count, dailyLimit, energy));
     }
 
+    public Task<DailyShareStatus> GetShareStatusAsync(
+        string playerId,
+        int dailyLimit,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (dailyLimit <= 0) throw new ArgumentOutOfRangeException(nameof(dailyLimit));
+
+        string key = GetEnergyKey(playerId);
+        DailyShareRecord record = LoadDailyShareRecord(key);
+        if (record.Changed) SaveDailyShareRecord(key, record);
+        return Task.FromResult(CreateDailyShareStatus(record, dailyLimit));
+    }
+
+    public Task<ShareEnergyClaimResult> ClaimShareEnergyAsync(
+        string playerId,
+        int amount,
+        int dailyLimit,
+        string shareTransactionId,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+        if (dailyLimit <= 0) throw new ArgumentOutOfRangeException(nameof(dailyLimit));
+        if (string.IsNullOrWhiteSpace(shareTransactionId))
+        {
+            throw new ArgumentException("Share transaction ID is required.", nameof(shareTransactionId));
+        }
+
+        string key = GetEnergyKey(playerId);
+        string transactionKey = key + RewardTransactionKeySegment + HashKey(shareTransactionId);
+        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        EnergyRecord energy = LoadAndRecover(key, now);
+        DailyShareRecord daily = LoadDailyShareRecord(key);
+
+        if (PlayerPrefs.HasKey(transactionKey))
+        {
+            if (energy.Changed) Save(key, energy.Current, energy.NextRecoveryUnixTime);
+            return Task.FromResult(CreateShareClaimResult(
+                true, daily.Count, dailyLimit, energy));
+        }
+
+        if (daily.Count >= dailyLimit)
+        {
+            if (energy.Changed) Save(key, energy.Current, energy.NextRecoveryUnixTime);
+            if (daily.Changed) SaveDailyShareRecord(key, daily);
+            return Task.FromResult(CreateShareClaimResult(
+                false, daily.Count, dailyLimit, energy));
+        }
+
+        energy.Current = Mathf.Min(MaximumEnergy, energy.Current + amount);
+        if (energy.Current >= MaximumEnergy)
+        {
+            energy.NextRecoveryUnixTime = 0;
+        }
+        else if (energy.NextRecoveryUnixTime <= 0)
+        {
+            energy.NextRecoveryUnixTime = now + RecoveryIntervalSeconds;
+        }
+
+        daily.Count++;
+        PlayerPrefs.SetInt(transactionKey, 1);
+        PlayerPrefs.SetString(key + ShareDayKeySuffix, daily.DayKey);
+        PlayerPrefs.SetInt(key + ShareCountKeySuffix, daily.Count);
+        Save(key, energy.Current, energy.NextRecoveryUnixTime);
+        return Task.FromResult(CreateShareClaimResult(
+            true, daily.Count, dailyLimit, energy));
+    }
+
+    public Task<DailyShareStatus> AcknowledgeShareLimitAsync(
+        string playerId,
+        int dailyLimit,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (dailyLimit <= 0) throw new ArgumentOutOfRangeException(nameof(dailyLimit));
+
+        string key = GetEnergyKey(playerId);
+        DailyShareRecord record = LoadDailyShareRecord(key);
+        if (record.Count >= dailyLimit)
+        {
+            record.LimitFeedbackConsumed = true;
+            record.Changed = true;
+        }
+        if (record.Changed) SaveDailyShareRecord(key, record);
+        return Task.FromResult(CreateDailyShareStatus(record, dailyLimit));
+    }
+
     private static EnergyRecord LoadAndRecover(string energyKey, long now)
     {
         bool hasEnergy = PlayerPrefs.HasKey(energyKey);
@@ -259,6 +350,38 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
         };
     }
 
+    private static DailyShareRecord LoadDailyShareRecord(string energyKey)
+    {
+        string currentDayKey = DateTimeOffset.UtcNow.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+        string storedDayKey = PlayerPrefs.GetString(
+            energyKey + ShareDayKeySuffix,
+            string.Empty);
+        int storedCount = PlayerPrefs.GetInt(energyKey + ShareCountKeySuffix, 0);
+        string feedbackDayKey = PlayerPrefs.GetString(
+            energyKey + ShareLimitFeedbackDayKeySuffix,
+            string.Empty);
+
+        if (storedDayKey != currentDayKey)
+        {
+            return new DailyShareRecord
+            {
+                DayKey = currentDayKey,
+                Count = 0,
+                LimitFeedbackConsumed = false,
+                Changed = true
+            };
+        }
+
+        int safeCount = Math.Max(0, storedCount);
+        return new DailyShareRecord
+        {
+            DayKey = currentDayKey,
+            Count = safeCount,
+            LimitFeedbackConsumed = feedbackDayKey == currentDayKey,
+            Changed = safeCount != storedCount
+        };
+    }
+
     private static string GetEnergyKey(string playerId)
     {
         if (string.IsNullOrWhiteSpace(playerId))
@@ -314,6 +437,33 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
         };
     }
 
+    private static DailyShareStatus CreateDailyShareStatus(DailyShareRecord record, int dailyLimit)
+    {
+        return new DailyShareStatus
+        {
+            SharesUsed = record.Count,
+            DailyLimit = dailyLimit,
+            CanShare = record.Count < dailyLimit,
+            LimitFeedbackConsumed = record.LimitFeedbackConsumed
+        };
+    }
+
+    private static ShareEnergyClaimResult CreateShareClaimResult(
+        bool succeeded,
+        int count,
+        int dailyLimit,
+        EnergyRecord energy)
+    {
+        return new ShareEnergyClaimResult
+        {
+            Succeeded = succeeded,
+            LimitReached = count >= dailyLimit,
+            SharesUsed = count,
+            DailyLimit = dailyLimit,
+            State = CreateState(energy.Current, energy.NextRecoveryUnixTime)
+        };
+    }
+
     private static void Save(string key, int current, long nextRecoveryUnixTime)
     {
         PlayerPrefs.SetInt(key, current);
@@ -330,6 +480,17 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
         PlayerPrefs.Save();
     }
 
+    private static void SaveDailyShareRecord(string key, DailyShareRecord record)
+    {
+        PlayerPrefs.SetString(key + ShareDayKeySuffix, record.DayKey);
+        PlayerPrefs.SetInt(key + ShareCountKeySuffix, record.Count);
+        if (record.LimitFeedbackConsumed)
+        {
+            PlayerPrefs.SetString(key + ShareLimitFeedbackDayKeySuffix, record.DayKey);
+        }
+        PlayerPrefs.Save();
+    }
+
     private struct EnergyRecord
     {
         public int Current;
@@ -341,6 +502,14 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
     {
         public string DayKey;
         public int Count;
+        public bool Changed;
+    }
+
+    private struct DailyShareRecord
+    {
+        public string DayKey;
+        public int Count;
+        public bool LimitFeedbackConsumed;
         public bool Changed;
     }
 }

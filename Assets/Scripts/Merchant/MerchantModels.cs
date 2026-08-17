@@ -1,0 +1,89 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+[Serializable]
+public sealed class MerchantProduct
+{
+    public string ProductId;
+    public string ChineseName;
+    public string EnglishName;
+    public string Rarity;
+    public string ItemType;
+    public int GoldPrice;
+    public string Introduction;
+    public string IconKey;
+    public bool GoldPurchasable;
+}
+
+[Serializable]
+public sealed class MerchantOffer
+{
+    public string OfferId;
+    public List<MerchantProduct> Products = new List<MerchantProduct>();
+    public bool Purchased;
+    public string PurchasedProductId;
+}
+
+public sealed class MerchantRunResult
+{
+    public bool Applied;
+    public int CompletedRunCount;
+    public MerchantOffer Offer;
+}
+
+public enum MerchantPurchaseStatus
+{
+    Success,
+    InsufficientGold,
+    OfferUnavailable,
+    ProductUnavailable,
+    AlreadyPurchased
+}
+
+public sealed class MerchantPurchaseResult
+{
+    public MerchantPurchaseStatus Status;
+    public long GoldBalance;
+    public bool Applied;
+}
+
+/// <summary>
+/// Merchant service boundary. The production implementation maps each method to
+/// one Go unary call; the Main UI never reads PlayerPrefs or rolls products itself.
+/// </summary>
+public interface IMerchantGateway
+{
+    Task<MerchantRunResult> RecordCompletedRunAsync(
+        string playerId,
+        string runId,
+        CancellationToken cancellationToken);
+
+    Task<MerchantOffer> GetCurrentOfferAsync(
+        string playerId,
+        CancellationToken cancellationToken);
+
+    Task<MerchantPurchaseResult> PurchaseAsync(
+        string playerId,
+        string offerId,
+        string productId,
+        string idempotencyKey,
+        CancellationToken cancellationToken);
+}
+
+public interface IMerchantItemIconProvider
+{
+    UnityEngine.Sprite Load(string iconKey);
+}
+
+public sealed class ResourcesMerchantItemIconProvider : IMerchantItemIconProvider
+{
+    private const string IconRoot = "Merchant/Icons/";
+
+    public UnityEngine.Sprite Load(string iconKey)
+    {
+        if (string.IsNullOrWhiteSpace(iconKey)) return null;
+        return UnityEngine.Resources.Load<UnityEngine.Sprite>(IconRoot + iconKey);
+    }
+}

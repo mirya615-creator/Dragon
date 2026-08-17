@@ -17,6 +17,7 @@ public sealed class LocalPlayerGoldGateway : IPlayerGoldGateway
 
     private const string GoldKeyPrefix = "dragonbound.player-gold.";
     private const string MatchKeySegment = ".match.";
+    private const string SpendKeySegment = ".spend.";
 
     public Task<PlayerGoldState> GetGoldAsync(
         string playerId,
@@ -64,11 +65,65 @@ public sealed class LocalPlayerGoldGateway : IPlayerGoldGateway
         PlayerPrefs.SetString(goldKey, updatedBalance.ToString(CultureInfo.InvariantCulture));
         PlayerPrefs.SetInt(matchKey, (int)appliedReward);
         PlayerPrefs.Save();
+        PlayerGoldEvents.RaiseBalanceChanged(playerId, updatedBalance);
 
         return Task.FromResult(new GoldSettlementResult
         {
             Reward = appliedReward,
             Balance = updatedBalance,
+            Applied = true
+        });
+    }
+
+    public Task<GoldSpendResult> TrySpendAsync(
+        string playerId,
+        long amount,
+        string transactionId,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+        if (string.IsNullOrWhiteSpace(transactionId))
+        {
+            throw new ArgumentException("Transaction ID is required.", nameof(transactionId));
+        }
+
+        string goldKey = GetGoldKey(playerId);
+        string spendKey = goldKey + SpendKeySegment + HashKey(transactionId);
+        long currentBalance = LoadBalance(goldKey);
+        if (PlayerPrefs.HasKey(spendKey))
+        {
+            return Task.FromResult(new GoldSpendResult
+            {
+                Amount = PlayerPrefs.GetInt(spendKey, 0),
+                Balance = currentBalance,
+                Success = true,
+                Applied = false
+            });
+        }
+
+        if (currentBalance < amount)
+        {
+            return Task.FromResult(new GoldSpendResult
+            {
+                Amount = amount,
+                Balance = currentBalance,
+                Success = false,
+                Applied = false
+            });
+        }
+
+        long updatedBalance = currentBalance - amount;
+        PlayerPrefs.SetString(goldKey, updatedBalance.ToString(CultureInfo.InvariantCulture));
+        PlayerPrefs.SetInt(spendKey, amount > int.MaxValue ? int.MaxValue : (int)amount);
+        PlayerPrefs.Save();
+        PlayerGoldEvents.RaiseBalanceChanged(playerId, updatedBalance);
+
+        return Task.FromResult(new GoldSpendResult
+        {
+            Amount = amount,
+            Balance = updatedBalance,
+            Success = true,
             Applied = true
         });
     }

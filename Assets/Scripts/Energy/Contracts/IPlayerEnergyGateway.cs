@@ -32,6 +32,23 @@ public sealed class RewardedAdEnergyClaimResult
     public PlayerEnergyState State;
 }
 
+public sealed class DailyShareStatus
+{
+    public int SharesUsed;
+    public int DailyLimit;
+    public bool CanShare;
+    public bool LimitFeedbackConsumed;
+}
+
+public sealed class ShareEnergyClaimResult
+{
+    public bool Succeeded;
+    public bool LimitReached;
+    public int SharesUsed;
+    public int DailyLimit;
+    public PlayerEnergyState State;
+}
+
 /// <summary>
 /// Player energy boundary. A server-backed unary-call implementation can replace the local gateway.
 /// </summary>
@@ -61,5 +78,22 @@ public interface IPlayerEnergyGateway
         int amount,
         int dailyLimit,
         string rewardTransactionId,
+        CancellationToken cancellationToken);
+
+    Task<DailyShareStatus> GetShareStatusAsync(
+        string playerId,
+        int dailyLimit,
+        CancellationToken cancellationToken);
+
+    Task<ShareEnergyClaimResult> ClaimShareEnergyAsync(
+        string playerId,
+        int amount,
+        int dailyLimit,
+        string shareTransactionId,
+        CancellationToken cancellationToken);
+
+    Task<DailyShareStatus> AcknowledgeShareLimitAsync(
+        string playerId,
+        int dailyLimit,
         CancellationToken cancellationToken);
 }

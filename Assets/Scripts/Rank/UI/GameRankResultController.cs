@@ -20,6 +20,7 @@ public sealed class GameRankResultController : MonoBehaviour
     private Button doubleButton;
     private IPlayerRankGateway rankGateway;
     private IPlayerGoldGateway goldGateway;
+    private IMerchantGateway merchantGateway;
     private IRewardedAdService rewardedAdService;
     private CancellationTokenSource lifetimeCancellation;
     private string matchId;
@@ -35,6 +36,7 @@ public sealed class GameRankResultController : MonoBehaviour
         returnButton = FindButton("ReturnBtn");
         rankGateway = new LocalPlayerRankGateway();
         goldGateway = new LocalPlayerGoldGateway();
+        merchantGateway = new LocalMerchantGateway();
         lifetimeCancellation = new CancellationTokenSource();
         matchId = Guid.NewGuid().ToString("N");
 
@@ -204,6 +206,10 @@ public sealed class GameRankResultController : MonoBehaviour
             pendingOutcome,
             claimType,
             adVerificationId,
+            lifetimeCancellation.Token);
+        await merchantGateway.RecordCompletedRunAsync(
+            session.PlayerId,
+            matchId,
             lifetimeCancellation.Token);
         LoadMainScene();
     }
