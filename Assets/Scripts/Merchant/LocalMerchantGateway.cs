@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -17,15 +18,23 @@ public sealed class LocalMerchantGateway : IMerchantGateway
     private const string StateKeyPrefix = "dragonbound.merchant.state.";
     private const string RunKeyPrefix = "dragonbound.merchant.run.";
     private const string PurchaseKeyPrefix = "dragonbound.merchant.purchase.";
+    private const string RemoveKeyPrefix = "dragonbound.merchant.remove.";
 
     private readonly IPlayerGoldGateway goldGateway = new LocalPlayerGoldGateway();
 
     [Serializable]
     private sealed class LocalMerchantState
     {
+        public string DayKey;
         public int CompletedRunCount;
         public MerchantOffer CurrentOffer;
         public List<string> OwnedProductIds = new List<string>();
+    }
+
+    public Task<MerchantDayKey> GetDayKeyAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(new MerchantDayKey { Value = GetLocalDayKey() });
     }
 
     public Task<MerchantRunResult> RecordCompletedRunAsync(
@@ -55,11 +64,19 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         // Entering and completing a later run expires the preceding offer.
         if (state.CurrentOffer != null) state.CurrentOffer = null;
 
-        state.CompletedRunCount++;
-        if (state.CompletedRunCount >= RunsPerOffer)
+        if (GetOwnedCount(state) >= MerchantItemCatalog.All.Count)
         {
             state.CompletedRunCount = 0;
-            state.CurrentOffer = CreateOffer();
+            state.CurrentOffer = null;
+        }
+        else
+        {
+            state.CompletedRunCount++;
+            if (state.CompletedRunCount >= RunsPerOffer)
+            {
+                state.CompletedRunCount = 0;
+                state.CurrentOffer = CreateOffer(state);
+            }
         }
 
         SaveState(playerId, state);
@@ -90,14 +107,47 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         cancellationToken.ThrowIfCancellationRequested();
         ValidatePlayerId(playerId);
 
-        LocalMerchantState state = LoadState(playerId);
-        var inventory = new MerchantInventory();
-        foreach (string productId in state.OwnedProductIds)
+        return Task.FromResult(CreateInventory(LoadState(playerId)));
+    }
+
+    public Task<MerchantRemoveResult> RemoveInventoryItemAsync(
+        string playerId,
+        string productId,
+        string idempotencyKey,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidatePlayerId(playerId);
+        if (string.IsNullOrWhiteSpace(productId))
         {
-            MerchantProduct product = MerchantItemCatalog.Find(productId);
-            if (product != null) inventory.Products.Add(product);
+            throw new ArgumentException("Product ID is required.", nameof(productId));
         }
-        return Task.FromResult(inventory);
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            throw new ArgumentException("Idempotency key is required.", nameof(idempotencyKey));
+        }
+
+        string removeKey = RemoveKeyPrefix + HashKey(
+            playerId + ":" + productId + ":" + idempotencyKey);
+        LocalMerchantState state = LoadState(playerId);
+        if (PlayerPrefs.HasKey(removeKey))
+        {
+            return Task.FromResult(new MerchantRemoveResult
+            {
+                Removed = false,
+                Inventory = CreateInventory(state)
+            });
+        }
+
+        bool removed = state.OwnedProductIds.Remove(productId);
+        if (removed) SaveState(playerId, state);
+        PlayerPrefs.SetInt(removeKey, removed ? 1 : 0);
+        PlayerPrefs.Save();
+        return Task.FromResult(new MerchantRemoveResult
+        {
+            Removed = removed,
+            Inventory = CreateInventory(state)
+        });
     }
 
     public async Task<MerchantPurchaseResult> PurchaseAsync(
@@ -138,6 +188,11 @@ public sealed class LocalMerchantGateway : IMerchantGateway
             return await ResultAsync(MerchantPurchaseStatus.AlreadyPurchased, playerId, cancellationToken);
         }
 
+        if (state.OwnedProductIds.Contains(productId))
+        {
+            return await ResultAsync(MerchantPurchaseStatus.AlreadyOwned, playerId, cancellationToken);
+        }
+
         MerchantProduct product = offer.Products.Find(item => item.ProductId == productId);
         if (product == null || !product.GoldPurchasable)
         {
@@ -174,9 +229,13 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         };
     }
 
-    private static MerchantOffer CreateOffer()
+    private static MerchantOffer CreateOffer(LocalMerchantState state)
     {
         List<MerchantProduct> candidates = MerchantItemCatalog.GetGoldCandidates();
+        var ownedIds = new HashSet<string>(state.OwnedProductIds);
+        candidates.RemoveAll(product => ownedIds.Contains(product.ProductId));
+        if (candidates.Count == 0) return null;
+
         var selected = new List<MerchantProduct>();
         int count = Math.Min(ProductsPerOffer, candidates.Count);
         for (int index = 0; index < count; index++)
@@ -202,6 +261,17 @@ public sealed class LocalMerchantGateway : IMerchantGateway
             : null;
     }
 
+    private static MerchantInventory CreateInventory(LocalMerchantState state)
+    {
+        var inventory = new MerchantInventory();
+        foreach (string productId in state.OwnedProductIds)
+        {
+            MerchantProduct product = MerchantItemCatalog.Find(productId);
+            if (product != null) inventory.Products.Add(product);
+        }
+        return inventory;
+    }
+
     private static async Task<MerchantPurchaseResult> ResultAsync(
         MerchantPurchaseStatus status,
         string playerId,
@@ -220,19 +290,27 @@ public sealed class LocalMerchantGateway : IMerchantGateway
 
     private static LocalMerchantState LoadState(string playerId)
     {
+        string currentDayKey = GetLocalDayKey();
         string json = PlayerPrefs.GetString(GetStateKey(playerId), string.Empty);
-        if (string.IsNullOrWhiteSpace(json)) return new LocalMerchantState();
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return CreateFreshDailyState(playerId, currentDayKey);
+        }
 
         try
         {
             LocalMerchantState state = JsonUtility.FromJson<LocalMerchantState>(json);
-            if (state == null) return new LocalMerchantState();
+            if (state == null || state.DayKey != currentDayKey)
+            {
+                return CreateFreshDailyState(playerId, currentDayKey);
+            }
             if (state.OwnedProductIds == null) state.OwnedProductIds = new List<string>();
+            state.OwnedProductIds = new List<string>(new HashSet<string>(state.OwnedProductIds));
             return state;
         }
         catch (Exception)
         {
-            return new LocalMerchantState();
+            return CreateFreshDailyState(playerId, currentDayKey);
         }
     }
 
@@ -244,6 +322,31 @@ public sealed class LocalMerchantGateway : IMerchantGateway
     private static string GetStateKey(string playerId)
     {
         return StateKeyPrefix + HashKey(playerId);
+    }
+
+    private static int GetOwnedCount(LocalMerchantState state)
+    {
+        var knownIds = new HashSet<string>();
+        foreach (string productId in state.OwnedProductIds)
+        {
+            if (MerchantItemCatalog.Find(productId) != null) knownIds.Add(productId);
+        }
+        return knownIds.Count;
+    }
+
+    private static LocalMerchantState CreateFreshDailyState(string playerId, string dayKey)
+    {
+        var state = new LocalMerchantState { DayKey = dayKey };
+        SaveState(playerId, state);
+        PlayerPrefs.Save();
+        return state;
+    }
+
+    private static string GetLocalDayKey()
+    {
+        // Development fallback. The Go implementation must return the authoritative
+        // server DayKey through GetDayKeyAsync and perform the same reset atomically.
+        return DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
 
     private static void ValidatePlayerId(string playerId)

@@ -26,6 +26,7 @@ public sealed class MainEnergyController : MonoBehaviour
     private Button shareButton;
     private TMP_Text currentAmountText;
     private TMP_Text maximumAmountText;
+    private TMP_Text mainTipText;
     private TMP_Text tipText;
     private TMP_Text rewardAmountText;
     private IPlayerEnergyGateway energyGateway;
@@ -59,6 +60,7 @@ public sealed class MainEnergyController : MonoBehaviour
 
         rewardedAdService = new MockRewardedAdService(transform, currentAmountText.font);
         shareService = new MockShareService();
+        mainTipText.text = string.Empty;
         tipText.text = string.Empty;
         rewardAmountText.text = "+" + RewardedAdEnergy;
         maximumAmountText.text = "/" + LocalPlayerEnergyGateway.MaximumEnergy;
@@ -178,11 +180,11 @@ public sealed class MainEnergyController : MonoBehaviour
             RefreshEnergy(result.State);
             if (!result.Succeeded)
             {
-                ShowTip("Not enough");
+                ShowMainTip("Not enough");
                 return;
             }
 
-            ShowTip(string.Empty);
+            ShowMainTip(string.Empty);
             transitionRequested = true;
             SceneLoader.Instance.LoadSceneAsync("Game");
         }
@@ -206,6 +208,7 @@ public sealed class MainEnergyController : MonoBehaviour
     private void ShowAddEnergyPanel()
     {
         if (requestInProgress || adInProgress || shareInProgress || transitionRequested) return;
+        ShowMainTip(string.Empty);
         ShowTip(adDailyLimitReached || shareDailyLimitReached ? "Not enough" : string.Empty);
         addEnergyPanel.SetActive(true);
         startButton.interactable = false;
@@ -483,21 +486,19 @@ public sealed class MainEnergyController : MonoBehaviour
         rewardAmountText = addEnergyRoot?.Find("BG/Text/Image/REnergy")?.GetComponent<TMP_Text>();
         currentAmountText = transform.Find("EnergyBg/RAmount")?.GetComponent<TMP_Text>();
         maximumAmountText = transform.Find("EnergyBg/MaxAmount")?.GetComponent<TMP_Text>();
+        mainTipText = transform.Find("TipText")?.GetComponent<TMP_Text>();
         tipText = FindDescendant(addEnergyRoot, "TipText")?.GetComponent<TMP_Text>();
-        if (tipText == null)
-        {
-            tipText = FindDescendant(transform, "TipText")?.GetComponent<TMP_Text>();
-        }
 
-        if (tipText == null && currentAmountText != null)
+        if (mainTipText == null && currentAmountText != null)
         {
-            tipText = CreateTipText(currentAmountText);
+            mainTipText = CreateTipText(currentAmountText);
         }
 
         bool complete = startButton != null && addEnergyButton != null && addEnergyPanel != null &&
                         closeEnergyPanelButton != null && videoButton != null && shareButton != null &&
                         rewardAmountText != null &&
-                        currentAmountText != null && maximumAmountText != null && tipText != null;
+                        currentAmountText != null && maximumAmountText != null &&
+                        mainTipText != null && tipText != null;
         if (!complete)
         {
             Debug.LogError("MainEnergyController is missing energy, reward, share, or TipText UI.");
@@ -532,6 +533,11 @@ public sealed class MainEnergyController : MonoBehaviour
         currentEnergyState = state;
         currentAmountText.text = state.Current.ToString();
         maximumAmountText.text = "/" + state.Maximum;
+        if (state.Current >= LocalPlayerEnergyGateway.GameStartCost &&
+            mainTipText.text == "Not enough")
+        {
+            ShowMainTip(string.Empty);
+        }
         if (!adDailyLimitReached && !shareDailyLimitReached &&
             state.Current >= LocalPlayerEnergyGateway.GameStartCost &&
             tipText.text == "Not enough")
@@ -584,6 +590,11 @@ public sealed class MainEnergyController : MonoBehaviour
     private void ShowTip(string message)
     {
         if (tipText != null) tipText.text = message;
+    }
+
+    private void ShowMainTip(string message)
+    {
+        if (mainTipText != null) mainTipText.text = message;
     }
 
     private static string GetPlayerId()

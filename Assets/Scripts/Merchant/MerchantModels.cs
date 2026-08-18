@@ -39,6 +39,7 @@ public enum MerchantPurchaseStatus
     InsufficientGold,
     OfferUnavailable,
     ProductUnavailable,
+    AlreadyOwned,
     AlreadyPurchased
 }
 
@@ -52,6 +53,17 @@ public sealed class MerchantPurchaseResult
 public sealed class MerchantInventory
 {
     public List<MerchantProduct> Products = new List<MerchantProduct>();
+}
+
+public sealed class MerchantRemoveResult
+{
+    public bool Removed;
+    public MerchantInventory Inventory;
+}
+
+public sealed class MerchantDayKey
+{
+    public string Value;
 }
 
 public static class MerchantPresentationStore
@@ -75,6 +87,9 @@ public static class MerchantPresentationStore
 /// </summary>
 public interface IMerchantGateway
 {
+    Task<MerchantDayKey> GetDayKeyAsync(
+        CancellationToken cancellationToken);
+
     Task<MerchantRunResult> RecordCompletedRunAsync(
         string playerId,
         string runId,
@@ -91,6 +106,12 @@ public interface IMerchantGateway
     Task<MerchantPurchaseResult> PurchaseAsync(
         string playerId,
         string offerId,
+        string productId,
+        string idempotencyKey,
+        CancellationToken cancellationToken);
+
+    Task<MerchantRemoveResult> RemoveInventoryItemAsync(
+        string playerId,
         string productId,
         string idempotencyKey,
         CancellationToken cancellationToken);
