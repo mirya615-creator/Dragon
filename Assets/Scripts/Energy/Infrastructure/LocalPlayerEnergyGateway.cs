@@ -20,6 +20,7 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
     private const string RewardTransactionKeySegment = ".reward.";
     private const string RewardedAdDayKeySuffix = ".rewarded-ad-day";
     private const string RewardedAdCountKeySuffix = ".rewarded-ad-count";
+    private const string RewardedAdLimitFeedbackDayKeySuffix = ".rewarded-ad-limit-feedback-day";
     private const string ShareDayKeySuffix = ".share-day";
     private const string ShareCountKeySuffix = ".share-count";
     private const string ShareLimitFeedbackDayKeySuffix = ".share-limit-feedback-day";
@@ -123,7 +124,7 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
         string key = GetEnergyKey(playerId);
         DailyAdRecord record = LoadDailyAdRecord(key);
         if (record.Changed) SaveDailyAdRecord(key, record);
-        return Task.FromResult(CreateDailyRewardStatus(record.Count, dailyLimit));
+        return Task.FromResult(CreateDailyRewardStatus(record, dailyLimit));
     }
 
     public Task<RewardedAdEnergyClaimResult> ClaimRewardedAdEnergyAsync(
@@ -179,6 +180,25 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
         Save(key, energy.Current, energy.NextRecoveryUnixTime);
         return Task.FromResult(CreateRewardedAdClaimResult(
             true, daily.Count, dailyLimit, energy));
+    }
+
+    public Task<DailyRewardStatus> AcknowledgeRewardedAdLimitAsync(
+        string playerId,
+        int dailyLimit,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (dailyLimit <= 0) throw new ArgumentOutOfRangeException(nameof(dailyLimit));
+
+        string key = GetEnergyKey(playerId);
+        DailyAdRecord record = LoadDailyAdRecord(key);
+        if (record.Count >= dailyLimit)
+        {
+            record.LimitFeedbackConsumed = true;
+            record.Changed = true;
+        }
+        if (record.Changed) SaveDailyAdRecord(key, record);
+        return Task.FromResult(CreateDailyRewardStatus(record, dailyLimit));
     }
 
     public Task<DailyShareStatus> GetShareStatusAsync(
@@ -330,6 +350,9 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
             energyKey + RewardedAdDayKeySuffix,
             string.Empty);
         int storedCount = PlayerPrefs.GetInt(energyKey + RewardedAdCountKeySuffix, 0);
+        string feedbackDayKey = PlayerPrefs.GetString(
+            energyKey + RewardedAdLimitFeedbackDayKeySuffix,
+            string.Empty);
 
         if (storedDayKey != currentDayKey)
         {
@@ -337,6 +360,7 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
             {
                 DayKey = currentDayKey,
                 Count = 0,
+                LimitFeedbackConsumed = false,
                 Changed = true
             };
         }
@@ -346,6 +370,7 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
         {
             DayKey = currentDayKey,
             Count = safeCount,
+            LimitFeedbackConsumed = feedbackDayKey == currentDayKey,
             Changed = safeCount != storedCount
         };
     }
@@ -411,13 +436,14 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
         };
     }
 
-    private static DailyRewardStatus CreateDailyRewardStatus(int count, int dailyLimit)
+    private static DailyRewardStatus CreateDailyRewardStatus(DailyAdRecord record, int dailyLimit)
     {
         return new DailyRewardStatus
         {
-            ClaimsUsed = count,
+            ClaimsUsed = record.Count,
             DailyLimit = dailyLimit,
-            CanClaim = count < dailyLimit
+            CanClaim = record.Count < dailyLimit,
+            LimitFeedbackConsumed = record.LimitFeedbackConsumed
         };
     }
 
@@ -477,6 +503,10 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
     {
         PlayerPrefs.SetString(key + RewardedAdDayKeySuffix, record.DayKey);
         PlayerPrefs.SetInt(key + RewardedAdCountKeySuffix, record.Count);
+        if (record.LimitFeedbackConsumed)
+        {
+            PlayerPrefs.SetString(key + RewardedAdLimitFeedbackDayKeySuffix, record.DayKey);
+        }
         PlayerPrefs.Save();
     }
 
@@ -502,6 +532,7 @@ public sealed class LocalPlayerEnergyGateway : IPlayerEnergyGateway
     {
         public string DayKey;
         public int Count;
+        public bool LimitFeedbackConsumed;
         public bool Changed;
     }
 

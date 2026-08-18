@@ -21,6 +21,7 @@ public sealed class DailyRewardStatus
     public int ClaimsUsed;
     public int DailyLimit;
     public bool CanClaim;
+    public bool LimitFeedbackConsumed;
 }
 
 public sealed class RewardedAdEnergyClaimResult
@@ -78,6 +79,11 @@ public interface IPlayerEnergyGateway
         int amount,
         int dailyLimit,
         string rewardTransactionId,
+        CancellationToken cancellationToken);
+
+    Task<DailyRewardStatus> AcknowledgeRewardedAdLimitAsync(
+        string playerId,
+        int dailyLimit,
         CancellationToken cancellationToken);
 
     Task<DailyShareStatus> GetShareStatusAsync(

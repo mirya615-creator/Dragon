@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
@@ -12,14 +13,17 @@ public sealed class MainMerchantController : MonoBehaviour
     private const string ItemPrefabPath = "prefabs/ItemBg";
 
     private readonly List<Button> buyButtons = new List<Button>();
+    private readonly List<TMP_Text> buyButtonTexts = new List<TMP_Text>();
     private GameObject merchantPanel;
     private Transform itemContainer;
     private GameObject itemPrefab;
+    private TMP_Text tipText;
     private IMerchantGateway merchantGateway;
     private IMerchantItemIconProvider iconProvider;
     private CancellationTokenSource lifetimeCancellation;
     private string playerId;
     private bool purchaseInProgress;
+    private Coroutine hideTipCoroutine;
 
     private void Awake()
     {
@@ -30,6 +34,7 @@ public sealed class MainMerchantController : MonoBehaviour
         Transform panelTransform = transform.Find("MerchantPanel");
         itemContainer = panelTransform?.Find("Bg/ChatItemCon");
         itemPrefab = Resources.Load<GameObject>(ItemPrefabPath);
+        tipText = panelTransform?.Find("Bg/TipText")?.GetComponent<TMP_Text>();
         if (panelTransform == null || itemContainer == null || itemPrefab == null)
         {
             Debug.LogError(
@@ -40,6 +45,7 @@ public sealed class MainMerchantController : MonoBehaviour
 
         merchantPanel = panelTransform.gameObject;
         merchantPanel.SetActive(false);
+        ShowTip(string.Empty);
     }
 
     private async void Start()
@@ -82,6 +88,7 @@ public sealed class MainMerchantController : MonoBehaviour
     private void Populate(MerchantOffer offer)
     {
         buyButtons.Clear();
+        buyButtonTexts.Clear();
         for (int index = itemContainer.childCount - 1; index >= 0; index--)
         {
             GameObject existing = itemContainer.GetChild(index).gameObject;
@@ -94,12 +101,16 @@ public sealed class MainMerchantController : MonoBehaviour
             GameObject itemObject = Instantiate(itemPrefab, itemContainer, false);
             itemObject.name = "ItemBg_" + product.ProductId;
 
-            SetText(itemObject.transform, "RankText", product.Rarity);
-            SetText(itemObject.transform, "NameText", product.ChineseName);
+            SetText(
+                itemObject.transform,
+                "RankText",
+                MerchantItemCatalog.GetEnglishRarity(product.Rarity));
+            SetText(itemObject.transform, "NameText", product.EnglishName);
             SetText(
                 itemObject.transform,
                 "InformText",
-                product.ItemType + " : " + product.Introduction);
+                product.ItemType + " : " +
+                MerchantItemCatalog.GetEnglishIntroduction(product.ProductId));
 
             Transform buyTransform = itemObject.transform.Find("BuyBtn");
             Button buyButton = buyTransform?.GetComponent<Button>();
@@ -118,6 +129,7 @@ public sealed class MainMerchantController : MonoBehaviour
             MerchantProduct selectedProduct = product;
             buyButton.onClick.AddListener(() => OnBuyClicked(offer, selectedProduct, buyButton, priceText));
             buyButtons.Add(buyButton);
+            buyButtonTexts.Add(priceText);
         }
     }
 
@@ -129,6 +141,7 @@ public sealed class MainMerchantController : MonoBehaviour
     {
         if (purchaseInProgress) return;
         purchaseInProgress = true;
+        ShowTip(string.Empty);
         SetButtonsInteractable(false);
 
         try
@@ -142,13 +155,15 @@ public sealed class MainMerchantController : MonoBehaviour
             switch (result.Status)
             {
                 case MerchantPurchaseStatus.Success:
-                    selectedPriceText.text = "Purchased";
+                    ShowTip(string.Empty);
+                    ShowSoldOut();
                     return;
                 case MerchantPurchaseStatus.InsufficientGold:
-                    selectedPriceText.text = "Not enough";
+                    ShowTip("Insufficient gold");
                     break;
                 case MerchantPurchaseStatus.AlreadyPurchased:
-                    selectedPriceText.text = "Purchased";
+                    ShowTip(string.Empty);
+                    ShowSoldOut();
                     return;
                 default:
                     selectedPriceText.text = "Unavailable";
@@ -179,6 +194,45 @@ public sealed class MainMerchantController : MonoBehaviour
         {
             if (button != null) button.interactable = interactable;
         }
+    }
+
+    private void ShowSoldOut()
+    {
+        SetButtonsInteractable(false);
+        foreach (TMP_Text buttonText in buyButtonTexts)
+        {
+            if (buttonText != null) buttonText.text = "Sold out";
+        }
+    }
+
+    private void ShowTip(string message)
+    {
+        if (tipText == null) return;
+        if (hideTipCoroutine != null)
+        {
+            StopCoroutine(hideTipCoroutine);
+            hideTipCoroutine = null;
+        }
+
+        if (string.IsNullOrEmpty(message))
+        {
+            tipText.text = string.Empty;
+            tipText.gameObject.SetActive(false);
+            return;
+        }
+
+        tipText.text = message;
+        tipText.gameObject.SetActive(true);
+        hideTipCoroutine = StartCoroutine(HideTipAfterDelay());
+    }
+
+    private IEnumerator HideTipAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(3f);
+        hideTipCoroutine = null;
+        if (tipText == null) yield break;
+        tipText.text = string.Empty;
+        tipText.gameObject.SetActive(false);
     }
 
     private static void SetText(Transform root, string childName, string value)

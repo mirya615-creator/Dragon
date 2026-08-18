@@ -2,6 +2,31 @@ using System.Collections.Generic;
 
 public static class MerchantItemCatalog
 {
+    private static readonly Dictionary<string, string> EnglishIntroductions =
+        new Dictionary<string, string>
+        {
+            { "ITEM_WYRMFANG_SNARE", "Place a trap: 40% HP to normal enemies, Boss capped at 5%" },
+            { "ITEM_WINTERVEIL_RUNE", "Slow all enemies by 10% for 5s; effective against Bosses" },
+            { "ITEM_MANABURST_MINE", "One-time AoE: 80 damage to normal enemies, Boss capped at 3%" },
+            { "ITEM_FRENZY_RUNE", "Target unit Attack Speed x1.4; stacks up to 2 times" },
+            { "ITEM_RUNE_TEMPERING", "50% chance to gain 1 level; 50% chance to lose 1 level" },
+            { "ITEM_WARFORGE_SIGIL", "Target unit instantly gains 1 level" },
+            { "ITEM_DRAKEHEART_RELIC", "Maximum and current Heart +3" },
+            { "ITEM_PACT_ENDURANCE", "You gain 5 Heart; your opponent gains 3 Heart" },
+            { "ITEM_FARWATCH_CREST", "Ranged and flying units gain double attack range" },
+            { "ITEM_FROST_MIRE", "Enemy Move Speed -10% for the entire match" },
+            { "ITEM_WAR_TEMPO", "Both sides gain 10% Attack Speed" },
+            { "ITEM_VETERAN_MARK", "Recruited units have a 5% chance to start at Lv.2" },
+            { "ITEM_QUARTERMASTER_SATCHEL", "Reserve slots +1" },
+            { "ITEM_SPELLBREAKER_SEAL", "Boss casts have a 50% chance to fail and deal 10% backlash" },
+            { "ITEM_RIVALRY_OATH", "Your Attack Speed +50%; opponent Attack Speed +30%" },
+            { "ITEM_FORGE_TREASURY", "Gain 3 resources after every 10 kills" },
+            { "ITEM_BATTLEFIELD_COMMAND", "The first Hero recruitment is free" },
+            { "ITEM_FORGEGIFTERS_GIFT", "Generate one Forge Pick every 90 seconds" },
+            { "ITEM_DRAGONFALL_JUDGMENT", "First enemy near the finish is judged: normal 80%, Boss capped at 8%" },
+            { "ITEM_DRACONIC_PRESENCE", "Each Hero slows enemies by 2%, up to 10%" }
+        };
+
     private static readonly MerchantProduct[] Products =
     {
         Item("ITEM_WYRMFANG_SNARE", "龙牙陷阱", "Wyrmfang Snare", "稀有", "Active", 40, "路放陷阱，秒普通怪40%血，Boss限5%"),
@@ -27,6 +52,25 @@ public static class MerchantItemCatalog
     };
 
     public static IReadOnlyList<MerchantProduct> All => Products;
+
+    public static string GetEnglishRarity(string rarity)
+    {
+        switch (rarity)
+        {
+            case "稀有": return "Rare";
+            case "卓越": return "Excellent";
+            case "史诗": return "Epic";
+            case "传说": return "Legendary";
+            default: return rarity;
+        }
+    }
+
+    public static string GetEnglishIntroduction(string productId)
+    {
+        return productId != null && EnglishIntroductions.TryGetValue(productId, out string introduction)
+            ? introduction
+            : string.Empty;
+    }
 
     public static List<MerchantProduct> GetGoldCandidates()
     {

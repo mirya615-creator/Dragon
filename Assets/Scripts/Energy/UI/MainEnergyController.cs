@@ -289,6 +289,24 @@ public sealed class MainEnergyController : MonoBehaviour
             adDailyLimitReached = true;
             ShowTip("Not enough");
             UpdateEnergyPanelButtons();
+            string limitPlayerId = GetPlayerId();
+            if (!string.IsNullOrEmpty(limitPlayerId))
+            {
+                try
+                {
+                    await energyGateway.AcknowledgeRewardedAdLimitAsync(
+                        limitPlayerId,
+                        RewardedAdDailyLimit,
+                        lifetimeCancellation.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                }
+            }
             return;
         }
 
@@ -527,6 +545,7 @@ public sealed class MainEnergyController : MonoBehaviour
     {
         if (status == null) return;
         rewardedAdClaimsUsed = status.ClaimsUsed;
+        adDailyLimitReached = status.LimitFeedbackConsumed;
         UpdateEnergyPanelButtons();
     }
 
