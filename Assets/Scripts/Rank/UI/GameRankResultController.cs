@@ -207,10 +207,14 @@ public sealed class GameRankResultController : MonoBehaviour
             claimType,
             adVerificationId,
             lifetimeCancellation.Token);
-        await merchantGateway.RecordCompletedRunAsync(
+        MerchantRunResult merchantResult = await merchantGateway.RecordCompletedRunAsync(
             session.PlayerId,
             matchId,
             lifetimeCancellation.Token);
+        if (merchantResult.Offer != null)
+        {
+            MerchantPresentationStore.MarkPending(session.PlayerId);
+        }
         LoadMainScene();
     }
 

@@ -53,6 +53,15 @@ public static class MerchantItemCatalog
 
     public static IReadOnlyList<MerchantProduct> All => Products;
 
+    public static MerchantProduct Find(string productId)
+    {
+        foreach (MerchantProduct product in Products)
+        {
+            if (product.ProductId == productId) return Clone(product);
+        }
+        return null;
+    }
+
     public static string GetEnglishRarity(string rarity)
     {
         switch (rarity)

@@ -14,8 +14,12 @@ public sealed class MainMerchantController : MonoBehaviour
 
     private readonly List<Button> buyButtons = new List<Button>();
     private readonly List<TMP_Text> buyButtonTexts = new List<TMP_Text>();
+    private readonly List<Image> activeItemImages = new List<Image>();
+    private readonly List<Image> passiveItemImages = new List<Image>();
+    private readonly HashSet<string> displayedProductIds = new HashSet<string>();
     private GameObject merchantPanel;
     private Transform itemContainer;
+    private Transform ownedItemContainer;
     private GameObject itemPrefab;
     private TMP_Text tipText;
     private IMerchantGateway merchantGateway;
@@ -24,6 +28,8 @@ public sealed class MainMerchantController : MonoBehaviour
     private string playerId;
     private bool purchaseInProgress;
     private Coroutine hideTipCoroutine;
+    private int activeItemCount;
+    private int passiveItemCount;
 
     private void Awake()
     {
@@ -33,16 +39,19 @@ public sealed class MainMerchantController : MonoBehaviour
 
         Transform panelTransform = transform.Find("MerchantPanel");
         itemContainer = panelTransform?.Find("Bg/ChatItemCon");
+        ownedItemContainer = panelTransform?.Find("Bg/ItemContainer");
         itemPrefab = Resources.Load<GameObject>(ItemPrefabPath);
         tipText = panelTransform?.Find("Bg/TipText")?.GetComponent<TMP_Text>();
-        if (panelTransform == null || itemContainer == null || itemPrefab == null)
+        if (panelTransform == null || itemContainer == null || ownedItemContainer == null || itemPrefab == null)
         {
             Debug.LogError(
-                "MainMerchantController requires MerchantPanel/Bg/ChatItemCon and Resources/prefabs/ItemBg.");
+                "MainMerchantController requires MerchantPanel/Bg/ChatItemCon, Bg/ItemContainer, " +
+                "and Resources/prefabs/ItemBg.");
             enabled = false;
             return;
         }
 
+        ResolveOwnedItemSlots();
         merchantPanel = panelTransform.gameObject;
         merchantPanel.SetActive(false);
         ShowTip(string.Empty);
@@ -60,6 +69,15 @@ public sealed class MainMerchantController : MonoBehaviour
         playerId = session.PlayerId;
         try
         {
+            MerchantInventory inventory = await merchantGateway.GetInventoryAsync(
+                playerId,
+                lifetimeCancellation.Token);
+            PopulateOwnedItems(inventory);
+
+            // Login -> Main never opens Merchant. Only a completed second run
+            // marks a one-shot presentation request before returning to Main.
+            if (!MerchantPresentationStore.TryConsumePending(playerId)) return;
+
             MerchantOffer offer = await merchantGateway.GetCurrentOfferAsync(
                 playerId,
                 lifetimeCancellation.Token);
@@ -156,6 +174,7 @@ public sealed class MainMerchantController : MonoBehaviour
             {
                 case MerchantPurchaseStatus.Success:
                     ShowTip(string.Empty);
+                    AddOwnedProduct(product);
                     ShowSoldOut();
                     return;
                 case MerchantPurchaseStatus.InsufficientGold:
@@ -203,6 +222,64 @@ public sealed class MainMerchantController : MonoBehaviour
         {
             if (buttonText != null) buttonText.text = "Sold out";
         }
+    }
+
+    private void ResolveOwnedItemSlots()
+    {
+        activeItemImages.Clear();
+        passiveItemImages.Clear();
+        int activeSlotCount = ownedItemContainer.childCount / 2;
+        for (int index = 0; index < ownedItemContainer.childCount; index++)
+        {
+            Image itemImage = ownedItemContainer.GetChild(index)
+                .Find("ItemImg")?.GetComponent<Image>();
+            if (itemImage == null) continue;
+
+            if (index < activeSlotCount) activeItemImages.Add(itemImage);
+            else passiveItemImages.Add(itemImage);
+        }
+    }
+
+    private void PopulateOwnedItems(MerchantInventory inventory)
+    {
+        activeItemCount = 0;
+        passiveItemCount = 0;
+        displayedProductIds.Clear();
+        if (inventory?.Products == null) return;
+
+        foreach (MerchantProduct product in inventory.Products)
+        {
+            AddOwnedProduct(product);
+        }
+    }
+
+    private void AddOwnedProduct(MerchantProduct product)
+    {
+        if (product == null || string.IsNullOrWhiteSpace(product.ProductId) ||
+            !displayedProductIds.Add(product.ProductId))
+        {
+            return;
+        }
+
+        bool isActive = string.Equals(product.ItemType, "Active", StringComparison.OrdinalIgnoreCase);
+        List<Image> targetRow = isActive ? activeItemImages : passiveItemImages;
+        int targetIndex = isActive ? activeItemCount : passiveItemCount;
+        if (targetIndex >= targetRow.Count)
+        {
+            Debug.LogWarning($"No free {product.ItemType} Merchant item slot for {product.ProductId}.");
+            return;
+        }
+
+        Image targetImage = targetRow[targetIndex];
+        Sprite icon = iconProvider.Load(product.IconKey);
+        if (targetImage != null && icon != null)
+        {
+            targetImage.sprite = icon;
+            targetImage.color = Color.white;
+        }
+
+        if (isActive) activeItemCount++;
+        else passiveItemCount++;
     }
 
     private void ShowTip(string message)

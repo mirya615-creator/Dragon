@@ -49,6 +49,26 @@ public sealed class MerchantPurchaseResult
     public bool Applied;
 }
 
+public sealed class MerchantInventory
+{
+    public List<MerchantProduct> Products = new List<MerchantProduct>();
+}
+
+public static class MerchantPresentationStore
+{
+    private static readonly HashSet<string> PendingPlayers = new HashSet<string>();
+
+    public static void MarkPending(string playerId)
+    {
+        if (!string.IsNullOrWhiteSpace(playerId)) PendingPlayers.Add(playerId);
+    }
+
+    public static bool TryConsumePending(string playerId)
+    {
+        return !string.IsNullOrWhiteSpace(playerId) && PendingPlayers.Remove(playerId);
+    }
+}
+
 /// <summary>
 /// Merchant service boundary. The production implementation maps each method to
 /// one Go unary call; the Main UI never reads PlayerPrefs or rolls products itself.
@@ -61,6 +81,10 @@ public interface IMerchantGateway
         CancellationToken cancellationToken);
 
     Task<MerchantOffer> GetCurrentOfferAsync(
+        string playerId,
+        CancellationToken cancellationToken);
+
+    Task<MerchantInventory> GetInventoryAsync(
         string playerId,
         CancellationToken cancellationToken);
 

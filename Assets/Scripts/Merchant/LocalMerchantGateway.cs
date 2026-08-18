@@ -83,6 +83,23 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         return Task.FromResult(GetAvailableOffer(LoadState(playerId)));
     }
 
+    public Task<MerchantInventory> GetInventoryAsync(
+        string playerId,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidatePlayerId(playerId);
+
+        LocalMerchantState state = LoadState(playerId);
+        var inventory = new MerchantInventory();
+        foreach (string productId in state.OwnedProductIds)
+        {
+            MerchantProduct product = MerchantItemCatalog.Find(productId);
+            if (product != null) inventory.Products.Add(product);
+        }
+        return Task.FromResult(inventory);
+    }
+
     public async Task<MerchantPurchaseResult> PurchaseAsync(
         string playerId,
         string offerId,
