@@ -1,0 +1,21 @@
+{
+  "name": "DragonBound.Tests.PlayMode",
+  "rootNamespace": "DragonBound.Tests.PlayMode",
+  "references": [
+    "GameShared.Runtime",
+    "DragonBound.Runtime",
+    "Unity.UGUI"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

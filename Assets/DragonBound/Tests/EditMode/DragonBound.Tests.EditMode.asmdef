@@ -1,0 +1,23 @@
+{
+  "name": "DragonBound.Tests.EditMode",
+  "rootNamespace": "DragonBound.Tests.EditMode",
+  "references": [
+    "GameShared.Runtime",
+    "DragonBound.Runtime",
+    "Unity.UGUI"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

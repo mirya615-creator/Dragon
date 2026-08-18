@@ -12,6 +12,8 @@ using UnityEngine.UI;
 /// </summary>
 public sealed class LoginController : MonoBehaviour
 {
+    private const float StartupLoadingDurationSeconds = 3f;
+
     private enum EmailLoginMode
     {
         Password,
@@ -40,6 +42,9 @@ public sealed class LoginController : MonoBehaviour
     private Button googleButton;
     private Button googleConfirmButton;
     private Button googleCancelButton;
+    private GameObject startupLoadingImage;
+    private Image startupLoadingFill;
+    private RectTransform startupLoadingFillRect;
     private TMP_Text verificationCodeButtonLabel;
     private TMP_Text signUpVerificationCodeButtonLabel;
     private IAuthGateway authGateway;
@@ -59,6 +64,7 @@ public sealed class LoginController : MonoBehaviour
     private EmailLoginMode loginMode = EmailLoginMode.Password;
     private PendingGoogleIdentity pendingGoogleIdentity;
     private Sprite defaultGoogleAvatarSprite;
+    private Coroutine startupLoadingCoroutine;
 
     private void Awake()
     {
@@ -76,6 +82,7 @@ public sealed class LoginController : MonoBehaviour
         ConfigureInputs();
         BindButtons();
         ShowLoginPanel();
+        PrepareStartupLoading();
     }
 
     private void OnDestroy()
@@ -96,6 +103,7 @@ public sealed class LoginController : MonoBehaviour
         if (googleButton != null) googleButton.onClick.RemoveListener(OnGoogleClicked);
         if (googleConfirmButton != null) googleConfirmButton.onClick.RemoveListener(OnGoogleConfirmClicked);
         if (googleCancelButton != null) googleCancelButton.onClick.RemoveListener(CancelGoogleConfirmation);
+        if (startupLoadingCoroutine != null) StopCoroutine(startupLoadingCoroutine);
 
         googleOAuthProvider?.CancelPendingSignIn();
         DisposePendingGoogleIdentity();
@@ -128,6 +136,10 @@ public sealed class LoginController : MonoBehaviour
         loginButton = GetRequired<Button>(loginRoot, "LoginBtn");
         guestLoginButton = GetRequired<Button>(loginRoot, "GuestLoginBtn");
         googleButton = GetRequired<Button>(loginRoot, "GoogleBtn");
+        Transform startupLoadingRoot = FindRequired(loginRoot, "LoadingImg");
+        startupLoadingImage = startupLoadingRoot != null ? startupLoadingRoot.gameObject : null;
+        startupLoadingFill = GetRequired<Image>(startupLoadingRoot, "FillImg");
+        startupLoadingFillRect = startupLoadingFill != null ? startupLoadingFill.rectTransform : null;
         verificationCodeButton = GetRequired<Button>(loginRoot, "Vcode");
         passwordModeButton = GetRequired<Button>(loginRoot, "Pcode");
         verificationCodeButtonLabel = verificationCodeButton != null
@@ -164,7 +176,9 @@ public sealed class LoginController : MonoBehaviour
                         verificationCodeButton != null && passwordModeButton != null &&
                         verificationCodeButtonLabel != null && googleConfirmPanel != null &&
                         googleButton != null && googleAvatarImage != null && googleAccountText != null &&
-                        googleConfirmButton != null && googleCancelButton != null;
+                        googleConfirmButton != null && googleCancelButton != null &&
+                        startupLoadingImage != null && startupLoadingFill != null &&
+                        startupLoadingFillRect != null;
         if (!complete) Debug.LogError("LoginController is missing one or more required UI components.");
         return complete;
     }
@@ -208,6 +222,53 @@ public sealed class LoginController : MonoBehaviour
         googleButton.onClick.AddListener(OnGoogleClicked);
         googleConfirmButton.onClick.AddListener(OnGoogleConfirmClicked);
         googleCancelButton.onClick.AddListener(CancelGoogleConfirmation);
+    }
+
+    private void PrepareStartupLoading()
+    {
+        guestLoginButton.gameObject.SetActive(false);
+        googleButton.gameObject.SetActive(false);
+        startupLoadingImage.SetActive(true);
+
+        startupLoadingFill.type = Image.Type.Simple;
+        startupLoadingFillRect.anchorMin = new Vector2(0f, 0f);
+        startupLoadingFillRect.anchorMax = new Vector2(0f, 1f);
+        startupLoadingFillRect.pivot = new Vector2(0f, 0.5f);
+        startupLoadingFillRect.anchoredPosition = Vector2.zero;
+        startupLoadingFillRect.sizeDelta = Vector2.zero;
+        SetStartupLoadingProgress(0f);
+
+        SetBusy(true);
+        startupLoadingCoroutine = StartCoroutine(PlayStartupLoading());
+    }
+
+    private IEnumerator PlayStartupLoading()
+    {
+        // Wait until all sceneLoaded callbacks and Start methods have completed.
+        yield return null;
+
+        float elapsed = 0f;
+        while (elapsed < StartupLoadingDurationSeconds)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            SetStartupLoadingProgress(elapsed / StartupLoadingDurationSeconds);
+            yield return null;
+        }
+
+        SetStartupLoadingProgress(1f);
+        yield return null;
+
+        guestLoginButton.gameObject.SetActive(true);
+        googleButton.gameObject.SetActive(true);
+        startupLoadingCoroutine = null;
+        SetBusy(false);
+    }
+
+    private void SetStartupLoadingProgress(float value)
+    {
+        float progress = Mathf.Clamp01(value);
+        startupLoadingFill.fillAmount = progress;
+        startupLoadingFillRect.anchorMax = new Vector2(progress, 1f);
     }
 
     private void ShowSignUpPanel()
@@ -634,6 +695,9 @@ public sealed class LoginController : MonoBehaviour
             }
 
             googleConfirmPanel.SetActive(false);
+            // LoadingImg belongs to LoginPanel, so restore its parent before the
+            // shared scene loader displays the Login-to-Main progress bar.
+            loginPanel.SetActive(true);
             DisposePendingGoogleIdentity();
             SceneLoader.Instance.LoadSceneAsync("Main");
         }

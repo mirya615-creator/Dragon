@@ -223,7 +223,7 @@ public sealed class GameRankResultController : MonoBehaviour
         if (!hasPendingOutcome || claimInProgress) return false;
         if (SceneLoader.Instance == null)
         {
-            Debug.LogError("SceneLoader is unavailable. Start Play Mode from Bootstrap.");
+            Debug.LogError("SceneLoader is unavailable.");
             return false;
         }
 
@@ -257,7 +257,7 @@ public sealed class GameRankResultController : MonoBehaviour
         if (isFinishing || hasPendingOutcome) return false;
         if (SceneLoader.Instance == null)
         {
-            Debug.LogError("SceneLoader is unavailable. Start Play Mode from Bootstrap.");
+            Debug.LogError("SceneLoader is unavailable.");
             return false;
         }
 

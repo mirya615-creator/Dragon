@@ -1,0 +1,19 @@
+{
+  "name": "DragonBound.Editor",
+  "rootNamespace": "DragonBound.Editor",
+  "references": [
+    "DragonBound.Runtime",
+    "Unity.UGUI"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

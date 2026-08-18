@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Keeps the Bootstrap loading UI alive and owns every scene transition.
+/// Persistent asynchronous scene loader. It is created automatically before Login starts.
 /// </summary>
 public sealed class SceneLoader : MonoBehaviour
 {
@@ -14,10 +14,20 @@ public sealed class SceneLoader : MonoBehaviour
     [SerializeField] private GameObject loadingPanel;
     [SerializeField] private Image progressFill;
 
-    [Header("Bootstrap")]
-    [SerializeField] private string firstScene = "Login";
-
     private bool isLoading;
+    private GameObject sceneLoadingPanel;
+    private Image sceneProgressFill;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void EnsureInstance()
+    {
+        if (Instance != null || FindObjectOfType<SceneLoader>() != null)
+        {
+            return;
+        }
+
+        new GameObject("SceneLoader").AddComponent<SceneLoader>();
+    }
 
     private void Awake()
     {
@@ -31,27 +41,14 @@ public sealed class SceneLoader : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         SceneManager.sceneLoaded += OnSceneLoaded;
 
-        if (progressFill != null)
-        {
-            progressFill.type = Image.Type.Filled;
-            progressFill.fillMethod = Image.FillMethod.Horizontal;
-            progressFill.fillOrigin = (int)Image.OriginHorizontal.Left;
-            progressFill.fillAmount = 0f;
-        }
+        ConfigureProgressFill(progressFill);
     }
 
     private void Start()
     {
-        // Bootstrap is the only entry scene. Its loading panel immediately
-        // displays the asynchronous load progress of Login.
-        if (SceneManager.GetActiveScene().name == "Bootstrap")
-        {
-            LoadSceneAsync(firstScene);
-        }
-        else
-        {
-            BindSceneButton(SceneManager.GetActiveScene().name);
-        }
+        Scene activeScene = SceneManager.GetActiveScene();
+        ResolveSceneLoadingUi(activeScene);
+        BindSceneButton(activeScene.name);
     }
 
     private void OnDestroy()
@@ -60,6 +57,16 @@ public sealed class SceneLoader : MonoBehaviour
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
             Instance = null;
+        }
+    }
+
+    private void Update()
+    {
+        string activeScene = SceneManager.GetActiveScene().name;
+        if ((activeScene == "Greybox_Main" || activeScene == "HeroSlice_Main") &&
+            Input.GetKeyDown(KeyCode.Escape))
+        {
+            LoadSceneAsync("Main");
         }
     }
 
@@ -80,6 +87,7 @@ public sealed class SceneLoader : MonoBehaviour
     private IEnumerator LoadSceneRoutine(string sceneName)
     {
         isLoading = true;
+        ResolveSceneLoadingUi(SceneManager.GetActiveScene());
         SetLoadingVisible(true);
         SetProgress(0f);
 
@@ -113,13 +121,17 @@ public sealed class SceneLoader : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "Bootstrap")
+        if (loadingPanel != null)
         {
-            return;
+            loadingPanel.SetActive(false);
         }
 
+        ResolveSceneLoadingUi(scene);
         BindSceneButton(scene.name);
-        SetLoadingVisible(false);
+        if (isLoading)
+        {
+            SetLoadingVisible(false);
+        }
         isLoading = false;
     }
 
@@ -149,17 +161,72 @@ public sealed class SceneLoader : MonoBehaviour
 
     private void SetLoadingVisible(bool visible)
     {
-        if (loadingPanel != null)
+        GameObject activePanel = sceneLoadingPanel != null ? sceneLoadingPanel : loadingPanel;
+        if (activePanel != null)
         {
-            loadingPanel.SetActive(visible);
+            activePanel.SetActive(visible);
         }
     }
 
     private void SetProgress(float value)
     {
-        if (progressFill != null)
+        Image activeFill = sceneProgressFill != null ? sceneProgressFill : progressFill;
+        if (activeFill != null)
         {
-            progressFill.fillAmount = Mathf.Clamp01(value);
+            float progress = Mathf.Clamp01(value);
+            activeFill.fillAmount = progress;
+            activeFill.rectTransform.anchorMax = new Vector2(progress, 1f);
         }
+    }
+
+    private void ResolveSceneLoadingUi(Scene scene)
+    {
+        sceneLoadingPanel = null;
+        sceneProgressFill = null;
+
+        if (!scene.IsValid() || !scene.isLoaded || scene.name != "Login")
+        {
+            return;
+        }
+
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            Transform loadingTransform = root.transform.Find("MainPanel/LoginPanel/LoadingImg");
+            if (loadingTransform == null)
+            {
+                continue;
+            }
+
+            Transform fillTransform = loadingTransform.Find("FillImg");
+            Image fill = fillTransform != null ? fillTransform.GetComponent<Image>() : null;
+            if (fill == null)
+            {
+                Debug.LogError("Login loading UI requires LoadingImg/FillImg with an Image component.");
+                return;
+            }
+
+            sceneLoadingPanel = loadingTransform.gameObject;
+            sceneProgressFill = fill;
+            ConfigureProgressFill(sceneProgressFill);
+            return;
+        }
+
+        Debug.LogError("Login scene is missing MainPanel/LoginPanel/LoadingImg.");
+    }
+
+    private static void ConfigureProgressFill(Image fill)
+    {
+        if (fill == null)
+        {
+            return;
+        }
+
+        fill.type = Image.Type.Simple;
+        fill.rectTransform.anchorMin = new Vector2(0f, 0f);
+        fill.rectTransform.anchorMax = new Vector2(0f, 1f);
+        fill.rectTransform.pivot = new Vector2(0f, 0.5f);
+        fill.rectTransform.anchoredPosition = Vector2.zero;
+        fill.rectTransform.sizeDelta = Vector2.zero;
+        fill.fillAmount = 0f;
     }
 }

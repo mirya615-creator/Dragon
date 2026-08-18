@@ -6,9 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Bootstrap.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
     path: Assets/Scenes/Login.unity
     guid: 1ffdc8ed46c08ce4eb9a3fabe354e782
   - enabled: 1
@@ -17,4 +14,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Game.unity
     guid: e7fffa81ee8514645b8a75e6359bb058
+  - enabled: 1
+    path: Assets/Scenes/Greybox_Main.unity
+    guid: 86ff9f65f1c94aa46827064f7672c7b6
+  - enabled: 1
+    path: Assets/Scenes/HeroSlice_Main.unity
+    guid: 4fc49ec55345fec4c9ae85f9a834c22a
   m_configObjects: {}

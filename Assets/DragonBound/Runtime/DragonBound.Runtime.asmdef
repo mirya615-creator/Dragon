@@ -1,0 +1,17 @@
+{
+  "name": "DragonBound.Runtime",
+  "rootNamespace": "DragonBound",
+  "references": [
+    "GameShared.Runtime",
+    "Unity.UGUI"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
