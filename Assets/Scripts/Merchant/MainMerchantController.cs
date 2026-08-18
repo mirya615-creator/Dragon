@@ -39,7 +39,8 @@ public sealed class MainMerchantController : MonoBehaviour
 
         Transform panelTransform = transform.Find("MerchantPanel");
         itemContainer = panelTransform?.Find("Bg/ChatItemCon");
-        ownedItemContainer = panelTransform?.Find("Bg/ItemContainer");
+        ownedItemContainer = panelTransform?.Find("Bg/ItemContainer") ??
+                             panelTransform?.Find("Bg/MyItemBg/ItemContainer");
         itemPrefab = Resources.Load<GameObject>(ItemPrefabPath);
         tipText = panelTransform?.Find("Bg/TipText")?.GetComponent<TMP_Text>();
         if (panelTransform == null || itemContainer == null || ownedItemContainer == null || itemPrefab == null)
