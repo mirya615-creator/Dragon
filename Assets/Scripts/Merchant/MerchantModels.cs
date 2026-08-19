@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+public enum MerchantPaymentType
+{
+    Gold,
+    RewardedAd
+}
+
 [Serializable]
 public sealed class MerchantProduct
 {
@@ -15,6 +21,8 @@ public sealed class MerchantProduct
     public string Introduction;
     public string IconKey;
     public bool GoldPurchasable;
+    public MerchantPaymentType PaymentType;
+    public string AdPlacementId;
 }
 
 [Serializable]
@@ -40,7 +48,8 @@ public enum MerchantPurchaseStatus
     OfferUnavailable,
     ProductUnavailable,
     AlreadyOwned,
-    AlreadyPurchased
+    AlreadyPurchased,
+    AdVerificationFailed
 }
 
 public sealed class MerchantPurchaseResult
@@ -107,6 +116,15 @@ public interface IMerchantGateway
         string playerId,
         string offerId,
         string productId,
+        string idempotencyKey,
+        CancellationToken cancellationToken);
+
+    Task<MerchantPurchaseResult> ClaimRewardedAdProductAsync(
+        string playerId,
+        string offerId,
+        string productId,
+        string placementId,
+        string adVerificationId,
         string idempotencyKey,
         CancellationToken cancellationToken);
 

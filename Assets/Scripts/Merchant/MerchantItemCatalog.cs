@@ -127,7 +127,9 @@ public static class MerchantItemCatalog
             GoldPrice = product.GoldPrice,
             Introduction = product.Introduction,
             IconKey = product.IconKey,
-            GoldPurchasable = product.GoldPurchasable
+            GoldPurchasable = product.GoldPurchasable,
+            PaymentType = product.PaymentType,
+            AdPlacementId = product.AdPlacementId
         };
     }
 }

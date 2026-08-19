@@ -27,7 +27,10 @@ public sealed class RuneDropZone : MonoBehaviour, IDropHandler
             : null;
         if (item == null || controller == null) return;
 
-        if (controller.TryEquipRune(HeroId, item.RuneId)) item.Consume();
+        if (controller.RequestEquipRune(HeroId, item.RuneId))
+        {
+            item.Consume();
+        }
     }
 
     public void SetRuneName(string displayName)

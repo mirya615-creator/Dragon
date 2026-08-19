@@ -11,6 +11,7 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class MainEnergyController : MonoBehaviour
 {
+    private const string GameplaySceneName = "Game";
     private const int RewardedAdEnergy = 10;
     private const int RewardedAdDailyLimit = 3;
     private const string EnergyRewardPlacement = "energy_reward";
@@ -188,7 +189,7 @@ public sealed class MainEnergyController : MonoBehaviour
 
             ShowMainTip(string.Empty);
             transitionRequested = true;
-            SceneLoader.Instance.LoadSceneAsync("Greybox_Main");
+            SceneLoader.Instance.LoadSceneAsync(GameplaySceneName);
         }
         catch (OperationCanceledException)
         {

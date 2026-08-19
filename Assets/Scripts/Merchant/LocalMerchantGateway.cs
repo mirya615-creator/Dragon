@@ -15,9 +15,11 @@ public sealed class LocalMerchantGateway : IMerchantGateway
 {
     private const int RunsPerOffer = 2;
     private const int ProductsPerOffer = 3;
+    private const string MerchantAdPlacement = "merchant_rewarded_item";
     private const string StateKeyPrefix = "dragonbound.merchant.state.";
     private const string RunKeyPrefix = "dragonbound.merchant.run.";
     private const string PurchaseKeyPrefix = "dragonbound.merchant.purchase.";
+    private const string AdClaimKeyPrefix = "dragonbound.merchant.ad-claim.";
     private const string RemoveKeyPrefix = "dragonbound.merchant.remove.";
 
     private readonly IPlayerGoldGateway goldGateway = new LocalPlayerGoldGateway();
@@ -194,7 +196,8 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         }
 
         MerchantProduct product = offer.Products.Find(item => item.ProductId == productId);
-        if (product == null || !product.GoldPurchasable)
+        if (product == null || !product.GoldPurchasable ||
+            product.PaymentType != MerchantPaymentType.Gold)
         {
             return await ResultAsync(MerchantPurchaseStatus.ProductUnavailable, playerId, cancellationToken);
         }
@@ -229,6 +232,71 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         };
     }
 
+    public async Task<MerchantPurchaseResult> ClaimRewardedAdProductAsync(
+        string playerId,
+        string offerId,
+        string productId,
+        string placementId,
+        string adVerificationId,
+        string idempotencyKey,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidatePlayerId(playerId);
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            throw new ArgumentException("Idempotency key is required.", nameof(idempotencyKey));
+        }
+
+        string claimKey = AdClaimKeyPrefix + HashKey(
+            playerId + ":" + offerId + ":" + productId + ":" + idempotencyKey);
+        LocalMerchantState state = LoadState(playerId);
+        if (PlayerPrefs.HasKey(claimKey))
+        {
+            return await ResultAsync(MerchantPurchaseStatus.Success, playerId, cancellationToken);
+        }
+
+        MerchantOffer offer = state.CurrentOffer;
+        if (offer == null || offer.OfferId != offerId)
+        {
+            return await ResultAsync(MerchantPurchaseStatus.OfferUnavailable, playerId, cancellationToken);
+        }
+        if (offer.Purchased)
+        {
+            return await ResultAsync(MerchantPurchaseStatus.AlreadyPurchased, playerId, cancellationToken);
+        }
+        if (state.OwnedProductIds.Contains(productId))
+        {
+            return await ResultAsync(MerchantPurchaseStatus.AlreadyOwned, playerId, cancellationToken);
+        }
+
+        MerchantProduct product = offer.Products.Find(item => item.ProductId == productId);
+        if (product == null || product.PaymentType != MerchantPaymentType.RewardedAd)
+        {
+            return await ResultAsync(MerchantPurchaseStatus.ProductUnavailable, playerId, cancellationToken);
+        }
+        if (string.IsNullOrWhiteSpace(adVerificationId) ||
+            string.IsNullOrWhiteSpace(placementId) ||
+            !string.Equals(product.AdPlacementId, placementId, StringComparison.Ordinal))
+        {
+            return await ResultAsync(MerchantPurchaseStatus.AdVerificationFailed, playerId, cancellationToken);
+        }
+
+        offer.Purchased = true;
+        offer.PurchasedProductId = productId;
+        state.OwnedProductIds.Add(productId);
+        SaveState(playerId, state);
+        PlayerPrefs.SetInt(claimKey, 1);
+        PlayerPrefs.Save();
+
+        MerchantPurchaseResult result = await ResultAsync(
+            MerchantPurchaseStatus.Success,
+            playerId,
+            cancellationToken);
+        result.Applied = true;
+        return result;
+    }
+
     private static MerchantOffer CreateOffer(LocalMerchantState state)
     {
         List<MerchantProduct> candidates = MerchantItemCatalog.GetGoldCandidates();
@@ -237,13 +305,27 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         if (candidates.Count == 0) return null;
 
         var selected = new List<MerchantProduct>();
-        int count = Math.Min(ProductsPerOffer, candidates.Count);
-        for (int index = 0; index < count; index++)
+
+        MerchantProduct rewardedProduct = TakeWeightedRewardedAdProduct(candidates);
+        if (rewardedProduct != null)
+        {
+            rewardedProduct.PaymentType = MerchantPaymentType.RewardedAd;
+            rewardedProduct.AdPlacementId = MerchantAdPlacement;
+            selected.Add(rewardedProduct);
+        }
+
+        int goldCount = Math.Min(ProductsPerOffer - selected.Count, candidates.Count);
+        for (int index = 0; index < goldCount; index++)
         {
             int selectedIndex = UnityEngine.Random.Range(0, candidates.Count);
-            selected.Add(candidates[selectedIndex]);
+            MerchantProduct goldProduct = candidates[selectedIndex];
+            goldProduct.PaymentType = MerchantPaymentType.Gold;
+            goldProduct.AdPlacementId = string.Empty;
+            selected.Add(goldProduct);
             candidates.RemoveAt(selectedIndex);
         }
+
+        Shuffle(selected);
 
         return new MerchantOffer
         {
@@ -252,6 +334,58 @@ public sealed class LocalMerchantGateway : IMerchantGateway
             Purchased = false,
             PurchasedProductId = string.Empty
         };
+    }
+
+    private static MerchantProduct TakeWeightedRewardedAdProduct(List<MerchantProduct> candidates)
+    {
+        if (candidates == null || candidates.Count == 0) return null;
+
+        string[] rarities = { "稀有", "卓越", "史诗", "传说" };
+        int[] weights = { 10, 20, 30, 40 };
+        int availableWeight = 0;
+        for (int rarityIndex = 0; rarityIndex < rarities.Length; rarityIndex++)
+        {
+            if (candidates.Exists(product => product.Rarity == rarities[rarityIndex]))
+            {
+                availableWeight += weights[rarityIndex];
+            }
+        }
+
+        int roll = UnityEngine.Random.Range(0, availableWeight);
+        string selectedRarity = rarities[0];
+        for (int rarityIndex = 0; rarityIndex < rarities.Length; rarityIndex++)
+        {
+            if (!candidates.Exists(product => product.Rarity == rarities[rarityIndex])) continue;
+            if (roll < weights[rarityIndex])
+            {
+                selectedRarity = rarities[rarityIndex];
+                break;
+            }
+            roll -= weights[rarityIndex];
+        }
+
+        var rarityCandidateIndices = new List<int>();
+        for (int index = 0; index < candidates.Count; index++)
+        {
+            if (candidates[index].Rarity == selectedRarity) rarityCandidateIndices.Add(index);
+        }
+
+        int candidateIndex = rarityCandidateIndices[
+            UnityEngine.Random.Range(0, rarityCandidateIndices.Count)];
+        MerchantProduct selected = candidates[candidateIndex];
+        candidates.RemoveAt(candidateIndex);
+        return selected;
+    }
+
+    private static void Shuffle(List<MerchantProduct> products)
+    {
+        for (int index = products.Count - 1; index > 0; index--)
+        {
+            int swapIndex = UnityEngine.Random.Range(0, index + 1);
+            MerchantProduct temporary = products[index];
+            products[index] = products[swapIndex];
+            products[swapIndex] = temporary;
+        }
     }
 
     private static MerchantOffer GetAvailableOffer(LocalMerchantState state)

@@ -11,6 +11,7 @@ using UnityEngine.UI;
 public sealed class MainMerchantController : MonoBehaviour
 {
     private const string ItemPrefabPath = "prefabs/ItemBg";
+    private const string MerchantAdPlacement = "merchant_rewarded_item";
 
     private readonly List<Button> buyButtons = new List<Button>();
     private readonly List<TMP_Text> buyButtonTexts = new List<TMP_Text>();
@@ -32,6 +33,7 @@ public sealed class MainMerchantController : MonoBehaviour
     private Button confirmItemButton;
     private IMerchantGateway merchantGateway;
     private IMerchantItemIconProvider iconProvider;
+    private IRewardedAdService rewardedAdService;
     private CancellationTokenSource lifetimeCancellation;
     private string playerId;
     private bool purchaseInProgress;
@@ -53,6 +55,9 @@ public sealed class MainMerchantController : MonoBehaviour
                              panelTransform?.Find("Bg/MyItemBg/ItemContainer");
         itemPrefab = Resources.Load<GameObject>(ItemPrefabPath);
         tipText = panelTransform?.Find("Bg/TipText")?.GetComponent<TMP_Text>();
+        rewardedAdService = new MockRewardedAdService(
+            transform,
+            tipText != null ? tipText.font : null);
         Transform cancelPanelTransform = panelTransform?.Find("Bg/CancleItemPanel");
         cancelItemPanel = cancelPanelTransform?.gameObject;
         cancelItemButton = (cancelPanelTransform?.Find("CancleBtn") ??
@@ -163,7 +168,9 @@ public sealed class MainMerchantController : MonoBehaviour
                 continue;
             }
 
-            priceText.text = product.GoldPrice.ToString(CultureInfo.InvariantCulture);
+            priceText.text = product.PaymentType == MerchantPaymentType.RewardedAd
+                ? "Video"
+                : product.GoldPrice.ToString(CultureInfo.InvariantCulture);
             Image itemImage = itemObject.transform.Find("CItemImg")?.GetComponent<Image>();
             Sprite icon = iconProvider.Load(product.IconKey);
             if (itemImage != null && icon != null) itemImage.sprite = icon;
@@ -183,23 +190,48 @@ public sealed class MainMerchantController : MonoBehaviour
     {
         if (purchaseInProgress) return;
         purchaseInProgress = true;
+        bool purchaseCompleted = false;
         ShowTip(string.Empty);
         SetButtonsInteractable(false);
 
         try
         {
-            MerchantPurchaseResult result = await merchantGateway.PurchaseAsync(
-                playerId,
-                offer.OfferId,
-                product.ProductId,
-                Guid.NewGuid().ToString("N"),
-                lifetimeCancellation.Token);
+            MerchantPurchaseResult result;
+            if (product.PaymentType == MerchantPaymentType.RewardedAd)
+            {
+                string placementId = string.IsNullOrWhiteSpace(product.AdPlacementId)
+                    ? MerchantAdPlacement
+                    : product.AdPlacementId;
+                RewardedAdResult adResult = await rewardedAdService.ShowAsync(
+                    placementId,
+                    lifetimeCancellation.Token);
+                if (adResult != RewardedAdResult.Completed) return;
+
+                result = await merchantGateway.ClaimRewardedAdProductAsync(
+                    playerId,
+                    offer.OfferId,
+                    product.ProductId,
+                    placementId,
+                    Guid.NewGuid().ToString("N"),
+                    Guid.NewGuid().ToString("N"),
+                    lifetimeCancellation.Token);
+            }
+            else
+            {
+                result = await merchantGateway.PurchaseAsync(
+                    playerId,
+                    offer.OfferId,
+                    product.ProductId,
+                    Guid.NewGuid().ToString("N"),
+                    lifetimeCancellation.Token);
+            }
             switch (result.Status)
             {
                 case MerchantPurchaseStatus.Success:
                     ShowTip(string.Empty);
                     AddOwnedProduct(product);
                     ShowSoldOut();
+                    purchaseCompleted = true;
                     return;
                 case MerchantPurchaseStatus.InsufficientGold:
                     ShowTip("Insufficient gold");
@@ -208,7 +240,11 @@ public sealed class MainMerchantController : MonoBehaviour
                 case MerchantPurchaseStatus.AlreadyOwned:
                     ShowTip(string.Empty);
                     ShowSoldOut();
+                    purchaseCompleted = true;
                     return;
+                case MerchantPurchaseStatus.AdVerificationFailed:
+                    ShowTip("Video unavailable");
+                    break;
                 default:
                     selectedPriceText.text = "Unavailable";
                     break;
@@ -226,10 +262,8 @@ public sealed class MainMerchantController : MonoBehaviour
         finally
         {
             purchaseInProgress = false;
+            if (!purchaseCompleted) SetButtonsInteractable(true);
         }
-
-        SetButtonsInteractable(true);
-        selectedButton.interactable = true;
     }
 
     private void SetButtonsInteractable(bool interactable)

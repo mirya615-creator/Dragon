@@ -11,6 +11,48 @@ public sealed class LocalRuneRewardService
 {
     private const string ProfileKeyPrefix = "dragonbound.runes.";
     private const string SettledRunSegment = ".settled-run.";
+    private const string GuestPaginationTestSegment = ".guest-pagination-test-v1";
+
+    public RuneProfile RemoveLegacyGuestPaginationTestInventory(string playerId, int itemCount)
+    {
+        if (string.IsNullOrWhiteSpace(playerId) || itemCount <= 0)
+        {
+            return GetProfile(playerId);
+        }
+
+        string profileKey = GetProfileKey(playerId);
+        string testKey = profileKey + GuestPaginationTestSegment;
+        RuneProfile profile = LoadProfileByKey(profileKey);
+        if (!PlayerPrefs.HasKey(testKey)) return profile;
+
+        IReadOnlyList<RuneDefinition> definitions = RuneCatalog.All;
+        if (definitions == null || definitions.Count == 0) return profile;
+
+        var random = new System.Random(StableSeed(playerId));
+        for (int index = 0; index < itemCount; index++)
+        {
+            RuneDefinition definition = definitions[random.Next(definitions.Count)];
+            RuneInventoryEntry entry = FindInventoryEntry(profile, definition.RuneId);
+            if (entry == null) continue;
+
+            int equippedCount = CountAssignedRunes(profile, definition.RuneId, null);
+            entry.OwnedCount = Math.Max(equippedCount, entry.OwnedCount - 1);
+        }
+
+        for (int index = profile.Inventory.Count - 1; index >= 0; index--)
+        {
+            RuneInventoryEntry entry = profile.Inventory[index];
+            if (entry.OwnedCount <= 0 && entry.FragmentCount <= 0)
+            {
+                profile.Inventory.RemoveAt(index);
+            }
+        }
+
+        SaveProfile(profileKey, profile);
+        PlayerPrefs.DeleteKey(testKey);
+        PlayerPrefs.Save();
+        return profile;
+    }
 
     public RuneProfile SettleRun(string playerId, string runId, IReadOnlyList<RuneReward> rewards)
     {
@@ -27,17 +69,20 @@ public sealed class LocalRuneRewardService
             for (int index = 0; index < rewards.Count && index < 4; index++)
             {
                 RuneReward reward = rewards[index];
-                if (reward == null || RuneCatalog.Find(reward.RuneId) == null) continue;
+                RuneDefinition definition = reward != null
+                    ? RuneCatalog.Find(reward.RuneId)
+                    : null;
+                if (reward == null || definition == null) continue;
 
                 RuneInventoryEntry entry = FindOrCreateEntry(profile, reward.RuneId);
                 int safeAmount = Math.Max(1, reward.Amount);
                 if (reward.RewardKind == RuneRewardKind.CompleteRune)
                 {
-                    entry.OwnedCount += safeAmount;
+                    entry.OwnedCount = AddWithoutOverflow(entry.OwnedCount, safeAmount);
                 }
                 else
                 {
-                    entry.FragmentCount += safeAmount;
+                    AddFragments(entry, definition, safeAmount);
                 }
 
                 profile.LastRunRewards.Add(CloneReward(reward));
@@ -102,6 +147,33 @@ public sealed class LocalRuneRewardService
         return true;
     }
 
+    public bool TryUnequipRune(
+        string playerId,
+        string heroId,
+        out RuneProfile updatedProfile)
+    {
+        if (string.IsNullOrWhiteSpace(playerId) ||
+            string.IsNullOrWhiteSpace(heroId))
+        {
+            updatedProfile = new RuneProfile();
+            return false;
+        }
+
+        string profileKey = GetProfileKey(playerId);
+        RuneProfile profile = LoadProfileByKey(profileKey);
+        HeroRuneLoadoutEntry heroLoadout = FindHeroLoadout(profile, heroId);
+        if (heroLoadout == null || string.IsNullOrEmpty(heroLoadout.RuneId))
+        {
+            updatedProfile = profile;
+            return false;
+        }
+
+        profile.Loadouts.Remove(heroLoadout);
+        SaveProfile(profileKey, profile);
+        updatedProfile = profile;
+        return true;
+    }
+
     private static RuneProfile LoadProfileByKey(string profileKey)
     {
         string json = PlayerPrefs.GetString(profileKey, string.Empty);
@@ -114,6 +186,10 @@ public sealed class LocalRuneRewardService
             if (profile.Inventory == null) profile.Inventory = new List<RuneInventoryEntry>();
             if (profile.LastRunRewards == null) profile.LastRunRewards = new List<RuneReward>();
             if (profile.Loadouts == null) profile.Loadouts = new List<HeroRuneLoadoutEntry>();
+            if (NormalizeLegacyFragmentOverflow(profile))
+            {
+                SaveProfile(profileKey, profile);
+            }
             return profile;
         }
         catch (Exception exception)
@@ -133,6 +209,63 @@ public sealed class LocalRuneRewardService
         var entry = new RuneInventoryEntry { RuneId = runeId };
         profile.Inventory.Add(entry);
         return entry;
+    }
+
+    private static void AddFragments(
+        RuneInventoryEntry entry,
+        RuneDefinition definition,
+        int amount)
+    {
+        int required = definition.RequiredFragments;
+        if (required <= 0)
+        {
+            Debug.LogWarning($"Rune '{definition.RuneId}' does not support fragment rewards.");
+            return;
+        }
+
+        long totalFragments = Math.Max(0, entry.FragmentCount) + (long)Math.Max(0, amount);
+        long completedRunes = totalFragments / required;
+        entry.OwnedCount = AddWithoutOverflow(entry.OwnedCount, completedRunes);
+        entry.FragmentCount = (int)(totalFragments % required);
+    }
+
+    private static bool NormalizeLegacyFragmentOverflow(RuneProfile profile)
+    {
+        bool changed = false;
+        for (int index = 0; index < profile.Inventory.Count; index++)
+        {
+            RuneInventoryEntry entry = profile.Inventory[index];
+            if (entry == null) continue;
+
+            if (entry.OwnedCount < 0)
+            {
+                entry.OwnedCount = 0;
+                changed = true;
+            }
+            if (entry.FragmentCount < 0)
+            {
+                entry.FragmentCount = 0;
+                changed = true;
+            }
+
+            RuneDefinition definition = RuneCatalog.Find(entry.RuneId);
+            int required = definition != null ? definition.RequiredFragments : 0;
+            if (required <= 0 || entry.FragmentCount < required) continue;
+
+            int previousOwned = entry.OwnedCount;
+            int previousFragments = entry.FragmentCount;
+            AddFragments(entry, definition, 0);
+            changed |= previousOwned != entry.OwnedCount ||
+                       previousFragments != entry.FragmentCount;
+        }
+        return changed;
+    }
+
+    private static int AddWithoutOverflow(int current, long amount)
+    {
+        long safeCurrent = Math.Max(0, current);
+        long safeAmount = Math.Max(0L, amount);
+        return (int)Math.Min(int.MaxValue, safeCurrent + safeAmount);
     }
 
     private static RuneInventoryEntry FindInventoryEntry(RuneProfile profile, string runeId)
@@ -204,6 +337,19 @@ public sealed class LocalRuneRewardService
         {
             byte[] digest = sha256.ComputeHash(Encoding.UTF8.GetBytes(value));
             return Convert.ToBase64String(digest).Replace('/', '_').Replace('+', '-').TrimEnd('=');
+        }
+    }
+
+    private static int StableSeed(string value)
+    {
+        unchecked
+        {
+            int hash = 17;
+            for (int index = 0; index < value.Length; index++)
+            {
+                hash = hash * 31 + value[index];
+            }
+            return hash;
         }
     }
 }
