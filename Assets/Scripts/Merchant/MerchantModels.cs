@@ -79,6 +79,8 @@ public enum MerchantLotteryStatus
     Success,
     OfferUnavailable,
     AlreadyDrawn,
+    AlreadyPurchased,
+    AdVerificationFailed,
     NoEligibleProducts
 }
 
@@ -146,6 +148,8 @@ public interface IMerchantGateway
     Task<MerchantLotteryResult> DrawLotteryAsync(
         string playerId,
         string lotteryOfferId,
+        string placementId,
+        string adVerificationId,
         string idempotencyKey,
         CancellationToken cancellationToken);
 

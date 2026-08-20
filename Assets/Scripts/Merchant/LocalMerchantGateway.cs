@@ -17,6 +17,7 @@ public sealed class LocalMerchantGateway : IMerchantGateway
     private const int ProductsPerOffer = 3;
     private const int ProductsPerLottery = 8;
     private const string MerchantAdPlacement = "merchant_rewarded_item";
+    private const string MerchantLotteryAdPlacement = "merchant_lottery";
     private const string StateKeyPrefix = "dragonbound.merchant.state.";
     private const string RunKeyPrefix = "dragonbound.merchant.run.";
     private const string PurchaseKeyPrefix = "dragonbound.merchant.purchase.";
@@ -155,6 +156,8 @@ public sealed class LocalMerchantGateway : IMerchantGateway
     public Task<MerchantLotteryResult> DrawLotteryAsync(
         string playerId,
         string lotteryOfferId,
+        string placementId,
+        string adVerificationId,
         string idempotencyKey,
         CancellationToken cancellationToken)
     {
@@ -185,6 +188,34 @@ public sealed class LocalMerchantGateway : IMerchantGateway
             return Task.FromResult(CreateLotteryResult(
                 MerchantLotteryStatus.Success,
                 previousWinner,
+                state,
+                false));
+        }
+
+        MerchantOffer merchantOffer = state.CurrentOffer;
+        if (merchantOffer == null ||
+            !string.Equals(merchantOffer.OfferId, lottery.MerchantOfferId, StringComparison.Ordinal))
+        {
+            return Task.FromResult(CreateLotteryResult(
+                MerchantLotteryStatus.OfferUnavailable,
+                null,
+                state,
+                false));
+        }
+        if (merchantOffer.Purchased)
+        {
+            return Task.FromResult(CreateLotteryResult(
+                MerchantLotteryStatus.AlreadyPurchased,
+                null,
+                state,
+                false));
+        }
+        if (string.IsNullOrWhiteSpace(adVerificationId) ||
+            !string.Equals(placementId, MerchantLotteryAdPlacement, StringComparison.Ordinal))
+        {
+            return Task.FromResult(CreateLotteryResult(
+                MerchantLotteryStatus.AdVerificationFailed,
+                null,
                 state,
                 false));
         }
@@ -220,7 +251,12 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         MerchantProduct winner = candidates[UnityEngine.Random.Range(0, candidates.Count)];
         lottery.Drawn = true;
         lottery.WinningProductId = winner.ProductId;
-        state.OwnedProductIds.Add(winner.ProductId);
+        merchantOffer.Purchased = true;
+        merchantOffer.PurchasedProductId = winner.ProductId;
+        if (!state.OwnedProductIds.Contains(winner.ProductId))
+        {
+            state.OwnedProductIds.Add(winner.ProductId);
+        }
         SaveState(playerId, state);
         PlayerPrefs.SetInt(drawKey, 1);
         PlayerPrefs.Save();
@@ -565,9 +601,9 @@ public sealed class LocalMerchantGateway : IMerchantGateway
 
     private static MerchantOffer GetAvailableOffer(LocalMerchantState state)
     {
-        return state.CurrentOffer != null && !state.CurrentOffer.Purchased
-            ? state.CurrentOffer
-            : null;
+        // Keep a completed offer visible so all 8+3 acquisition entries can
+        // render their shared Sold out state until the offer expires.
+        return state.CurrentOffer;
     }
 
     private static MerchantInventory CreateInventory(LocalMerchantState state)
@@ -612,6 +648,20 @@ public sealed class LocalMerchantGateway : IMerchantGateway
             if (state == null || state.DayKey != currentDayKey)
             {
                 return CreateFreshDailyState(playerId, currentDayKey);
+            }
+
+            // Migrate lottery wins created before lottery and shop purchases
+            // shared the same one-item limit.
+            if (state.CurrentOffer != null && state.CurrentLotteryOffer != null &&
+                state.CurrentLotteryOffer.Drawn && !state.CurrentOffer.Purchased &&
+                string.Equals(
+                    state.CurrentOffer.OfferId,
+                    state.CurrentLotteryOffer.MerchantOfferId,
+                    StringComparison.Ordinal))
+            {
+                state.CurrentOffer.Purchased = true;
+                state.CurrentOffer.PurchasedProductId =
+                    state.CurrentLotteryOffer.WinningProductId;
             }
             if (state.OwnedProductIds == null) state.OwnedProductIds = new List<string>();
             state.OwnedProductIds = new List<string>(new HashSet<string>(state.OwnedProductIds));

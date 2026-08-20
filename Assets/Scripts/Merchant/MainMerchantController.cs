@@ -19,6 +19,7 @@ public sealed class MainMerchantController : MonoBehaviour
     private const string OfferItemPrefabPath = "prefabs/ItemBg";
     private const string OwnedItemPrefabPath = "prefabs/Item";
     private const string MerchantAdPlacement = "merchant_rewarded_item";
+    private const string MerchantLotteryAdPlacement = "merchant_lottery";
 
     private readonly List<Button> buyButtons = new List<Button>();
     private readonly List<TMP_Text> buyButtonTexts = new List<TMP_Text>();
@@ -37,6 +38,7 @@ public sealed class MainMerchantController : MonoBehaviour
     private Button chantButton;
     private Button lotteryButton;
     private Button lotteryDrawButton;
+    private TMP_Text lotteryDrawButtonText;
     private Button cancelItemButton;
     private Button confirmItemButton;
     private IMerchantGateway merchantGateway;
@@ -51,6 +53,8 @@ public sealed class MainMerchantController : MonoBehaviour
     private Coroutine hideTipCoroutine;
     private MerchantProduct selectedDeleteProduct;
     private MerchantLotteryOffer currentLotteryOffer;
+    private MerchantOffer currentOffer;
+    private string lotteryDrawButtonDefaultText;
 
     private void Awake()
     {
@@ -68,6 +72,10 @@ public sealed class MainMerchantController : MonoBehaviour
         lotteryButton = panelTransform?.Find("Bg/LotteryBtn")?.GetComponent<Button>();
         lotteryDrawButton = panelTransform?.Find("Bg/LotteryContainer/LotteryBtn")
             ?.GetComponent<Button>();
+        lotteryDrawButtonText = panelTransform
+            ?.Find("Bg/LotteryContainer/LotteryBtn/NameText")
+            ?.GetComponent<TMP_Text>();
+        lotteryDrawButtonDefaultText = lotteryDrawButtonText?.text;
         ResolveLotteryItems();
         ownedItemContainer = panelTransform?.Find("Bg/ItemContainer") ??
                              panelTransform?.Find("Bg/MyItemBg/ItemContainer");
@@ -95,6 +103,7 @@ public sealed class MainMerchantController : MonoBehaviour
                              cancelPanelTransform?.Find("Bg/ConfirmBtn"))?.GetComponent<Button>();
         if (panelTransform == null || itemContainer == null || lotteryContainer == null ||
             chantButton == null || lotteryButton == null || lotteryDrawButton == null ||
+            lotteryDrawButtonText == null ||
             lotteryItemViews.Count != 8 || ownedItemContainer == null ||
             activeItemColumn == null || passiveItemColumn == null ||
             activeItemColumn == passiveItemColumn || offerItemPrefab == null ||
@@ -247,16 +256,18 @@ public sealed class MainMerchantController : MonoBehaviour
             SetText(itemView, "NameText", product.EnglishName);
         }
 
-        lotteryDrawButton.interactable = offer != null && !offer.Drawn && productCount > 0;
         if (offer != null && offer.Drawn)
         {
             HighlightLotteryWinner(offer.WinningProductId);
         }
+        RefreshAcquisitionState();
     }
 
     private async void OnLotteryDrawClicked()
     {
-        if (lotteryDrawInProgress || currentLotteryOffer == null ||
+        if (lotteryDrawInProgress || purchaseInProgress ||
+            (currentOffer != null && currentOffer.Purchased) ||
+            currentLotteryOffer == null ||
             currentLotteryOffer.Drawn || currentLotteryOffer.Products == null ||
             currentLotteryOffer.Products.Count == 0)
         {
@@ -264,13 +275,20 @@ public sealed class MainMerchantController : MonoBehaviour
         }
 
         lotteryDrawInProgress = true;
-        lotteryDrawButton.interactable = false;
+        RefreshAcquisitionState();
         ShowTip(string.Empty);
         try
         {
+            RewardedAdResult adResult = await rewardedAdService.ShowAsync(
+                MerchantLotteryAdPlacement,
+                lifetimeCancellation.Token);
+            if (adResult != RewardedAdResult.Completed) return;
+
             MerchantLotteryResult result = await merchantGateway.DrawLotteryAsync(
                 playerId,
                 currentLotteryOffer.LotteryOfferId,
+                MerchantLotteryAdPlacement,
+                Guid.NewGuid().ToString("N"),
                 Guid.NewGuid().ToString("N"),
                 lifetimeCancellation.Token);
             if (result.Status == MerchantLotteryStatus.Success ||
@@ -279,11 +297,31 @@ public sealed class MainMerchantController : MonoBehaviour
                 if (result.Inventory != null) PopulateOwnedItems(result.Inventory);
                 if (result.WinningProduct != null)
                 {
+                    if (currentOffer != null)
+                    {
+                        currentOffer.Purchased = true;
+                        currentOffer.PurchasedProductId = result.WinningProduct.ProductId;
+                    }
                     currentLotteryOffer.Drawn = true;
                     currentLotteryOffer.WinningProductId = result.WinningProduct.ProductId;
                     HighlightLotteryWinner(result.WinningProduct.ProductId);
                     ShowTip("Won: " + result.WinningProduct.EnglishName);
                 }
+                ShowSoldOut();
+                return;
+            }
+
+            if (result.Status == MerchantLotteryStatus.AlreadyPurchased)
+            {
+                if (currentOffer != null) currentOffer.Purchased = true;
+                ShowTip(string.Empty);
+                ShowSoldOut();
+                return;
+            }
+
+            if (result.Status == MerchantLotteryStatus.AdVerificationFailed)
+            {
+                ShowTip("Video unavailable");
                 return;
             }
 
@@ -300,11 +338,7 @@ public sealed class MainMerchantController : MonoBehaviour
         finally
         {
             lotteryDrawInProgress = false;
-            if (lotteryDrawButton != null)
-            {
-                lotteryDrawButton.interactable = currentLotteryOffer != null &&
-                    !currentLotteryOffer.Drawn;
-            }
+            RefreshAcquisitionState();
         }
     }
 
@@ -326,6 +360,7 @@ public sealed class MainMerchantController : MonoBehaviour
 
     private void Populate(MerchantOffer offer)
     {
+        currentOffer = offer;
         buyButtons.Clear();
         buyButtonTexts.Clear();
         for (int index = itemContainer.childCount - 1; index >= 0; index--)
@@ -372,6 +407,7 @@ public sealed class MainMerchantController : MonoBehaviour
             buyButtons.Add(buyButton);
             buyButtonTexts.Add(priceText);
         }
+        RefreshAcquisitionState();
     }
 
     private async void OnBuyClicked(
@@ -380,11 +416,11 @@ public sealed class MainMerchantController : MonoBehaviour
         Button selectedButton,
         TMP_Text selectedPriceText)
     {
-        if (purchaseInProgress) return;
+        if (purchaseInProgress || lotteryDrawInProgress ||
+            (currentOffer != null && currentOffer.Purchased)) return;
         purchaseInProgress = true;
-        bool purchaseCompleted = false;
         ShowTip(string.Empty);
-        SetButtonsInteractable(false);
+        RefreshAcquisitionState();
 
         try
         {
@@ -422,8 +458,9 @@ public sealed class MainMerchantController : MonoBehaviour
                 case MerchantPurchaseStatus.Success:
                     ShowTip(string.Empty);
                     AddOwnedProduct(product);
+                    offer.Purchased = true;
+                    offer.PurchasedProductId = product.ProductId;
                     ShowSoldOut();
-                    purchaseCompleted = true;
                     return;
                 case MerchantPurchaseStatus.InsufficientGold:
                     ShowTip("Insufficient gold");
@@ -431,8 +468,8 @@ public sealed class MainMerchantController : MonoBehaviour
                 case MerchantPurchaseStatus.AlreadyPurchased:
                 case MerchantPurchaseStatus.AlreadyOwned:
                     ShowTip(string.Empty);
+                    offer.Purchased = true;
                     ShowSoldOut();
-                    purchaseCompleted = true;
                     return;
                 case MerchantPurchaseStatus.AdVerificationFailed:
                     ShowTip("Video unavailable");
@@ -454,7 +491,7 @@ public sealed class MainMerchantController : MonoBehaviour
         finally
         {
             purchaseInProgress = false;
-            if (!purchaseCompleted) SetButtonsInteractable(true);
+            RefreshAcquisitionState();
         }
     }
 
@@ -468,10 +505,37 @@ public sealed class MainMerchantController : MonoBehaviour
 
     private void ShowSoldOut()
     {
+        if (currentOffer != null) currentOffer.Purchased = true;
         SetButtonsInteractable(false);
         foreach (TMP_Text buttonText in buyButtonTexts)
         {
             if (buttonText != null) buttonText.text = "Sold out";
+        }
+        if (lotteryDrawButton != null) lotteryDrawButton.interactable = false;
+        if (lotteryDrawButtonText != null) lotteryDrawButtonText.text = "Sold out";
+    }
+
+    private void RefreshAcquisitionState()
+    {
+        if (currentOffer != null && currentOffer.Purchased)
+        {
+            ShowSoldOut();
+            return;
+        }
+
+        bool requestInProgress = purchaseInProgress || lotteryDrawInProgress;
+        SetButtonsInteractable(!requestInProgress);
+        if (lotteryDrawButton != null)
+        {
+            lotteryDrawButton.interactable = !requestInProgress &&
+                currentLotteryOffer != null &&
+                !currentLotteryOffer.Drawn &&
+                currentLotteryOffer.Products != null &&
+                currentLotteryOffer.Products.Count > 0;
+        }
+        if (lotteryDrawButtonText != null)
+        {
+            lotteryDrawButtonText.text = lotteryDrawButtonDefaultText;
         }
     }
 
