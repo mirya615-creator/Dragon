@@ -10,24 +10,21 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class MainMerchantController : MonoBehaviour
 {
-    private const string ItemPrefabPath = "prefabs/ItemBg";
+    private const string OfferItemPrefabPath = "prefabs/ItemBg";
+    private const string OwnedItemPrefabPath = "prefabs/Item";
     private const string MerchantAdPlacement = "merchant_rewarded_item";
 
     private readonly List<Button> buyButtons = new List<Button>();
     private readonly List<TMP_Text> buyButtonTexts = new List<TMP_Text>();
-    private readonly List<Image> activeItemImages = new List<Image>();
-    private readonly List<Image> passiveItemImages = new List<Image>();
     private readonly HashSet<string> displayedProductIds = new HashSet<string>();
-    private readonly Dictionary<Image, Sprite> defaultItemSprites = new Dictionary<Image, Sprite>();
-    private readonly Dictionary<Image, Color> defaultItemColors = new Dictionary<Image, Color>();
-    private readonly Dictionary<Image, MerchantProduct> slotProducts =
-        new Dictionary<Image, MerchantProduct>();
-    private readonly Dictionary<Image, Button> slotDeleteButtons = new Dictionary<Image, Button>();
     private GameObject merchantPanel;
     private GameObject cancelItemPanel;
     private Transform itemContainer;
     private Transform ownedItemContainer;
-    private GameObject itemPrefab;
+    private Transform activeItemColumn;
+    private Transform passiveItemColumn;
+    private GameObject offerItemPrefab;
+    private GameObject ownedItemPrefab;
     private TMP_Text tipText;
     private Button cancelItemButton;
     private Button confirmItemButton;
@@ -39,8 +36,6 @@ public sealed class MainMerchantController : MonoBehaviour
     private bool purchaseInProgress;
     private bool deleteInProgress;
     private Coroutine hideTipCoroutine;
-    private int activeItemCount;
-    private int passiveItemCount;
     private MerchantProduct selectedDeleteProduct;
 
     private void Awake()
@@ -53,7 +48,21 @@ public sealed class MainMerchantController : MonoBehaviour
         itemContainer = panelTransform?.Find("Bg/ChatItemCon");
         ownedItemContainer = panelTransform?.Find("Bg/ItemContainer") ??
                              panelTransform?.Find("Bg/MyItemBg/ItemContainer");
-        itemPrefab = Resources.Load<GameObject>(ItemPrefabPath);
+        if (ownedItemContainer != null)
+        {
+            activeItemColumn = ownedItemContainer.Find("ActiveColumn");
+            passiveItemColumn = ownedItemContainer.Find("PassiveColumn");
+            if (activeItemColumn == null && ownedItemContainer.childCount > 0)
+            {
+                activeItemColumn = ownedItemContainer.GetChild(0);
+            }
+            if (passiveItemColumn == null && ownedItemContainer.childCount > 1)
+            {
+                passiveItemColumn = ownedItemContainer.GetChild(1);
+            }
+        }
+        offerItemPrefab = Resources.Load<GameObject>(OfferItemPrefabPath);
+        ownedItemPrefab = Resources.Load<GameObject>(OwnedItemPrefabPath);
         tipText = panelTransform?.Find("Bg/TipText")?.GetComponent<TMP_Text>();
         rewardedAdService = new MockRewardedAdService(
             transform,
@@ -65,17 +74,19 @@ public sealed class MainMerchantController : MonoBehaviour
         confirmItemButton = (cancelPanelTransform?.Find("ConfirmBtn") ??
                              cancelPanelTransform?.Find("Bg/ConfirmBtn"))?.GetComponent<Button>();
         if (panelTransform == null || itemContainer == null || ownedItemContainer == null ||
-            itemPrefab == null || cancelItemPanel == null || cancelItemButton == null ||
+            activeItemColumn == null || passiveItemColumn == null ||
+            activeItemColumn == passiveItemColumn || offerItemPrefab == null ||
+            ownedItemPrefab == null || cancelItemPanel == null || cancelItemButton == null ||
             confirmItemButton == null)
         {
             Debug.LogError(
-                "MainMerchantController requires MerchantPanel/Bg/ChatItemCon, Bg/ItemContainer, " +
-                "Bg/CancleItemPanel with CancleBtn and ConfirmBtn, and Resources/prefabs/ItemBg.");
+                "MainMerchantController requires MerchantPanel/Bg/ChatItemCon, " +
+                "Bg/ItemContainer with ActiveColumn and PassiveColumn, Bg/CancleItemPanel " +
+                "with CancleBtn and ConfirmBtn, and Resources/prefabs/ItemBg and Item.");
             enabled = false;
             return;
         }
 
-        ResolveOwnedItemSlots();
         cancelItemButton.onClick.AddListener(OnCancelDeleteClicked);
         confirmItemButton.onClick.AddListener(OnConfirmDeleteClicked);
         cancelItemPanel.SetActive(false);
@@ -145,7 +156,7 @@ public sealed class MainMerchantController : MonoBehaviour
 
         foreach (MerchantProduct product in offer.Products)
         {
-            GameObject itemObject = Instantiate(itemPrefab, itemContainer, false);
+            GameObject itemObject = Instantiate(offerItemPrefab, itemContainer, false);
             itemObject.name = "ItemBg_" + product.ProductId;
 
             SetText(
@@ -283,41 +294,11 @@ public sealed class MainMerchantController : MonoBehaviour
         }
     }
 
-    private void ResolveOwnedItemSlots()
-    {
-        activeItemImages.Clear();
-        passiveItemImages.Clear();
-        int activeSlotCount = ownedItemContainer.childCount / 2;
-        for (int index = 0; index < ownedItemContainer.childCount; index++)
-        {
-            Image itemImage = ownedItemContainer.GetChild(index)
-                .Find("ItemImg")?.GetComponent<Image>();
-            if (itemImage == null) continue;
-
-            defaultItemSprites[itemImage] = itemImage.sprite;
-            defaultItemColors[itemImage] = itemImage.color;
-            Button deleteButton = itemImage.transform.parent.Find("DelBtn")?.GetComponent<Button>();
-            if (deleteButton != null)
-            {
-                Image capturedImage = itemImage;
-                deleteButton.onClick.AddListener(() => OnDeleteItemClicked(capturedImage));
-                deleteButton.interactable = false;
-                slotDeleteButtons[itemImage] = deleteButton;
-            }
-
-            if (index < activeSlotCount) activeItemImages.Add(itemImage);
-            else passiveItemImages.Add(itemImage);
-        }
-    }
-
     private void PopulateOwnedItems(MerchantInventory inventory)
     {
-        activeItemCount = 0;
-        passiveItemCount = 0;
         displayedProductIds.Clear();
-        slotProducts.Clear();
-        ResetOwnedItemSlots(activeItemImages);
-        ResetOwnedItemSlots(passiveItemImages);
+        ClearOwnedItemColumn(activeItemColumn);
+        ClearOwnedItemColumn(passiveItemColumn);
         if (inventory?.Products == null) return;
 
         foreach (MerchantProduct product in inventory.Products)
@@ -328,55 +309,69 @@ public sealed class MainMerchantController : MonoBehaviour
 
     private void AddOwnedProduct(MerchantProduct product)
     {
-        if (product == null || string.IsNullOrWhiteSpace(product.ProductId) ||
-            !displayedProductIds.Add(product.ProductId))
+        if (product == null || string.IsNullOrWhiteSpace(product.ProductId))
         {
             return;
         }
 
-        bool isActive = string.Equals(product.ItemType, "Active", StringComparison.OrdinalIgnoreCase);
-        List<Image> targetRow = isActive ? activeItemImages : passiveItemImages;
-        int targetIndex = isActive ? activeItemCount : passiveItemCount;
-        if (targetIndex >= targetRow.Count)
+        Transform targetColumn;
+        if (string.Equals(product.ItemType, "Active", StringComparison.OrdinalIgnoreCase))
         {
-            Debug.LogWarning($"No free {product.ItemType} Merchant item slot for {product.ProductId}.");
+            targetColumn = activeItemColumn;
+        }
+        else if (string.Equals(product.ItemType, "Passive", StringComparison.OrdinalIgnoreCase))
+        {
+            targetColumn = passiveItemColumn;
+        }
+        else
+        {
+            Debug.LogWarning(
+                $"Unknown Merchant ItemType '{product.ItemType}' for {product.ProductId}.");
             return;
         }
 
-        Image targetImage = targetRow[targetIndex];
+        if (!displayedProductIds.Add(product.ProductId)) return;
+
+        GameObject itemObject = Instantiate(ownedItemPrefab, targetColumn, false);
+        itemObject.name = "Item_" + product.ProductId;
+
+        Image targetImage = itemObject.transform.Find("ItemImg")?.GetComponent<Image>();
         Sprite icon = iconProvider.Load(product.IconKey);
         if (targetImage != null && icon != null)
         {
             targetImage.sprite = icon;
             targetImage.color = Color.white;
         }
-        slotProducts[targetImage] = product;
-        if (slotDeleteButtons.TryGetValue(targetImage, out Button deleteButton))
+
+        Button deleteButton = itemObject.transform.Find("DelBtn")?.GetComponent<Button>();
+        if (targetImage == null || deleteButton == null)
         {
-            deleteButton.interactable = true;
+            Debug.LogError("Item prefab requires ItemImg and DelBtn.");
+            displayedProductIds.Remove(product.ProductId);
+            itemObject.SetActive(false);
+            Destroy(itemObject);
+            return;
         }
 
-        if (isActive) activeItemCount++;
-        else passiveItemCount++;
+        MerchantProduct capturedProduct = product;
+        deleteButton.interactable = true;
+        deleteButton.onClick.AddListener(() => OnDeleteItemClicked(capturedProduct));
     }
 
-    private void ResetOwnedItemSlots(List<Image> slots)
+    private static void ClearOwnedItemColumn(Transform column)
     {
-        foreach (Image slot in slots)
+        if (column == null) return;
+        for (int index = column.childCount - 1; index >= 0; index--)
         {
-            if (slot == null) continue;
-            if (defaultItemSprites.TryGetValue(slot, out Sprite defaultSprite)) slot.sprite = defaultSprite;
-            if (defaultItemColors.TryGetValue(slot, out Color defaultColor)) slot.color = defaultColor;
-            if (slotDeleteButtons.TryGetValue(slot, out Button deleteButton))
-            {
-                deleteButton.interactable = false;
-            }
+            GameObject existing = column.GetChild(index).gameObject;
+            existing.SetActive(false);
+            Destroy(existing);
         }
     }
 
-    private void OnDeleteItemClicked(Image itemImage)
+    private void OnDeleteItemClicked(MerchantProduct product)
     {
-        if (deleteInProgress || !slotProducts.TryGetValue(itemImage, out MerchantProduct product)) return;
+        if (deleteInProgress || product == null) return;
         selectedDeleteProduct = product;
         cancelItemPanel.SetActive(true);
         cancelItemPanel.transform.SetAsLastSibling();
