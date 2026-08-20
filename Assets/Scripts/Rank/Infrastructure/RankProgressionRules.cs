@@ -85,7 +85,8 @@ public static class RankProgressionRules
             Division = previous.Division,
             CurrentStars = previous.RequiredStars,
             RequiredStars = previous.RequiredStars,
-            TotalRankStars = previous.TotalRankStars + 1
+            TotalRankStars = previous.TotalRankStars + 1,
+            ReachedStateAtUnixMilliseconds = previous.ReachedStateAtUnixMilliseconds
         };
     }
 

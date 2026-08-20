@@ -7,27 +7,7 @@ using System.Threading.Tasks;
 /// </summary>
 public interface IAuthGateway
 {
-    Task<AuthSession> LoginAsync(string email, string password, CancellationToken cancellationToken);
-
     Task<AuthSession> GuestLoginAsync(GuestLoginRequest request, CancellationToken cancellationToken);
-
-    Task SendEmailCodeAsync(
-        string email,
-        EmailCodePurpose purpose,
-        CancellationToken cancellationToken);
-
-    Task<AuthSession> VerifyEmailCodeAsync(
-        string email,
-        string code,
-        DeviceInfoDto deviceInfo,
-        CancellationToken cancellationToken);
-
-    Task RegisterWithEmailCodeAsync(
-        string email,
-        string password,
-        string code,
-        DeviceInfoDto deviceInfo,
-        CancellationToken cancellationToken);
 
     Task<AuthSession> GoogleLoginAsync(
         string idToken,

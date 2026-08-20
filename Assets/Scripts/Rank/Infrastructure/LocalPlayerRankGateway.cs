@@ -13,6 +13,15 @@ public sealed class LocalPlayerRankGateway : IPlayerRankGateway
 {
     private const string RankKeyPrefix = "dragonbound.player-rank.";
     private const string MatchKeySegment = ".match.";
+    private const string ReachedStateAtSegment = ".reached-state-at";
+
+    private readonly LocalLeaderboardPeriodStore leaderboardStore;
+
+    public LocalPlayerRankGateway(LocalLeaderboardPeriodStore leaderboardStore)
+    {
+        this.leaderboardStore = leaderboardStore ??
+            throw new ArgumentNullException(nameof(leaderboardStore));
+    }
 
     public Task<PlayerRankState> GetRankAsync(
         string playerId,
@@ -20,8 +29,7 @@ public sealed class LocalPlayerRankGateway : IPlayerRankGateway
     {
         cancellationToken.ThrowIfCancellationRequested();
         string key = GetRankKey(playerId);
-        long totalStars = LoadTotalStars(key);
-        return Task.FromResult(RankProgressionRules.Calculate(totalStars));
+        return Task.FromResult(LoadState(key));
     }
 
     public Task<RankProgressResult> RecordVictoryAsync(
@@ -30,35 +38,31 @@ public sealed class LocalPlayerRankGateway : IPlayerRankGateway
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (string.IsNullOrWhiteSpace(matchId))
-        {
-            throw new ArgumentException("Match ID is required.", nameof(matchId));
-        }
+        ValidateMatchId(matchId);
 
         string key = GetRankKey(playerId);
         string matchKey = key + MatchKeySegment + HashKey(matchId);
-        long currentTotal = LoadTotalStars(key);
-
+        PlayerRankState previousState = LoadState(key);
         if (PlayerPrefs.HasKey(matchKey))
         {
-            PlayerRankState currentState = RankProgressionRules.Calculate(currentTotal);
-            return Task.FromResult(new RankProgressResult
-            {
-                State = currentState,
-                PromotionFromState = null,
-                Promoted = false
-            });
+            return Task.FromResult(CreateUnchangedResult(previousState));
         }
 
-        PlayerRankState previousState = RankProgressionRules.Calculate(currentTotal);
-        long updatedTotal = currentTotal < long.MaxValue ? currentTotal + 1 : currentTotal;
+        long updatedTotal = previousState.TotalRankStars < long.MaxValue
+            ? previousState.TotalRankStars + 1
+            : previousState.TotalRankStars;
         PlayerRankState updatedState = RankProgressionRules.Calculate(updatedTotal);
+        long reachedAt = HasRankingStateChanged(previousState, updatedState)
+            ? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            : previousState.ReachedStateAtUnixMilliseconds;
+        updatedState.ReachedStateAtUnixMilliseconds = reachedAt;
+
         bool promoted = previousState.Level != updatedState.Level ||
                         previousState.Division != updatedState.Division;
-
-        PlayerPrefs.SetString(key, updatedTotal.ToString(CultureInfo.InvariantCulture));
+        SaveState(key, updatedState);
         PlayerPrefs.SetInt(matchKey, 1);
         PlayerPrefs.Save();
+        RecordLeaderboardState(playerId, updatedState);
 
         return Task.FromResult(new RankProgressResult
         {
@@ -76,51 +80,112 @@ public sealed class LocalPlayerRankGateway : IPlayerRankGateway
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (string.IsNullOrWhiteSpace(matchId))
-        {
-            throw new ArgumentException("Match ID is required.", nameof(matchId));
-        }
+        ValidateMatchId(matchId);
 
         string key = GetRankKey(playerId);
         string matchKey = key + MatchKeySegment + HashKey(matchId);
-        long currentTotal = LoadTotalStars(key);
-
+        PlayerRankState previousState = LoadState(key);
         if (PlayerPrefs.HasKey(matchKey))
         {
-            return Task.FromResult(CreateUnchangedResult(currentTotal));
+            return Task.FromResult(CreateUnchangedResult(previousState));
         }
 
-        long updatedTotal = RankProgressionRules.CalculateTotalAfterDefeat(currentTotal);
-        PlayerPrefs.SetString(key, updatedTotal.ToString(CultureInfo.InvariantCulture));
+        long updatedTotal = RankProgressionRules.CalculateTotalAfterDefeat(
+            previousState.TotalRankStars);
+        PlayerRankState updatedState = RankProgressionRules.Calculate(updatedTotal);
+        long reachedAt = HasRankingStateChanged(previousState, updatedState)
+            ? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            : previousState.ReachedStateAtUnixMilliseconds;
+        updatedState.ReachedStateAtUnixMilliseconds = reachedAt;
+
+        SaveState(key, updatedState);
         PlayerPrefs.SetInt(matchKey, 1);
         PlayerPrefs.Save();
-
-        return Task.FromResult(CreateUnchangedResult(updatedTotal));
+        RecordLeaderboardState(playerId, updatedState);
+        return Task.FromResult(CreateUnchangedResult(updatedState));
     }
 
-    private static RankProgressResult CreateUnchangedResult(long totalStars)
+    private void RecordLeaderboardState(string playerId, PlayerRankState state)
+    {
+        leaderboardStore.RecordCurrentPeriods(
+            playerId,
+            "You",
+            state,
+            state.ReachedStateAtUnixMilliseconds,
+            DateTimeOffset.UtcNow);
+    }
+
+    private static PlayerRankState LoadState(string key)
+    {
+        long totalStars = LoadTotalStars(key);
+        PlayerRankState state = RankProgressionRules.Calculate(totalStars);
+        state.ReachedStateAtUnixMilliseconds = LoadReachedStateAt(key);
+        return state;
+    }
+
+    private static long LoadReachedStateAt(string key)
+    {
+        string reachedKey = key + ReachedStateAtSegment;
+        string value = PlayerPrefs.GetString(reachedKey, string.Empty);
+        if (long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long reachedAt) &&
+            reachedAt > 0)
+        {
+            return reachedAt;
+        }
+
+        reachedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        PlayerPrefs.SetString(reachedKey, reachedAt.ToString(CultureInfo.InvariantCulture));
+        PlayerPrefs.Save();
+        return reachedAt;
+    }
+
+    private static void SaveState(string key, PlayerRankState state)
+    {
+        PlayerPrefs.SetString(
+            key,
+            state.TotalRankStars.ToString(CultureInfo.InvariantCulture));
+        PlayerPrefs.SetString(
+            key + ReachedStateAtSegment,
+            state.ReachedStateAtUnixMilliseconds.ToString(CultureInfo.InvariantCulture));
+    }
+
+    private static bool HasRankingStateChanged(PlayerRankState previous, PlayerRankState current)
+    {
+        if (previous.Level != current.Level) return true;
+        if (current.Level >= 10)
+            return previous.TotalRankStars != current.TotalRankStars;
+        return previous.Division != current.Division ||
+               previous.CurrentStars != current.CurrentStars;
+    }
+
+    private static RankProgressResult CreateUnchangedResult(PlayerRankState state)
     {
         return new RankProgressResult
         {
-            State = RankProgressionRules.Calculate(totalStars),
+            State = state,
             PromotionFromState = null,
             Promoted = false
         };
     }
 
+    private static void ValidateMatchId(string matchId)
+    {
+        if (string.IsNullOrWhiteSpace(matchId))
+            throw new ArgumentException("Match ID is required.", nameof(matchId));
+    }
+
     private static string GetRankKey(string playerId)
     {
         if (string.IsNullOrWhiteSpace(playerId))
-        {
             throw new ArgumentException("Player ID is required.", nameof(playerId));
-        }
         return RankKeyPrefix + HashKey(playerId);
     }
 
     private static long LoadTotalStars(string key)
     {
         string value = PlayerPrefs.GetString(key, "0");
-        if (!long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long stars) || stars < 0)
+        if (!long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out long stars) ||
+            stars < 0)
         {
             stars = 0;
             PlayerPrefs.SetString(key, "0");

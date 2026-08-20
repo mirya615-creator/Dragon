@@ -12,13 +12,16 @@ public sealed class GoldBalanceController : MonoBehaviour
 {
     private TMP_Text amountText;
     private IPlayerGoldGateway goldGateway;
+    private IAuthSessionStore authSessionStore;
     private CancellationTokenSource lifetimeCancellation;
     private string playerId;
 
     private void Awake()
     {
+        IClientServices services = ClientCompositionRoot.Current;
         amountText = transform.Find("CoinQua")?.GetComponent<TMP_Text>();
-        goldGateway = new LocalPlayerGoldGateway();
+        goldGateway = services.Gold;
+        authSessionStore = services.AuthSession;
         lifetimeCancellation = new CancellationTokenSource();
 
         if (amountText == null)
@@ -34,7 +37,7 @@ public sealed class GoldBalanceController : MonoBehaviour
 
     private async void Start()
     {
-        AuthSession session = AuthSessionStore.Current;
+        AuthSession session = authSessionStore.Current;
         if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
         {
             Debug.LogError("GoldBalanceController requires an authenticated player session.");

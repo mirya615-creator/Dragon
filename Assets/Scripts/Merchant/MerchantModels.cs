@@ -64,6 +64,32 @@ public sealed class MerchantInventory
     public List<MerchantProduct> Products = new List<MerchantProduct>();
 }
 
+[Serializable]
+public sealed class MerchantLotteryOffer
+{
+    public string LotteryOfferId;
+    public string MerchantOfferId;
+    public List<MerchantProduct> Products = new List<MerchantProduct>();
+    public bool Drawn;
+    public string WinningProductId;
+}
+
+public enum MerchantLotteryStatus
+{
+    Success,
+    OfferUnavailable,
+    AlreadyDrawn,
+    NoEligibleProducts
+}
+
+public sealed class MerchantLotteryResult
+{
+    public MerchantLotteryStatus Status;
+    public MerchantProduct WinningProduct;
+    public MerchantInventory Inventory;
+    public bool Applied;
+}
+
 public sealed class MerchantRemoveResult
 {
     public bool Removed;
@@ -110,6 +136,17 @@ public interface IMerchantGateway
 
     Task<MerchantInventory> GetInventoryAsync(
         string playerId,
+        CancellationToken cancellationToken);
+
+    Task<MerchantLotteryOffer> GetLotteryOfferAsync(
+        string playerId,
+        string merchantOfferId,
+        CancellationToken cancellationToken);
+
+    Task<MerchantLotteryResult> DrawLotteryAsync(
+        string playerId,
+        string lotteryOfferId,
+        string idempotencyKey,
         CancellationToken cancellationToken);
 
     Task<MerchantPurchaseResult> PurchaseAsync(

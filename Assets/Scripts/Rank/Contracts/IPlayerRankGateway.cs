@@ -11,6 +11,7 @@ public sealed class PlayerRankState
     public int CurrentStars;
     public int RequiredStars;
     public long TotalRankStars;
+    public long ReachedStateAtUnixMilliseconds;
 }
 
 public sealed class RankProgressResult

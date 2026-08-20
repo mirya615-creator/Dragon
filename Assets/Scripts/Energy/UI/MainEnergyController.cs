@@ -31,6 +31,7 @@ public sealed class MainEnergyController : MonoBehaviour
     private TMP_Text tipText;
     private TMP_Text rewardAmountText;
     private IPlayerEnergyGateway energyGateway;
+    private IAuthSessionStore authSessionStore;
     private IRewardedAdService rewardedAdService;
     private IShareService shareService;
     private CancellationTokenSource lifetimeCancellation;
@@ -51,7 +52,11 @@ public sealed class MainEnergyController : MonoBehaviour
 
     private void Awake()
     {
-        energyGateway = new LocalPlayerEnergyGateway();
+        IClientServices services = ClientCompositionRoot.Current;
+        energyGateway = services.Energy;
+        authSessionStore = services.AuthSession;
+        rewardedAdService = services.RewardedAds;
+        shareService = services.Share;
         lifetimeCancellation = new CancellationTokenSource();
 
         if (!ResolveView())
@@ -60,8 +65,6 @@ public sealed class MainEnergyController : MonoBehaviour
             return;
         }
 
-        rewardedAdService = new MockRewardedAdService(transform, currentAmountText.font);
-        shareService = new MockShareService();
         mainTipText.text = string.Empty;
         ShowTip(string.Empty);
         rewardAmountText.text = "+" + RewardedAdEnergy;
@@ -578,9 +581,9 @@ public sealed class MainEnergyController : MonoBehaviour
         if (mainTipText != null) mainTipText.text = message;
     }
 
-    private static string GetPlayerId()
+    private string GetPlayerId()
     {
-        AuthSession session = AuthSessionStore.Current;
+        AuthSession session = authSessionStore.Current;
         return session != null ? session.PlayerId : string.Empty;
     }
 

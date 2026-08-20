@@ -1,5 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,7 +23,11 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     private GameObject weapon0Prefab;
     private string playerId;
     private RuneProfile currentProfile;
+    private IRuneProfileGateway runeGateway;
+    private IAuthSessionStore authSessionStore;
+    private CancellationTokenSource lifetimeCancellation;
     private Coroutine pendingInventoryChange;
+    private bool runeOperationInProgress;
     private readonly List<InventoryDisplayEntry> displayEntries = new List<InventoryDisplayEntry>();
     private int currentPageIndex;
 
@@ -34,6 +41,10 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
 
     private void Awake()
     {
+        IClientServices services = ClientCompositionRoot.Current;
+        runeGateway = services.Runes;
+        authSessionStore = services.AuthSession;
+        lifetimeCancellation = new CancellationTokenSource();
         weaponContainer = transform.Find("WeaponContainer");
         heroContainer = transform.Find("MyHeroBg/HeroContainer");
         pageLeftButton = GetButton(transform.Find("PageLeft"));
@@ -66,21 +77,25 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     {
         if (pageLeftButton != null) pageLeftButton.onClick.RemoveListener(ShowPreviousPage);
         if (pageRightButton != null) pageRightButton.onClick.RemoveListener(ShowNextPage);
+        if (lifetimeCancellation == null) return;
+        lifetimeCancellation.Cancel();
+        lifetimeCancellation.Dispose();
+        lifetimeCancellation = null;
     }
 
     private void OnEnable()
     {
-        RenderAll();
+        _ = RenderAllAsync();
     }
 
-    private void RenderAll()
+    private async Task RenderAllAsync()
     {
         if (weaponContainer == null || heroContainer == null ||
             weaponPrefab == null || weapon0Prefab == null) return;
 
         ClearContainer();
         displayEntries.Clear();
-        AuthSession session = AuthSessionStore.Current;
+        AuthSession session = authSessionStore.Current;
         if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
         {
             Debug.LogError("Rune inventory cannot be displayed without an authenticated PlayerId.");
@@ -90,13 +105,24 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         }
 
         playerId = session.PlayerId;
-        var runeService = new LocalRuneRewardService();
-        currentProfile = session.IsGuest
-            ? runeService.RemoveLegacyGuestPaginationTestInventory(playerId, 30)
-            : runeService.GetProfile(playerId);
-        SetupHeroDropZones();
-        RefreshHeroRuneNames();
-        RefreshInventoryPages();
+        try
+        {
+            currentProfile = await runeGateway.GetProfileAsync(
+                playerId,
+                lifetimeCancellation.Token);
+            if (!isActiveAndEnabled) return;
+            SetupHeroDropZones();
+            RefreshHeroRuneNames();
+            RefreshInventoryPages();
+        }
+        catch (OperationCanceledException)
+        {
+            // The scene was unloaded while the profile request was in progress.
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError($"Unable to load rune inventory: {exception.Message}");
+        }
     }
 
     private void RefreshInventoryPages()
@@ -220,44 +246,83 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         }
     }
 
-    public bool TryEquipRune(string heroId, string runeId)
+    private async Task<bool> TryEquipRuneAsync(string heroId, string runeId)
     {
-        if (string.IsNullOrEmpty(playerId)) return false;
+        if (string.IsNullOrEmpty(playerId) || runeOperationInProgress) return false;
 
-        var service = new LocalRuneRewardService();
-        if (!service.TryEquipRune(playerId, heroId, runeId, out RuneProfile updatedProfile))
+        runeOperationInProgress = true;
+        try
         {
-            Debug.LogWarning($"Rune '{runeId}' is not available for hero '{heroId}'.");
+            RuneProfileMutationResult result = await runeGateway.EquipRuneAsync(
+                playerId,
+                heroId,
+                runeId,
+                lifetimeCancellation.Token);
+            if (result == null || !result.Succeeded || result.Profile == null) return false;
+
+            currentProfile = result.Profile;
+            if (isActiveAndEnabled)
+            {
+                RefreshHeroRuneNames();
+                RefreshInventoryPages();
+            }
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
             return false;
         }
-
-        currentProfile = updatedProfile;
-        RefreshHeroRuneNames();
-        RefreshInventoryPages();
-        return true;
+        catch (Exception exception)
+        {
+            Debug.LogError($"Unable to equip rune: {exception.Message}");
+            return false;
+        }
+        finally
+        {
+            runeOperationInProgress = false;
+        }
     }
 
-    public bool TryUnequipRune(string heroId)
+    private async Task<bool> TryUnequipRuneAsync(string heroId)
     {
-        if (string.IsNullOrEmpty(playerId)) return false;
+        if (string.IsNullOrEmpty(playerId) || runeOperationInProgress) return false;
 
-        var service = new LocalRuneRewardService();
-        if (!service.TryUnequipRune(playerId, heroId, out RuneProfile updatedProfile))
+        runeOperationInProgress = true;
+        try
         {
-            Debug.LogWarning($"Hero '{heroId}' has no rune to unequip.");
+            RuneProfileMutationResult result = await runeGateway.UnequipRuneAsync(
+                playerId,
+                heroId,
+                lifetimeCancellation.Token);
+            if (result == null || !result.Succeeded || result.Profile == null) return false;
+
+            currentProfile = result.Profile;
+            if (isActiveAndEnabled)
+            {
+                RefreshHeroRuneNames();
+                RefreshInventoryPages();
+            }
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
             return false;
         }
-
-        currentProfile = updatedProfile;
-        RefreshHeroRuneNames();
-        RefreshInventoryPages();
-        return true;
+        catch (Exception exception)
+        {
+            Debug.LogError($"Unable to unequip rune: {exception.Message}");
+            return false;
+        }
+        finally
+        {
+            runeOperationInProgress = false;
+        }
     }
 
     public bool RequestUnequipRune(string heroId)
     {
         if (string.IsNullOrEmpty(heroId) || string.IsNullOrEmpty(playerId) ||
-            pendingInventoryChange != null)
+            pendingInventoryChange != null || runeOperationInProgress)
         {
             return false;
         }
@@ -269,7 +334,8 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     public bool RequestEquipRune(string heroId, string runeId)
     {
         if (string.IsNullOrEmpty(heroId) || string.IsNullOrEmpty(runeId) ||
-            string.IsNullOrEmpty(playerId) || pendingInventoryChange != null)
+            string.IsNullOrEmpty(playerId) || pendingInventoryChange != null ||
+            runeOperationInProgress)
         {
             return false;
         }
@@ -283,12 +349,7 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         // Let OnDrop and OnEndDrag complete before rebuilding WeaponContainer.
         yield return null;
         pendingInventoryChange = null;
-
-        if (!TryEquipRune(heroId, runeId))
-        {
-            RefreshHeroRuneNames();
-            RefreshInventoryPages();
-        }
+        _ = CompleteEquipAsync(heroId, runeId);
     }
 
     private IEnumerator UnequipAfterPointerEvent(string heroId)
@@ -296,11 +357,21 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         // Do not destroy and rebuild Canvas children while EventSystem is dispatching OnDrop/OnEndDrag.
         yield return null;
         pendingInventoryChange = null;
+        _ = CompleteUnequipAsync(heroId);
+    }
 
-        if (!TryUnequipRune(heroId))
-        {
-            RestoreHeroRuneNames();
-        }
+    private async Task CompleteEquipAsync(string heroId, string runeId)
+    {
+        if (await TryEquipRuneAsync(heroId, runeId)) return;
+        if (!isActiveAndEnabled || currentProfile == null) return;
+        RefreshHeroRuneNames();
+        RefreshInventoryPages();
+    }
+
+    private async Task CompleteUnequipAsync(string heroId)
+    {
+        if (await TryUnequipRuneAsync(heroId)) return;
+        if (isActiveAndEnabled) RestoreHeroRuneNames();
     }
 
     public RectTransform SpawnUnequipProxy(string runeId)

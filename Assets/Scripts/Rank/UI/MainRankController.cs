@@ -18,18 +18,21 @@ public sealed class MainRankController : MonoBehaviour
     private readonly List<GameObject> fourStarImages = new List<GameObject>();
     private readonly List<GameObject> fiveStarImages = new List<GameObject>();
     private IPlayerRankGateway rankGateway;
+    private IAuthSessionStore authSessionStore;
     private CancellationTokenSource lifetimeCancellation;
 
     private void Awake()
     {
-        rankGateway = new LocalPlayerRankGateway();
+        IClientServices services = ClientCompositionRoot.Current;
+        rankGateway = services.Rank;
+        authSessionStore = services.AuthSession;
         lifetimeCancellation = new CancellationTokenSource();
         ResolveView();
     }
 
     private async void Start()
     {
-        AuthSession session = AuthSessionStore.Current;
+        AuthSession session = authSessionStore.Current;
         if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
         {
             Debug.LogError("MainRankController requires an authenticated PlayerId.");

@@ -1,41 +1,40 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Development leaderboard. Production can replace this class with a unary Go-server gateway.
+/// Development weekly/monthly leaderboard. Production can replace it with a Go unary gateway.
 /// </summary>
 public sealed class LocalLeaderboardGateway : ILeaderboardGateway
 {
-    private readonly IPlayerRankGateway rankGateway = new LocalPlayerRankGateway();
+    private readonly IPlayerRankGateway rankGateway;
+    private readonly LocalLeaderboardPeriodStore periodStore;
 
-    public async Task<IReadOnlyList<LeaderboardPlayer>> GetLeaderboardAsync(
+    public LocalLeaderboardGateway(
+        IPlayerRankGateway rankGateway,
+        LocalLeaderboardPeriodStore periodStore)
+    {
+        this.rankGateway = rankGateway ?? throw new ArgumentNullException(nameof(rankGateway));
+        this.periodStore = periodStore ?? throw new ArgumentNullException(nameof(periodStore));
+    }
+
+    public async Task<LeaderboardResult> GetLeaderboardAsync(
         string playerId,
+        LeaderboardPeriodType periodType,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        var players = new List<LeaderboardPlayer>
-        {
-            CreatePlayer("training-aria", "Aria", 137, 1000),
-            CreatePlayer("training-borin", "Borin", 119, 2000),
-            CreatePlayer("training-cyra", "Cyra", 104, 3000),
-            CreatePlayer("training-doran", "Doran", 91, 4000),
-            CreatePlayer("training-elin", "Elin", 67, 5000),
-            CreatePlayer("training-fenn", "Fenn", 28, 6000),
-            CreatePlayer("training-gale", "Gale", 112, 7000),
-            CreatePlayer("training-hara", "Hara", 109, 8000),
-            CreatePlayer("training-ivo", "Ivo", 102, 9000),
-            CreatePlayer("training-juna", "Juna", 83, 10000),
-            CreatePlayer("training-kael", "Kael", 51, 11000),
-            CreatePlayer("training-lyra", "Lyra", 12, 12000)
-        };
+        LeaderboardPeriod period = LeaderboardPeriodResolver.Resolve(
+            periodType,
+            DateTimeOffset.UtcNow);
 
         if (!string.IsNullOrWhiteSpace(playerId))
         {
-            PlayerRankState currentRank = await rankGateway.GetRankAsync(playerId, cancellationToken);
-            players.RemoveAt(players.Count - 1);
-            players.Add(new LeaderboardPlayer
+            PlayerRankState currentRank = await rankGateway.GetRankAsync(
+                playerId,
+                cancellationToken);
+            periodStore.Upsert(period, new LeaderboardPlayer
             {
                 PlayerId = playerId,
                 DisplayName = "You",
@@ -43,29 +42,28 @@ public sealed class LocalLeaderboardGateway : ILeaderboardGateway
                 Division = currentRank.Division,
                 CurrentStars = currentRank.CurrentStars,
                 TotalRankStars = currentRank.TotalRankStars,
-                ReachedRankAtUnixMilliseconds = 13000
+                ReachedStateAtUnixMilliseconds = currentRank.ReachedStateAtUnixMilliseconds
             });
         }
 
-        return players;
-    }
-
-    private static LeaderboardPlayer CreatePlayer(
-        string playerId,
-        string displayName,
-        long totalStars,
-        long reachedAt)
-    {
-        PlayerRankState rank = RankProgressionRules.Calculate(totalStars);
-        return new LeaderboardPlayer
+        List<LeaderboardPlayer> sorted = LeaderboardRankingRules.Sort(
+            periodStore.GetPlayers(period));
+        LeaderboardPlayer localPlayer = null;
+        int localPosition = 0;
+        for (int index = 0; index < sorted.Count; index++)
         {
-            PlayerId = playerId,
-            DisplayName = displayName,
-            RankLevel = rank.Level,
-            Division = rank.Division,
-            CurrentStars = rank.CurrentStars,
-            TotalRankStars = rank.TotalRankStars,
-            ReachedRankAtUnixMilliseconds = reachedAt
+            if (!string.Equals(sorted[index].PlayerId, playerId, StringComparison.Ordinal)) continue;
+            localPlayer = sorted[index];
+            localPosition = index + 1;
+            break;
+        }
+
+        return new LeaderboardResult
+        {
+            Period = period,
+            Players = sorted,
+            LocalPlayer = localPlayer,
+            LocalPlayerPosition = localPosition
         };
     }
 }

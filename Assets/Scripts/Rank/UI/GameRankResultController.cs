@@ -9,10 +9,12 @@ using UnityEngine.UI;
 public sealed class GameRankResultController : MonoBehaviour
 {
     private const string DoubleGoldPlacement = "game_gold_double";
+    private const int MinimumLoadingMilliseconds = 2000;
 
     private Button victoryButton;
     private Button defeatButton;
     private Button returnButton;
+    private GameObject loadingPanel;
     private GameObject settlementPanel;
     private TMP_Text settlementResultText;
     private TMP_Text goldText;
@@ -22,31 +24,45 @@ public sealed class GameRankResultController : MonoBehaviour
     private IPlayerGoldGateway goldGateway;
     private IMerchantGateway merchantGateway;
     private IRewardedAdService rewardedAdService;
+    private IAuthSessionStore authSessionStore;
     private CancellationTokenSource lifetimeCancellation;
     private string matchId;
     private MatchOutcome pendingOutcome;
     private bool isFinishing;
+    private bool gameReady;
     private bool hasPendingOutcome;
     private bool claimInProgress;
 
     private void Awake()
     {
+        IClientServices services = ClientCompositionRoot.Current;
         victoryButton = FindButton("VictoryBtn");
         defeatButton = FindButton("DefaltBtn");
         returnButton = FindButton("ReturnBtn");
-        rankGateway = new LocalPlayerRankGateway();
-        goldGateway = new LocalPlayerGoldGateway();
-        merchantGateway = new LocalMerchantGateway();
+        loadingPanel = transform.Find("LoadingPanel")?.gameObject;
+        rankGateway = services.Rank;
+        goldGateway = services.Gold;
+        merchantGateway = services.Merchant;
+        rewardedAdService = services.RewardedAds;
+        authSessionStore = services.AuthSession;
         lifetimeCancellation = new CancellationTokenSource();
         matchId = Guid.NewGuid().ToString("N");
 
+        if (loadingPanel == null)
+        {
+            Debug.LogError("GameRankResultController expects LoadingPanel under Game/MainPanel.");
+            enabled = false;
+            return;
+        }
         if (!ResolveSettlementView())
         {
             enabled = false;
             return;
         }
 
-        rewardedAdService = new MockRewardedAdService(transform, goldText.font);
+        loadingPanel.SetActive(true);
+        loadingPanel.transform.SetAsLastSibling();
+        SetGameControlsInteractable(false);
         settlementPanel.SetActive(false);
         GameRuneDropSession.Begin(matchId);
 
@@ -59,6 +75,42 @@ public sealed class GameRankResultController : MonoBehaviour
         {
             Debug.LogError("GameRankResultController expects VictoryBtn and DefaltBtn under Game/MainPanel.");
         }
+    }
+
+    private async void Start()
+    {
+        if (!enabled || loadingPanel == null) return;
+
+        try
+        {
+            Task minimumDisplay = Task.Delay(
+                MinimumLoadingMilliseconds,
+                lifetimeCancellation.Token);
+            Task initialization = InitializeGameAsync(lifetimeCancellation.Token);
+            await Task.WhenAll(minimumDisplay, initialization);
+
+            gameReady = true;
+            loadingPanel.SetActive(false);
+            SetGameControlsInteractable(true);
+        }
+        catch (OperationCanceledException)
+        {
+            // Game scene was unloaded while initialization was running.
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError($"Unable to initialize Game scene: {exception.Message}");
+            // Keep LoadingPanel visible and gameplay disabled on initialization failure.
+        }
+    }
+
+    private static async Task InitializeGameAsync(CancellationToken cancellationToken)
+    {
+        // Awake has created the match session and initialized the Game services.
+        // Yield once so every Game object can finish its first-frame setup.
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+        Canvas.ForceUpdateCanvases();
     }
 
     private void OnDestroy()
@@ -83,7 +135,7 @@ public sealed class GameRankResultController : MonoBehaviour
     {
         if (!TryBeginFinish()) return;
 
-        AuthSession session = AuthSessionStore.Current;
+        AuthSession session = authSessionStore.Current;
         if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
         {
             Debug.LogError("Victory cannot be recorded without an authenticated PlayerId.");
@@ -98,7 +150,10 @@ public sealed class GameRankResultController : MonoBehaviour
                 matchId,
                 lifetimeCancellation.Token);
             RankPromotionStore.Set(session.PlayerId, result);
-            GameRuneDropSession.Settle(session.PlayerId, matchId);
+            await GameRuneDropSession.SettleAsync(
+                session.PlayerId,
+                matchId,
+                lifetimeCancellation.Token);
             ShowSettlement(MatchOutcome.Victory);
         }
         catch (OperationCanceledException)
@@ -116,7 +171,7 @@ public sealed class GameRankResultController : MonoBehaviour
     {
         if (!TryBeginFinish()) return;
 
-        AuthSession session = AuthSessionStore.Current;
+        AuthSession session = authSessionStore.Current;
         if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
         {
             Debug.LogError("Defeat cannot be recorded without an authenticated PlayerId.");
@@ -130,7 +185,10 @@ public sealed class GameRankResultController : MonoBehaviour
                 session.PlayerId,
                 matchId,
                 lifetimeCancellation.Token);
-            GameRuneDropSession.Settle(session.PlayerId, matchId);
+            await GameRuneDropSession.SettleAsync(
+                session.PlayerId,
+                matchId,
+                lifetimeCancellation.Token);
             ShowSettlement(MatchOutcome.Defeat);
         }
         catch (OperationCanceledException)
@@ -194,7 +252,7 @@ public sealed class GameRankResultController : MonoBehaviour
         GoldClaimType claimType,
         string adVerificationId)
     {
-        AuthSession session = AuthSessionStore.Current;
+        AuthSession session = authSessionStore.Current;
         if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
         {
             throw new InvalidOperationException("Gold cannot be settled without an authenticated PlayerId.");
@@ -254,7 +312,7 @@ public sealed class GameRankResultController : MonoBehaviour
 
     private bool TryBeginFinish()
     {
-        if (isFinishing || hasPendingOutcome) return false;
+        if (!gameReady || isFinishing || hasPendingOutcome) return false;
         if (SceneLoader.Instance == null)
         {
             Debug.LogError("SceneLoader is unavailable.");
@@ -271,6 +329,13 @@ public sealed class GameRankResultController : MonoBehaviour
         if (victoryButton != null) victoryButton.interactable = !busy;
         if (defeatButton != null) defeatButton.interactable = !busy;
         if (returnButton != null) returnButton.interactable = !busy;
+    }
+
+    private void SetGameControlsInteractable(bool interactable)
+    {
+        if (victoryButton != null) victoryButton.interactable = interactable;
+        if (defeatButton != null) defeatButton.interactable = interactable;
+        if (returnButton != null) returnButton.interactable = interactable;
     }
 
     private bool ResolveSettlementView()

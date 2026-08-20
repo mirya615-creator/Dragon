@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 /// <summary>
@@ -16,7 +18,10 @@ public static class GameRuneDropSession
         Debug.Log($"Simulated {pendingRewards.Count} rune reward(s) for run {runId}.");
     }
 
-    public static RuneProfile Settle(string playerId, string runId)
+    public static async Task<RuneProfile> SettleAsync(
+        string playerId,
+        string runId,
+        CancellationToken cancellationToken)
     {
         if (pendingRewards == null || pendingRunId != runId)
         {
@@ -24,10 +29,11 @@ public static class GameRuneDropSession
             pendingRewards = GenerateRewards();
         }
 
-        RuneProfile profile = new LocalRuneRewardService().SettleRun(
+        RuneProfile profile = await ClientCompositionRoot.Current.Runes.SettleRunAsync(
             playerId,
             runId,
-            pendingRewards);
+            pendingRewards,
+            cancellationToken);
         pendingRunId = null;
         pendingRewards = null;
         return profile;

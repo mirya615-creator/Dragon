@@ -15,14 +15,22 @@ public sealed class LocalMerchantGateway : IMerchantGateway
 {
     private const int RunsPerOffer = 2;
     private const int ProductsPerOffer = 3;
+    private const int ProductsPerLottery = 8;
     private const string MerchantAdPlacement = "merchant_rewarded_item";
     private const string StateKeyPrefix = "dragonbound.merchant.state.";
     private const string RunKeyPrefix = "dragonbound.merchant.run.";
     private const string PurchaseKeyPrefix = "dragonbound.merchant.purchase.";
     private const string AdClaimKeyPrefix = "dragonbound.merchant.ad-claim.";
+    private const string LotteryDrawKeyPrefix = "dragonbound.merchant.lottery-draw.";
     private const string RemoveKeyPrefix = "dragonbound.merchant.remove.";
 
-    private readonly IPlayerGoldGateway goldGateway = new LocalPlayerGoldGateway();
+    private readonly IPlayerGoldGateway goldGateway;
+
+    public LocalMerchantGateway(IPlayerGoldGateway goldGateway)
+    {
+        this.goldGateway = goldGateway ??
+            throw new ArgumentNullException(nameof(goldGateway));
+    }
 
     [Serializable]
     private sealed class LocalMerchantState
@@ -30,6 +38,7 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         public string DayKey;
         public int CompletedRunCount;
         public MerchantOffer CurrentOffer;
+        public MerchantLotteryOffer CurrentLotteryOffer;
         public List<string> OwnedProductIds = new List<string>();
     }
 
@@ -65,11 +74,13 @@ public sealed class LocalMerchantGateway : IMerchantGateway
 
         // Entering and completing a later run expires the preceding offer.
         if (state.CurrentOffer != null) state.CurrentOffer = null;
+        if (state.CurrentLotteryOffer != null) state.CurrentLotteryOffer = null;
 
         if (GetOwnedCount(state) >= MerchantItemCatalog.All.Count)
         {
             state.CompletedRunCount = 0;
             state.CurrentOffer = null;
+            state.CurrentLotteryOffer = null;
         }
         else
         {
@@ -78,6 +89,7 @@ public sealed class LocalMerchantGateway : IMerchantGateway
             {
                 state.CompletedRunCount = 0;
                 state.CurrentOffer = CreateOffer(state);
+                state.CurrentLotteryOffer = CreateLotteryOffer(state, state.CurrentOffer);
             }
         }
 
@@ -110,6 +122,114 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         ValidatePlayerId(playerId);
 
         return Task.FromResult(CreateInventory(LoadState(playerId)));
+    }
+
+    public Task<MerchantLotteryOffer> GetLotteryOfferAsync(
+        string playerId,
+        string merchantOfferId,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidatePlayerId(playerId);
+        LocalMerchantState state = LoadState(playerId);
+        if (state.CurrentOffer == null ||
+            !string.Equals(state.CurrentOffer.OfferId, merchantOfferId, StringComparison.Ordinal))
+        {
+            return Task.FromResult<MerchantLotteryOffer>(null);
+        }
+
+        if (state.CurrentLotteryOffer == null ||
+            !string.Equals(
+                state.CurrentLotteryOffer.MerchantOfferId,
+                merchantOfferId,
+                StringComparison.Ordinal))
+        {
+            state.CurrentLotteryOffer = CreateLotteryOffer(state, state.CurrentOffer);
+            SaveState(playerId, state);
+            PlayerPrefs.Save();
+        }
+
+        return Task.FromResult(state.CurrentLotteryOffer);
+    }
+
+    public Task<MerchantLotteryResult> DrawLotteryAsync(
+        string playerId,
+        string lotteryOfferId,
+        string idempotencyKey,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidatePlayerId(playerId);
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            throw new ArgumentException("Idempotency key is required.", nameof(idempotencyKey));
+        }
+
+        LocalMerchantState state = LoadState(playerId);
+        MerchantLotteryOffer lottery = state.CurrentLotteryOffer;
+        if (lottery == null ||
+            !string.Equals(lottery.LotteryOfferId, lotteryOfferId, StringComparison.Ordinal))
+        {
+            return Task.FromResult(CreateLotteryResult(
+                MerchantLotteryStatus.OfferUnavailable,
+                null,
+                state,
+                false));
+        }
+
+        string drawKey = LotteryDrawKeyPrefix + HashKey(
+            playerId + ":" + lotteryOfferId + ":" + idempotencyKey);
+        MerchantProduct previousWinner = MerchantItemCatalog.Find(lottery.WinningProductId);
+        if (PlayerPrefs.HasKey(drawKey))
+        {
+            return Task.FromResult(CreateLotteryResult(
+                MerchantLotteryStatus.Success,
+                previousWinner,
+                state,
+                false));
+        }
+        if (lottery.Drawn)
+        {
+            return Task.FromResult(CreateLotteryResult(
+                MerchantLotteryStatus.AlreadyDrawn,
+                previousWinner,
+                state,
+                false));
+        }
+
+        var candidates = new List<MerchantProduct>();
+        if (lottery.Products != null)
+        {
+            foreach (MerchantProduct product in lottery.Products)
+            {
+                if (product != null && !state.OwnedProductIds.Contains(product.ProductId))
+                {
+                    candidates.Add(product);
+                }
+            }
+        }
+        if (candidates.Count == 0)
+        {
+            return Task.FromResult(CreateLotteryResult(
+                MerchantLotteryStatus.NoEligibleProducts,
+                null,
+                state,
+                false));
+        }
+
+        MerchantProduct winner = candidates[UnityEngine.Random.Range(0, candidates.Count)];
+        lottery.Drawn = true;
+        lottery.WinningProductId = winner.ProductId;
+        state.OwnedProductIds.Add(winner.ProductId);
+        SaveState(playerId, state);
+        PlayerPrefs.SetInt(drawKey, 1);
+        PlayerPrefs.Save();
+
+        return Task.FromResult(CreateLotteryResult(
+            MerchantLotteryStatus.Success,
+            MerchantItemCatalog.Find(winner.ProductId),
+            state,
+            true));
     }
 
     public Task<MerchantRemoveResult> RemoveInventoryItemAsync(
@@ -336,6 +456,61 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         };
     }
 
+    private static MerchantLotteryOffer CreateLotteryOffer(
+        LocalMerchantState state,
+        MerchantOffer merchantOffer)
+    {
+        if (merchantOffer == null) return null;
+
+        var excludedIds = new HashSet<string>(state.OwnedProductIds);
+        if (merchantOffer.Products != null)
+        {
+            foreach (MerchantProduct product in merchantOffer.Products)
+            {
+                if (product != null) excludedIds.Add(product.ProductId);
+            }
+        }
+
+        var candidates = new List<MerchantProduct>();
+        foreach (MerchantProduct catalogProduct in MerchantItemCatalog.All)
+        {
+            if (!excludedIds.Contains(catalogProduct.ProductId))
+            {
+                candidates.Add(MerchantItemCatalog.Find(catalogProduct.ProductId));
+            }
+        }
+        Shuffle(candidates);
+        if (candidates.Count > ProductsPerLottery)
+        {
+            candidates.RemoveRange(ProductsPerLottery, candidates.Count - ProductsPerLottery);
+        }
+        if (candidates.Count == 0) return null;
+
+        return new MerchantLotteryOffer
+        {
+            LotteryOfferId = Guid.NewGuid().ToString("N"),
+            MerchantOfferId = merchantOffer.OfferId,
+            Products = candidates,
+            Drawn = false,
+            WinningProductId = string.Empty
+        };
+    }
+
+    private static MerchantLotteryResult CreateLotteryResult(
+        MerchantLotteryStatus status,
+        MerchantProduct winner,
+        LocalMerchantState state,
+        bool applied)
+    {
+        return new MerchantLotteryResult
+        {
+            Status = status,
+            WinningProduct = winner,
+            Inventory = CreateInventory(state),
+            Applied = applied
+        };
+    }
+
     private static MerchantProduct TakeWeightedRewardedAdProduct(List<MerchantProduct> candidates)
     {
         if (candidates == null || candidates.Count == 0) return null;
@@ -406,12 +581,12 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         return inventory;
     }
 
-    private static async Task<MerchantPurchaseResult> ResultAsync(
+    private async Task<MerchantPurchaseResult> ResultAsync(
         MerchantPurchaseStatus status,
         string playerId,
         CancellationToken cancellationToken)
     {
-        PlayerGoldState gold = await new LocalPlayerGoldGateway().GetGoldAsync(
+        PlayerGoldState gold = await goldGateway.GetGoldAsync(
             playerId,
             cancellationToken);
         return new MerchantPurchaseResult

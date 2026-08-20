@@ -10,15 +10,23 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class MainMerchantController : MonoBehaviour
 {
+    private enum MerchantTab
+    {
+        Chant,
+        Lottery
+    }
+
     private const string OfferItemPrefabPath = "prefabs/ItemBg";
     private const string OwnedItemPrefabPath = "prefabs/Item";
     private const string MerchantAdPlacement = "merchant_rewarded_item";
 
     private readonly List<Button> buyButtons = new List<Button>();
     private readonly List<TMP_Text> buyButtonTexts = new List<TMP_Text>();
+    private readonly List<Transform> lotteryItemViews = new List<Transform>();
     private readonly HashSet<string> displayedProductIds = new HashSet<string>();
     private GameObject merchantPanel;
     private GameObject cancelItemPanel;
+    private GameObject lotteryContainer;
     private Transform itemContainer;
     private Transform ownedItemContainer;
     private Transform activeItemColumn;
@@ -26,26 +34,41 @@ public sealed class MainMerchantController : MonoBehaviour
     private GameObject offerItemPrefab;
     private GameObject ownedItemPrefab;
     private TMP_Text tipText;
+    private Button chantButton;
+    private Button lotteryButton;
+    private Button lotteryDrawButton;
     private Button cancelItemButton;
     private Button confirmItemButton;
     private IMerchantGateway merchantGateway;
+    private IAuthSessionStore authSessionStore;
     private IMerchantItemIconProvider iconProvider;
     private IRewardedAdService rewardedAdService;
     private CancellationTokenSource lifetimeCancellation;
     private string playerId;
     private bool purchaseInProgress;
+    private bool lotteryDrawInProgress;
     private bool deleteInProgress;
     private Coroutine hideTipCoroutine;
     private MerchantProduct selectedDeleteProduct;
+    private MerchantLotteryOffer currentLotteryOffer;
 
     private void Awake()
     {
-        merchantGateway = new LocalMerchantGateway();
+        IClientServices services = ClientCompositionRoot.Current;
+        merchantGateway = services.Merchant;
+        authSessionStore = services.AuthSession;
+        rewardedAdService = services.RewardedAds;
         iconProvider = new ResourcesMerchantItemIconProvider();
         lifetimeCancellation = new CancellationTokenSource();
 
         Transform panelTransform = transform.Find("MerchantPanel");
         itemContainer = panelTransform?.Find("Bg/ChatItemCon");
+        lotteryContainer = panelTransform?.Find("Bg/LotteryContainer")?.gameObject;
+        chantButton = panelTransform?.Find("Bg/ChantBtn")?.GetComponent<Button>();
+        lotteryButton = panelTransform?.Find("Bg/LotteryBtn")?.GetComponent<Button>();
+        lotteryDrawButton = panelTransform?.Find("Bg/LotteryContainer/LotteryBtn")
+            ?.GetComponent<Button>();
+        ResolveLotteryItems();
         ownedItemContainer = panelTransform?.Find("Bg/ItemContainer") ??
                              panelTransform?.Find("Bg/MyItemBg/ItemContainer");
         if (ownedItemContainer != null)
@@ -64,40 +87,44 @@ public sealed class MainMerchantController : MonoBehaviour
         offerItemPrefab = Resources.Load<GameObject>(OfferItemPrefabPath);
         ownedItemPrefab = Resources.Load<GameObject>(OwnedItemPrefabPath);
         tipText = panelTransform?.Find("Bg/TipText")?.GetComponent<TMP_Text>();
-        rewardedAdService = new MockRewardedAdService(
-            transform,
-            tipText != null ? tipText.font : null);
         Transform cancelPanelTransform = panelTransform?.Find("Bg/CancleItemPanel");
         cancelItemPanel = cancelPanelTransform?.gameObject;
         cancelItemButton = (cancelPanelTransform?.Find("CancleBtn") ??
                             cancelPanelTransform?.Find("Bg/CancleBtn"))?.GetComponent<Button>();
         confirmItemButton = (cancelPanelTransform?.Find("ConfirmBtn") ??
                              cancelPanelTransform?.Find("Bg/ConfirmBtn"))?.GetComponent<Button>();
-        if (panelTransform == null || itemContainer == null || ownedItemContainer == null ||
+        if (panelTransform == null || itemContainer == null || lotteryContainer == null ||
+            chantButton == null || lotteryButton == null || lotteryDrawButton == null ||
+            lotteryItemViews.Count != 8 || ownedItemContainer == null ||
             activeItemColumn == null || passiveItemColumn == null ||
             activeItemColumn == passiveItemColumn || offerItemPrefab == null ||
             ownedItemPrefab == null || cancelItemPanel == null || cancelItemButton == null ||
             confirmItemButton == null)
         {
             Debug.LogError(
-                "MainMerchantController requires MerchantPanel/Bg/ChatItemCon, " +
+                "MainMerchantController requires MerchantPanel/Bg with ChantBtn, LotteryBtn, " +
+                "ChatItemCon and LotteryContainer containing LotteryBtn and 8 LotteryItems, " +
                 "Bg/ItemContainer with ActiveColumn and PassiveColumn, Bg/CancleItemPanel " +
                 "with CancleBtn and ConfirmBtn, and Resources/prefabs/ItemBg and Item.");
             enabled = false;
             return;
         }
 
+        chantButton.onClick.AddListener(OnChantTabClicked);
+        lotteryButton.onClick.AddListener(OnLotteryTabClicked);
+        lotteryDrawButton.onClick.AddListener(OnLotteryDrawClicked);
         cancelItemButton.onClick.AddListener(OnCancelDeleteClicked);
         confirmItemButton.onClick.AddListener(OnConfirmDeleteClicked);
         cancelItemPanel.SetActive(false);
         merchantPanel = panelTransform.gameObject;
+        ShowTab(MerchantTab.Chant);
         merchantPanel.SetActive(false);
         ShowTip(string.Empty);
     }
 
     private async void Start()
     {
-        AuthSession session = AuthSessionStore.Current;
+        AuthSession session = authSessionStore.Current;
         if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
         {
             Debug.LogError("MainMerchantController requires an authenticated PlayerId.");
@@ -121,9 +148,16 @@ public sealed class MainMerchantController : MonoBehaviour
                 lifetimeCancellation.Token);
             if (offer == null || offer.Products == null || offer.Products.Count == 0) return;
 
+            MerchantLotteryOffer lotteryOffer = await merchantGateway.GetLotteryOfferAsync(
+                playerId,
+                offer.OfferId,
+                lifetimeCancellation.Token);
+
             Populate(offer);
+            PopulateLottery(lotteryOffer);
             merchantPanel.SetActive(true);
             merchantPanel.transform.SetAsLastSibling();
+            ShowTab(MerchantTab.Chant);
         }
         catch (OperationCanceledException)
         {
@@ -136,11 +170,158 @@ public sealed class MainMerchantController : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (chantButton != null) chantButton.onClick.RemoveListener(OnChantTabClicked);
+        if (lotteryButton != null) lotteryButton.onClick.RemoveListener(OnLotteryTabClicked);
+        if (lotteryDrawButton != null) lotteryDrawButton.onClick.RemoveListener(OnLotteryDrawClicked);
         if (cancelItemButton != null) cancelItemButton.onClick.RemoveListener(OnCancelDeleteClicked);
         if (confirmItemButton != null) confirmItemButton.onClick.RemoveListener(OnConfirmDeleteClicked);
         lifetimeCancellation?.Cancel();
         lifetimeCancellation?.Dispose();
         lifetimeCancellation = null;
+    }
+
+    private void ResolveLotteryItems()
+    {
+        lotteryItemViews.Clear();
+        if (lotteryContainer == null) return;
+
+        Transform containerTransform = lotteryContainer.transform;
+        for (int index = 0; index < containerTransform.childCount; index++)
+        {
+            Transform child = containerTransform.GetChild(index);
+            if (!child.name.StartsWith("LotteryItem", StringComparison.OrdinalIgnoreCase)) continue;
+            if (child.GetComponent<Image>() == null ||
+                child.Find("NameText")?.GetComponent<TMP_Text>() == null)
+            {
+                Debug.LogError($"{child.name} requires an Image and NameText.");
+                continue;
+            }
+
+            lotteryItemViews.Add(child);
+        }
+    }
+
+    private void OnChantTabClicked()
+    {
+        ShowTab(MerchantTab.Chant);
+    }
+
+    private void OnLotteryTabClicked()
+    {
+        ShowTab(MerchantTab.Lottery);
+    }
+
+    private void ShowTab(MerchantTab tab)
+    {
+        bool showChant = tab == MerchantTab.Chant;
+        if (itemContainer != null) itemContainer.gameObject.SetActive(showChant);
+        if (lotteryContainer != null) lotteryContainer.SetActive(!showChant);
+
+        Button selectedButton = showChant ? chantButton : lotteryButton;
+        if (selectedButton != null && selectedButton.gameObject.activeInHierarchy)
+        {
+            selectedButton.Select();
+        }
+    }
+
+    private void PopulateLottery(MerchantLotteryOffer offer)
+    {
+        currentLotteryOffer = offer;
+        int productCount = offer?.Products != null ? offer.Products.Count : 0;
+        for (int index = 0; index < lotteryItemViews.Count; index++)
+        {
+            Transform itemView = lotteryItemViews[index];
+            bool hasProduct = index < productCount && offer.Products[index] != null;
+            itemView.gameObject.SetActive(hasProduct);
+            itemView.localScale = Vector3.one;
+            if (!hasProduct) continue;
+
+            MerchantProduct product = offer.Products[index];
+            Image image = itemView.GetComponent<Image>();
+            Sprite icon = iconProvider.Load(product.IconKey);
+            if (image != null && icon != null)
+            {
+                image.sprite = icon;
+                image.color = Color.white;
+            }
+            SetText(itemView, "NameText", product.EnglishName);
+        }
+
+        lotteryDrawButton.interactable = offer != null && !offer.Drawn && productCount > 0;
+        if (offer != null && offer.Drawn)
+        {
+            HighlightLotteryWinner(offer.WinningProductId);
+        }
+    }
+
+    private async void OnLotteryDrawClicked()
+    {
+        if (lotteryDrawInProgress || currentLotteryOffer == null ||
+            currentLotteryOffer.Drawn || currentLotteryOffer.Products == null ||
+            currentLotteryOffer.Products.Count == 0)
+        {
+            return;
+        }
+
+        lotteryDrawInProgress = true;
+        lotteryDrawButton.interactable = false;
+        ShowTip(string.Empty);
+        try
+        {
+            MerchantLotteryResult result = await merchantGateway.DrawLotteryAsync(
+                playerId,
+                currentLotteryOffer.LotteryOfferId,
+                Guid.NewGuid().ToString("N"),
+                lifetimeCancellation.Token);
+            if (result.Status == MerchantLotteryStatus.Success ||
+                result.Status == MerchantLotteryStatus.AlreadyDrawn)
+            {
+                if (result.Inventory != null) PopulateOwnedItems(result.Inventory);
+                if (result.WinningProduct != null)
+                {
+                    currentLotteryOffer.Drawn = true;
+                    currentLotteryOffer.WinningProductId = result.WinningProduct.ProductId;
+                    HighlightLotteryWinner(result.WinningProduct.ProductId);
+                    ShowTip("Won: " + result.WinningProduct.EnglishName);
+                }
+                return;
+            }
+
+            ShowTip("Unavailable");
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError($"Unable to draw Merchant lottery: {exception.Message}");
+            ShowTip("Unavailable");
+        }
+        finally
+        {
+            lotteryDrawInProgress = false;
+            if (lotteryDrawButton != null)
+            {
+                lotteryDrawButton.interactable = currentLotteryOffer != null &&
+                    !currentLotteryOffer.Drawn;
+            }
+        }
+    }
+
+    private void HighlightLotteryWinner(string productId)
+    {
+        if (currentLotteryOffer?.Products == null) return;
+        for (int index = 0; index < lotteryItemViews.Count; index++)
+        {
+            Transform itemView = lotteryItemViews[index];
+            bool isWinner = index < currentLotteryOffer.Products.Count &&
+                currentLotteryOffer.Products[index] != null &&
+                string.Equals(
+                    currentLotteryOffer.Products[index].ProductId,
+                    productId,
+                    StringComparison.Ordinal);
+            itemView.localScale = isWinner ? Vector3.one * 1.08f : Vector3.one;
+        }
     }
 
     private void Populate(MerchantOffer offer)

@@ -33,9 +33,15 @@ public static class LeaderboardRankingRules
 
         if (comparison != 0) return comparison;
 
-        comparison = left.ReachedRankAtUnixMilliseconds.CompareTo(right.ReachedRankAtUnixMilliseconds);
+        comparison = NormalizeReachedAt(left.ReachedStateAtUnixMilliseconds).CompareTo(
+            NormalizeReachedAt(right.ReachedStateAtUnixMilliseconds));
         if (comparison != 0) return comparison;
 
         return string.Compare(left.PlayerId, right.PlayerId, StringComparison.Ordinal);
+    }
+
+    private static long NormalizeReachedAt(long value)
+    {
+        return value > 0 ? value : long.MaxValue;
     }
 }

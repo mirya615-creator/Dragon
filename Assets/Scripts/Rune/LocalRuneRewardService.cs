@@ -2,22 +2,26 @@ using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 /// <summary>
 /// Local development implementation. Replace this boundary with the Go run-settlement unary call.
 /// </summary>
-public sealed class LocalRuneRewardService
+public sealed class LocalRuneRewardService : IRuneProfileGateway
 {
     private const string ProfileKeyPrefix = "dragonbound.runes.";
     private const string SettledRunSegment = ".settled-run.";
     private const string GuestPaginationTestSegment = ".guest-pagination-test-v1";
 
-    public RuneProfile RemoveLegacyGuestPaginationTestInventory(string playerId, int itemCount)
+    private RuneProfile RemoveLegacyGuestPaginationTestInventory(string playerId, int itemCount)
     {
         if (string.IsNullOrWhiteSpace(playerId) || itemCount <= 0)
         {
-            return GetProfile(playerId);
+            return string.IsNullOrWhiteSpace(playerId)
+                ? new RuneProfile()
+                : LoadProfileByKey(GetProfileKey(playerId));
         }
 
         string profileKey = GetProfileKey(playerId);
@@ -54,14 +58,19 @@ public sealed class LocalRuneRewardService
         return profile;
     }
 
-    public RuneProfile SettleRun(string playerId, string runId, IReadOnlyList<RuneReward> rewards)
+    public Task<RuneProfile> SettleRunAsync(
+        string playerId,
+        string runId,
+        IReadOnlyList<RuneReward> rewards,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateIdentity(playerId, runId);
         string profileKey = GetProfileKey(playerId);
         string settledKey = profileKey + SettledRunSegment + HashKey(runId);
         RuneProfile profile = LoadProfileByKey(profileKey);
 
-        if (PlayerPrefs.HasKey(settledKey)) return profile;
+        if (PlayerPrefs.HasKey(settledKey)) return Task.FromResult(profile);
 
         profile.LastRunRewards.Clear();
         if (rewards != null)
@@ -92,27 +101,36 @@ public sealed class LocalRuneRewardService
         SaveProfile(profileKey, profile);
         PlayerPrefs.SetInt(settledKey, 1);
         PlayerPrefs.Save();
-        return profile;
+        return Task.FromResult(profile);
     }
 
-    public RuneProfile GetProfile(string playerId)
+    public Task<RuneProfile> GetProfileAsync(
+        string playerId,
+        CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(playerId)) return new RuneProfile();
-        return LoadProfileByKey(GetProfileKey(playerId));
+        cancellationToken.ThrowIfCancellationRequested();
+        if (string.IsNullOrWhiteSpace(playerId))
+        {
+            return Task.FromResult(new RuneProfile());
+        }
+
+        // Removes the one-time inventory injected by an older guest pagination test.
+        // The marker makes this a no-op for every normal local profile.
+        return Task.FromResult(RemoveLegacyGuestPaginationTestInventory(playerId, 30));
     }
 
-    public bool TryEquipRune(
+    public Task<RuneProfileMutationResult> EquipRuneAsync(
         string playerId,
         string heroId,
         string runeId,
-        out RuneProfile updatedProfile)
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(playerId) ||
             string.IsNullOrWhiteSpace(heroId) ||
             RuneCatalog.Find(runeId) == null)
         {
-            updatedProfile = new RuneProfile();
-            return false;
+            return MutationResult(false, new RuneProfile());
         }
 
         string profileKey = GetProfileKey(playerId);
@@ -120,8 +138,7 @@ public sealed class LocalRuneRewardService
         RuneInventoryEntry inventory = FindInventoryEntry(profile, runeId);
         if (inventory == null)
         {
-            updatedProfile = profile;
-            return false;
+            return MutationResult(false, profile);
         }
 
         HeroRuneLoadoutEntry heroLoadout = FindHeroLoadout(profile, heroId);
@@ -131,8 +148,7 @@ public sealed class LocalRuneRewardService
             heroLoadout != null ? heroId : null);
         if (inventory.OwnedCount <= assignedToOtherHeroes)
         {
-            updatedProfile = profile;
-            return false;
+            return MutationResult(false, profile);
         }
 
         if (heroLoadout == null)
@@ -143,20 +159,19 @@ public sealed class LocalRuneRewardService
         heroLoadout.RuneId = runeId;
 
         SaveProfile(profileKey, profile);
-        updatedProfile = profile;
-        return true;
+        return MutationResult(true, profile);
     }
 
-    public bool TryUnequipRune(
+    public Task<RuneProfileMutationResult> UnequipRuneAsync(
         string playerId,
         string heroId,
-        out RuneProfile updatedProfile)
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(playerId) ||
             string.IsNullOrWhiteSpace(heroId))
         {
-            updatedProfile = new RuneProfile();
-            return false;
+            return MutationResult(false, new RuneProfile());
         }
 
         string profileKey = GetProfileKey(playerId);
@@ -164,14 +179,23 @@ public sealed class LocalRuneRewardService
         HeroRuneLoadoutEntry heroLoadout = FindHeroLoadout(profile, heroId);
         if (heroLoadout == null || string.IsNullOrEmpty(heroLoadout.RuneId))
         {
-            updatedProfile = profile;
-            return false;
+            return MutationResult(false, profile);
         }
 
         profile.Loadouts.Remove(heroLoadout);
         SaveProfile(profileKey, profile);
-        updatedProfile = profile;
-        return true;
+        return MutationResult(true, profile);
+    }
+
+    private static Task<RuneProfileMutationResult> MutationResult(
+        bool succeeded,
+        RuneProfile profile)
+    {
+        return Task.FromResult(new RuneProfileMutationResult
+        {
+            Succeeded = succeeded,
+            Profile = profile
+        });
     }
 
     private static RuneProfile LoadProfileByKey(string profileKey)

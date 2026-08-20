@@ -12,18 +12,8 @@ public sealed class MockRewardedAdService : IRewardedAdService
 {
     private const int DurationSeconds = 3;
 
-    private readonly Transform overlayParent;
-    private readonly TMP_FontAsset font;
     private bool isShowing;
     private GameObject overlay;
-
-    public MockRewardedAdService(Transform overlayParent, TMP_FontAsset font)
-    {
-        this.overlayParent = overlayParent != null
-            ? overlayParent
-            : throw new ArgumentNullException(nameof(overlayParent));
-        this.font = font;
-    }
 
     public async Task<RewardedAdResult> ShowAsync(
         string placementId,
@@ -33,6 +23,11 @@ public sealed class MockRewardedAdService : IRewardedAdService
 
         isShowing = true;
         TMP_Text countdownText = CreateOverlay();
+        if (countdownText == null)
+        {
+            isShowing = false;
+            return RewardedAdResult.Failed;
+        }
         try
         {
             for (int remaining = DurationSeconds; remaining > 0; remaining--)
@@ -55,6 +50,14 @@ public sealed class MockRewardedAdService : IRewardedAdService
 
     private TMP_Text CreateOverlay()
     {
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogError("Rewarded ad preview requires an active Canvas.");
+            return null;
+        }
+
+        Transform overlayParent = canvas.transform;
         overlay = new GameObject("RewardedAdOverlay", typeof(RectTransform), typeof(Image));
         overlay.layer = overlayParent.gameObject.layer;
         RectTransform overlayRect = overlay.GetComponent<RectTransform>();
@@ -80,7 +83,6 @@ public sealed class MockRewardedAdService : IRewardedAdService
         labelRect.sizeDelta = new Vector2(900f, 300f);
 
         TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
-        if (font != null) label.font = font;
         label.fontSize = 64f;
         label.alignment = TextAlignmentOptions.Center;
         label.color = Color.white;

@@ -6,7 +6,7 @@ using UnityEngine;
 /// Owns the installation-scoped guest credential used by local and server gateways.
 /// PlayerPrefs is acceptable for offline development; production builds should use secure platform storage.
 /// </summary>
-public sealed class GuestIdentityService
+public sealed class GuestIdentityService : IGuestIdentityProvider
 {
     private const string DeviceIdKey = "dragonbound.guest.device-id";
     private const int DeviceIdBytes = 32;
