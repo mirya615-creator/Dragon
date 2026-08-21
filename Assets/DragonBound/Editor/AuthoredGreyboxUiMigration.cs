@@ -98,22 +98,17 @@ namespace DragonBound.Editor
                 screen.PlayerBattlefieldView.LaneView.ConfigureLayout(layout, TeamSide.Player);
                 ApplyReferenceBounds(canvas);
 
-                var versus = root.transform.Find("Versus");
-                if (versus != null) versus.gameObject.SetActive(false);
-                screen.HudView?.SetDebugOverlayVisible(false);
+                screen.OverlayController?.SetDebugOverlayVisible(false);
 
                 var rangeDismiss = CreateRangeDismissSurface(root.transform);
-                var itemLoadout = ItemLoadoutView.CreateRuntime(root.transform);
-                var itemButton = CreateItemEntryButton(root.transform);
-                screen.ConfigureItemLoadout(itemLoadout);
                 canvas.MarkAsAuthored();
-                screen.ConfigureAuthoredUi(canvas, rangeDismiss, itemButton);
+                screen.ConfigureAuthoredUi(canvas, rangeDismiss);
 
                 EditorUtility.SetDirty(root);
                 PrefabUtility.SaveAsPrefabAsset(root, ScreenPrefabPath);
                 AssetDatabase.SaveAssets();
                 Debug.Log(
-                    "Greybox UI migration complete: the fixed board, Item UI and click surfaces are now editable prefab content.");
+                    "Greybox UI migration complete: the fixed board and click surfaces are now editable prefab content.");
             }
             catch (Exception exception)
             {
@@ -215,43 +210,5 @@ namespace DragonBound.Editor
             return surface.GetComponent<BoardBackgroundClickReceiver>();
         }
 
-        private static Button CreateItemEntryButton(Transform parent)
-        {
-            var existing = parent.Find("ItemEntryButton");
-            if (existing != null) return existing.GetComponent<Button>();
-
-            var root = new GameObject(
-                "ItemEntryButton",
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Image),
-                typeof(Button));
-            root.transform.SetParent(parent, false);
-            var rect = root.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.04f, 0.02f);
-            rect.anchorMax = new Vector2(0.22f, 0.105f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            var image = root.GetComponent<Image>();
-            image.color = new Color(0.18f, 0.31f, 0.38f, 1f);
-            var button = root.GetComponent<Button>();
-            button.targetGraphic = image;
-
-            var labelRoot = new GameObject("Label", typeof(RectTransform), typeof(Text));
-            labelRoot.transform.SetParent(root.transform, false);
-            var labelRect = labelRoot.GetComponent<RectTransform>();
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = Vector2.zero;
-            labelRect.offsetMax = Vector2.zero;
-            var label = labelRoot.GetComponent<Text>();
-            label.text = "ITEMS";
-            label.fontSize = 18;
-            label.alignment = TextAnchor.MiddleCenter;
-            label.color = Color.white;
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.raycastTarget = false;
-            return button;
-        }
     }
 }

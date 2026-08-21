@@ -81,7 +81,7 @@ namespace DragonBound.Tests.EditMode
             var second = CreateButton(root.transform, "Item2");
             var firstLabel = first.GetComponentInChildren<Text>();
             var secondLabel = second.GetComponentInChildren<Text>();
-            hud.Configure(pause, pause.GetComponentInChildren<Text>(), firstLabel, firstLabel, firstLabel, firstLabel, firstLabel);
+            hud.Configure(pause, pause.GetComponentInChildren<Text>(), firstLabel, firstLabel);
             hud.ConfigureActiveItemSlots(first, firstLabel, second, secondLabel);
             hud.Initialize(match, match.Player);
             hud.BindItemRuntime(runtime);

@@ -387,10 +387,10 @@ namespace DragonBound.Presentation
         private void CreateOverlayLayer()
         {
             overlayLayer = CreateRuntimeLayer("ART_FixedBoardOverlay", screenRoot);
-            var workshop = screenRoot.Find("ART_HeroWorkshop");
-            if (workshop != null)
+            var campPanel = screenRoot.Find("ART_ScreenBackground/campPanel");
+            if (campPanel != null)
             {
-                overlayLayer.SetSiblingIndex(workshop.GetSiblingIndex());
+                overlayLayer.SetSiblingIndex(campPanel.GetSiblingIndex());
             }
             else
             {

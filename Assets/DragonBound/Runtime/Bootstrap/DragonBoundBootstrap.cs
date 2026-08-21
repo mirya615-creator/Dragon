@@ -481,10 +481,7 @@ namespace DragonBound.Bootstrap
                 Recruitment,
                 AiRecruitment,
                 RecruitDestination,
-                AiRecruitDestination,
-                PlayerRuneLoadout,
-                () => Match != null && Match.State == MatchState.Ready,
-                developmentItemSnapshotProvider);
+                AiRecruitDestination);
             BoardView.BindShovelUnlockService(PlayerShovelUnlocks);
             AiBoardView.BindShovelUnlockService(AiShovelUnlocks);
 
@@ -498,7 +495,7 @@ namespace DragonBound.Bootstrap
                     playerRuneRewards: PlayerRuneRewards,
                     itemSnapshotProvider: ItemRunSnapshotProvider);
                 screenView.BindWaveRuntime(TwentyWave);
-                screenView.HudView.BindItemRuntime(TwentyWave);
+                screenView.BindItemRuntime(TwentyWave);
             }
             else
             {
@@ -609,13 +606,12 @@ namespace DragonBound.Bootstrap
             {
                 RecruitDestination?.TickPairLinks(Time.deltaTime);
                 AiRecruitDestination?.TickPairLinks(Time.deltaTime);
-                var loadoutUiOpen = (screenView?.IsRuneLoadoutOpen ?? false) ||
-                                    (developmentGameplayTestPanel?.IsOpen ?? false);
-                if (!loadoutUiOpen)
+                var developmentPanelOpen = developmentGameplayTestPanel?.IsOpen ?? false;
+                if (!developmentPanelOpen)
                 {
                     initializationRemaining -= Time.deltaTime;
                 }
-                if (initializationRemaining <= 0f && !loadoutUiOpen)
+                if (initializationRemaining <= 0f && !developmentPanelOpen)
                 {
                     LockRuneLoadoutAtRunStart();
                     if (TwentyWave != null && !TwentyWave.StartRun())
@@ -700,17 +696,8 @@ namespace DragonBound.Bootstrap
                 return false;
             }
 
-            screenView?.RuneLoadoutView?.Refresh();
             reason = string.Empty;
             return true;
-        }
-
-        internal void OpenDevelopmentRuneLoadout()
-        {
-            if (Match != null && Match.State == MatchState.Ready)
-            {
-                screenView?.RuneLoadoutView?.Open();
-            }
         }
 
         private bool PersistRuneProfile()

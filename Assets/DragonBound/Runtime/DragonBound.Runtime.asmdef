@@ -13,7 +13,8 @@
     "DragonBound.Recruitment.Runtime",
     "DragonBound.Items.Runtime",
     "DragonBound.Runes.Runtime",
-    "Unity.UGUI"
+    "Unity.UGUI",
+    "Unity.TextMeshPro"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

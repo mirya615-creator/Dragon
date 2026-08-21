@@ -15,12 +15,10 @@ namespace DragonBound.Presentation
             }
 
             Bounds = bounds;
-            BottomGuard = Slice(bounds, 0f, 0.03f);
-            CallToActionBand = Slice(bounds, 0.03f, 0.13f);
+            CallToActionBand = Slice(bounds, 0f, 0.13f);
             BenchBand = Slice(bounds, 0.13f, 0.23f);
-            PlayerField = Slice(bounds, 0.23f, 0.52f);
-            VersusBand = Slice(bounds, 0.52f, 0.60f);
-            AiField = Slice(bounds, 0.60f, 0.89f);
+            PlayerField = Slice(bounds, 0.23f, 0.56f);
+            AiField = Slice(bounds, 0.56f, 0.89f);
             TopHud = Slice(bounds, 0.89f, 1f);
             Arena = Rect.MinMaxRect(bounds.xMin, PlayerField.yMin, bounds.xMax, AiField.yMax);
             CellSize = PortraitLayoutMetrics.FormationCellReferenceSize *
@@ -36,12 +34,9 @@ namespace DragonBound.Presentation
         }
 
         public Rect Bounds { get; }
-        public Rect BottomGuard { get; }
-        public Rect BottomSafeArea => BottomGuard;
         public Rect CallToActionBand { get; }
         public Rect BenchBand { get; }
         public Rect PlayerField { get; }
-        public Rect VersusBand { get; }
         public Rect AiField { get; }
         public Rect Arena { get; }
         public Rect TopHud { get; }

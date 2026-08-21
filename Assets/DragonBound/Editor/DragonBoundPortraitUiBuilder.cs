@@ -22,16 +22,10 @@ namespace DragonBound.Editor
             "Assets/DragonBound/UI/Prefabs/Modules/HUD.prefab";
         public const string BattlefieldPrefabPath =
             "Assets/DragonBound/UI/Prefabs/Modules/Battlefield.prefab";
-        public const string VersusPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Modules/Versus.prefab";
         public const string BenchPrefabPath =
             "Assets/DragonBound/UI/Prefabs/Modules/Bench.prefab";
         public const string RecruitmentPrefabPath =
             "Assets/DragonBound/UI/Prefabs/Modules/Recruitment.prefab";
-        public const string HeroWorkshopPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Modules/HeroWorkshop.prefab";
-        public const string RuneLoadoutPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Modules/RuneLoadout.prefab";
         public const string BoardCellPrefabPath =
             "Assets/DragonBound/UI/Prefabs/Components/BoardCell.prefab";
         public const string BenchSlotPrefabPath =
@@ -63,7 +57,7 @@ namespace DragonBound.Editor
             if (AssetDatabase.LoadAssetAtPath<GameObject>(ScreenPrefabPath) != null)
             {
                 Debug.LogWarning(
-                    "DragonBound editable UI already exists. Use the explicit Rebuild command only when replacing prefab edits is intended.");
+                    "DragonBound editable UI already exists. Edit the authored prefab or use a targeted Upgrade command.");
                 return;
             }
 
@@ -73,6 +67,14 @@ namespace DragonBound.Editor
         [MenuItem("DragonBound/UI/Rebuild Editable Portrait UI")]
         public static void RebuildAll()
         {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(ScreenPrefabPath) != null)
+            {
+                Debug.LogWarning(
+                    "DragonBoundPortraitScreen is authored prefab content and will not be rebuilt automatically. " +
+                    "Edit the prefab or use a targeted Upgrade command instead.");
+                return;
+            }
+
             EnsureFolders();
             PrepareRangeOutlineSprite();
 
@@ -82,129 +84,14 @@ namespace DragonBound.Editor
             var benchSlot = BuildCellPrefab(BenchSlotPrefabPath, "BenchSlot", BenchColor);
             var hud = BuildHudPrefab();
             var battlefield = BuildBattlefieldPrefab(boardCell, unitCard, heroFormation);
-            var versus = BuildVersusPrefab();
             var bench = BuildBenchPrefab(benchSlot);
             var recruitment = BuildRecruitmentPrefab();
-            var workshop = BuildHeroWorkshopPrefab();
-            var runeLoadout = BuildRuneLoadoutPrefab();
-            var screen = BuildScreenPrefab(unitCard, hud, battlefield, versus, bench, recruitment, workshop, runeLoadout);
+            var screen = BuildScreenPrefab(unitCard, hud, battlefield, bench, recruitment);
             BuildScene(screen, unitCard);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("DragonBound editable dual-battlefield UI prefabs and Greybox_Main were rebuilt.");
-        }
-
-        [MenuItem("DragonBound/UI/Upgrade Hero Workshop Only")]
-        public static void UpgradeHeroWorkshopOnly()
-        {
-            EnsureFolders();
-            var recruitment = BuildRecruitmentPrefab();
-            var workshop = BuildHeroWorkshopPrefab();
-            UpgradeDragArrowInBattlefieldPrefab();
-            var root = PrefabUtility.LoadPrefabContents(ScreenPrefabPath);
-            try
-            {
-                var existing = root.transform.Find("ART_HeroWorkshop");
-                if (existing != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(existing.gameObject);
-                }
-
-                var workshopObject = InstantiateNestedPrefab(workshop, root.transform);
-                workshopObject.name = "ART_HeroWorkshop";
-                SetStretch(workshopObject.GetComponent<RectTransform>());
-                workshopObject.SetActive(false);
-                workshopObject.transform.SetAsLastSibling();
-
-                var screen = root.GetComponent<DragonBoundScreenView>();
-                var unitCard = AssetDatabase.LoadAssetAtPath<GameObject>(UnitCardPrefabPath)
-                    ?.GetComponent<DraggableUnitView>();
-                var aiArrow = EnsureDragArrow(screen.AiBattlefieldView.transform);
-                var playerArrow = EnsureDragArrow(screen.PlayerBattlefieldView.transform);
-                if (unitCard == null || aiArrow == null || playerArrow == null)
-                {
-                    throw new InvalidOperationException("Editable screen drag-arrow references are incomplete.");
-                }
-
-                screen.AiBoardView.Configure(
-                    null,
-                    CopyCells(screen.AiBoardView.CellViews),
-                    screen.AiBoardView.UnitLayer,
-                    unitCard,
-                    screen.AiBoardView.RangePreview,
-                    false,
-                    aiArrow);
-                screen.PlayerBoardView.Configure(
-                    null,
-                    CopyCells(screen.PlayerBoardView.CellViews),
-                    screen.PlayerBoardView.UnitLayer,
-                    unitCard,
-                    screen.PlayerBoardView.RangePreview,
-                    true,
-                    playerArrow);
-                screen.Configure(
-                    screen.AiBattlefieldView,
-                    screen.PlayerBattlefieldView,
-                    screen.HudView,
-                    root.transform.Find("Recruitment").GetComponent<GreyboxRecruitmentPanel>(),
-                    workshopObject.GetComponent<HeroWorkshopView>(),
-                    screen.RuneLoadoutView);
-                PrefabUtility.SaveAsPrefabAsset(root, ScreenPrefabPath);
-            }
-            finally
-            {
-                PrefabUtility.UnloadPrefabContents(root);
-            }
-
-            UpgradeScenePresentationReferences(ScenePath);
-            UpgradeScenePresentationReferences(HeroSliceScenePath);
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            Debug.Log("DragonBound hero workshop upgraded without rebuilding scene layout.");
-        }
-
-        [MenuItem("DragonBound/UI/Upgrade Rune Loadout Only")]
-        public static void UpgradeRuneLoadoutOnly()
-        {
-            EnsureFolders();
-            BuildRecruitmentPrefab();
-            var runeLoadout = BuildRuneLoadoutPrefab();
-            var root = PrefabUtility.LoadPrefabContents(ScreenPrefabPath);
-            try
-            {
-                var existing = root.transform.Find("ART_RuneLoadout");
-                if (existing != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(existing.gameObject);
-                }
-
-                var loadoutObject = InstantiateNestedPrefab(runeLoadout, root.transform);
-                loadoutObject.name = "ART_RuneLoadout";
-                SetStretch(loadoutObject.GetComponent<RectTransform>());
-                loadoutObject.SetActive(false);
-                loadoutObject.transform.SetAsLastSibling();
-                var screen = root.GetComponent<DragonBoundScreenView>();
-                screen.Configure(
-                    screen.AiBattlefieldView,
-                    screen.PlayerBattlefieldView,
-                    screen.HudView,
-                    screen.RecruitmentView,
-                    screen.HeroWorkshopView,
-                    loadoutObject.GetComponent<RuneLoadoutView>());
-                PrefabUtility.SaveAsPrefabAsset(root, ScreenPrefabPath);
-            }
-            finally
-            {
-                PrefabUtility.UnloadPrefabContents(root);
-            }
-
-            UpgradeScenePresentationReferences(ScenePath);
-            UpgradeScenePresentationReferences(HeroSliceScenePath);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            Debug.Log("DragonBound Rune loadout greybox upgraded without rebuilding scene layout.");
         }
 
         [MenuItem("DragonBound/UI/Upgrade Combat FX Only")]
@@ -466,7 +353,6 @@ namespace DragonBound.Editor
             var resources = CreateText("ResourceLabel", root.transform, "20", new Vector2(0.215f, 0.20f), new Vector2(0.32f, 0.80f), 38, TextAnchor.MiddleLeft);
 
             var wave = CreateText("WaveLabel", root.transform, "INITIALIZING...", new Vector2(0.35f, 0.10f), new Vector2(0.65f, 0.90f), 34, TextAnchor.MiddleCenter);
-            var recruitments = CreateText("RecruitmentLabel", root.transform, "Recruits: 0", new Vector2(0.69f, 0.20f), new Vector2(0.84f, 0.80f), 26, TextAnchor.MiddleCenter);
             var debug = CreateText(
                 "DebugLabel",
                 root.transform,
@@ -487,15 +373,7 @@ namespace DragonBound.Editor
                 TextAnchor.UpperLeft);
             enemyDebug.raycastTarget = false;
 
-            var menu = CreateImage("ART_MenuButton", root.transform, new Color(0.25f, 0.28f, 0.29f, 1f));
-            SetAnchors(menu.rectTransform, new Vector2(0.86f, 0.18f), new Vector2(0.96f, 0.82f));
-            menu.raycastTarget = true;
-            var menuButton = menu.gameObject.AddComponent<Button>();
-            menuButton.targetGraphic = menu;
-            var menuLabel = CreateText("MenuLabel", menu.transform, "...", Vector2.zero, Vector2.one, 32, TextAnchor.MiddleCenter);
-            menuLabel.raycastTarget = false;
-
-            hud.Configure(pauseButton, pauseLabel, resources, wave, recruitments, null, null, debug, enemyDebug);
+            hud.Configure(pauseButton, pauseLabel, resources, wave, debug, enemyDebug);
             return SavePrefab(root, HudPrefabPath);
         }
 
@@ -796,20 +674,6 @@ namespace DragonBound.Editor
             arrow.rectTransform.localRotation = Quaternion.Euler(0f, 0f, arrowRotation);
         }
 
-        private static GameObject BuildVersusPrefab()
-        {
-            var root = CreateRect("Versus", null);
-            SetStretch(root.GetComponent<RectTransform>());
-            var backdrop = CreateImage("ART_VersusBackdrop", root.transform, new Color(0.08f, 0.09f, 0.10f, 1f));
-            SetStretch(backdrop.rectTransform);
-            backdrop.raycastTarget = false;
-
-            CreateText("AiHealthLabel", root.transform, "AI \u2665\u2665\u2665", new Vector2(0.04f, 0.15f), new Vector2(0.34f, 0.85f), 28, TextAnchor.MiddleLeft);
-            CreateText("VersusLabel", root.transform, "VS", new Vector2(0.42f, 0.10f), new Vector2(0.58f, 0.90f), 38, TextAnchor.MiddleCenter);
-            CreateText("PlayerHealthLabel", root.transform, "PLAYER \u2665\u2665\u2665", new Vector2(0.66f, 0.15f), new Vector2(0.96f, 0.85f), 28, TextAnchor.MiddleRight);
-            return SavePrefab(root, VersusPrefabPath);
-        }
-
         private static GameObject BuildBenchPrefab(GameObject benchSlotPrefab)
         {
             var root = CreateRect("Bench", null);
@@ -856,9 +720,6 @@ namespace DragonBound.Editor
             SetStretch(backdrop.rectTransform);
             backdrop.raycastTarget = false;
 
-            var status = CreateText("StatusLabel", root.transform, string.Empty, new Vector2(0.20f, 0.73f), new Vector2(0.80f, 0.98f), 22, TextAnchor.MiddleCenter);
-            status.raycastTarget = false;
-
             var recruitImage = CreateImage("ART_RecruitButton", root.transform, AccentColor);
             SetAnchors(recruitImage.rectTransform, new Vector2(0.315f, 0.08f), new Vector2(0.685f, 0.72f));
             recruitImage.raycastTarget = true;
@@ -877,352 +738,30 @@ namespace DragonBound.Editor
             var buttonLabel = CreateText("RecruitButtonLabel", recruitImage.transform, "RECRUIT\n10 Supplies", new Vector2(0.30f, 0.04f), new Vector2(0.96f, 0.96f), 30, TextAnchor.MiddleCenter);
             buttonLabel.raycastTarget = false;
 
-            var workshopImage = CreateImage("ART_WorkshopButton", root.transform, new Color(0.20f, 0.39f, 0.43f, 1f));
-            SetAnchors(workshopImage.rectTransform, new Vector2(0.05f, 0.14f), new Vector2(0.28f, 0.66f));
-            workshopImage.raycastTarget = true;
-            var workshopButton = workshopImage.gameObject.AddComponent<Button>();
-            workshopButton.targetGraphic = workshopImage;
-            var workshopLabel = CreateText("WorkshopLabel", workshopImage.transform, "作坊", Vector2.zero, Vector2.one, 22, TextAnchor.MiddleCenter);
-            workshopLabel.raycastTarget = false;
-
-            var runeImage = CreateImage("ART_RuneLoadoutButton", root.transform, new Color(0.35f, 0.28f, 0.58f, 1f));
-            SetAnchors(runeImage.rectTransform, new Vector2(0.72f, 0.14f), new Vector2(0.95f, 0.66f));
-            runeImage.raycastTarget = true;
-            var runeButton = runeImage.gameObject.AddComponent<Button>();
-            runeButton.targetGraphic = runeImage;
-            var runeLabel = CreateText("RuneLoadoutLabel", runeImage.transform, "RUNES", Vector2.zero, Vector2.one, 20, TextAnchor.MiddleCenter);
-            runeLabel.raycastTarget = false;
-
-            panel.Configure(button, buttonLabel, status, workshopButton, runeButton);
+            panel.Configure(button, buttonLabel);
             return SavePrefab(root, RecruitmentPrefabPath);
         }
 
-        private static GameObject BuildHeroWorkshopPrefab()
-        {
-            var root = CreateRect("HeroWorkshop", null);
-            SetStretch(root.GetComponent<RectTransform>());
-            var view = root.AddComponent<HeroWorkshopView>();
-
-            var dimmer = CreateImage("ART_WorkshopDim", root.transform, new Color(0f, 0f, 0f, 0.68f));
-            SetStretch(dimmer.rectTransform);
-            dimmer.raycastTarget = true;
-
-            var panel = CreateImage("ART_WorkshopPanel", root.transform, new Color(0.09f, 0.13f, 0.15f, 0.98f));
-            // Keep the workshop compact so the board remains the primary screen signal.
-            SetAnchors(panel.rectTransform, new Vector2(0.12f, 0.20f), new Vector2(0.88f, 0.80f));
-
-            var bookPage = CreateImage("ART_WorkshopBookPage", panel.transform, new Color(0.91f, 0.85f, 0.68f, 1f));
-            SetAnchors(bookPage.rectTransform, new Vector2(0.06f, 0.05f), new Vector2(0.94f, 0.82f));
-            bookPage.raycastTarget = false;
-
-            var closeImage = CreateImage("ART_WorkshopClose", panel.transform, new Color(0.39f, 0.20f, 0.20f, 1f));
-            SetAnchors(closeImage.rectTransform, new Vector2(0.88f, 0.84f), new Vector2(0.98f, 0.96f));
-            closeImage.raycastTarget = true;
-            var closeButton = closeImage.gameObject.AddComponent<Button>();
-            closeButton.targetGraphic = closeImage;
-            var closeLabel = CreateText("CloseLabel", closeImage.transform, "X", Vector2.zero, Vector2.one, 28, TextAnchor.MiddleCenter);
-            closeLabel.raycastTarget = false;
-
-            var componentsTabImage = CreateImage("ART_ComponentsTab", panel.transform, new Color(0.19f, 0.45f, 0.49f, 1f));
-            SetAnchors(componentsTabImage.rectTransform, new Vector2(0.23f, 0.85f), new Vector2(0.43f, 0.93f));
-            componentsTabImage.raycastTarget = true;
-            var componentsTab = componentsTabImage.gameObject.AddComponent<Button>();
-            componentsTab.targetGraphic = componentsTabImage;
-            var componentsTabLabel = CreateText("ComponentsTabLabel", componentsTabImage.transform, "组件库", Vector2.zero, Vector2.one, 24, TextAnchor.MiddleCenter);
-            SetAnchors(componentsTabLabel.rectTransform, new Vector2(0.34f, 0f), new Vector2(0.94f, 1f));
-            componentsTabLabel.fontSize = 18;
-            componentsTabLabel.raycastTarget = false;
-            var componentsTabIcon = CreateImage("ART_ComponentsTabIcon", componentsTabImage.transform, new Color(0.93f, 0.84f, 0.54f, 1f));
-            SetAnchors(componentsTabIcon.rectTransform, new Vector2(0.09f, 0.20f), new Vector2(0.29f, 0.80f));
-            componentsTabIcon.raycastTarget = false;
-
-            var galleryTabImage = CreateImage("ART_GalleryTab", panel.transform, new Color(0.31f, 0.28f, 0.47f, 1f));
-            SetAnchors(galleryTabImage.rectTransform, new Vector2(0.57f, 0.85f), new Vector2(0.77f, 0.93f));
-            galleryTabImage.raycastTarget = true;
-            var galleryTab = galleryTabImage.gameObject.AddComponent<Button>();
-            galleryTab.targetGraphic = galleryTabImage;
-            var galleryTabLabel = CreateText("GalleryTabLabel", galleryTabImage.transform, "英雄图鉴", Vector2.zero, Vector2.one, 24, TextAnchor.MiddleCenter);
-            SetAnchors(galleryTabLabel.rectTransform, new Vector2(0.34f, 0f), new Vector2(0.94f, 1f));
-            galleryTabLabel.fontSize = 18;
-            galleryTabLabel.raycastTarget = false;
-            var galleryTabIcon = CreateImage("ART_GalleryTabIcon", galleryTabImage.transform, new Color(0.93f, 0.84f, 0.54f, 1f));
-            SetAnchors(galleryTabIcon.rectTransform, new Vector2(0.09f, 0.20f), new Vector2(0.29f, 0.80f));
-            galleryTabIcon.raycastTarget = false;
-
-            var runtimeStats = CreateText(
-                "WorkshopBagStatsLabel",
-                panel.transform,
-                "配置 24  |  牌袋 24/24  |  已抽 0  |  已丢弃 0",
-                new Vector2(0.12f, 0.78f),
-                new Vector2(0.88f, 0.83f),
-                12,
-                TextAnchor.MiddleCenter);
-            runtimeStats.raycastTarget = false;
-
-            var componentsPage = CreateImage("ART_ComponentLibraryPage", panel.transform, new Color(0.96f, 0.91f, 0.75f, 0.97f));
-            SetAnchors(componentsPage.rectTransform, new Vector2(0.10f, 0.07f), new Vector2(0.90f, 0.77f));
-            componentsPage.raycastTarget = false;
-            var componentsGrid = CreateRect("ART_ComponentGrid", componentsPage.transform);
-            SetStretch(componentsGrid.GetComponent<RectTransform>());
-            var componentLayout = componentsGrid.AddComponent<GridLayoutGroup>();
-            componentLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            componentLayout.constraintCount = 4;
-            componentLayout.cellSize = new Vector2(140f, 140f);
-            componentLayout.spacing = new Vector2(8f, 8f);
-            componentLayout.padding = new RectOffset(4, 4, 4, 4);
-            componentLayout.childAlignment = TextAnchor.UpperCenter;
-            var componentTemplate = CreateComponentEntryTemplate(componentsGrid.transform);
-
-            var galleryPage = CreateImage("ART_HeroGalleryPage", panel.transform, new Color(0.96f, 0.91f, 0.75f, 0.97f));
-            SetAnchors(galleryPage.rectTransform, new Vector2(0.10f, 0.07f), new Vector2(0.90f, 0.77f));
-            galleryPage.raycastTarget = false;
-
-            var detail = CreateImage("ART_HeroDetail", galleryPage.transform, new Color(0.83f, 0.74f, 0.52f, 0.98f));
-            SetAnchors(detail.rectTransform, new Vector2(0.07f, 0.77f), new Vector2(0.93f, 0.94f));
-            var detailPortrait = CreateImage("ART_HeroDetailPortrait", detail.transform, new Color(0.21f, 0.28f, 0.30f, 0.96f));
-            SetAnchors(detailPortrait.rectTransform, new Vector2(0.05f, 0.16f), new Vector2(0.19f, 0.84f));
-            detailPortrait.raycastTarget = false;
-            var detailInfo = CreateImage("ART_HeroDetailInfo", detail.transform, new Color(0.94f, 0.89f, 0.73f, 0.72f));
-            SetAnchors(detailInfo.rectTransform, new Vector2(0.23f, 0.12f), new Vector2(0.95f, 0.88f));
-            detailInfo.raycastTarget = false;
-            var detailName = CreateText("DetailNameLabel", detail.transform, "风爪游侠", new Vector2(0.26f, 0.58f), new Vector2(0.55f, 0.90f), 17, TextAnchor.MiddleCenter);
-            var detailRarity = CreateText("DetailRarityLabel", detail.transform, "紫色", new Vector2(0.58f, 0.58f), new Vector2(0.92f, 0.90f), 15, TextAnchor.MiddleCenter);
-            var detailFormation = CreateText("DetailFormationLabel", detail.transform, string.Empty, new Vector2(0.26f, 0.30f), new Vector2(0.92f, 0.56f), 12, TextAnchor.MiddleCenter);
-            var detailSkill = CreateText("DetailSkillLabel", detail.transform, string.Empty, new Vector2(0.26f, 0.07f), new Vector2(0.92f, 0.29f), 12, TextAnchor.MiddleCenter);
-            detailName.raycastTarget = false;
-            detailRarity.raycastTarget = false;
-            detailFormation.raycastTarget = false;
-            detailSkill.raycastTarget = false;
-
-            var heroGrid = CreateRect("ART_HeroGrid", galleryPage.transform);
-            SetAnchors(heroGrid.GetComponent<RectTransform>(), new Vector2(0.10f, 0.07f), new Vector2(0.90f, 0.72f));
-            var heroLayout = heroGrid.AddComponent<GridLayoutGroup>();
-            heroLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            heroLayout.constraintCount = 3;
-            heroLayout.cellSize = new Vector2(160f, 125f);
-            heroLayout.spacing = new Vector2(8f, 8f);
-            heroLayout.padding = new RectOffset(4, 4, 4, 4);
-            heroLayout.childAlignment = TextAnchor.UpperCenter;
-            var heroTemplate = CreateHeroEntryTemplate(heroGrid.transform);
-
-            view.Configure(
-                closeButton,
-                componentsTab,
-                galleryTab,
-                componentsPage.gameObject,
-                galleryPage.gameObject,
-                runtimeStats,
-                null,
-                detailName,
-                detailRarity,
-                detailFormation,
-                detailSkill,
-                componentsGrid.transform,
-                heroGrid.transform,
-                componentTemplate,
-                heroTemplate);
-            root.SetActive(false);
-            return SavePrefab(root, HeroWorkshopPrefabPath);
-        }
-
-        private static GameObject BuildRuneLoadoutPrefab()
-        {
-            var root = CreateRect("RuneLoadout", null);
-            SetStretch(root.GetComponent<RectTransform>());
-            var view = root.AddComponent<RuneLoadoutView>();
-
-            var dimmer = CreateImage("ART_RuneLoadoutDim", root.transform, new Color(0f, 0f, 0f, 0.72f));
-            SetStretch(dimmer.rectTransform);
-            dimmer.raycastTarget = true;
-            var panel = CreateImage("ART_RuneLoadoutPanel", root.transform, new Color(0.075f, 0.11f, 0.15f, 0.99f));
-            SetAnchors(panel.rectTransform, new Vector2(0.04f, 0.12f), new Vector2(0.96f, 0.88f));
-
-            var title = CreateText("RuneLoadoutTitle", panel.transform, "RUNE LOADOUT", new Vector2(0.06f, 0.90f), new Vector2(0.60f, 0.98f), 27, TextAnchor.MiddleLeft);
-            title.raycastTarget = false;
-            var gate = CreateText("RuneGateLabel", panel.transform, "LOCKED | UNLOCKS ON DAY 3", new Vector2(0.06f, 0.84f), new Vector2(0.78f, 0.90f), 14, TextAnchor.MiddleLeft);
-            gate.raycastTarget = false;
-            var validation = CreateText("RuneValidationLabel", panel.transform, string.Empty, new Vector2(0.06f, 0.05f), new Vector2(0.94f, 0.10f), 14, TextAnchor.MiddleCenter);
-            validation.raycastTarget = false;
-
-            var closeImage = CreateImage("ART_RuneLoadoutClose", panel.transform, new Color(0.46f, 0.20f, 0.20f, 1f));
-            SetAnchors(closeImage.rectTransform, new Vector2(0.90f, 0.90f), new Vector2(0.98f, 0.98f));
-            var close = closeImage.gameObject.AddComponent<Button>();
-            close.targetGraphic = closeImage;
-            var closeLabel = CreateText("CloseLabel", closeImage.transform, "X", Vector2.zero, Vector2.one, 24, TextAnchor.MiddleCenter);
-            closeLabel.raycastTarget = false;
-
-            var filters = CreateRect("ART_RuneFilters", panel.transform);
-            SetAnchors(filters.GetComponent<RectTransform>(), new Vector2(0.45f, 0.76f), new Vector2(0.95f, 0.84f));
-            var filterLayout = filters.AddComponent<GridLayoutGroup>();
-            filterLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            filterLayout.constraintCount = 5;
-            filterLayout.cellSize = new Vector2(88f, 42f);
-            filterLayout.spacing = new Vector2(4f, 0f);
-            filterLayout.childAlignment = TextAnchor.MiddleCenter;
-            var allFilter = CreateRuneButton("ART_RuneFilterAll", filters.transform, "ALL", new Color(0.23f, 0.36f, 0.42f, 1f));
-            var commonFilter = CreateRuneButton("ART_RuneFilterCommon", filters.transform, "COMMON", new Color(0.18f, 0.45f, 0.28f, 1f));
-            var excellentFilter = CreateRuneButton("ART_RuneFilterExcellent", filters.transform, "EXCELLENT", new Color(0.20f, 0.36f, 0.65f, 1f));
-            var epicFilter = CreateRuneButton("ART_RuneFilterEpic", filters.transform, "EPIC", new Color(0.43f, 0.24f, 0.60f, 1f));
-            var legendaryFilter = CreateRuneButton("ART_RuneFilterLegendary", filters.transform, "LEGEND", new Color(0.65f, 0.48f, 0.15f, 1f));
-
-            var heroLabel = CreateText("SelectedHeroLabel", panel.transform, "HERO", new Vector2(0.06f, 0.76f), new Vector2(0.42f, 0.82f), 15, TextAnchor.MiddleLeft);
-            var runeLabel = CreateText("SelectedRuneLabel", panel.transform, "SELECT A RUNE TO EQUIP", new Vector2(0.45f, 0.69f), new Vector2(0.94f, 0.75f), 14, TextAnchor.MiddleCenter);
-            heroLabel.raycastTarget = false;
-            runeLabel.raycastTarget = false;
-
-            var unequip = CreateRuneButton("ART_RuneUnequip", panel.transform, "UNEQUIP", new Color(0.40f, 0.24f, 0.24f, 1f));
-            SetAnchors(unequip.GetComponent<RectTransform>(), new Vector2(0.08f, 0.11f), new Vector2(0.28f, 0.17f));
-            var craft = CreateRuneButton("ART_RuneCraft", panel.transform, "CRAFT", new Color(0.31f, 0.40f, 0.18f, 1f));
-            SetAnchors(craft.GetComponent<RectTransform>(), new Vector2(0.66f, 0.11f), new Vector2(0.86f, 0.17f));
-
-            var heroGrid = CreateRect("ART_RuneHeroGrid", panel.transform);
-            SetAnchors(heroGrid.GetComponent<RectTransform>(), new Vector2(0.06f, 0.20f), new Vector2(0.41f, 0.74f));
-            var heroLayout = heroGrid.AddComponent<GridLayoutGroup>();
-            heroLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            heroLayout.constraintCount = 2;
-            heroLayout.cellSize = new Vector2(160f, 90f);
-            heroLayout.spacing = new Vector2(6f, 6f);
-            heroLayout.childAlignment = TextAnchor.UpperCenter;
-            var heroTemplate = CreateRuneLoadoutEntryTemplate("ART_RuneHeroEntryTemplate", heroGrid.transform);
-
-            var runeGrid = CreateRect("ART_RuneGrid", panel.transform);
-            SetAnchors(runeGrid.GetComponent<RectTransform>(), new Vector2(0.45f, 0.20f), new Vector2(0.94f, 0.67f));
-            var runeLayout = runeGrid.AddComponent<GridLayoutGroup>();
-            runeLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            runeLayout.constraintCount = 3;
-            runeLayout.cellSize = new Vector2(150f, 94f);
-            runeLayout.spacing = new Vector2(6f, 6f);
-            runeLayout.childAlignment = TextAnchor.UpperCenter;
-            var runeTemplate = CreateRuneLoadoutEntryTemplate("ART_RuneEntryTemplate", runeGrid.transform);
-
-            view.Configure(
-                close,
-                title,
-                gate,
-                heroLabel,
-                runeLabel,
-                validation,
-                unequip,
-                craft,
-                allFilter,
-                commonFilter,
-                excellentFilter,
-                epicFilter,
-                legendaryFilter,
-                heroGrid.transform,
-                runeGrid.transform,
-                heroTemplate,
-                runeTemplate);
-            root.SetActive(false);
-            return SavePrefab(root, RuneLoadoutPrefabPath);
-        }
-
-        private static Button CreateRuneButton(string name, Transform parent, string label, Color color)
-        {
-            var image = CreateImage(name, parent, color);
-            image.raycastTarget = true;
-            var button = image.gameObject.AddComponent<Button>();
-            button.targetGraphic = image;
-            var text = CreateText("Label", image.transform, label, Vector2.zero, Vector2.one, 14, TextAnchor.MiddleCenter);
-            text.raycastTarget = false;
-            return button;
-        }
-
-        private static RuneLoadoutEntryView CreateRuneLoadoutEntryTemplate(string name, Transform parent)
-        {
-            var background = CreateImage(name, parent, new Color(0.18f, 0.25f, 0.29f, 0.98f));
-            background.raycastTarget = true;
-            var button = background.gameObject.AddComponent<Button>();
-            button.targetGraphic = background;
-            var title = CreateText("Title", background.transform, "RUNE", new Vector2(0.05f, 0.58f), new Vector2(0.95f, 0.94f), 13, TextAnchor.MiddleCenter);
-            var detail = CreateText("Detail", background.transform, string.Empty, new Vector2(0.05f, 0.18f), new Vector2(0.95f, 0.56f), 11, TextAnchor.MiddleCenter);
-            var artKey = CreateText("ArtKey", background.transform, string.Empty, new Vector2(0.05f, 0.03f), new Vector2(0.95f, 0.17f), 8, TextAnchor.MiddleCenter);
-            title.raycastTarget = false;
-            detail.raycastTarget = false;
-            artKey.raycastTarget = false;
-            var entry = background.gameObject.AddComponent<RuneLoadoutEntryView>();
-            entry.Configure(button, background, title, detail, artKey);
-            background.gameObject.SetActive(false);
-            return entry;
-        }
-
-        private static HeroWorkshopComponentEntryView CreateComponentEntryTemplate(Transform parent)
-        {
-            var background = CreateImage("ART_ComponentEntryTemplate", parent, new Color(0.25f, 0.31f, 0.31f, 0.98f));
-            var icon = CreateImage("ART_ComponentIcon", background.transform, new Color(0.30f, 0.60f, 0.71f, 1f));
-            SetAnchors(icon.rectTransform, new Vector2(0.22f, 0.32f), new Vector2(0.78f, 0.80f));
-            icon.raycastTarget = false;
-            var name = CreateText("ComponentName", background.transform, "组件", new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.26f), 15, TextAnchor.MiddleCenter);
-            var count = CreateText("ComponentCount", background.transform, string.Empty, new Vector2(0.64f, 0.78f), new Vector2(0.94f, 0.96f), 12, TextAnchor.MiddleRight);
-            var state = CreateText("ComponentState", background.transform, "尚未出现", new Vector2(0.08f, 0.80f), new Vector2(0.58f, 0.96f), 10, TextAnchor.MiddleLeft);
-            name.raycastTarget = false;
-            count.raycastTarget = false;
-            state.raycastTarget = false;
-            state.gameObject.SetActive(false);
-            var entry = background.gameObject.AddComponent<HeroWorkshopComponentEntryView>();
-            entry.Configure(icon, name, count, state);
-            background.gameObject.SetActive(false);
-            return entry;
-        }
-
-        private static HeroWorkshopGalleryEntryView CreateHeroEntryTemplate(Transform parent)
-        {
-            var background = CreateImage("ART_HeroEntryTemplate", parent, new Color(0.20f, 0.22f, 0.24f, 0.98f));
-            background.raycastTarget = true;
-            var button = background.gameObject.AddComponent<Button>();
-            button.targetGraphic = background;
-            var outline = background.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0f, 0f, 0f, 0.55f);
-            outline.effectDistance = new Vector2(2f, -2f);
-            var portrait = CreateImage("ART_HeroPortrait", background.transform, new Color(0.88f, 0.79f, 0.53f, 0.96f));
-            SetAnchors(portrait.rectTransform, new Vector2(0.09f, 0.44f), new Vector2(0.43f, 0.88f));
-            portrait.raycastTarget = false;
-            var partner = CreateImage("ART_HeroRecipePartner", background.transform, new Color(0.88f, 0.79f, 0.53f, 0.96f));
-            SetAnchors(partner.rectTransform, new Vector2(0.57f, 0.44f), new Vector2(0.91f, 0.88f));
-            partner.raycastTarget = false;
-            var join = CreateText("ART_HeroRecipeJoin", background.transform, "+", new Vector2(0.43f, 0.44f), new Vector2(0.57f, 0.88f), 18, TextAnchor.MiddleCenter);
-            join.raycastTarget = false;
-            var name = CreateText("HeroName", background.transform, "英雄", new Vector2(0.08f, 0.08f), new Vector2(0.92f, 0.32f), 15, TextAnchor.MiddleCenter);
-            var state = CreateText("HeroState", background.transform, "未合成", new Vector2(0.08f, 0.88f), new Vector2(0.92f, 0.98f), 10, TextAnchor.MiddleCenter);
-            name.raycastTarget = false;
-            state.raycastTarget = false;
-            state.gameObject.SetActive(false);
-            var entry = background.gameObject.AddComponent<HeroWorkshopGalleryEntryView>();
-            entry.Configure(button, background, name, state);
-            background.gameObject.SetActive(false);
-            return entry;
-        }
-
-        private static GameObject BuildScreenPrefab(
+       private static GameObject BuildScreenPrefab(
             GameObject unitCardPrefab,
             GameObject hudPrefab,
             GameObject battlefieldPrefab,
-            GameObject versusPrefab,
             GameObject benchPrefab,
-            GameObject recruitmentPrefab,
-            GameObject workshopPrefab,
-            GameObject runeLoadoutPrefab)
+            GameObject recruitmentPrefab)
         {
             var root = CreateRect("DragonBoundPortraitScreen", null);
             SetStretch(root.GetComponent<RectTransform>());
-            var screenBackground = CreateImage("ART_ScreenBackground", root.transform, ScreenColor);
-            SetStretch(screenBackground.rectTransform);
-            screenBackground.raycastTarget = false;
 
             var hudObject = InstantiateNestedPrefab(hudPrefab, root.transform);
             hudObject.name = "HUD";
             SetAnchors(hudObject.GetComponent<RectTransform>(), new Vector2(0f, 0.89f), Vector2.one);
 
             var aiBattlefieldObject = InstantiateNestedPrefab(battlefieldPrefab, root.transform);
-            SetAnchors(aiBattlefieldObject.GetComponent<RectTransform>(), new Vector2(0f, 0.60f), new Vector2(1f, 0.89f));
+            SetAnchors(aiBattlefieldObject.GetComponent<RectTransform>(), new Vector2(0f, 0.56f), new Vector2(1f, 0.89f));
             ConfigureBattlefieldInstance(aiBattlefieldObject, TeamSide.AI);
 
-            var versusObject = InstantiateNestedPrefab(versusPrefab, root.transform);
-            versusObject.name = "Versus";
-            SetAnchors(versusObject.GetComponent<RectTransform>(), new Vector2(0f, 0.52f), new Vector2(1f, 0.60f));
-
             var playerBattlefieldObject = InstantiateNestedPrefab(battlefieldPrefab, root.transform);
-            SetAnchors(playerBattlefieldObject.GetComponent<RectTransform>(), new Vector2(0f, 0.23f), new Vector2(1f, 0.52f));
+            SetAnchors(playerBattlefieldObject.GetComponent<RectTransform>(), new Vector2(0f, 0.23f), new Vector2(1f, 0.56f));
             ConfigureBattlefieldInstance(playerBattlefieldObject, TeamSide.Player);
 
             var benchObject = InstantiateNestedPrefab(benchPrefab, root.transform);
@@ -1231,11 +770,7 @@ namespace DragonBound.Editor
 
             var recruitmentObject = InstantiateNestedPrefab(recruitmentPrefab, root.transform);
             recruitmentObject.name = "Recruitment";
-            SetAnchors(recruitmentObject.GetComponent<RectTransform>(), new Vector2(0f, 0.03f), new Vector2(1f, 0.13f));
-
-            var bottomGuard = CreateImage("ART_BottomGuard", root.transform, ScreenColor);
-            SetAnchors(bottomGuard.rectTransform, Vector2.zero, new Vector2(1f, 0.03f));
-            bottomGuard.raycastTarget = false;
+            SetAnchors(recruitmentObject.GetComponent<RectTransform>(), Vector2.zero, new Vector2(1f, 0.13f));
 
             var aiUnitLayer = CreateRect("AiUnitLayer", root.transform).GetComponent<RectTransform>();
             SetStretch(aiUnitLayer);
@@ -1246,18 +781,6 @@ namespace DragonBound.Editor
             SetStretch(playerUnitLayer);
             var playerRange = CreateRangePreview("ART_PlayerRangePreview", playerUnitLayer);
             SetCentered(playerRange.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(200f, 200f));
-
-            var workshopObject = InstantiateNestedPrefab(workshopPrefab, root.transform);
-            workshopObject.name = "ART_HeroWorkshop";
-            SetStretch(workshopObject.GetComponent<RectTransform>());
-            workshopObject.SetActive(false);
-            workshopObject.transform.SetAsLastSibling();
-
-            var runeLoadoutObject = InstantiateNestedPrefab(runeLoadoutPrefab, root.transform);
-            runeLoadoutObject.name = "ART_RuneLoadout";
-            SetStretch(runeLoadoutObject.GetComponent<RectTransform>());
-            runeLoadoutObject.SetActive(false);
-            runeLoadoutObject.transform.SetAsLastSibling();
 
             var aiSide = aiBattlefieldObject.GetComponent<GreyboxBattlefieldSideView>();
             var playerSide = playerBattlefieldObject.GetComponent<GreyboxBattlefieldSideView>();
@@ -1278,9 +801,6 @@ namespace DragonBound.Editor
                 hudObject.transform.Find("ART_PauseButton/PauseLabel").GetComponent<Text>(),
                 hudObject.transform.Find("ResourceLabel").GetComponent<Text>(),
                 hudObject.transform.Find("WaveLabel").GetComponent<Text>(),
-                hudObject.transform.Find("RecruitmentLabel").GetComponent<Text>(),
-                versusObject.transform.Find("PlayerHealthLabel").GetComponent<Text>(),
-                versusObject.transform.Find("AiHealthLabel").GetComponent<Text>(),
                 hudObject.transform.Find("DebugLabel").GetComponent<Text>(),
                 hudObject.transform.Find("EnemyDebugLabel").GetComponent<Text>());
 
@@ -1289,13 +809,10 @@ namespace DragonBound.Editor
                 aiSide,
                 playerSide,
                 hud,
-                recruitmentObject.GetComponent<GreyboxRecruitmentPanel>(),
-                workshopObject.GetComponent<HeroWorkshopView>(),
-                runeLoadoutObject.GetComponent<RuneLoadoutView>());
+                recruitmentObject.GetComponent<GreyboxRecruitmentPanel>());
 
             RecordInstanceOverrides(hudObject);
             RecordInstanceOverrides(aiBattlefieldObject);
-            RecordInstanceOverrides(versusObject);
             RecordInstanceOverrides(playerBattlefieldObject);
             RecordInstanceOverrides(benchObject);
             RecordInstanceOverrides(recruitmentObject);
@@ -1317,9 +834,7 @@ namespace DragonBound.Editor
             camera.orthographicSize = 5f;
             cameraObject.transform.position = new Vector3(0f, 0f, -10f);
 
-            var ui = new GameObject("UI");
             var canvasObject = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            canvasObject.transform.SetParent(ui.transform, false);
             var canvas = canvasObject.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             var scaler = canvasObject.GetComponent<CanvasScaler>();
@@ -1397,9 +912,7 @@ namespace DragonBound.Editor
                 ?.GetComponent<DraggableUnitView>();
             var aiArrow = EnsureDragArrow(screen.AiBattlefieldView.transform);
             var playerArrow = EnsureDragArrow(screen.PlayerBattlefieldView.transform);
-            var workshop = EnsureHeroWorkshop(screen);
-            var runeLoadout = EnsureRuneLoadout(screen);
-            if (canvas == null || unitCard == null || aiArrow == null || playerArrow == null || workshop == null || runeLoadout == null)
+            if (canvas == null || unitCard == null || aiArrow == null || playerArrow == null)
             {
                 throw new InvalidOperationException($"Editable presentation references are incomplete in {scenePath}.");
             }
@@ -1425,10 +938,8 @@ namespace DragonBound.Editor
             screen.Configure(
                 screen.AiBattlefieldView,
                 screen.PlayerBattlefieldView,
-                screen.HudView,
-                screen.RecruitmentView,
-                workshop,
-                runeLoadout);
+                screen.OverlayController,
+                screen.RecruitmentView);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
@@ -1480,50 +991,6 @@ namespace DragonBound.Editor
             var view = root.AddComponent<DragArrowPreviewView>();
             view.Configure(shaft, head);
             return view;
-        }
-
-        private static HeroWorkshopView EnsureHeroWorkshop(DragonBoundScreenView screen)
-        {
-            var existing = screen.transform.Find("ART_HeroWorkshop");
-            if (existing != null)
-            {
-                return existing.GetComponent<HeroWorkshopView>();
-            }
-
-            var workshopPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HeroWorkshopPrefabPath);
-            if (workshopPrefab == null)
-            {
-                return null;
-            }
-
-            var workshop = InstantiateNestedPrefab(workshopPrefab, screen.transform);
-            workshop.name = "ART_HeroWorkshop";
-            SetStretch(workshop.GetComponent<RectTransform>());
-            workshop.SetActive(false);
-            workshop.transform.SetAsLastSibling();
-            return workshop.GetComponent<HeroWorkshopView>();
-        }
-
-        private static RuneLoadoutView EnsureRuneLoadout(DragonBoundScreenView screen)
-        {
-            var existing = screen.transform.Find("ART_RuneLoadout");
-            if (existing != null)
-            {
-                return existing.GetComponent<RuneLoadoutView>();
-            }
-
-            var loadoutPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(RuneLoadoutPrefabPath);
-            if (loadoutPrefab == null)
-            {
-                return null;
-            }
-
-            var loadout = InstantiateNestedPrefab(loadoutPrefab, screen.transform);
-            loadout.name = "ART_RuneLoadout";
-            SetStretch(loadout.GetComponent<RectTransform>());
-            loadout.SetActive(false);
-            loadout.transform.SetAsLastSibling();
-            return loadout.GetComponent<RuneLoadoutView>();
         }
 
         private static GridCellView[] CopyCells(IReadOnlyList<GridCellView> source)

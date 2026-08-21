@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace DragonBound.Presentation
 {
-    /// <summary>Editor/development-build controls for manually exercising real Item and Rune paths.</summary>
+    /// <summary>Editor/development-build controls for manually exercising real Item and Rune data paths.</summary>
     public sealed class DevelopmentGameplayTestPanel : MonoBehaviour
     {
         private readonly HashSet<string> selectedItems = new HashSet<string>(StringComparer.Ordinal);
@@ -106,19 +106,10 @@ namespace DragonBound.Presentation
 
             GUILayout.Space(6f);
             GUILayout.Label("RUNE PROFILE");
-            GUILayout.BeginHorizontal();
             if (GUILayout.Button("UNLOCK DAY 3 + GRANT ALL", GUILayout.Height(38f)))
             {
                 PrepareRunes();
             }
-            if (GUILayout.Button("OPEN RUNE LOADOUT", GUILayout.Height(38f)))
-            {
-                if (PrepareRunes())
-                {
-                    bootstrap.OpenDevelopmentRuneLoadout();
-                }
-            }
-            GUILayout.EndHorizontal();
 
             GUILayout.Space(4f);
             GUILayout.Label(status);

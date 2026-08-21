@@ -7,21 +7,25 @@ using UnityEngine.UI;
 
 namespace DragonBound.Presentation
 {
-    public sealed class GreyboxHudView : MonoBehaviour
+    public class GreyboxHudView : MonoBehaviour
     {
+        private const int ActiveItemSortingOrder = 105;
+        private const int PauseButtonSortingOrder = 110;
+        private const int PausePanelSortingOrder = 120;
+
         [SerializeField] private Button pauseButton;
         [SerializeField] private Text pauseLabel;
+        [SerializeField] private GameObject pausePanel;
+        [SerializeField] private Button continueButton;
         [SerializeField] private Text resourceLabel;
         [SerializeField] private Text waveLabel;
-        [SerializeField] private Text recruitmentLabel;
-        [SerializeField] private Text playerHealthLabel;
-        [SerializeField] private Text aiHealthLabel;
         [SerializeField] private Text debugLabel;
         [SerializeField] private Text enemyDebugLabel;
         [SerializeField] private Button activeItemSlotOne;
         [SerializeField] private Button activeItemSlotTwo;
         [SerializeField] private Text activeItemSlotOneLabel;
         [SerializeField] private Text activeItemSlotTwoLabel;
+        [SerializeField] private RectTransform activeItemContainer;
         [SerializeField] private bool showDebugOverlay;
 
         private MatchController match;
@@ -31,6 +35,8 @@ namespace DragonBound.Presentation
         private BoardRecruitDestination playerRecruitDestination;
         private BoardRecruitDestination aiRecruitDestination;
         private MatchState stateBeforePause = MatchState.Preparing;
+        private float timeScaleBeforePause = 1f;
+        private bool ownsGlobalPause;
         private IWaveRuntime waveRuntime;
         private TwentyWavePressureRuntime itemRuntime;
 
@@ -39,9 +45,6 @@ namespace DragonBound.Presentation
             Text pauseText,
             Text resources,
             Text wave,
-            Text recruitments,
-            Text playerHealth,
-            Text aiHealth,
             Text debug = null,
             Text enemyDebug = null)
         {
@@ -49,9 +52,6 @@ namespace DragonBound.Presentation
             pauseLabel = pauseText;
             resourceLabel = resources;
             waveLabel = wave;
-            recruitmentLabel = recruitments;
-            playerHealthLabel = playerHealth;
-            aiHealthLabel = aiHealth;
             debugLabel = debug;
             enemyDebugLabel = enemyDebug;
         }
@@ -70,7 +70,20 @@ namespace DragonBound.Presentation
             this.aiRecruitment = aiRecruitment;
             this.playerRecruitDestination = playerRecruitDestination;
             this.aiRecruitDestination = aiRecruitDestination;
-            pauseButton.onClick.AddListener(TogglePause);
+            ResolveAuthoredScreenControls();
+            if (pauseButton == null)
+            {
+                throw new System.InvalidOperationException(
+                    "ART_ScreenBackground/ART_PauseButton is missing from DragonBoundPortraitScreen.");
+            }
+
+            pauseButton.onClick.RemoveListener(PauseGameFromButton);
+            pauseButton.onClick.AddListener(PauseGameFromButton);
+            if (continueButton != null)
+            {
+                continueButton.onClick.RemoveListener(ResumeGame);
+                continueButton.onClick.AddListener(ResumeGame);
+            }
             Refresh();
         }
 
@@ -105,36 +118,169 @@ namespace DragonBound.Presentation
             Refresh();
         }
 
-        private void LateUpdate()
+        protected virtual void LateUpdate()
         {
             Refresh();
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
             if (pauseButton != null)
             {
-                pauseButton.onClick.RemoveListener(TogglePause);
+                pauseButton.onClick.RemoveListener(PauseGameFromButton);
             }
+            if (continueButton != null)
+            {
+                continueButton.onClick.RemoveListener(ResumeGame);
+            }
+
+            ReleaseGlobalPause();
 
             RemoveActiveItemListeners();
         }
 
-        private void TogglePause()
+        private void PauseGameFromButton()
         {
-            if (match.State == MatchState.Paused)
+            if (match.State == MatchState.Ready ||
+                match.State == MatchState.Preparing ||
+                match.State == MatchState.Running ||
+                match.State == MatchState.BossPrompt)
             {
-                match.TryTransition(stateBeforePause);
-            }
-            else if (match.State == MatchState.Preparing ||
-                     match.State == MatchState.Running ||
-                     match.State == MatchState.BossPrompt)
-            {
-                stateBeforePause = match.State;
-                match.TryTransition(MatchState.Paused);
+                PauseGame();
             }
 
             Refresh();
+        }
+
+        private void ResolveAuthoredScreenControls()
+        {
+            var screen = GetComponentInParent<DragonBoundScreenView>();
+            var background = screen != null
+                ? screen.transform.Find("ART_ScreenBackground")
+                : null;
+            if (background == null)
+            {
+                return;
+            }
+
+            activeItemContainer = background.Find("ActiveItemContainer") as RectTransform;
+            if (activeItemContainer == null)
+            {
+                activeItemContainer = background as RectTransform;
+            }
+
+            var authoredResourceLabel = background.Find("ResourceLabel")?.GetComponent<Text>();
+            if (authoredResourceLabel != null)
+            {
+                resourceLabel = authoredResourceLabel;
+            }
+
+            var authoredWaveLabel = background.Find("WaveLabel")?.GetComponent<Text>();
+            if (authoredWaveLabel != null)
+            {
+                waveLabel = authoredWaveLabel;
+            }
+
+            var authoredButton = background.Find("ART_PauseButton")?.GetComponent<Button>();
+            if (authoredButton != null)
+            {
+                pauseButton = authoredButton;
+                pauseLabel = authoredButton.transform.Find("PauseLabel")?.GetComponent<Text>();
+                EnsureOverlayCanvas(authoredButton.gameObject, PauseButtonSortingOrder, true);
+            }
+
+            var authoredPanel = background.Find("PausePanel");
+            if (authoredPanel != null)
+            {
+                pausePanel = authoredPanel.gameObject;
+                continueButton = authoredPanel.Find("Bg/ContinueBtn")?.GetComponent<Button>();
+                EnsureOverlayCanvas(pausePanel, PausePanelSortingOrder, true);
+            }
+
+            var debugRoot = background.Find("Debug");
+            if (debugRoot != null)
+            {
+                var authoredDebugLabel = debugRoot.Find("DebugLabel")?.GetComponent<Text>();
+                if (authoredDebugLabel != null)
+                {
+                    debugLabel = authoredDebugLabel;
+                }
+
+                var authoredEnemyDebugLabel = debugRoot.Find("EnemyDebugLabel")?.GetComponent<Text>();
+                if (authoredEnemyDebugLabel != null)
+                {
+                    enemyDebugLabel = authoredEnemyDebugLabel;
+                }
+            }
+        }
+
+        private static void EnsureOverlayCanvas(GameObject target, int sortingOrder, bool needsRaycaster)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            var canvas = target.GetComponent<Canvas>();
+            if (canvas == null)
+            {
+                canvas = target.AddComponent<Canvas>();
+            }
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = sortingOrder;
+
+            if (needsRaycaster && target.GetComponent<GraphicRaycaster>() == null)
+            {
+                target.AddComponent<GraphicRaycaster>();
+            }
+        }
+
+        private void PauseGame()
+        {
+            var previousState = match.State;
+            if (!match.TryTransition(MatchState.Paused))
+            {
+                return;
+            }
+
+            stateBeforePause = previousState;
+            timeScaleBeforePause = Time.timeScale > 0f ? Time.timeScale : 1f;
+            Time.timeScale = 0f;
+            ownsGlobalPause = true;
+            if (pausePanel != null)
+            {
+                pausePanel.SetActive(true);
+                pausePanel.transform.SetAsLastSibling();
+            }
+        }
+
+        private void ResumeGame()
+        {
+            if (!match.TryTransition(stateBeforePause))
+            {
+                return;
+            }
+
+            ReleaseGlobalPause();
+            Refresh();
+        }
+
+        private void ReleaseGlobalPause()
+        {
+            if (ownsGlobalPause)
+            {
+                Time.timeScale = timeScaleBeforePause;
+                ownsGlobalPause = false;
+                if (match != null && match.State == MatchState.Paused)
+                {
+                    match.TryTransition(stateBeforePause);
+                }
+            }
+
+            if (pausePanel != null)
+            {
+                pausePanel.SetActive(false);
+            }
         }
 
         private void Refresh()
@@ -162,17 +308,6 @@ namespace DragonBound.Presentation
             {
                 waveLabel.text = match.State.ToString().ToUpperInvariant();
             }
-            recruitmentLabel.text = $"Recruits: {team.RecruitmentCount}";
-            if (playerHealthLabel != null)
-            {
-                playerHealthLabel.text = $"PLAYER {FormatHearts(match.Player.HatchlingHealth)}";
-            }
-
-            if (aiHealthLabel != null)
-            {
-                aiHealthLabel.text = $"AI {FormatHearts(match.AI.HatchlingHealth)}";
-            }
-
             if (debugLabel != null)
             {
                 debugLabel.gameObject.SetActive(showDebugOverlay);
@@ -200,7 +335,10 @@ namespace DragonBound.Presentation
                         FormatEnemies("PLAYER", waveRuntime.PlayerEnemyRegistry);
                 }
             }
-            pauseLabel.text = match.State == MatchState.Paused ? ">" : "II";
+            if (pauseButton != null)
+            {
+                pauseButton.interactable = match.State != MatchState.Paused;
+            }
             RefreshActiveItemSlots();
         }
 
@@ -220,7 +358,8 @@ namespace DragonBound.Presentation
         private void CreateActiveItemSlot(string slotName, int index, out Button button, out Text label)
         {
             var slot = new GameObject(slotName, typeof(RectTransform), typeof(Image), typeof(Button));
-            slot.transform.SetParent(transform, false);
+            var parent = activeItemContainer != null ? activeItemContainer : transform;
+            slot.transform.SetParent(parent, false);
             var rect = slot.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0.02f + index * 0.25f, 0.03f);
             rect.anchorMax = new Vector2(0.25f + index * 0.25f, 0.10f);
@@ -230,6 +369,7 @@ namespace DragonBound.Presentation
             image.color = new Color(0.16f, 0.20f, 0.24f, 0.9f);
             button = slot.GetComponent<Button>();
             button.targetGraphic = image;
+            EnsureOverlayCanvas(slot, ActiveItemSortingOrder + index, true);
             var labelObject = new GameObject("Label", typeof(RectTransform), typeof(Text));
             labelObject.transform.SetParent(slot.transform, false);
             var labelRect = labelObject.GetComponent<RectTransform>();
@@ -333,11 +473,6 @@ namespace DragonBound.Presentation
             }
 
             return text.ToString();
-        }
-
-        private static string FormatHearts(int health)
-        {
-            return new string('\u2665', Mathf.Max(0, health));
         }
 
         private static int GetCampCount(BoardRecruitDestination destination)

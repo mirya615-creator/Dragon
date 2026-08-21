@@ -30,6 +30,12 @@ namespace DragonBound.Presentation
             new Dictionary<GridPosition, GridCellView>();
         private readonly Dictionary<string, DraggableUnitView> unitViews =
             new Dictionary<string, DraggableUnitView>(StringComparer.Ordinal);
+        private readonly Dictionary<GridPosition, DraggableUnitView> beachItemViews =
+            new Dictionary<GridPosition, DraggableUnitView>();
+        private readonly Dictionary<GridCellView, DraggableUnitView> beachItemViewsByCell =
+            new Dictionary<GridCellView, DraggableUnitView>();
+        private readonly HashSet<DraggableUnitView> authoredBeachItemViews =
+            new HashSet<DraggableUnitView>();
         private readonly Dictionary<string, string> unitLabels =
             new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly Dictionary<string, float> unitRangeCells =
@@ -270,7 +276,18 @@ namespace DragonBound.Presentation
 
         public void RefreshUnits()
         {
+            var previousViews = new Dictionary<string, DraggableUnitView>(unitViews, StringComparer.Ordinal);
+            var usedViews = new HashSet<DraggableUnitView>();
             var currentIds = new HashSet<string>(StringComparer.Ordinal);
+            unitViews.Clear();
+            foreach (var beachItemView in authoredBeachItemViews)
+            {
+                if (beachItemView != null)
+                {
+                    beachItemView.gameObject.SetActive(false);
+                }
+            }
+
             foreach (var occupant in board.GetOccupants())
             {
                 if (!cells.ContainsKey(occupant.Position))
@@ -279,14 +296,35 @@ namespace DragonBound.Presentation
                 }
 
                 currentIds.Add(occupant.UnitId);
-                if (!unitViews.TryGetValue(occupant.UnitId, out var unitView))
+                DraggableUnitView unitView;
+                var usesBeachItem = beachItemViews.TryGetValue(occupant.Position, out var beachItemView);
+                var reusedPreviousView = previousViews.TryGetValue(occupant.UnitId, out var previousView) &&
+                                         previousView != null;
+                if (usesBeachItem)
+                {
+                    unitView = beachItemView;
+                }
+                else if (reusedPreviousView && !authoredBeachItemViews.Contains(previousView))
+                {
+                    unitView = previousView;
+                }
+                else
                 {
                     unitView = Instantiate(unitPrefab, unitLayer);
                     unitView.gameObject.name = $"Card_{occupant.UnitId}";
-                    unitView.Initialize(this, occupant.UnitId);
-                    unitView.SetInteractive(allowInteraction);
-                    unitViews.Add(occupant.UnitId, unitView);
+                    reusedPreviousView = false;
                 }
+
+                var samePreviousView = reusedPreviousView && ReferenceEquals(previousView, unitView);
+                if (!samePreviousView)
+                {
+                    unitView.Initialize(this, occupant.UnitId);
+                }
+
+                unitView.gameObject.SetActive(true);
+                unitView.SetInteractive(allowInteraction);
+                unitViews.Add(occupant.UnitId, unitView);
+                usedViews.Add(unitView);
 
                 if (unitDestination != null &&
                     unitDestination.TryGetCard(occupant.UnitId, out var currentCard))
@@ -304,23 +342,27 @@ namespace DragonBound.Presentation
                 SnapUnit(occupant.UnitId);
             }
 
-            var removedIds = new List<string>();
-            foreach (var entry in unitViews)
+            foreach (var entry in previousViews)
             {
-                if (!currentIds.Contains(entry.Key))
+                if (entry.Value != null &&
+                    !usedViews.Contains(entry.Value) &&
+                    !authoredBeachItemViews.Contains(entry.Value))
                 {
                     Destroy(entry.Value.gameObject);
-                    removedIds.Add(entry.Key);
                 }
             }
 
-            foreach (var removedId in removedIds)
+            foreach (var previousId in previousViews.Keys)
             {
-                unitViews.Remove(removedId);
-                unitLabels.Remove(removedId);
-                unitRangeCells.Remove(removedId);
-                unitShowsRange.Remove(removedId);
-                if (string.Equals(selectedUnitId, removedId, StringComparison.Ordinal))
+                if (currentIds.Contains(previousId))
+                {
+                    continue;
+                }
+
+                unitLabels.Remove(previousId);
+                unitRangeCells.Remove(previousId);
+                unitShowsRange.Remove(previousId);
+                if (string.Equals(selectedUnitId, previousId, StringComparison.Ordinal))
                 {
                     HideRangePreview();
                 }
@@ -924,7 +966,13 @@ namespace DragonBound.Presentation
                 var benchPositions = board.Layout.BenchPositions;
                 if (authoredBenchCells.Count < benchPositions.Count)
                 {
-                    throw new InvalidOperationException("The fixed board is missing authored bench slots.");
+                    BindBeachBenchCells(authoredBenchCells, benchPositions.Count);
+                }
+
+                if (authoredBenchCells.Count < benchPositions.Count)
+                {
+                    throw new InvalidOperationException(
+                        "The fixed board requires five BeachContainer/ImgBg slots with BeachItem.prefab instances.");
                 }
 
                 for (var index = 0; index < authoredBenchCells.Count; index++)
@@ -946,6 +994,10 @@ namespace DragonBound.Presentation
                         benchCell.ContentAnchor);
                     benchCell.gameObject.SetActive(true);
                     bound.Add(benchCell);
+                    if (beachItemViewsByCell.TryGetValue(benchCell, out var beachItemView))
+                    {
+                        beachItemViews[position] = beachItemView;
+                    }
                 }
             }
             else
@@ -958,6 +1010,79 @@ namespace DragonBound.Presentation
 
             bound.Sort((first, second) => first.Position.CompareTo(second.Position));
             cellViews = bound.ToArray();
+        }
+
+        private void BindBeachBenchCells(List<GridCellView> benchCells, int requiredCount)
+        {
+            if (benchCells == null || benchCells.Count >= requiredCount)
+            {
+                return;
+            }
+
+            var screen = fixedBoardCanvas.GetComponentInParent<DragonBoundScreenView>();
+            var beachContainer = screen != null
+                ? screen.transform.Find("ART_ScreenBackground/BeachContainer")
+                : null;
+            if (beachContainer == null)
+            {
+                return;
+            }
+
+            var beachItemPrefab = Resources.Load<GameObject>("prefabs/BeachItem");
+            for (var childIndex = 0;
+                 childIndex < beachContainer.childCount && benchCells.Count < requiredCount;
+                 childIndex++)
+            {
+                var slot = beachContainer.GetChild(childIndex) as RectTransform;
+                if (slot == null || !slot.name.StartsWith("ImgBg", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var cell = slot.GetComponent<GridCellView>();
+                if (cell == null)
+                {
+                    cell = slot.gameObject.AddComponent<GridCellView>();
+                }
+
+                var beachItem = slot.Find("BeachItem");
+                if (beachItem == null && beachItemPrefab != null)
+                {
+                    beachItem = Instantiate(beachItemPrefab, slot, false).transform;
+                    beachItem.name = "BeachItem";
+                }
+
+                if (beachItem == null)
+                {
+                    continue;
+                }
+
+                var itemView = beachItem.GetComponent<DraggableUnitView>();
+                if (itemView == null)
+                {
+                    itemView = beachItem.gameObject.AddComponent<DraggableUnitView>();
+                }
+
+                var canvasGroup = beachItem.GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                {
+                    canvasGroup = beachItem.gameObject.AddComponent<CanvasGroup>();
+                }
+
+                var nameTransform = beachItem.Find("Name");
+                var levelTransform = beachItem.Find("Text");
+                itemView.ConfigureBeach(
+                    beachItem.GetComponent<Image>(),
+                    nameTransform != null ? nameTransform.GetComponent<Graphic>() : null,
+                    levelTransform != null ? levelTransform.GetComponent<Graphic>() : null,
+                    canvasGroup);
+                beachItem.gameObject.SetActive(false);
+
+                cell.Configure(0, 0, CellType.Bench, slot.GetComponent<Image>(), null, slot);
+                beachItemViewsByCell[cell] = itemView;
+                authoredBeachItemViews.Add(itemView);
+                benchCells.Add(cell);
+            }
         }
 
         private void ConfigureFormationCell(GridCellView cell, GridPosition position, CellType type)
@@ -1009,6 +1134,12 @@ namespace DragonBound.Presentation
             if (!unitViews.TryGetValue(unitId, out var unitView) ||
                 !board.TryGetPosition(unitId, out var position) ||
                 !cells.TryGetValue(position, out var cellView))
+            {
+                return;
+            }
+
+            if (beachItemViews.TryGetValue(position, out var beachItemView) &&
+                ReferenceEquals(unitView, beachItemView))
             {
                 return;
             }

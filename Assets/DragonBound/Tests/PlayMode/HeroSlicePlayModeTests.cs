@@ -152,42 +152,6 @@ namespace DragonBound.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator WorkshopOmitsLegacyHeroCountLabel()
-        {
-            SceneManager.LoadScene("HeroSlice_Main", LoadSceneMode.Single);
-            yield return null;
-
-            var workshop = Resources.FindObjectsOfTypeAll<HeroWorkshopView>().Single();
-            Assert.IsFalse(workshop.gameObject.activeSelf);
-            Assert.AreEqual(0, workshop.FormedHeroCount);
-
-            workshop.Open();
-            workshop.ShowHeroGallery();
-            yield return null;
-
-            Assert.IsTrue(workshop.gameObject.activeSelf);
-            Assert.IsFalse(workshop.GetComponentsInChildren<Text>(true)
-                .Any(label => label.name == "HeroCountLabel"));
-            workshop.Close();
-        }
-
-        [UnityTest]
-        public IEnumerator WorkshopOpensTwelveHeroGalleryEntries()
-        {
-            SceneManager.LoadScene("HeroSlice_Main", LoadSceneMode.Single);
-            yield return null;
-
-            var workshop = Resources.FindObjectsOfTypeAll<HeroWorkshopView>().Single();
-            workshop.Open();
-            workshop.ShowHeroGallery();
-            yield return null;
-
-            Assert.AreEqual(18, workshop.ComponentEntryCount);
-            Assert.AreEqual(12, workshop.GalleryEntryCount);
-            workshop.Close();
-        }
-
-        [UnityTest]
         public IEnumerator HeroSliceSceneUsesIndependentEnabledConfiguration()
         {
             SceneManager.LoadScene("HeroSlice_Main", LoadSceneMode.Single);

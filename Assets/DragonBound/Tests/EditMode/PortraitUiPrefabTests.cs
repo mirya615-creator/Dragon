@@ -17,13 +17,9 @@ namespace DragonBound.Tests.EditMode
     {
         private const string ScreenPath =
             "Assets/DragonBound/UI/Prefabs/Screens/DragonBoundPortraitScreen.prefab";
-        private const string HudPath = "Assets/DragonBound/UI/Prefabs/Modules/HUD.prefab";
         private const string BattlefieldPath = "Assets/DragonBound/UI/Prefabs/Modules/Battlefield.prefab";
-        private const string VersusPath = "Assets/DragonBound/UI/Prefabs/Modules/Versus.prefab";
         private const string BenchPath = "Assets/DragonBound/UI/Prefabs/Modules/Bench.prefab";
         private const string RecruitmentPath = "Assets/DragonBound/UI/Prefabs/Modules/Recruitment.prefab";
-        private const string HeroWorkshopPath = "Assets/DragonBound/UI/Prefabs/Modules/HeroWorkshop.prefab";
-        private const string RuneLoadoutPath = "Assets/DragonBound/UI/Prefabs/Modules/RuneLoadout.prefab";
         private const string UnitCardPath = "Assets/DragonBound/UI/Prefabs/Components/UnitCard.prefab";
         private const string HeroFormationPath = "Assets/DragonBound/UI/Prefabs/Components/HeroFormation.prefab";
         private const string RangeOutlinePath = "Assets/DragonBound/UI/Art/Range/RangeOutlineThin.png";
@@ -39,17 +35,15 @@ namespace DragonBound.Tests.EditMode
                 new Rect(Vector2.zero, PortraitLayoutMetrics.ReferenceResolution));
 
             Assert.AreEqual(0.11f, layout.TopHud.height / layout.Bounds.height, 0.0001f);
-            Assert.AreEqual(0.29f, layout.AiField.height / layout.Bounds.height, 0.0001f);
-            Assert.AreEqual(0.08f, layout.VersusBand.height / layout.Bounds.height, 0.0001f);
-            Assert.AreEqual(0.29f, layout.PlayerField.height / layout.Bounds.height, 0.0001f);
+            Assert.AreEqual(0.33f, layout.AiField.height / layout.Bounds.height, 0.0001f);
+            Assert.AreEqual(0.33f, layout.PlayerField.height / layout.Bounds.height, 0.0001f);
             Assert.AreEqual(0.10f, layout.BenchBand.height / layout.Bounds.height, 0.0001f);
             Assert.AreEqual(0.10f, layout.CallToActionBand.height / layout.Bounds.height, 0.0001f);
-            Assert.AreEqual(0.03f, layout.BottomGuard.height / layout.Bounds.height, 0.0001f);
-            Assert.AreEqual(layout.BottomGuard.yMax, layout.CallToActionBand.yMin, 0.01f);
+            Assert.AreEqual(0.13f, layout.CallToActionBand.height / layout.Bounds.height, 0.0001f);
+            Assert.AreEqual(layout.Bounds.yMin, layout.CallToActionBand.yMin, 0.01f);
             Assert.AreEqual(layout.CallToActionBand.yMax, layout.BenchBand.yMin, 0.01f);
             Assert.AreEqual(layout.BenchBand.yMax, layout.PlayerField.yMin, 0.01f);
-            Assert.AreEqual(layout.PlayerField.yMax, layout.VersusBand.yMin, 0.01f);
-            Assert.AreEqual(layout.VersusBand.yMax, layout.AiField.yMin, 0.01f);
+            Assert.AreEqual(layout.PlayerField.yMax, layout.AiField.yMin, 0.01f);
             Assert.AreEqual(layout.AiField.yMax, layout.TopHud.yMin, 0.01f);
         }
 
@@ -115,9 +109,7 @@ namespace DragonBound.Tests.EditMode
             var paths = new[]
             {
                 ScreenPath,
-                HudPath,
                 BattlefieldPath,
-                VersusPath,
                 BenchPath,
                 RecruitmentPath,
                 UnitCardPath,
@@ -275,80 +267,16 @@ namespace DragonBound.Tests.EditMode
         public void ModulesContainFixedControlsAndNestedPrefabDependencies()
         {
             var bench = AssetDatabase.LoadAssetAtPath<GameObject>(BenchPath);
-            var hud = AssetDatabase.LoadAssetAtPath<GameObject>(HudPath);
             var recruitment = AssetDatabase.LoadAssetAtPath<GameObject>(RecruitmentPath);
-            var workshop = AssetDatabase.LoadAssetAtPath<GameObject>(HeroWorkshopPath);
-            var versus = AssetDatabase.LoadAssetAtPath<GameObject>(VersusPath);
             Assert.AreEqual(5, bench.GetComponentsInChildren<GridCellView>(true).Length);
-            Assert.AreEqual(2, hud.GetComponentsInChildren<Button>(true).Length);
-            Assert.AreEqual(3, recruitment.GetComponentsInChildren<Button>(true).Length);
-            Assert.IsNotNull(recruitment.GetComponent<GreyboxRecruitmentPanel>().RuneLoadoutButton);
-            Assert.IsNotNull(workshop.GetComponent<HeroWorkshopView>());
-            Assert.IsNotNull(workshop.transform.Find("ART_WorkshopDim"));
-            Assert.IsNotNull(workshop.transform.Find("ART_WorkshopPanel/ART_ComponentLibraryPage/ART_ComponentGrid"));
-            Assert.IsNotNull(workshop.transform.Find("ART_WorkshopPanel/ART_HeroGalleryPage/ART_HeroGrid"));
-            Assert.IsNotNull(versus.transform.Find("AiHealthLabel"));
-            Assert.IsNotNull(versus.transform.Find("VersusLabel"));
-            Assert.IsNotNull(versus.transform.Find("PlayerHealthLabel"));
-
+            Assert.AreEqual(1, recruitment.GetComponentsInChildren<Button>(true).Length);
             CollectionAssert.Contains(AssetDatabase.GetDependencies(BattlefieldPath), BoardCellPath);
             CollectionAssert.Contains(AssetDatabase.GetDependencies(BenchPath), BenchSlotPath);
             var screenDependencies = AssetDatabase.GetDependencies(ScreenPath);
-            CollectionAssert.Contains(screenDependencies, HudPath);
             CollectionAssert.Contains(screenDependencies, BattlefieldPath);
-            CollectionAssert.Contains(screenDependencies, VersusPath);
             CollectionAssert.Contains(screenDependencies, BenchPath);
             CollectionAssert.Contains(screenDependencies, RecruitmentPath);
-            CollectionAssert.Contains(screenDependencies, HeroWorkshopPath);
-            CollectionAssert.Contains(screenDependencies, RuneLoadoutPath);
             CollectionAssert.Contains(screenDependencies, UnitCardPath);
-        }
-
-        [Test]
-        public void HeroWorkshopUsesCompactCenteredBookLayout()
-        {
-            var workshop = AssetDatabase.LoadAssetAtPath<GameObject>(HeroWorkshopPath);
-            var panel = workshop.transform.Find("ART_WorkshopPanel").GetComponent<RectTransform>();
-            Assert.AreEqual(new Vector2(0.12f, 0.20f), panel.anchorMin);
-            Assert.AreEqual(new Vector2(0.88f, 0.80f), panel.anchorMax);
-            Assert.IsNull(workshop.transform.Find("ART_WorkshopPanel/WorkshopTitle"));
-            Assert.IsNull(workshop.transform.Find("ART_WorkshopPanel/RuntimeModeLabel"));
-            Assert.IsNotNull(workshop.transform.Find("ART_WorkshopPanel/WorkshopBagStatsLabel"));
-            Assert.IsNotNull(workshop.transform.Find("ART_WorkshopPanel/ART_WorkshopBookPage"));
-            Assert.IsNotNull(workshop.transform.Find("ART_WorkshopPanel/ART_ComponentsTab/ART_ComponentsTabIcon"));
-            Assert.IsNotNull(workshop.transform.Find("ART_WorkshopPanel/ART_GalleryTab/ART_GalleryTabIcon"));
-
-            var componentGrid = workshop.transform
-                .Find("ART_WorkshopPanel/ART_ComponentLibraryPage/ART_ComponentGrid")
-                .GetComponent<GridLayoutGroup>();
-            Assert.AreEqual(4, componentGrid.constraintCount);
-            Assert.AreEqual(componentGrid.cellSize.x, componentGrid.cellSize.y, 0.01f);
-            Assert.AreEqual(140f, componentGrid.cellSize.x, 0.01f);
-
-            var heroGrid = workshop.transform
-                .Find("ART_WorkshopPanel/ART_HeroGalleryPage/ART_HeroGrid")
-                .GetComponent<GridLayoutGroup>();
-            Assert.AreEqual(3, heroGrid.constraintCount);
-            Assert.AreEqual(160f, heroGrid.cellSize.x, 0.01f);
-            Assert.AreEqual(125f, heroGrid.cellSize.y, 0.01f);
-            var componentPage = componentGrid.transform.parent.GetComponent<RectTransform>();
-            Assert.AreEqual(new Vector2(0.10f, 0.07f), componentPage.anchorMin);
-            Assert.AreEqual(new Vector2(0.90f, 0.77f), componentPage.anchorMax);
-            var heroGridRect = heroGrid.GetComponent<RectTransform>();
-            Assert.AreEqual(new Vector2(0.10f, 0.07f), heroGridRect.anchorMin);
-            Assert.AreEqual(new Vector2(0.90f, 0.72f), heroGridRect.anchorMax);
-            Assert.IsNotNull(workshop.transform.Find(
-                "ART_WorkshopPanel/ART_HeroGalleryPage/ART_HeroDetail/ART_HeroDetailPortrait"));
-            Assert.IsNotNull(workshop.transform.Find(
-                "ART_WorkshopPanel/ART_HeroGalleryPage/ART_HeroDetail/ART_HeroDetailInfo"));
-            Assert.IsNotNull(workshop.transform.Find(
-                "ART_WorkshopPanel/ART_HeroGalleryPage/ART_HeroGrid/ART_HeroEntryTemplate/ART_HeroPortrait"));
-            Assert.IsNotNull(workshop.transform.Find(
-                "ART_WorkshopPanel/ART_HeroGalleryPage/ART_HeroGrid/ART_HeroEntryTemplate/ART_HeroRecipePartner"));
-            Assert.IsFalse(workshop.transform.Find(
-                "ART_WorkshopPanel/ART_ComponentLibraryPage/ART_ComponentGrid/ART_ComponentEntryTemplate/ComponentState").gameObject.activeSelf);
-            Assert.IsFalse(workshop.transform.Find(
-                "ART_WorkshopPanel/ART_HeroGalleryPage/ART_HeroGrid/ART_HeroEntryTemplate/HeroState").gameObject.activeSelf);
         }
 
         [Test]

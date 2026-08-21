@@ -106,7 +106,7 @@ namespace DragonBound.Tests.PlayMode
                 }
             }
 
-            Assert.IsFalse(screen.transform.Find("Versus").gameObject.activeSelf);
+            Assert.IsNull(screen.transform.Find("Versus"));
             Assert.IsFalse(screen.PlayerBattlefieldView.transform.Find("ART_Background").gameObject.activeSelf);
             Assert.IsFalse(screen.AiBattlefieldView.transform.Find("ART_Background").gameObject.activeSelf);
 

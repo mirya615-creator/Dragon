@@ -11,9 +11,6 @@ namespace DragonBound.Presentation
     {
         [SerializeField] private Button recruitButton;
         [SerializeField] private Text recruitButtonLabel;
-        [SerializeField] private Text statusLabel;
-        [SerializeField] private Button workshopButton;
-        [SerializeField] private Button runeLoadoutButton;
 
         private TeamState team;
         private RecruitmentService recruitment;
@@ -22,23 +19,13 @@ namespace DragonBound.Presentation
         public RectTransform RecruitButtonRect => (RectTransform)recruitButton.transform;
         public Button RecruitButton => recruitButton;
         public Text RecruitButtonLabel => recruitButtonLabel;
-        public Text StatusLabel => statusLabel;
-        public Button RuneLoadoutButton => runeLoadoutButton;
-        public event System.Action WorkshopRequested;
-        public event System.Action RuneLoadoutRequested;
 
         public void Configure(
             Button button,
-            Text buttonLabel,
-            Text status,
-            Button workshop = null,
-            Button runeLoadout = null)
+            Text buttonLabel)
         {
             recruitButton = button;
             recruitButtonLabel = buttonLabel;
-            statusLabel = status;
-            workshopButton = workshop;
-            runeLoadoutButton = runeLoadout;
         }
 
         public void Initialize(TeamState value, RecruitmentService service, GreyboxBoardView view)
@@ -47,15 +34,6 @@ namespace DragonBound.Presentation
             recruitment = service;
             boardView = view;
             recruitButton.onClick.AddListener(Recruit);
-            if (workshopButton != null)
-            {
-                workshopButton.onClick.AddListener(OpenWorkshop);
-            }
-            if (runeLoadoutButton != null)
-            {
-                runeLoadoutButton.onClick.AddListener(OpenRuneLoadout);
-            }
-            statusLabel.text = string.Empty;
             RefreshButton();
         }
 
@@ -70,25 +48,6 @@ namespace DragonBound.Presentation
             {
                 recruitButton.onClick.RemoveListener(Recruit);
             }
-
-            if (workshopButton != null)
-            {
-                workshopButton.onClick.RemoveListener(OpenWorkshop);
-            }
-            if (runeLoadoutButton != null)
-            {
-                runeLoadoutButton.onClick.RemoveListener(OpenRuneLoadout);
-            }
-        }
-
-        private void OpenWorkshop()
-        {
-            WorkshopRequested?.Invoke();
-        }
-
-        private void OpenRuneLoadout()
-        {
-            RuneLoadoutRequested?.Invoke();
         }
 
         private void Recruit()
@@ -96,7 +55,6 @@ namespace DragonBound.Presentation
             var attempt = recruitment.TryRecruit();
             if (attempt.Status == RecruitmentStatus.InsufficientResources)
             {
-                statusLabel.text = "Not enough resources";
                 return;
             }
 
@@ -112,9 +70,6 @@ namespace DragonBound.Presentation
                     card.Kind == RecruitItemKind.BasicUnit);
             }
 
-            statusLabel.text = attempt.RefreshedBench
-                ? $"Refreshed {attempt.RefreshedUnitIds.Count} units"
-                : string.Empty;
             RefreshButton();
         }
 

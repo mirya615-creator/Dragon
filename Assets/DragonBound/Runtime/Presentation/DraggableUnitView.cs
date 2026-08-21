@@ -16,6 +16,8 @@ namespace DragonBound.Presentation
 
         [SerializeField] private Image artImage;
         [SerializeField] private Text label;
+        [SerializeField] private Graphic alternateLabel;
+        [SerializeField] private Graphic levelLabel;
         [SerializeField] private CanvasGroup canvasGroup;
         [Header("Optional authored hero presentation")]
         [SerializeField] private Image rarityBorder;
@@ -29,6 +31,7 @@ namespace DragonBound.Presentation
         private bool dragging;
         private bool pairedPresentation;
         private Color authoredArtColor = Color.white;
+        private bool hasAuthoredArtColor;
         private readonly FixedSlotDragGesture gesture = new FixedSlotDragGesture();
 
         public RectTransform RectTransform => (RectTransform)transform;
@@ -44,7 +47,24 @@ namespace DragonBound.Presentation
         {
             artImage = art;
             label = valueLabel;
+            alternateLabel = null;
+            levelLabel = null;
             canvasGroup = group;
+            CaptureAuthoredArtColor();
+        }
+
+        public void ConfigureBeach(
+            Image art,
+            Graphic nameValueLabel,
+            Graphic levelValueLabel,
+            CanvasGroup group)
+        {
+            artImage = art;
+            label = null;
+            alternateLabel = nameValueLabel;
+            levelLabel = levelValueLabel;
+            canvasGroup = group;
+            CaptureAuthoredArtColor();
         }
 
         public void ConfigureHeroPresentation(
@@ -63,7 +83,7 @@ namespace DragonBound.Presentation
         {
             boardView = value;
             unitId = id;
-            authoredArtColor = artImage != null ? artImage.color : Color.white;
+            CaptureAuthoredArtColor();
             SetLabel("U");
             SetHeroDetailsVisible(false);
         }
@@ -95,15 +115,14 @@ namespace DragonBound.Presentation
 
         public void SetLabel(string value)
         {
-            if (label != null)
-            {
-                label.text = value;
-            }
+            SetGraphicText(label, value);
+            SetGraphicText(alternateLabel, value);
         }
 
         public void SetStandardPresentation()
         {
             SetHeroDetailsVisible(false);
+            SetGraphicText(levelLabel, string.Empty);
             if (artImage != null)
             {
                 artImage.color = authoredArtColor;
@@ -113,6 +132,7 @@ namespace DragonBound.Presentation
         // Reuses the authored level corner so basic cards keep a short, readable main label.
         public void SetBasicLevel(int level)
         {
+            SetGraphicText(levelLabel, level.ToString());
             if (heroLevelLabel == null)
             {
                 return;
@@ -202,6 +222,37 @@ namespace DragonBound.Presentation
             if (heroExperienceFill != null)
             {
                 heroExperienceFill.gameObject.SetActive(visible);
+            }
+        }
+
+        private void CaptureAuthoredArtColor()
+        {
+            if (hasAuthoredArtColor)
+            {
+                return;
+            }
+
+            authoredArtColor = artImage != null ? artImage.color : Color.white;
+            hasAuthoredArtColor = true;
+        }
+
+        private static void SetGraphicText(Graphic graphic, string value)
+        {
+            if (graphic == null)
+            {
+                return;
+            }
+
+            if (graphic is Text legacyText)
+            {
+                legacyText.text = value;
+                return;
+            }
+
+            var textProperty = graphic.GetType().GetProperty("text");
+            if (textProperty != null && textProperty.CanWrite)
+            {
+                textProperty.SetValue(graphic, value, null);
             }
         }
 

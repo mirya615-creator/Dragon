@@ -106,7 +106,8 @@ namespace DragonBound.Core
                 case MatchState.BossPrompt:
                     return next == MatchState.Running || next == MatchState.Paused;
                 case MatchState.Paused:
-                    return next == MatchState.Preparing || next == MatchState.Running || next == MatchState.BossPrompt;
+                    return next == MatchState.Ready || next == MatchState.Preparing ||
+                           next == MatchState.Running || next == MatchState.BossPrompt;
                 default:
                     return false;
             }
