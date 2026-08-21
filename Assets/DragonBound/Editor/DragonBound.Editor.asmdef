@@ -2,8 +2,17 @@
   "name": "DragonBound.Editor",
   "rootNamespace": "DragonBound.Editor",
   "references": [
+    "DragonBound.Foundation.Contracts",
+    "DragonBound.Board.Contracts",
+    "DragonBound.Enemies.Contracts",
+    "DragonBound.Combat.Contracts",
+    "DragonBound.Heroes.Contracts",
+    "DragonBound.Items.Runtime",
+    "DragonBound.Runes.Runtime",
     "DragonBound.Runtime",
-    "Unity.UGUI"
+    "DragonBound.HandoffUi",
+    "Unity.UGUI",
+    "Unity.TextMeshPro"
   ],
   "includePlatforms": [
     "Editor"

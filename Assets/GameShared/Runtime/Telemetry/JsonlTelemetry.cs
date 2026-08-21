@@ -13,7 +13,7 @@ namespace GameShared.Telemetry
         void Flush();
     }
 
-    public sealed class JsonlTelemetry : ITelemetry, IDisposable
+    public sealed class JsonlTelemetry : ITelemetry, IAnalyticsSink, IDisposable
     {
         private readonly string filePath;
         private StreamWriter writer;
@@ -48,12 +48,31 @@ namespace GameShared.Telemetry
                     payloadJson = payloadJson ?? string.Empty
                 };
 
-                EnsureWriter();
-                writer.WriteLine(JsonUtility.ToJson(envelope, false));
+                WriteLine(JsonUtility.ToJson(envelope, false));
             }
             catch (Exception)
             {
                 WriteErrorCount++;
+            }
+        }
+
+        /// <summary>Writes the V1 analytics event as one top-level JSONL object.</summary>
+        public bool Record(AnalyticsEvent value)
+        {
+            try
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                WriteLine(JsonUtility.ToJson(value, false));
+                return true;
+            }
+            catch (Exception)
+            {
+                WriteErrorCount++;
+                return false;
             }
         }
 
@@ -90,6 +109,12 @@ namespace GameShared.Telemetry
 
             Directory.CreateDirectory(directory);
             writer = new StreamWriter(filePath, true, new UTF8Encoding(false));
+        }
+
+        private void WriteLine(string json)
+        {
+            EnsureWriter();
+            writer.WriteLine(json);
         }
 
         [Serializable]

@@ -2,34 +2,20 @@ using System;
 
 namespace DragonBound.Core
 {
-    public enum MatchState
-    {
-        Boot,
-        Initializing,
-        Ready,
-        Preparing,
-        Running,
-        BossPrompt,
-        Paused,
-        Victory,
-        Defeat
-    }
-
-    public enum TeamSide
-    {
-        Player,
-        AI
-    }
-
     public sealed class MatchController
     {
         public const int StartingResources = 20;
 
-        public MatchController(int runSeed = 0)
+        public MatchController(int runSeed = 0, int hatchlingMaxHealth = 3)
         {
+            if (hatchlingMaxHealth <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(hatchlingMaxHealth));
+            }
+
             RunSeed = runSeed;
-            Player = new TeamState(TeamSide.Player);
-            AI = new TeamState(TeamSide.AI);
+            Player = new TeamState(TeamSide.Player, hatchlingMaxHealth);
+            AI = new TeamState(TeamSide.AI, hatchlingMaxHealth);
             Player.AddResources(StartingResources);
             AI.AddResources(StartingResources);
             State = MatchState.Initializing;

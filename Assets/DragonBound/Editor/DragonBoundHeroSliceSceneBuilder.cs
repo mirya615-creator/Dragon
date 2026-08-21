@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using DragonBound.Bootstrap;
-using DragonBound.Core;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -9,8 +9,8 @@ namespace DragonBound.Editor
 {
     public static class DragonBoundHeroSliceSceneBuilder
     {
-        public const string BasicScenePath = DragonBoundScenePaths.GreyboxAssetPath;
-        public const string HeroScenePath = DragonBoundScenePaths.HeroSliceAssetPath;
+        public const string BasicScenePath = "Assets/DragonBound/Scenes/Greybox_Main.unity";
+        public const string HeroScenePath = "Assets/DragonBound/Scenes/HeroSlice_Main.unity";
 
         [MenuItem("DragonBound/Hero Slice/Create or Update Scene")]
         public static void Build()
@@ -46,7 +46,12 @@ namespace DragonBound.Editor
                 throw new InvalidOperationException($"Unable to save {HeroScenePath}.");
             }
 
-            DragonBoundBuildSettings.UpsertEnabledScenes(BasicScenePath, HeroScenePath);
+            var scenes = new List<EditorBuildSettingsScene>
+            {
+                new EditorBuildSettingsScene(BasicScenePath, true),
+                new EditorBuildSettingsScene(HeroScenePath, true)
+            };
+            EditorBuildSettings.scenes = scenes.ToArray();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("HeroSlice_Main created with EnableHeroComponents=true and HeroSliceMode=true.");

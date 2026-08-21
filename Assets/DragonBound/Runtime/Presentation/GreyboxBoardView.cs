@@ -41,9 +41,11 @@ namespace DragonBound.Presentation
         private BoardGrid board;
         private BoardRecruitDestination unitDestination;
         private RecruitmentService recruitment;
+        private ShovelUnlockService shovelUnlockService;
         private DragPlacementController drag;
         private FixedBoardCanvasView fixedBoardCanvas;
         private string selectedUnitId;
+        private string activeShovelDragId;
 
         public Canvas Canvas => canvas;
         public BoardGrid Board => board;
@@ -122,19 +124,25 @@ namespace DragonBound.Presentation
         public void ConfigureFixedBoardCanvas(FixedBoardCanvasView canvasView)
         {
             fixedBoardCanvas = canvasView ?? throw new ArgumentNullException(nameof(canvasView));
-            if (unitLayer != null && fixedBoardCanvas.UnitLayer != null)
+            if (unitLayer != null && fixedBoardCanvas.UnitLayer != null &&
+                unitLayer.parent != fixedBoardCanvas.UnitLayer)
             {
                 unitLayer.SetParent(fixedBoardCanvas.UnitLayer, false);
             }
 
-            if (rangePreview != null && fixedBoardCanvas.CombatFxLayer != null)
+            if (rangePreview != null && fixedBoardCanvas.CombatFxLayer != null &&
+                rangePreview.rectTransform.parent != fixedBoardCanvas.CombatFxLayer)
             {
                 rangePreview.rectTransform.SetParent(fixedBoardCanvas.CombatFxLayer, false);
                 rangePreview.rectTransform.SetAsFirstSibling();
                 rangePreview.raycastTarget = false;
             }
 
-            if (dragArrowPreview != null && fixedBoardCanvas.OverlayLayer != null)
+            fixedBoardCanvas.BackgroundClicked -= HandleBackgroundClicked;
+            fixedBoardCanvas.BackgroundClicked += HandleBackgroundClicked;
+
+            if (dragArrowPreview != null && fixedBoardCanvas.OverlayLayer != null &&
+                dragArrowPreview.transform.parent != fixedBoardCanvas.OverlayLayer)
             {
                 dragArrowPreview.transform.SetParent(fixedBoardCanvas.OverlayLayer, false);
             }
@@ -146,6 +154,20 @@ namespace DragonBound.Presentation
             if (board != null)
             {
                 RefreshUnits();
+            }
+        }
+
+        public void BindShovelUnlockService(ShovelUnlockService service)
+        {
+            if (shovelUnlockService != null)
+            {
+                shovelUnlockService.StateChanged -= HandleShovelStateChanged;
+            }
+
+            shovelUnlockService = service;
+            if (shovelUnlockService != null)
+            {
+                shovelUnlockService.StateChanged += HandleShovelStateChanged;
             }
         }
 
@@ -184,6 +206,8 @@ namespace DragonBound.Presentation
                 }
 
                 cells.Add(cellView.Position, cellView);
+                cellView.Clicked -= HandleCellClicked;
+                cellView.Clicked += HandleCellClicked;
             }
 
             RefreshCellStates();
@@ -208,6 +232,21 @@ namespace DragonBound.Presentation
                 unitDestination.HeroPairUnlinked -= HandleHeroPairUnlinked;
             }
 
+            if (shovelUnlockService != null)
+            {
+                shovelUnlockService.StateChanged -= HandleShovelStateChanged;
+            }
+
+            foreach (var cellView in cells.Values)
+            {
+                cellView.Clicked -= HandleCellClicked;
+            }
+
+            if (fixedBoardCanvas != null)
+            {
+                fixedBoardCanvas.BackgroundClicked -= HandleBackgroundClicked;
+            }
+
             if (board != null)
             {
                 board.Changed -= HandleBoardChanged;
@@ -217,6 +256,7 @@ namespace DragonBound.Presentation
         private void OnDisable()
         {
             CancelActiveDrag(false);
+            CancelShovelSelection();
         }
 
         private void OnApplicationFocus(bool hasFocus)
@@ -224,6 +264,7 @@ namespace DragonBound.Presentation
             if (!hasFocus)
             {
                 CancelActiveDrag();
+                CancelShovelSelection();
             }
         }
 
@@ -321,6 +362,20 @@ namespace DragonBound.Presentation
 
         public bool BeginDrag(string unitId)
         {
+            if (allowInteraction &&
+                unitDestination != null &&
+                unitDestination.TryGetCard(unitId, out var card) &&
+                card.Kind == RecruitItemKind.Shovel &&
+                shovelUnlockService != null &&
+                shovelUnlockService.BeginSelection(unitId))
+            {
+                activeShovelDragId = unitId;
+                HideDragArrow();
+                HideRangePreview();
+                RefreshHighlights();
+                return true;
+            }
+
             if (!allowInteraction || drag == null || !drag.BeginDrag(unitId))
             {
                 return false;
@@ -340,6 +395,11 @@ namespace DragonBound.Presentation
 
         public void UpdateDraggedUnit(string unitId, Vector2 screenPosition)
         {
+            if (string.Equals(activeShovelDragId, unitId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
             if (dragArrowPreview == null ||
                 drag == null ||
                 !drag.IsDragging ||
@@ -363,6 +423,26 @@ namespace DragonBound.Presentation
 
         public void CompleteDrag(string unitId, Vector2 screenPosition)
         {
+            if (string.Equals(activeShovelDragId, unitId, StringComparison.Ordinal))
+            {
+                activeShovelDragId = null;
+                if (TryGetPositionAt(screenPosition, out var shovelTarget) &&
+                    shovelUnlockService != null &&
+                    shovelUnlockService.TryUnlockCell(shovelTarget))
+                {
+                    RefreshUnits();
+                }
+                else
+                {
+                    shovelUnlockService?.CancelSelection();
+                }
+
+                HideDragArrow();
+                RefreshHighlights();
+                HideRangePreview();
+                return;
+            }
+
             if (drag == null || !drag.IsDragging)
             {
                 HideDragArrow();
@@ -404,6 +484,27 @@ namespace DragonBound.Presentation
 
         public void SelectUnit(string unitId)
         {
+            if (unitDestination != null &&
+                unitDestination.TryGetCard(unitId, out var card) &&
+                card.Kind == RecruitItemKind.Shovel)
+            {
+                if (shovelUnlockService != null)
+                {
+                    if (shovelUnlockService.IsSelecting &&
+                        string.Equals(shovelUnlockService.SelectedBenchShovelRuntimeId, unitId, StringComparison.Ordinal))
+                    {
+                        shovelUnlockService.CancelSelection();
+                    }
+                    else
+                    {
+                        shovelUnlockService.BeginSelection(unitId);
+                    }
+                }
+
+                HideRangePreview();
+                return;
+            }
+
             if (TrySelectPairRange(unitId))
             {
                 return;
@@ -498,6 +599,39 @@ namespace DragonBound.Presentation
             unitLabels[card.RuntimeId] = HeroSliceCardPresentation.GetLabel(card, recruitment);
             unitRangeCells[card.RuntimeId] = 0f;
             unitShowsRange[card.RuntimeId] = false;
+        }
+
+        public void CancelShovelSelection()
+        {
+            shovelUnlockService?.CancelSelection();
+        }
+
+        private void HandleCellClicked(GridPosition position)
+        {
+            // Any board-cell tap is an explicit selection change. This also lets an empty
+            // deployment or road cell dismiss a previously selected unit's range preview.
+            HideRangePreview();
+            if (allowInteraction && shovelUnlockService != null && shovelUnlockService.TryUnlockCell(position))
+            {
+                RefreshUnits();
+            }
+        }
+
+        private void HandleBackgroundClicked()
+        {
+            HideRangePreview();
+            if (shovelUnlockService != null && shovelUnlockService.IsSelecting)
+            {
+                shovelUnlockService.CancelSelection();
+            }
+        }
+
+        private void HandleShovelStateChanged()
+        {
+            if (board != null)
+            {
+                RefreshUnits();
+            }
         }
 
         private void LateUpdate()
@@ -891,6 +1025,12 @@ namespace DragonBound.Presentation
 
         private void CancelActiveDrag(bool refreshView)
         {
+            if (!string.IsNullOrEmpty(activeShovelDragId))
+            {
+                activeShovelDragId = null;
+                shovelUnlockService?.CancelSelection();
+            }
+
             if (drag != null && drag.IsDragging)
             {
                 drag.Cancel();

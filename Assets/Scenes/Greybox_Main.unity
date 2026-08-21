@@ -122,66 +122,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &173926642 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6069892714392540846, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-  m_PrefabInstance: {fileID: 391042246}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &173926644 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2003564820155504463, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-  m_PrefabInstance: {fileID: 391042246}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 173926642}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &173926646
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 173926642}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Navigation:
-    m_Mode: 3
-    m_WrapAround: 0
-    m_SelectOnUp: {fileID: 0}
-    m_SelectOnDown: {fileID: 0}
-    m_SelectOnLeft: {fileID: 0}
-    m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
-  m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
-    m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
-  m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
-  m_AnimationTriggers:
-    m_NormalTrigger: Normal
-    m_HighlightedTrigger: Highlighted
-    m_PressedTrigger: Pressed
-    m_SelectedTrigger: Selected
-    m_DisabledTrigger: Disabled
-  m_Interactable: 1
-  m_TargetGraphic: {fileID: 173926644}
-  m_OnClick:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1001 &391042246
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -190,26 +130,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1121593926}
     m_Modifications:
-    - target: {fileID: 264724818718431513, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 565225779175117113, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1161403483888239165, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: workshopButton
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 1245832859356555565, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
       propertyPath: canvas
       value: 
       objectReference: {fileID: 722418981}
-    - target: {fileID: 1949753721896258298, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 866
-      objectReference: {fileID: 0}
     - target: {fileID: 2635892112790841235, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
       propertyPath: m_Name
       value: DragonBoundPortraitScreen
@@ -218,49 +142,9 @@ PrefabInstance:
       propertyPath: canvas
       value: 
       objectReference: {fileID: 722418981}
-    - target: {fileID: 3198519910038918543, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3589178332753184043, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4525806327236837453, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5766220349918043089, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5766220349918043089, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5766220349918043089, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5766220349918043089, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5766220349918043089, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 160
-      objectReference: {fileID: 0}
-    - target: {fileID: 5766220349918043089, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 125
-      objectReference: {fileID: 0}
-    - target: {fileID: 5766220349918043089, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
+    - target: {fileID: 5309903879757972874, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 262.656
-      objectReference: {fileID: 0}
-    - target: {fileID: 5766220349918043089, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -66.5
+      value: -3
       objectReference: {fileID: 0}
     - target: {fileID: 7505910280976903596, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
       propertyPath: m_Pivot.x
@@ -342,40 +226,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7536031172415284413, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_IsActive
+    - target: {fileID: 8367612901343158633, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
+      propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7796645178779394126, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 583
-      objectReference: {fileID: 0}
-    - target: {fileID: 8894392880018688149, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_Color.a
-      value: 0.5686275
-      objectReference: {fileID: 0}
-    - target: {fileID: 8894392880018688149, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_Color.b
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8894392880018688149, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_Color.g
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8894392880018688149, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      propertyPath: m_Color.r
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 4788670585837048108, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-    - {fileID: 3858064696111975571, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-    - {fileID: 6196922602015620105, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6069892714392540846, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 173926646}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 37aa77fde878b0f498537eb7c67d1b1d, type: 3}
 --- !u!224 &391042247 stripped
 RectTransform:
@@ -551,8 +409,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   runSeed: 20260801
   battlefieldLayoutId: Fixed8x10_ReferenceMap01
-  enableHeroComponents: 0
+  enableHeroComponents: 1
   heroSliceMode: 0
+  useTwentyWavePressureRuntime: 1
+  enablePressureRunDiagnostics: 0
+  enableAiSurvivalController: 1
+  recruitComponentPolicy: 1
   heroSliceStartingResources: 500
   screenView: {fileID: 391042248}
 --- !u!4 &649599055

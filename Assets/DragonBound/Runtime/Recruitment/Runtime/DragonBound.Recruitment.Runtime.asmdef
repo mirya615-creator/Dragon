@@ -1,0 +1,16 @@
+{
+  "name": "DragonBound.Recruitment.Runtime",
+  "rootNamespace": "DragonBound.Recruitment",
+  "references": [
+    "GameShared.Runtime"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

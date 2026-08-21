@@ -1,0 +1,16 @@
+{
+  "name": "DragonBound.Runes.Contracts",
+  "rootNamespace": "DragonBound.Runes.Contracts",
+  "references": [
+    "DragonBound.Foundation.Contracts"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

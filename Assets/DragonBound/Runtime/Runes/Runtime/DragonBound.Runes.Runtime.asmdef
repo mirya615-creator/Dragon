@@ -1,0 +1,18 @@
+{
+  "name": "DragonBound.Runes.Runtime",
+  "rootNamespace": "DragonBound.Runes",
+  "references": [
+    "GameShared.Runtime",
+    "DragonBound.Foundation.Contracts",
+    "DragonBound.Combat.Contracts"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

@@ -1,6 +1,7 @@
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Recruitment;
+using DragonBound.Runes;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,7 +15,11 @@ namespace DragonBound.Presentation
         [SerializeField] private GreyboxHudView hudView;
         [SerializeField] private GreyboxRecruitmentPanel recruitmentView;
         [SerializeField] private HeroWorkshopView heroWorkshopView;
+        [SerializeField] private RuneLoadoutView runeLoadoutView;
+        [SerializeField] private ItemLoadoutView itemLoadoutView;
         [SerializeField] private FixedBoardCanvasView fixedBoardCanvas;
+        [SerializeField] private BoardBackgroundClickReceiver rangeDismissSurface;
+        [SerializeField] private Button itemEntryButton;
 
         public GreyboxBoardView BoardView => PlayerBoardView;
         public GreyboxBoardView PlayerBoardView => playerBattlefieldView != null ? playerBattlefieldView.BoardView : null;
@@ -24,6 +29,9 @@ namespace DragonBound.Presentation
         public GreyboxHudView HudView => hudView;
         public GreyboxRecruitmentPanel RecruitmentView => recruitmentView;
         public HeroWorkshopView HeroWorkshopView => heroWorkshopView;
+        public RuneLoadoutView RuneLoadoutView => runeLoadoutView;
+        public ItemLoadoutView ItemLoadoutView => itemLoadoutView;
+        public bool IsRuneLoadoutOpen => runeLoadoutView != null && runeLoadoutView.IsOpen;
         public FixedBoardCanvasView FixedBoardCanvas => fixedBoardCanvas;
 
         public void Configure(
@@ -31,18 +39,30 @@ namespace DragonBound.Presentation
             GreyboxBattlefieldSideView playerBattlefield,
             GreyboxHudView hud,
             GreyboxRecruitmentPanel recruitment,
-            HeroWorkshopView workshop = null)
+            HeroWorkshopView workshop = null,
+            RuneLoadoutView runeLoadout = null)
         {
             aiBattlefieldView = aiBattlefield;
             playerBattlefieldView = playerBattlefield;
             hudView = hud;
             recruitmentView = recruitment;
             heroWorkshopView = workshop;
+            runeLoadoutView = runeLoadout;
         }
 
-        public void ConfigureAuthoredFixedBoard(FixedBoardCanvasView canvas)
+        public void ConfigureItemLoadout(ItemLoadoutView itemLoadout)
+        {
+            itemLoadoutView = itemLoadout;
+        }
+
+        public void ConfigureAuthoredUi(
+            FixedBoardCanvasView canvas,
+            BoardBackgroundClickReceiver dismissSurface,
+            Button itemButton)
         {
             fixedBoardCanvas = canvas;
+            rangeDismissSurface = dismissSurface;
+            itemEntryButton = itemButton;
         }
 
         public void Initialize(
@@ -52,7 +72,10 @@ namespace DragonBound.Presentation
             RecruitmentService recruitment,
             RecruitmentService aiRecruitment,
             BoardRecruitDestination playerRecruitDestination,
-            BoardRecruitDestination aiRecruitDestination)
+            BoardRecruitDestination aiRecruitDestination,
+            RuneLoadoutService runeLoadoutService = null,
+            System.Func<bool> canEditRuneLoadout = null,
+            DragonBound.Items.DevelopmentItemRunSnapshotProvider itemSnapshotProvider = null)
         {
             if (aiBattlefieldView == null ||
                 playerBattlefieldView == null ||
@@ -66,6 +89,7 @@ namespace DragonBound.Presentation
             }
 
             ConfigureFixedBoardCanvas(playerBoard, aiBoard);
+            BindRangeDismissSurface();
 
             aiBattlefieldView.Initialize(match, match.AI, aiBoard, aiRecruitDestination);
             playerBattlefieldView.Initialize(match, match.Player, playerBoard, playerRecruitDestination);
@@ -78,16 +102,30 @@ namespace DragonBound.Presentation
                 aiRecruitment,
                 playerRecruitDestination,
                 aiRecruitDestination);
-            recruitmentView.SetWorkshopButton(ResolveBenchWorkshopButton());
             recruitmentView.Initialize(match.Player, recruitment, PlayerBoardView);
             if (heroWorkshopView != null)
             {
                 heroWorkshopView.Initialize(recruitment, playerRecruitDestination);
                 recruitmentView.WorkshopRequested += OpenHeroWorkshop;
             }
+            if (runeLoadoutView != null && runeLoadoutService != null)
+            {
+                runeLoadoutView.Initialize(runeLoadoutService, canEditRuneLoadout);
+                recruitmentView.RuneLoadoutRequested += OpenRuneLoadout;
+            }
+            if (itemLoadoutView != null && itemSnapshotProvider != null)
+            {
+                itemLoadoutView.Initialize(itemSnapshotProvider, () => match != null && match.State == MatchState.Ready);
+                BindItemEntryButton();
+            }
+            else if (itemSnapshotProvider != null)
+            {
+                throw new System.InvalidOperationException(
+                    "The authored Item loadout view is missing from DragonBoundPortraitScreen.");
+            }
         }
 
-        public void BindWaveRuntime(ThreeWaveSliceRuntime runtime)
+        public void BindWaveRuntime(IWaveRuntime runtime)
         {
             if (runtime == null)
             {
@@ -103,10 +141,55 @@ namespace DragonBound.Presentation
 
         private void OnDestroy()
         {
+            if (rangeDismissSurface != null)
+            {
+                rangeDismissSurface.Clicked -= HandleRangeDismissClick;
+            }
+            if (itemEntryButton != null)
+            {
+                itemEntryButton.onClick.RemoveListener(OpenItemLoadout);
+            }
+
             if (recruitmentView != null)
             {
                 recruitmentView.WorkshopRequested -= OpenHeroWorkshop;
+                recruitmentView.RuneLoadoutRequested -= OpenRuneLoadout;
             }
+        }
+
+        private void BindItemEntryButton()
+        {
+            if (itemEntryButton == null)
+            {
+                throw new System.InvalidOperationException(
+                    "The authored ItemEntryButton is missing from DragonBoundPortraitScreen.");
+            }
+
+            itemEntryButton.onClick.RemoveListener(OpenItemLoadout);
+            itemEntryButton.onClick.AddListener(OpenItemLoadout);
+        }
+
+        private void OpenItemLoadout()
+        {
+            itemLoadoutView?.Open();
+        }
+
+        private void BindRangeDismissSurface()
+        {
+            if (rangeDismissSurface == null)
+            {
+                throw new System.InvalidOperationException(
+                    "The authored RangeDismissSurface is missing from DragonBoundPortraitScreen.");
+            }
+
+            rangeDismissSurface.Clicked -= HandleRangeDismissClick;
+            rangeDismissSurface.Clicked += HandleRangeDismissClick;
+        }
+
+        private void HandleRangeDismissClick()
+        {
+            PlayerBoardView?.HideRangePreview();
+            AiBoardView?.HideRangePreview();
         }
 
         private void OpenHeroWorkshop()
@@ -114,39 +197,9 @@ namespace DragonBound.Presentation
             heroWorkshopView?.Open();
         }
 
-        private Button ResolveBenchWorkshopButton()
+        private void OpenRuneLoadout()
         {
-            var badge = FindDescendant(transform, "ART_BenchBadge");
-            if (badge == null)
-            {
-                throw new System.InvalidOperationException(
-                    "The editable screen prefab is missing ART_BenchBadge.");
-            }
-
-            var image = badge.GetComponent<Image>();
-            if (image != null)
-            {
-                image.raycastTarget = true;
-            }
-
-            var button = badge.GetComponent<Button>();
-            if (button == null)
-            {
-                button = badge.gameObject.AddComponent<Button>();
-                button.targetGraphic = image;
-            }
-            return button;
-        }
-
-        private static Transform FindDescendant(Transform root, string objectName)
-        {
-            foreach (Transform child in root)
-            {
-                if (child.name == objectName) return child;
-                var nested = FindDescendant(child, objectName);
-                if (nested != null) return nested;
-            }
-            return null;
+            runeLoadoutView?.Open();
         }
 
         private void ConfigureFixedBoardCanvas(BoardGrid playerBoard, BoardGrid aiBoard)
@@ -163,21 +216,13 @@ namespace DragonBound.Presentation
 
             if (fixedBoardCanvas == null)
             {
-                fixedBoardCanvas = transform.Find("ART_FixedBoardCanvas")
-                    ?.GetComponent<FixedBoardCanvasView>();
-            }
-
-            if (fixedBoardCanvas == null)
-            {
                 throw new System.InvalidOperationException(
-                    "The editable screen prefab is missing ART_FixedBoardCanvas. " +
-                    "Run DragonBound/UI/Bake Editable Fixed Board before entering Play mode.");
+                    "The authored fixed board is missing from DragonBoundPortraitScreen.");
             }
 
-            fixedBoardCanvas.BindAuthoredLayout(fixedLayout);
+            fixedBoardCanvas.BindAuthored((RectTransform)transform, fixedLayout);
             aiBattlefieldView.ConfigureFixedBoardCanvas(fixedBoardCanvas);
             playerBattlefieldView.ConfigureFixedBoardCanvas(fixedBoardCanvas);
-            hudView?.SetDebugOverlayVisible(false);
         }
     }
 }

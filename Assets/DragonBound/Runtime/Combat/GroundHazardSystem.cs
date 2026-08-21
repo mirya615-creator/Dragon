@@ -175,12 +175,14 @@ namespace DragonBound.Combat
                             continue;
                         }
 
-                        target.HitPoints = Math.Max(0f, target.HitPoints - hazard.Definition.DamagePerTick);
+                        var application = target.ApplyDamage(hazard.Definition.DamagePerTick);
                         results.Add(new HeroDamageResult(
                             kind,
                             target,
                             hazard.Definition.DamagePerTick,
-                            target.HitPoints <= 0.0001f));
+                            target.HitPoints <= 0.0001f,
+                            shieldDamage: application.ShieldDamage,
+                            healthDamage: application.HealthDamage));
                     }
                 }
 

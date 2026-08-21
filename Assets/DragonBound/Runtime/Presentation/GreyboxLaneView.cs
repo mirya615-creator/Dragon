@@ -209,6 +209,34 @@ namespace DragonBound.Presentation
                 throw new InvalidOperationException("The authored lane needs an ART_Path template.");
             }
 
+            if (fixedBoardCanvas.IsAuthoredLayout)
+            {
+                fixedBoardCanvas.BindLaneArt(layout, layoutSide, authoredRoadTemplate);
+                var authoredLane = layout.GetLane(layoutSide);
+                if (waypoints == null || waypoints.Length != authoredLane.NodeNames.Count)
+                {
+                    throw new InvalidOperationException(
+                        $"Authored lane waypoint count does not match {layoutSide}: " +
+                        $"{waypoints?.Length ?? 0}/{authoredLane.NodeNames.Count}");
+                }
+
+                var authoredRoute = new RectTransform[waypoints.Length];
+                for (var index = 0; index < authoredRoute.Length; index++)
+                {
+                    authoredRoute[index] = waypoints[index];
+                    if (authoredRoute[index] == null ||
+                        authoredRoute[index].parent != fixedBoardCanvas.LaneLayer ||
+                        !string.Equals(authoredRoute[index].name, authoredLane.NodeNames[index], StringComparison.Ordinal))
+                    {
+                        throw new InvalidOperationException(
+                            $"Authored lane waypoint is missing: {authoredLane.NodeNames[index]}");
+                    }
+                }
+
+                Configure(enemyMarker, authoredRoute, travelSeconds, false);
+                return;
+            }
+
             HideLegacyRoadArt();
             fixedBoardCanvas.BindLaneArt(layout, layoutSide, authoredRoadTemplate);
             var positions = layoutSide == TeamSide.Player

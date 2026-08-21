@@ -140,6 +140,7 @@ namespace DragonBound.Recruitment
         public int RemainingHeroComponents => deck.RemainingHeroComponents;
         public int DrawnHeroComponents => deck.DrawnHeroComponents;
         public int DiscardedHeroComponents => deck.DiscardedHeroComponents;
+        public int ShovelPityTriggerCount => deck.ShovelState?.GuaranteedShovelCount ?? 0;
         public bool EnableHeroComponents => deck.EnableHeroComponents;
         public bool HeroSliceMode => deck.HeroSliceMode;
         public bool CanAffordNext => team.Resources >= NextCost;

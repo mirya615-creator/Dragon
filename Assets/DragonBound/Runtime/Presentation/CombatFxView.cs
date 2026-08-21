@@ -37,7 +37,7 @@ namespace DragonBound.Presentation
         private readonly List<ActiveFx> active = new List<ActiveFx>();
         private GreyboxLaneView lane;
         private GreyboxBoardView board;
-        private ThreeWaveSliceRuntime runtime;
+        private IWaveRuntime runtime;
         private TeamSide side;
         private FixedBoardCanvasView fixedBoardCanvas;
 
@@ -121,7 +121,7 @@ namespace DragonBound.Presentation
             MoveTemplateToLayer(suppliesGainTemplate, canvasView.CombatFxLayer);
         }
 
-        public void Bind(ThreeWaveSliceRuntime value)
+        public void Bind(IWaveRuntime value)
         {
             if (runtime != null)
             {
@@ -373,7 +373,7 @@ namespace DragonBound.Presentation
 
         private static void MoveTemplateToLayer(Graphic template, RectTransform layer)
         {
-            if (template != null && layer != null)
+            if (template != null && layer != null && template.transform.parent != layer)
             {
                 template.transform.SetParent(layer, false);
             }

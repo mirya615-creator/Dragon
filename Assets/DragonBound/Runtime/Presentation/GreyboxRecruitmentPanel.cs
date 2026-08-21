@@ -13,6 +13,7 @@ namespace DragonBound.Presentation
         [SerializeField] private Text recruitButtonLabel;
         [SerializeField] private Text statusLabel;
         [SerializeField] private Button workshopButton;
+        [SerializeField] private Button runeLoadoutButton;
 
         private TeamState team;
         private RecruitmentService recruitment;
@@ -22,24 +23,22 @@ namespace DragonBound.Presentation
         public Button RecruitButton => recruitButton;
         public Text RecruitButtonLabel => recruitButtonLabel;
         public Text StatusLabel => statusLabel;
+        public Button RuneLoadoutButton => runeLoadoutButton;
         public event System.Action WorkshopRequested;
+        public event System.Action RuneLoadoutRequested;
 
-        public void SetWorkshopButton(Button button)
-        {
-            if (workshopButton != null)
-            {
-                workshopButton.onClick.RemoveListener(OpenWorkshop);
-            }
-
-            workshopButton = button;
-        }
-
-        public void Configure(Button button, Text buttonLabel, Text status, Button workshop = null)
+        public void Configure(
+            Button button,
+            Text buttonLabel,
+            Text status,
+            Button workshop = null,
+            Button runeLoadout = null)
         {
             recruitButton = button;
             recruitButtonLabel = buttonLabel;
             statusLabel = status;
             workshopButton = workshop;
+            runeLoadoutButton = runeLoadout;
         }
 
         public void Initialize(TeamState value, RecruitmentService service, GreyboxBoardView view)
@@ -51,6 +50,10 @@ namespace DragonBound.Presentation
             if (workshopButton != null)
             {
                 workshopButton.onClick.AddListener(OpenWorkshop);
+            }
+            if (runeLoadoutButton != null)
+            {
+                runeLoadoutButton.onClick.AddListener(OpenRuneLoadout);
             }
             statusLabel.text = string.Empty;
             RefreshButton();
@@ -72,11 +75,20 @@ namespace DragonBound.Presentation
             {
                 workshopButton.onClick.RemoveListener(OpenWorkshop);
             }
+            if (runeLoadoutButton != null)
+            {
+                runeLoadoutButton.onClick.RemoveListener(OpenRuneLoadout);
+            }
         }
 
         private void OpenWorkshop()
         {
             WorkshopRequested?.Invoke();
+        }
+
+        private void OpenRuneLoadout()
+        {
+            RuneLoadoutRequested?.Invoke();
         }
 
         private void Recruit()

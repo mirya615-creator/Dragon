@@ -49,6 +49,12 @@ namespace DragonBound.Grid
         void OnDragCompleted(DragCompletion completion);
     }
 
+    /// <summary>Lets the board-owned card model reject non-unit results before drag state begins.</summary>
+    public interface IBoardDragEligibility
+    {
+        bool CanBeginDrag(string unitId);
+    }
+
     public readonly struct DragCompletion
     {
         public DragCompletion(long sequence, string unitId, GridPosition origin, GridPosition finalPosition, DragDropStatus status)
@@ -72,6 +78,7 @@ namespace DragonBound.Grid
         private readonly BoardGrid board;
         private readonly IBoardUnitDropResolver occupiedDropResolver;
         private readonly IBoardDragLifecycle dragLifecycle;
+        private readonly IBoardDragEligibility dragEligibility;
         private static readonly IReadOnlyList<GridPosition> noHighlightedPositions =
             new List<GridPosition>().AsReadOnly();
         private string activeUnitId;
@@ -86,6 +93,7 @@ namespace DragonBound.Grid
             this.board = board ?? throw new ArgumentNullException(nameof(board));
             occupiedDropResolver = resolver;
             dragLifecycle = resolver as IBoardDragLifecycle;
+            dragEligibility = resolver as IBoardDragEligibility;
             AllowBattleReposition = allowBattleReposition;
         }
 
@@ -98,6 +106,7 @@ namespace DragonBound.Grid
         public bool BeginDrag(string unitId)
         {
             if (IsDragging ||
+                (dragEligibility != null && !dragEligibility.CanBeginDrag(unitId)) ||
                 !board.TryGetPosition(unitId, out var origin))
             {
                 return false;

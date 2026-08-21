@@ -815,6 +815,282 @@ namespace DragonBound.Tests.EditMode
             Assert.IsNull(state.SkyHuntTargetRuntimeId);
         }
 
+        [TestCase(0, 1f)]
+        [TestCase(60, 1.25f)]
+        public void EmberSkillMultiplierScalesOnlySecondarySplash(int experience, float skillMultiplier)
+        {
+            var state = CreateState(DragonBoundHeroIds.EmberShaman, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(state.AddExperience(experience));
+            }
+
+            var registry = new EnemyRegistry();
+            var primary = Enemy("ember.primary", TeamSide.Player, new CombatPoint(1f, 0f), 0.9f, 1000f);
+            var secondary = Enemy("ember.secondary", TeamSide.Player, new CombatPoint(1.5f, 0f), 0.8f, 1000f);
+            registry.Register(primary);
+            registry.Register(secondary);
+
+            var results = state.TickCombat(1f / state.AttackSpeed, new CombatPoint(0f, 0f), registry);
+            Assert.AreEqual(state.Attack, results.Single(result => result.Kind == AttackKind.EmberExplosiveFireball).Damage, 0.001f);
+            Assert.AreEqual(
+                state.Attack * 0.75f * skillMultiplier,
+                results.Single(result => result.Kind == AttackKind.EmberExplosiveSplash).Damage,
+                0.001f);
+        }
+
+        [TestCase(0, 1f, 4)]
+        [TestCase(20, 1.10f, 5)]
+        [TestCase(60, 1.25f, 6)]
+        public void RuneboltSkillMultiplierScalesOnlySecondaryPiercesAndPreservesCap(
+            int experience,
+            float skillMultiplier,
+            int expectedTargetCount)
+        {
+            var state = CreateState(DragonBoundHeroIds.RuneboltMage, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(state.AddExperience(experience));
+            }
+
+            var registry = new EnemyRegistry();
+            for (var index = 0; index < 6; index++)
+            {
+                registry.Register(Enemy(
+                    "runebolt." + index,
+                    TeamSide.Player,
+                    new CombatPoint(1f + (index * 0.5f), 0f),
+                    0.99f - (index * 0.01f),
+                    1000f));
+            }
+
+            var results = state.TickCombat(1f / state.AttackSpeed, new CombatPoint(0f, 0f), registry)
+                .Where(result => result.Kind == AttackKind.RuneboltPierce)
+                .ToArray();
+            Assert.AreEqual(expectedTargetCount, results.Length);
+            Assert.AreEqual(state.Attack, results[0].Damage, 0.001f);
+            foreach (var result in results.Skip(1))
+            {
+                Assert.AreEqual(state.Attack * skillMultiplier, result.Damage, 0.001f);
+            }
+        }
+
+        [TestCase(0, 1f)]
+        [TestCase(60, 1.25f)]
+        public void CrownSwordSkillMultiplierScalesOnlyDuelMomentumBonus(int experience, float skillMultiplier)
+        {
+            var state = CreateState(DragonBoundHeroIds.CrownSwordLeader, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(state.AddExperience(experience));
+            }
+
+            var registry = new EnemyRegistry();
+            registry.Register(Enemy("sword.target", TeamSide.Player, new CombatPoint(1f, 0f), 0.9f, 10000f));
+            state.TickCombat(1f / state.AttackSpeed, new CombatPoint(0f, 0f), registry);
+            var second = state.TickCombat(1f / state.AttackSpeed, new CombatPoint(0f, 0f), registry);
+
+            Assert.AreEqual(
+                state.Attack * (1f + (0.08f * skillMultiplier)),
+                second.Single(result => result.Kind == AttackKind.CrownSwordStrike).Damage,
+                0.001f);
+        }
+
+        [TestCase(0, 1f)]
+        [TestCase(60, 1.25f)]
+        public void CrownHunterMarkPersistsUntilInvalidAndScalesMarkedDamage(
+            int experience,
+            float skillMultiplier)
+        {
+            var state = CreateState(DragonBoundHeroIds.CrownHunterLeader, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(state.AddExperience(experience));
+            }
+
+            var registry = new EnemyRegistry();
+            var marked = Enemy("hunter.marked", TeamSide.Player, new CombatPoint(2f, 0f), 0.8f, 1000f);
+            registry.Register(marked);
+            state.TickCombat(1f / state.AttackSpeed, new CombatPoint(0f, 0f), registry);
+            var laterHigherHealth = Enemy("hunter.later", TeamSide.Player, new CombatPoint(1f, 0f), 0.9f, 5000f);
+            registry.Register(laterHigherHealth);
+
+            var persistent = state.TickCombat(1f / state.AttackSpeed, new CombatPoint(0f, 0f), registry);
+            Assert.AreEqual(marked.RuntimeId, state.HuntMarkTargetRuntimeId);
+            Assert.AreEqual(marked.RuntimeId, persistent.Single(result => result.Kind == AttackKind.CrownHunterShot).Target.RuntimeId);
+            Assert.AreEqual(
+                state.Attack * 1.25f * skillMultiplier,
+                persistent.Single(result => result.Kind == AttackKind.CrownHunterShot).Damage,
+                0.001f);
+
+            marked.SetTargetingState(1, 0.8f, new CombatPoint(10f, 0f));
+            state.TickCombat(1f / state.AttackSpeed, new CombatPoint(0f, 0f), registry);
+            Assert.AreEqual(laterHigherHealth.RuntimeId, state.HuntMarkTargetRuntimeId);
+        }
+
+        [TestCase(0, 1f, 1f)]
+        [TestCase(175, 1.57f, 1.70f)]
+        public void DragonRiderSkillFormulaUsesCurrentAttackForDiveAndBaseAttackForFlame(
+            int experience,
+            float attackMultiplier,
+            float skillMultiplier)
+        {
+            var state = CreateState(DragonBoundHeroIds.DragonRider, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(state.AddExperience(experience));
+            }
+
+            var registry = new EnemyRegistry();
+            var target = Enemy("dragon.scaling", TeamSide.Player, new CombatPoint(3f, 0f), 0.9f, 10000f);
+            registry.Register(target);
+            var dive = state.TickCombat(6f, new CombatPoint(0f, 0f), registry);
+            var flame = state.TickCombat(1f, new CombatPoint(0f, 0f), registry);
+
+            Assert.AreEqual(
+                13f * attackMultiplier * 2f * skillMultiplier,
+                dive.First(result => result.Kind == AttackKind.DragonRiderDive).Damage,
+                0.001f);
+            Assert.AreEqual(
+                13f * 0.25f * skillMultiplier,
+                flame.First(result => result.Kind == AttackKind.DragonRiderFlame).Damage,
+                0.001f);
+        }
+
+        [Test]
+        public void DragonRiderDiveRemainsReadyWhenOnlyTargetsOutsideSixCellsExist()
+        {
+            var state = CreateState(DragonBoundHeroIds.DragonRider, TeamSide.Player);
+            var registry = new EnemyRegistry();
+            registry.Register(Enemy("dragon.outside", TeamSide.Player, new CombatPoint(6.1f, 0f), 0.9f, 10000f));
+
+            var noDive = state.TickCombat(6f, new CombatPoint(0f, 0f), registry);
+            Assert.IsFalse(noDive.Any(result => result.Kind == AttackKind.DragonRiderDive));
+            Assert.AreEqual(0f, state.SkillCooldownRemaining, 0.001f);
+
+            registry.Register(Enemy("dragon.inside", TeamSide.Player, new CombatPoint(5.9f, 0f), 0.8f, 10000f));
+            Assert.IsTrue(state.TickCombat(0.1f, new CombatPoint(0f, 0f), registry)
+                .Any(result => result.Kind == AttackKind.DragonRiderDive));
+        }
+
+        [TestCase(0, 1f)]
+        [TestCase(175, 1.70f)]
+        public void ThunderDominionScalesOnlyStunDuration(int experience, float skillMultiplier)
+        {
+            var state = CreateState(DragonBoundHeroIds.ThunderJarl, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(state.AddExperience(experience));
+            }
+
+            var registry = new EnemyRegistry();
+            var target = Enemy("thunder.scaling", TeamSide.Player, new CombatPoint(1f, 0f), 0.9f, 10000f);
+            registry.Register(target);
+            var results = state.TickCombat(8f, new CombatPoint(0f, 0f), registry);
+            var dominion = results.Single(result => result.Kind == AttackKind.ThunderDominion);
+
+            Assert.AreEqual(state.Attack * 0.60f, dominion.Damage, 0.001f);
+            Assert.AreEqual(0.90f * skillMultiplier, dominion.EffectDuration, 0.001f);
+        }
+
+        [TestCase(0, 1f)]
+        [TestCase(175, 1.70f)]
+        public void NightfangSkillMultiplierScalesOnlyExecutionSlashes(int experience, float skillMultiplier)
+        {
+            var normalState = CreateState(DragonBoundHeroIds.NightfangAssassin, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(normalState.AddExperience(experience));
+            }
+
+            var normalRegistry = new EnemyRegistry();
+            normalRegistry.Register(Enemy("nightfang.normal", TeamSide.Player, new CombatPoint(1f, 0f), 0.9f, 10000f));
+            var normal = normalState.TickCombat(1f / normalState.AttackSpeed, new CombatPoint(0f, 0f), normalRegistry);
+            Assert.AreEqual(normalState.Attack, normal.Single(result => result.Kind == AttackKind.NightfangStrike).Damage, 0.001f);
+
+            var skillState = CreateState(DragonBoundHeroIds.NightfangAssassin, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(skillState.AddExperience(experience));
+            }
+
+            var skillRegistry = new EnemyRegistry();
+            skillRegistry.Register(Enemy("nightfang.skill", TeamSide.Player, new CombatPoint(1f, 0f), 0.9f, 10000f));
+            var skill = skillState.TickCombat(8f, new CombatPoint(0f, 0f), skillRegistry);
+            Assert.AreEqual(
+                skillState.Attack * 0.70f * skillMultiplier,
+                skill.Single(result => result.Kind == AttackKind.NightfangExecutionSlash).Damage,
+                0.001f);
+        }
+
+        [TestCase(0, 1f)]
+        [TestCase(175, 1.70f)]
+        public void LeviathanSkillMultiplierScalesOnlyAbyssHarpoon(int experience, float skillMultiplier)
+        {
+            var normalState = CreateState(DragonBoundHeroIds.LeviathanHunter, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(normalState.AddExperience(experience));
+            }
+
+            var normalRegistry = new EnemyRegistry();
+            normalRegistry.Register(Enemy("leviathan.normal", TeamSide.Player, new CombatPoint(1f, 0f), 0.9f, 10000f));
+            var normal = normalState.TickCombat(1f / normalState.AttackSpeed, new CombatPoint(0f, 0f), normalRegistry);
+            Assert.AreEqual(normalState.Attack, normal.Single(result => result.Kind == AttackKind.LeviathanHarpoon).Damage, 0.001f);
+
+            var skillState = CreateState(DragonBoundHeroIds.LeviathanHunter, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(skillState.AddExperience(experience));
+            }
+
+            var skillRegistry = new EnemyRegistry();
+            skillRegistry.Register(Enemy("leviathan.skill", TeamSide.Player, new CombatPoint(1f, 0f), 0.9f, 10000f));
+            skillState.TickCombat(9f, new CombatPoint(0f, 0f), skillRegistry);
+            var skill = skillState.TickCombat(0.45f, new CombatPoint(0f, 0f), skillRegistry);
+            Assert.AreEqual(
+                skillState.Attack * 1.50f * skillMultiplier,
+                skill.Single(result => result.Kind == AttackKind.AbyssHarpoonStrike).Damage,
+                0.001f);
+        }
+
+        [TestCase(0, 1f)]
+        [TestCase(175, 1.70f)]
+        public void SkyhunterSkillMultiplierScalesOnlyRadiance(int experience, float skillMultiplier)
+        {
+            var normalState = CreateState(DragonBoundHeroIds.SkyhunterValkyrie, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(normalState.AddExperience(experience));
+            }
+
+            var normalRegistry = new EnemyRegistry();
+            normalRegistry.Register(Enemy("sky.normal", TeamSide.Player, new CombatPoint(1f, 0f), 0.9f, 10000f));
+            var normal = normalState.TickCombat(1f / normalState.AttackSpeed, new CombatPoint(0f, 0f), normalRegistry);
+            Assert.AreEqual(normalState.Attack, normal.Single(result => result.Kind == AttackKind.SkyhunterShot).Damage, 0.001f);
+
+            var skillState = CreateState(DragonBoundHeroIds.SkyhunterValkyrie, TeamSide.Player);
+            if (experience > 0)
+            {
+                Assert.IsTrue(skillState.AddExperience(experience));
+            }
+
+            var skillRegistry = new EnemyRegistry();
+            skillRegistry.Register(Enemy("sky.primary", TeamSide.Player, new CombatPoint(1f, 0f), 0.9f, 10000f));
+            skillRegistry.Register(Enemy("sky.secondary.a", TeamSide.Player, new CombatPoint(1.5f, 0f), 0.8f, 10000f));
+            skillRegistry.Register(Enemy("sky.secondary.b", TeamSide.Player, new CombatPoint(2f, 0f), 0.7f, 10000f));
+            var skill = skillState.TickCombat(10f, new CombatPoint(0f, 0f), skillRegistry);
+
+            Assert.AreEqual(
+                skillState.Attack * skillMultiplier,
+                skill.First(result => result.Kind == AttackKind.SkyhunterRadiancePrimary).Damage,
+                0.001f);
+            Assert.AreEqual(
+                skillState.Attack * 0.40f * skillMultiplier,
+                skill.First(result => result.Kind == AttackKind.SkyhunterRadianceSecondary).Damage,
+                0.001f);
+        }
+
         [Test]
         public void AllImplementedHeroesResolveFromCatalogWithoutFallback()
         {

@@ -403,6 +403,10 @@ MonoBehaviour:
   battlefieldLayoutId: Fixed8x10_ReferenceMap01
   enableHeroComponents: 1
   heroSliceMode: 1
+  useTwentyWavePressureRuntime: 0
+  enablePressureRunDiagnostics: 0
+  enableAiSurvivalController: 1
+  recruitComponentPolicy: 1
   heroSliceStartingResources: 500
   screenView: {fileID: 391042248}
 --- !u!4 &649599055

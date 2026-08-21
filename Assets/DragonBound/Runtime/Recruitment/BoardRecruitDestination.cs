@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using DragonBound.Combat;
+using DragonBound.Core;
 using DragonBound.Grid;
+using DragonBound.Runes;
 using UnityEngine;
 
 namespace DragonBound.Recruitment
@@ -124,7 +126,8 @@ namespace DragonBound.Recruitment
         IRecruitDestination,
         IBoardUnitDropResolver,
         IBoardPostDropResolver,
-        IBoardDragLifecycle
+        IBoardDragLifecycle,
+        IBoardDragEligibility
     {
         private readonly BoardGrid board;
         private readonly Dictionary<string, RecruitCard> cardsByRuntimeId =
@@ -145,11 +148,21 @@ namespace DragonBound.Recruitment
             new Dictionary<string, HeroPairCombatProxy>(StringComparer.Ordinal);
         private readonly HashSet<string> everFormedHeroIds =
             new HashSet<string>(StringComparer.Ordinal);
+        private RuneLoadoutSnapshot runeLoadoutSnapshot;
+        private readonly int runeRunSeed;
+        private bool runeLoadoutSnapshotSealed;
         private int pairLinkSequence;
+        private int stateVersion;
+        private Func<bool> mergeBlockedProvider;
 
-        public BoardRecruitDestination(BoardGrid board)
+        public BoardRecruitDestination(
+            BoardGrid board,
+            RuneLoadoutSnapshot runeLoadoutSnapshot = null,
+            int runeRunSeed = 0)
         {
             this.board = board ?? throw new ArgumentNullException(nameof(board));
+            this.runeLoadoutSnapshot = runeLoadoutSnapshot ?? RuneLoadoutSnapshot.Empty;
+            this.runeRunSeed = runeRunSeed;
             board.Changed += HandleBoardChanged;
         }
 
@@ -159,11 +172,46 @@ namespace DragonBound.Recruitment
         public BoardGrid Board => board;
         public int PendingRefreshCount => CampCount;
         public int ActivePairLinkCount => pairLinksById.Count;
+        /// <summary>Monotonic revision for AI planning; increments on board or PairLink state changes.</summary>
+        public int StateVersion => stateVersion;
         public IReadOnlyCollection<string> EverFormedHeroIds => everFormedHeroIds;
         public event Action<HeroPairLinkedEvent> HeroPairLinked;
         public event Action<HeroPairUnlinkedEvent> HeroPairUnlinked;
         public event Action<CombatRegistrationChangedEvent> CombatRegistrationChanged;
         public event Action<BasicUnitMergedEvent> BasicUnitMerged;
+
+        /// <summary>Integration hook for boss policies that temporarily forbid all Basic merges.</summary>
+        public void SetMergeBlockedProvider(Func<bool> provider)
+        {
+            mergeBlockedProvider = provider;
+        }
+
+        /// <summary>
+        /// The bootstrap may apply the loadout while the match is still preparing. This updates
+        /// any showcase/preparation PairLinks that were formed early, then sealing at Run start
+        /// makes the snapshot immutable for all active combat.
+        /// </summary>
+        public bool TrySetRuneLoadoutSnapshot(RuneLoadoutSnapshot snapshot)
+        {
+            if (runeLoadoutSnapshotSealed)
+            {
+                return false;
+            }
+
+            runeLoadoutSnapshot = snapshot ?? RuneLoadoutSnapshot.Empty;
+            foreach (var pairLink in pairLinksById.Values)
+            {
+                pairLink.CombatProxy.ConfigureRune(
+                    RuneCatalog.Get(runeLoadoutSnapshot.GetRune(pairLink.HeroId)),
+                    runeRunSeed);
+            }
+            return true;
+        }
+
+        public void SealRuneLoadoutSnapshot()
+        {
+            runeLoadoutSnapshotSealed = true;
+        }
 
         public bool PendingRefreshContainsUniqueHeroComponent
         {
@@ -393,6 +441,90 @@ namespace DragonBound.Recruitment
             return cardsByRuntimeId.TryGetValue(runtimeId, out card);
         }
 
+        public bool TryRemoveUnit(string runtimeId)
+        {
+            if (string.IsNullOrWhiteSpace(runtimeId) ||
+                !cardsByRuntimeId.ContainsKey(runtimeId) ||
+                !board.TryGetPosition(runtimeId, out var position))
+            {
+                return false;
+            }
+
+            BreakPairForComponent(runtimeId, "WorldeaterDevour");
+            RemoveProgressionForOwner(runtimeId);
+            componentsById.Remove(runtimeId);
+            combatSuspendedUnitIds.Remove(runtimeId);
+            cardsByRuntimeId.Remove(runtimeId);
+            if (!board.TryRemoveAt(position))
+            {
+                return false;
+            }
+
+            ReconcileCombatRegistrations();
+            return true;
+        }
+
+        public int GetBenchShovelCount()
+        {
+            var count = 0;
+            foreach (var position in board.GetPositions(CellType.Bench))
+            {
+                if (board.TryGetOccupant(position, out var runtimeId) && IsBenchShovel(runtimeId))
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        public bool IsBenchShovel(string runtimeId)
+        {
+            return !string.IsNullOrWhiteSpace(runtimeId) &&
+                   cardsByRuntimeId.TryGetValue(runtimeId, out var card) &&
+                   card.Kind == RecruitItemKind.Shovel &&
+                   board.TryGetPosition(runtimeId, out var position) &&
+                   board.TryGetCellType(position, out var cellType) &&
+                   cellType == CellType.Bench;
+        }
+
+        public bool TryGetFirstBenchShovel(out string runtimeId)
+        {
+            foreach (var position in board.GetPositions(CellType.Bench))
+            {
+                if (board.TryGetOccupant(position, out var candidate) && IsBenchShovel(candidate))
+                {
+                    runtimeId = candidate;
+                    return true;
+                }
+            }
+
+            runtimeId = null;
+            return false;
+        }
+
+        public bool TryConsumeBenchShovel(string runtimeId)
+        {
+            if (!IsBenchShovel(runtimeId) || !board.TryGetPosition(runtimeId, out var position))
+            {
+                return false;
+            }
+
+            if (!board.TryRemoveAt(position))
+            {
+                return false;
+            }
+
+            cardsByRuntimeId.Remove(runtimeId);
+            return true;
+        }
+
+        public bool CanBeginDrag(string unitId)
+        {
+            return !cardsByRuntimeId.TryGetValue(unitId, out var card) ||
+                   card.Kind != RecruitItemKind.Shovel;
+        }
+
         public int GetCurrentHeroComponentCount(string configId)
         {
             if (string.IsNullOrWhiteSpace(configId))
@@ -511,6 +643,12 @@ namespace DragonBound.Recruitment
                 return false;
             }
 
+            if (sourceCard.IsSameBasicUnitAndLevel(targetCard) &&
+                (mergeBlockedProvider?.Invoke() ?? false))
+            {
+                return false;
+            }
+
             if (sourceCard.IsSameBasicUnitAndLevel(targetCard))
             {
                 return sourceCard.Level < BasicUnitCatalog.MaxLevel;
@@ -528,6 +666,12 @@ namespace DragonBound.Recruitment
             CellType targetType)
         {
             if (!TryGetCurrentCards(sourceUnitId, targetUnitId, source, target, out var sourceCard, out var targetCard))
+            {
+                return OccupiedDropResolution.Rejected;
+            }
+
+            if (sourceCard.IsSameBasicUnitAndLevel(targetCard) &&
+                (mergeBlockedProvider?.Invoke() ?? false))
             {
                 return OccupiedDropResolution.Rejected;
             }
@@ -628,7 +772,7 @@ namespace DragonBound.Recruitment
                     !componentsById.TryGetValue(neighbourId, out var candidate) ||
                     !string.IsNullOrEmpty(candidate.PairLinkId) ||
                     !IsBattleCell(candidate.CurrentCell) ||
-                    !HeroSliceCatalog.TryGetRecipeDefinitionAtFormation(
+                    !TryGetRecipeDefinitionAtFormation(
                         component.RecipeTag,
                         component.CurrentCell,
                         candidate.RecipeTag,
@@ -643,7 +787,8 @@ namespace DragonBound.Recruitment
 
             candidates.Sort((first, second) =>
             {
-                var position = first.CurrentCell.CompareTo(second.CurrentCell);
+                var position = ToFormationLocalPosition(first.CurrentCell).CompareTo(
+                    ToFormationLocalPosition(second.CurrentCell));
                 return position != 0
                     ? position
                     : string.CompareOrdinal(first.ComponentId, second.ComponentId);
@@ -651,7 +796,7 @@ namespace DragonBound.Recruitment
 
             foreach (var candidate in candidates)
             {
-                if (!HeroSliceCatalog.TryGetRecipeDefinitionAtFormation(
+                if (!TryGetRecipeDefinitionAtFormation(
                         component.RecipeTag,
                         component.CurrentCell,
                         candidate.RecipeTag,
@@ -693,6 +838,11 @@ namespace DragonBound.Recruitment
                     combatProxy.SetCombatSuspended(false);
                 }
 
+                var assignedRuneId = runeLoadoutSnapshot == null
+                    ? string.Empty
+                    : runeLoadoutSnapshot.GetRune(recipe.HeroId);
+                combatProxy.ConfigureRune(RuneCatalog.Get(assignedRuneId), runeRunSeed);
+
                 pairLink = new HeroPairLink(
                     pairLinkId,
                     component.ComponentId,
@@ -704,6 +854,7 @@ namespace DragonBound.Recruitment
                 component.PairLinkId = pairLinkId;
                 candidate.PairLinkId = pairLinkId;
                 pairLinksById.Add(pairLinkId, pairLink);
+                stateVersion++;
                 var isFirstFormation = everFormedHeroIds.Add(recipe.HeroId);
                 Debug.Log(
                     $"HeroPairLinked PairLinkId={pairLinkId} RecipeId={recipe.RecipeId} HeroId={recipe.HeroId} " +
@@ -719,6 +870,7 @@ namespace DragonBound.Recruitment
 
         private void HandleBoardChanged(GridMutation mutation)
         {
+            stateVersion++;
             if (!string.IsNullOrEmpty(mutation.UnitId) &&
                 componentsById.TryGetValue(mutation.UnitId, out var component))
             {
@@ -773,6 +925,40 @@ namespace DragonBound.Recruitment
             }
         }
 
+        private bool TryGetRecipeDefinitionAtFormation(
+            string firstComponentId,
+            GridPosition firstPosition,
+            string secondComponentId,
+            GridPosition secondPosition,
+            out HeroRecipeDefinition recipe)
+        {
+            var firstLocal = ToFormationLocalPosition(firstPosition);
+            var secondLocal = ToFormationLocalPosition(secondPosition);
+            return HeroSliceCatalog.TryGetRecipeDefinitionAtFormation(
+                firstComponentId,
+                firstLocal,
+                secondComponentId,
+                secondLocal,
+                out recipe);
+        }
+
+        private GridPosition ToFormationLocalPosition(GridPosition position)
+        {
+            if (board.Side == TeamSide.Player || board.Layout == null)
+            {
+                return position;
+            }
+
+            if (board.Layout is FixedBoardLayoutDefinition)
+            {
+                return new GridPosition(
+                    FixedBoardLayoutDefinition.FixedColumns - 1 - position.X,
+                    FixedBoardLayoutDefinition.FixedRows - 1 - position.Y);
+            }
+
+            return board.Layout.GetFairCounterpart(position, TeamSide.AI);
+        }
+
         private bool IsLinkValid(HeroPairLink pairLink)
         {
             return componentsById.TryGetValue(pairLink.ComponentAId, out var componentA) &&
@@ -781,7 +967,7 @@ namespace DragonBound.Recruitment
                    string.Equals(componentB.PairLinkId, pairLink.PairLinkId, StringComparison.Ordinal) &&
                    IsBattleCell(componentA.CurrentCell) &&
                    IsBattleCell(componentB.CurrentCell) &&
-                   HeroSliceCatalog.TryGetRecipeDefinitionAtFormation(
+                   TryGetRecipeDefinitionAtFormation(
                        componentA.RecipeTag,
                        componentA.CurrentCell,
                        componentB.RecipeTag,
@@ -810,6 +996,7 @@ namespace DragonBound.Recruitment
             }
 
             pairLinksById.Remove(pairLinkId);
+            stateVersion++;
             if (componentsById.TryGetValue(pairLink.ComponentAId, out var componentA) &&
                 string.Equals(componentA.PairLinkId, pairLinkId, StringComparison.Ordinal))
             {

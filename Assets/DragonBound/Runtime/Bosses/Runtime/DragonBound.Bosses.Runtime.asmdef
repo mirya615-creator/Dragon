@@ -1,0 +1,19 @@
+{
+  "name": "DragonBound.Bosses.Runtime",
+  "rootNamespace": "DragonBound.Bosses.Runtime",
+  "references": [
+    "DragonBound.Bosses.Contracts",
+    "DragonBound.Foundation.Contracts",
+    "DragonBound.Combat.Contracts",
+    "DragonBound.Enemies.Contracts"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

@@ -1,10 +1,12 @@
+using System;
 using DragonBound.Grid;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace DragonBound.Presentation
 {
-    public sealed class GridCellView : MonoBehaviour
+    public sealed class GridCellView : MonoBehaviour, IPointerClickHandler
     {
         [SerializeField] private int gridX;
         [SerializeField] private int gridY;
@@ -25,6 +27,7 @@ namespace DragonBound.Presentation
         public RectTransform ContentAnchor => contentAnchor != null ? contentAnchor : RectTransform;
         public Image ArtImage => artImage;
         public Image HighlightImage => highlightImage;
+        public event Action<GridPosition> Clicked;
 
         public void Configure(
             int x,
@@ -40,6 +43,7 @@ namespace DragonBound.Presentation
             artImage = art;
             highlightImage = highlight;
             contentAnchor = anchor;
+            EnsureInputReceiver();
             if (lockOverlay == null)
             {
                 var overlay = transform.Find("ART_LockOverlay");
@@ -72,31 +76,37 @@ namespace DragonBound.Presentation
             fixedArtSlot.Bind(definition);
             gridX = definition.Coordinate.X;
             gridY = definition.Coordinate.Y;
+            EnsureInputReceiver();
             ConfigureFixedArt(definition);
             SetHighlighted(false);
         }
 
-        /// <summary>
-        /// Restores runtime semantics for a fixed-board cell already saved in a prefab.
-        /// Artist-owned presentation is left untouched.
-        /// </summary>
+        /// <summary>Restores gameplay semantics for a serialized cell without restyling authored UI.</summary>
         public void BindAuthoredFixedBoardDefinition(FixedBoardCellDefinition definition)
         {
             usesFixedBoardVisual = true;
             fixedRole = definition.Role;
-            fixedArtSlot = fixedArtSlot != null ? fixedArtSlot : GetComponent<FixedBoardArtSlot>();
-            if (fixedArtSlot == null)
-            {
-                throw new System.InvalidOperationException(
-                    $"Authored fixed-board cell {name} is missing FixedBoardArtSlot.");
-            }
-
+            fixedArtSlot = GetComponent<FixedBoardArtSlot>();
             gridX = definition.Coordinate.X;
             gridY = definition.Coordinate.Y;
+            EnsureInputReceiver();
             if (lockOverlay == null)
             {
                 var overlay = transform.Find("ART_LockOverlay");
                 lockOverlay = overlay != null ? overlay.gameObject : null;
+            }
+            if (debugRangeBandLabel == null)
+            {
+                var label = transform.Find("DebugRangeBandLabel");
+                debugRangeBandLabel = label != null ? label.GetComponent<Text>() : null;
+            }
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData != null && eventData.button == PointerEventData.InputButton.Left)
+            {
+                Clicked?.Invoke(Position);
             }
         }
 
@@ -249,6 +259,31 @@ namespace DragonBound.Presentation
             var outline = border.GetComponent<Outline>();
             outline.effectColor = new Color(0.88f, 0.92f, 0.94f, 0.32f);
             outline.effectDistance = new Vector2(0.65f, 0.65f);
+        }
+
+        private void EnsureInputReceiver()
+        {
+            var receiver = transform.Find("InputReceiver");
+            if (receiver != null)
+            {
+                return;
+            }
+
+            var receiverObject = new GameObject(
+                "InputReceiver",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image));
+            var rect = receiverObject.GetComponent<RectTransform>();
+            rect.SetParent(transform, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            var image = receiverObject.GetComponent<Image>();
+            image.color = new Color(1f, 1f, 1f, 0f);
+            image.raycastTarget = true;
+            rect.SetAsFirstSibling();
         }
 
         private void EnsureLockMarker(bool visible)

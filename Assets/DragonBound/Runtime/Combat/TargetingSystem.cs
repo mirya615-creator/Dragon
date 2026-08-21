@@ -5,49 +5,6 @@ using DragonBound.Grid;
 
 namespace DragonBound.Combat
 {
-    public readonly struct CombatPoint : IEquatable<CombatPoint>
-    {
-        public CombatPoint(float x, float y)
-        {
-            X = x;
-            Y = y;
-        }
-
-        public float X { get; }
-        public float Y { get; }
-
-        public float DistanceSquared(CombatPoint other)
-        {
-            var x = X - other.X;
-            var y = Y - other.Y;
-            return (x * x) + (y * y);
-        }
-
-        public bool Equals(CombatPoint other)
-        {
-            return Math.Abs(X - other.X) <= 0.0001f && Math.Abs(Y - other.Y) <= 0.0001f;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is CombatPoint other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return (X.GetHashCode() * 397) ^ Y.GetHashCode();
-            }
-        }
-
-        public static CombatPoint Lerp(CombatPoint from, CombatPoint to, float progress)
-        {
-            var t = Math.Max(0f, Math.Min(1f, progress));
-            return new CombatPoint(from.X + ((to.X - from.X) * t), from.Y + ((to.Y - from.Y) * t));
-        }
-    }
-
     public sealed class TargetingSystem
     {
         private const float RangeEpsilon = 0.0001f;
@@ -156,8 +113,14 @@ namespace DragonBound.Combat
         private static int CompareFrontmost(EnemyRuntime first, EnemyRuntime second)
         {
             var pathProgress = second.PathProgress.CompareTo(first.PathProgress);
-            return pathProgress != 0
-                ? pathProgress
+            if (pathProgress != 0)
+            {
+                return pathProgress;
+            }
+
+            var spawnSequence = first.SpawnSequence.CompareTo(second.SpawnSequence);
+            return spawnSequence != 0
+                ? spawnSequence
                 : string.CompareOrdinal(first.RuntimeId, second.RuntimeId);
         }
     }

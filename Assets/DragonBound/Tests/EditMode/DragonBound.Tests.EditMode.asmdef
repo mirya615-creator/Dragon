@@ -3,7 +3,20 @@
   "rootNamespace": "DragonBound.Tests.EditMode",
   "references": [
     "GameShared.Runtime",
+    "DragonBound.Foundation.Contracts",
+    "DragonBound.Board.Contracts",
+    "DragonBound.Enemies.Contracts",
+    "DragonBound.Combat.Contracts",
+    "DragonBound.Bosses.Contracts",
+    "DragonBound.Bosses.Runtime",
+    "DragonBound.Heroes.Contracts",
+    "DragonBound.Runes.Contracts",
+    "DragonBound.Items.Contracts",
+    "DragonBound.Items.Runtime",
+    "DragonBound.Runes.Runtime",
+    "DragonBound.Recruitment.Runtime",
     "DragonBound.Runtime",
+    "DragonBound.HandoffUi",
     "Unity.UGUI"
   ],
   "includePlatforms": [

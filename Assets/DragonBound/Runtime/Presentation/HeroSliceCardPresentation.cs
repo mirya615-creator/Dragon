@@ -12,6 +12,11 @@ namespace DragonBound.Presentation
                 return $"{BasicUnitCatalog.GetDisplayName(card.ConfigId)} {card.Level}";
             }
 
+            if (card.Kind == RecruitItemKind.Shovel)
+            {
+                return "铲子";
+            }
+
             var name = HeroSliceCatalog.GetComponentDisplayName(card.ConfigId);
             if (HeroSliceCatalog.IsUniqueComponent(card.ConfigId) || card.IsUnique)
             {

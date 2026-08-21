@@ -2,9 +2,19 @@ using System;
 
 namespace DragonBound.Core
 {
+    public static class BattleSettlementDefinition
+    {
+        public const int InitialMaxHeart = 3;
+        public const int InitialCurrentHeart = 3;
+        public const int NormalGoalDamage = 1;
+        public const int MaxScheduledWave = 20;
+        public const bool GenerateWaveAfterW20 = false;
+        public const bool BossGoalIsInstantDefeat = true;
+    }
+
     public sealed class TeamState
     {
-        public TeamState(TeamSide side, int hatchlingMaxHealth = 3)
+        public TeamState(TeamSide side, int hatchlingMaxHealth = BattleSettlementDefinition.InitialMaxHeart)
         {
             if (hatchlingMaxHealth <= 0)
             {
@@ -19,8 +29,9 @@ namespace DragonBound.Core
         public TeamSide Side { get; }
         public int Resources { get; private set; }
         public int RecruitmentCount { get; private set; }
-        public int HatchlingMaxHealth { get; }
+        public int HatchlingMaxHealth { get; private set; }
         public int HatchlingHealth { get; private set; }
+        public bool IsInstantDefeated { get; private set; }
         public int RemainingEnemyCount { get; private set; }
 
         public void AddResources(int amount)
@@ -64,6 +75,23 @@ namespace DragonBound.Core
             HatchlingHealth = Math.Max(0, HatchlingHealth - amount);
         }
 
+        public void ApplyBossGoalInstantDefeat()
+        {
+            IsInstantDefeated = true;
+            HatchlingHealth = 0;
+        }
+
+        public void ApplyHatchlingHealthBonus(int amount)
+        {
+            if (amount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            }
+
+            HatchlingMaxHealth = checked(HatchlingMaxHealth + amount);
+            HatchlingHealth = checked(HatchlingHealth + amount);
+        }
+
         public void SetRemainingEnemyCount(int count)
         {
             if (count < 0)
@@ -82,6 +110,7 @@ namespace DragonBound.Core
                 Resources = Resources,
                 RecruitmentCount = RecruitmentCount,
                 HatchlingHealth = HatchlingHealth,
+                IsInstantDefeated = IsInstantDefeated,
                 RemainingEnemyCount = RemainingEnemyCount
             };
         }
@@ -94,6 +123,7 @@ namespace DragonBound.Core
         public int Resources;
         public int RecruitmentCount;
         public int HatchlingHealth;
+        public bool IsInstantDefeated;
         public int RemainingEnemyCount;
     }
 }

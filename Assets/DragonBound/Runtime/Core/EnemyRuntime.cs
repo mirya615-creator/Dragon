@@ -4,66 +4,33 @@ using DragonBound.Combat;
 
 namespace DragonBound.Core
 {
-    public enum EnemyRuntimeState
+    public readonly struct EnemyDamageApplication
     {
-        Spawned,
-        Moving,
-        Dead,
-        Leaked
+        public EnemyDamageApplication(float requested, float shieldDamage, float healthDamage, bool killed)
+        {
+            Requested = requested;
+            ShieldDamage = shieldDamage;
+            HealthDamage = healthDamage;
+            Killed = killed;
+        }
+
+        public float Requested { get; }
+        public float ShieldDamage { get; }
+        public float HealthDamage { get; }
+        public bool Killed { get; }
     }
 
-    public enum AttackKind
+    public sealed class EnemyRuntime : IEnemyLifecycle, IPathProgress, ICombatTarget
     {
-        Single,
-        BowProjectile,
-        SpearPierce,
-        RiderSweep,
-        WindclawShot,
-        WindclawPowerShot,
-        EmberShamanArea,
-        EmberGround,
-        DragonRiderArea,
-        DragonRiderDive,
-        DragonRiderFlame,
-        RuneboltPierce,
-        StonebinderShot,
-        StoneBind,
-        StarfallArea,
-        StarfallTelegraph,
-        StarfallImpact,
-        CrownSwordStrike,
-        CrownHunterShot,
-        HuntMark,
-        ThunderJarlChain,
-        ThunderDominion,
-        EmberExplosiveFireball,
-        EmberExplosiveSplash,
-        NightfangStrike,
-        NightfangExecutionSlash,
-        LeviathanHarpoon,
-        AbyssHarpoonWarning,
-        AbyssHarpoonStrike,
-        SkyhunterShot,
-        SkyhunterRadiancePrimary,
-        SkyhunterRadianceSecondary
-    }
+        public const float DefaultMaxHitPoints = 30f;
 
-    public enum EnemyArchetype
-    {
-        Normal,
-        Fast,
-        Swarm,
-        Elite,
-        Boss
-    }
-
-    public sealed class EnemyRuntime
-    {
         public EnemyRuntime(
             string runtimeId,
             TeamSide team,
-            float maxHitPoints = 30f,
-            EnemyArchetype archetype = EnemyArchetype.Normal)
+            float maxHitPoints = DefaultMaxHitPoints,
+            EnemyArchetype archetype = EnemyArchetype.Normal,
+            int spawnSequence = 0,
+            string bossId = "")
         {
             if (string.IsNullOrWhiteSpace(runtimeId))
             {
@@ -78,6 +45,8 @@ namespace DragonBound.Core
             RuntimeId = runtimeId;
             Team = team;
             Archetype = archetype;
+            BossId = bossId ?? string.Empty;
+            SpawnSequence = spawnSequence;
             MaxHitPoints = maxHitPoints;
             HitPoints = maxHitPoints;
             State = EnemyRuntimeState.Spawned;
@@ -86,7 +55,12 @@ namespace DragonBound.Core
         public string RuntimeId { get; }
         public TeamSide Team { get; }
         public EnemyArchetype Archetype { get; }
-        public int ExperienceReward => Archetype == EnemyArchetype.Elite ? 3 : 1;
+        public int SpawnSequence { get; }
+        public string BossId { get; }
+        public int ExperienceReward => Archetype == EnemyArchetype.Boss
+            ? BossExperienceRewards.Get(BossId)
+            : Archetype == EnemyArchetype.Swarm ? 0
+            : Archetype == EnemyArchetype.Elite ? 3 : 1;
         public int PathIndex { get; internal set; }
         /// <summary>
         /// Normalized cumulative distance over the active ordered enemy path. Zero is
@@ -95,22 +69,88 @@ namespace DragonBound.Core
         /// </summary>
         public float PathProgress { get; internal set; }
         public float SegmentProgress { get; internal set; }
-        public float MaxHitPoints { get; }
+        public float MaxHitPoints { get; private set; }
         public float HitPoints { get; internal set; }
         public CombatPoint CombatPosition { get; private set; }
         public EnemyRuntimeState State { get; internal set; }
         public bool HasResolved { get; internal set; }
+        public CombatDamageOwner LastDamageOwner { get; private set; } = CombatDamageOwner.None;
         public bool IsAlive => !HasResolved && HitPoints > 0;
         public float StunRemainingSeconds { get; private set; }
         public float StunImmunityRemainingSeconds { get; private set; }
         public bool IsStunned => IsAlive && StunRemainingSeconds > 0.0001f;
         public float MovementSpeedMultiplier { get; private set; } = 1f;
+        public float StormcallerShieldHitPoints { get; private set; }
+        public float StormcallerMovementSpeedMultiplier { get; private set; } = 1f;
+        public float StormcallerSpeedBuffRemainingSeconds { get; private set; }
+        public float BaseMovementSpeedMultiplier { get; private set; } = 1f;
         public float MovementSlowRemainingSeconds { get; private set; }
         private float pendingPostStunImmunitySeconds;
 
         public void SetCombatPosition(CombatPoint position)
         {
             CombatPosition = position;
+        }
+
+        public void RecordDamageOwner(CombatDamageOwner owner)
+        {
+            // Hero skill runtimes apply damage before returning their result to the shared
+            // settlement point. A zero-HP target still needs its final owner recorded until
+            // ResolveKill marks it resolved.
+            if (!HasResolved && owner.IsValid)
+            {
+                LastDamageOwner = owner;
+            }
+        }
+
+        public EnemyDamageApplication ApplyDamage(float damage)
+        {
+            if (damage <= 0f || !IsAlive)
+            {
+                return new EnemyDamageApplication(Math.Max(0f, damage), 0f, 0f, !IsAlive);
+            }
+
+            var remaining = damage;
+            var shieldDamage = Math.Min(StormcallerShieldHitPoints, remaining);
+            StormcallerShieldHitPoints -= shieldDamage;
+            remaining -= shieldDamage;
+            var healthDamage = Math.Min(HitPoints, remaining);
+            HitPoints = Math.Max(0f, HitPoints - healthDamage);
+            return new EnemyDamageApplication(damage, shieldDamage, healthDamage, HitPoints <= 0.0001f);
+        }
+
+        public void IncreaseMaxHitPoints(float amount)
+        {
+            if (amount < 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount));
+            }
+
+            MaxHitPoints += amount;
+            HitPoints += amount;
+        }
+
+        public void ApplyStormcallerShield(float shieldValue)
+        {
+            if (shieldValue <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(shieldValue));
+            }
+
+            StormcallerShieldHitPoints = shieldValue;
+        }
+
+        public void ApplyStormcallerSpeedBuff(float multiplier, float durationSeconds)
+        {
+            if (multiplier <= 0f || durationSeconds <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(multiplier));
+            }
+
+            StormcallerMovementSpeedMultiplier = multiplier;
+            StormcallerSpeedBuffRemainingSeconds = Math.Max(
+                StormcallerSpeedBuffRemainingSeconds,
+                durationSeconds);
         }
 
         public void SetTargetingState(int pathIndex, float pathProgress, CombatPoint position)
@@ -159,6 +199,16 @@ namespace DragonBound.Core
             return true;
         }
 
+        public void SetBaseMovementSpeedMultiplier(float multiplier)
+        {
+            if (multiplier <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(multiplier));
+            }
+
+            BaseMovementSpeedMultiplier = multiplier;
+        }
+
         public void TickControl(float deltaSeconds)
         {
             if (deltaSeconds <= 0f)
@@ -187,6 +237,11 @@ namespace DragonBound.Core
             {
                 MovementSpeedMultiplier = 1f;
             }
+            StormcallerSpeedBuffRemainingSeconds = Math.Max(0f, StormcallerSpeedBuffRemainingSeconds - deltaSeconds);
+            if (StormcallerSpeedBuffRemainingSeconds <= 0.0001f)
+            {
+                StormcallerMovementSpeedMultiplier = 1f;
+            }
         }
 
         internal void SetPathState(
@@ -208,44 +263,6 @@ namespace DragonBound.Core
             PathProgress = normalizedPathProgress;
             CombatPosition = position;
         }
-    }
-
-    public readonly struct CombatEvent
-    {
-        public CombatEvent(
-            TeamSide team,
-            AttackKind kind,
-            string attackerRuntimeId,
-            string targetRuntimeId,
-            float damage,
-            bool killed,
-            bool leaked,
-            int resourcesAfter,
-            float effectDuration = 0f,
-            float effectRadius = 0f)
-        {
-            Team = team;
-            Kind = kind;
-            AttackerRuntimeId = attackerRuntimeId;
-            TargetRuntimeId = targetRuntimeId;
-            Damage = damage;
-            Killed = killed;
-            Leaked = leaked;
-            ResourcesAfter = resourcesAfter;
-            EffectDuration = effectDuration;
-            EffectRadius = effectRadius;
-        }
-
-        public TeamSide Team { get; }
-        public AttackKind Kind { get; }
-        public string AttackerRuntimeId { get; }
-        public string TargetRuntimeId { get; }
-        public float Damage { get; }
-        public bool Killed { get; }
-        public bool Leaked { get; }
-        public int ResourcesAfter { get; }
-        public float EffectDuration { get; }
-        public float EffectRadius { get; }
     }
 
     public sealed class EnemyRegistry

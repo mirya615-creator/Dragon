@@ -437,7 +437,7 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void ActiveHeroPairsShareThreeWaveKillExperienceOnBothSides()
+        public void ActiveHeroPairsSettleThreeWaveKillExperiencePerLastHitOnBothSides()
         {
             var player = FormBothHeroes(TeamSide.Player);
             var ai = FormBothHeroes(TeamSide.AI);
@@ -445,6 +445,16 @@ namespace DragonBound.Tests.EditMode
             Assert.IsTrue(match.TryTransition(MatchState.Ready));
             Assert.IsTrue(match.TryTransition(MatchState.Running));
             var runtime = new ThreeWaveSliceRuntime(match, player.Destination, ai.Destination);
+            var playerSettledXp = 0;
+            var aiSettledXp = 0;
+            runtime.CombatEmitted += combatEvent =>
+            {
+                if (combatEvent.Killed && combatEvent.DamageOwnerKind == CombatDamageOwnerKind.Hero)
+                {
+                    if (combatEvent.Team == TeamSide.Player) playerSettledXp += combatEvent.HeroXpAwarded;
+                    if (combatEvent.Team == TeamSide.AI) aiSettledXp += combatEvent.HeroXpAwarded;
+                }
+            };
             for (var tick = 0; tick < 900 && !runtime.IsComplete; tick++)
             {
                 runtime.Tick(0.1f);
@@ -454,16 +464,14 @@ namespace DragonBound.Tests.EditMode
             var aiPairs = ai.Destination.GetActiveHeroPairs();
             Assert.AreEqual(2, playerPairs.Count);
             Assert.AreEqual(2, aiPairs.Count);
-            Assert.GreaterOrEqual(playerPairs[0].PairLink.CombatProxy.Experience, 20);
-            Assert.AreEqual(
-                playerPairs[0].PairLink.CombatProxy.Experience,
-                playerPairs[1].PairLink.CombatProxy.Experience);
-            Assert.AreEqual(
-                aiPairs[0].PairLink.CombatProxy.Experience,
-                aiPairs[1].PairLink.CombatProxy.Experience);
-            Assert.AreEqual(
-                playerPairs[0].PairLink.CombatProxy.Experience,
-                aiPairs[0].PairLink.CombatProxy.Experience);
+            var playerTotalXp = playerPairs[0].PairLink.CombatProxy.Experience +
+                                playerPairs[1].PairLink.CombatProxy.Experience;
+            var aiTotalXp = aiPairs[0].PairLink.CombatProxy.Experience +
+                            aiPairs[1].PairLink.CombatProxy.Experience;
+            Assert.GreaterOrEqual(playerTotalXp, 20);
+            Assert.AreEqual(playerSettledXp, playerTotalXp);
+            Assert.AreEqual(aiSettledXp, aiTotalXp);
+            Assert.AreEqual(playerTotalXp, aiTotalXp);
         }
 
         [Test]

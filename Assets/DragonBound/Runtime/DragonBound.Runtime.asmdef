@@ -3,6 +3,16 @@
   "rootNamespace": "DragonBound",
   "references": [
     "GameShared.Runtime",
+    "DragonBound.Foundation.Contracts",
+    "DragonBound.Board.Contracts",
+    "DragonBound.Enemies.Contracts",
+    "DragonBound.Combat.Contracts",
+    "DragonBound.Heroes.Contracts",
+    "DragonBound.Bosses.Contracts",
+    "DragonBound.Bosses.Runtime",
+    "DragonBound.Recruitment.Runtime",
+    "DragonBound.Items.Runtime",
+    "DragonBound.Runes.Runtime",
     "Unity.UGUI"
   ],
   "includePlatforms": [],

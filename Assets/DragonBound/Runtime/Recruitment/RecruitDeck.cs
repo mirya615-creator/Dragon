@@ -4,13 +4,47 @@ using GameShared.Random;
 
 namespace DragonBound.Recruitment
 {
+    public enum RecruitComponentPolicy
+    {
+        V2 = 0,
+        V3 = 1
+    }
+
     [Serializable]
     public sealed class RecruitDeckState
     {
         public int RunSeed;
         public string RuntimePrefix;
         public int CompletedRecruitments;
+        public RecruitComponentPolicy ComponentPolicy;
         public LimitedComponentBagState ComponentBag;
+        public ShovelRecruitmentStateData ShovelState;
+    }
+
+    public readonly struct FiniteRecruitBatchTelemetry
+    {
+        public FiniteRecruitBatchTelemetry(
+            int recruitmentNumber,
+            int plannedComponentCount,
+            int deliveredComponentCount,
+            int basicUnitCount,
+            bool generatedShovel,
+            ShovelSpawnDecision shovelDecision)
+        {
+            RecruitmentNumber = recruitmentNumber;
+            PlannedComponentCount = plannedComponentCount;
+            DeliveredComponentCount = deliveredComponentCount;
+            BasicUnitCount = basicUnitCount;
+            GeneratedShovel = generatedShovel;
+            ShovelDecision = shovelDecision;
+        }
+
+        public int RecruitmentNumber { get; }
+        public int PlannedComponentCount { get; }
+        public int DeliveredComponentCount { get; }
+        public int BasicUnitCount { get; }
+        public bool GeneratedShovel { get; }
+        public ShovelSpawnDecision ShovelDecision { get; }
     }
 
     public sealed class RecruitDeck
@@ -22,8 +56,19 @@ namespace DragonBound.Recruitment
         private readonly bool heroSliceMode;
         private readonly IReadOnlyList<ComponentToken> componentSequence;
         private readonly LimitedComponentBag finiteComponentBag;
+        private readonly ShovelRecruitmentState shovelState;
         private readonly int finiteRunSeed;
+        private readonly RecruitComponentPolicy componentPolicy;
+        private readonly Func<int> currentWaveProvider;
         private int componentIndex;
+
+        private enum DynamicFiniteBatchKind
+        {
+            PureBasic,
+            OneComponent,
+            MultiComponent,
+            Shovel
+        }
 
         public RecruitDeck(
             RecruitmentCatalog catalog,
@@ -38,7 +83,10 @@ namespace DragonBound.Recruitment
                 enableHeroComponents,
                 heroSliceMode,
                 null,
-                0)
+                0,
+                null,
+                RecruitComponentPolicy.V2,
+                null)
         {
         }
 
@@ -48,7 +96,10 @@ namespace DragonBound.Recruitment
             string runtimePrefix,
             LimitedComponentBag componentBag,
             bool enableHeroComponents = true,
-            bool heroSliceMode = false)
+            bool heroSliceMode = false,
+            ShovelRecruitmentState shovelState = null,
+            RecruitComponentPolicy componentPolicy = RecruitComponentPolicy.V2,
+            Func<int> currentWaveProvider = null)
             : this(
                 catalog,
                 new RunRandom(DeriveSeed(runSeed, runtimePrefix, "legacy")),
@@ -56,7 +107,10 @@ namespace DragonBound.Recruitment
                 enableHeroComponents,
                 heroSliceMode,
                 componentBag,
-                runSeed)
+                runSeed,
+                shovelState,
+                componentPolicy,
+                currentWaveProvider)
         {
         }
 
@@ -67,7 +121,10 @@ namespace DragonBound.Recruitment
             bool enableHeroComponents,
             bool heroSliceMode,
             LimitedComponentBag componentBag,
-            int runSeed)
+            int runSeed,
+            ShovelRecruitmentState suppliedShovelState,
+            RecruitComponentPolicy componentPolicy,
+            Func<int> currentWaveProvider)
         {
             this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
             this.random = random ?? throw new ArgumentNullException(nameof(random));
@@ -94,7 +151,12 @@ namespace DragonBound.Recruitment
 
             this.heroSliceMode = heroSliceMode;
             finiteComponentBag = componentBag;
+            shovelState = componentBag != null
+                ? suppliedShovelState ?? new ShovelRecruitmentState()
+                : null;
             finiteRunSeed = runSeed;
+            this.componentPolicy = componentPolicy;
+            this.currentWaveProvider = currentWaveProvider;
             componentSequence = componentBag != null
                 ? new ComponentToken[0]
                 : !enableHeroComponents
@@ -121,6 +183,10 @@ namespace DragonBound.Recruitment
         public bool HeroSliceMode => heroSliceMode;
         public bool UsesFiniteComponentBag => finiteComponentBag != null;
         public LimitedComponentBag ComponentBag => finiteComponentBag;
+        public ShovelRecruitmentState ShovelState => shovelState;
+        public RecruitComponentPolicy ComponentPolicy => componentPolicy;
+        public bool HasLastFiniteBatchTelemetry { get; private set; }
+        public FiniteRecruitBatchTelemetry LastFiniteBatchTelemetry { get; private set; }
 
         public int GetRemainingHeroComponentCount(string configId)
         {
@@ -295,37 +361,73 @@ namespace DragonBound.Recruitment
                 RunSeed = finiteRunSeed,
                 RuntimePrefix = runtimePrefix,
                 CompletedRecruitments = CompletedRecruitments,
-                ComponentBag = finiteComponentBag.CaptureState()
+                ComponentPolicy = componentPolicy,
+                ComponentBag = finiteComponentBag.CaptureState(),
+                ShovelState = shovelState?.CaptureState()
             };
         }
 
         public static RecruitDeck RestoreFinite(
             RecruitmentCatalog catalog,
-            RecruitDeckState state)
+            RecruitDeckState state,
+            Func<int> lockedCellCountProvider = null,
+            Func<int> currentWaveProvider = null)
         {
             if (state == null || state.ComponentBag == null || string.IsNullOrWhiteSpace(state.RuntimePrefix))
             {
                 throw new ArgumentException("A complete finite recruitment deck state is required.", nameof(state));
             }
 
+            var restoredShovelState = new ShovelRecruitmentState(
+                lockedCellCountProvider ?? (() => state.ShovelState?.LockedCellCountAtCapture ?? int.MaxValue));
             var deck = new RecruitDeck(
                 catalog,
                 state.RunSeed,
                 state.RuntimePrefix,
-                LimitedComponentBag.Restore(catalog, state.ComponentBag));
+                LimitedComponentBag.Restore(catalog, state.ComponentBag),
+                shovelState: restoredShovelState,
+                componentPolicy: state.ComponentPolicy,
+                currentWaveProvider: currentWaveProvider);
             if (state.CompletedRecruitments < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(state));
             }
 
             deck.CompletedRecruitments = state.CompletedRecruitments;
+            if (state.ShovelState != null)
+            {
+                deck.shovelState.RestoreState(state.ShovelState);
+            }
             return deck;
         }
 
         private RecruitBatch BuildFiniteComponentBatch(bool consume)
         {
+            return componentPolicy == RecruitComponentPolicy.V3
+                ? BuildFiniteComponentBatchV3(consume)
+                : BuildFiniteComponentBatchV2(consume);
+        }
+
+        // This method is the preserved V2 transaction path. Keep its ordering and streams stable.
+        private RecruitBatch BuildFiniteComponentBatchV2(bool consume)
+        {
             var recruitmentNumber = CompletedRecruitments + 1;
-            var componentCount = GetFiniteComponentCount(recruitmentNumber);
+            var batchKind = DrawDynamicFiniteBatchKind(recruitmentNumber);
+            var plannedComponentCount = GetDynamicFiniteComponentCount(
+                recruitmentNumber,
+                batchKind,
+                FiniteComponentRecruitmentConfig.MaxComponentsPerBatch);
+            // Resolve the independent shovel decision before drawing from the finite bag. A
+            // successful shovel reserves one of the five positions and leaves another for a
+            // basic unit, so a planned four-component batch delivers three components instead.
+            // The deferred instance remains in the bag for later dynamic catch-up.
+            var shovelDecision = shovelState?.PreviewDecision(
+                recruitmentNumber,
+                CreateFiniteBatchRandom(ShovelRecruitmentConfig.RandomStreamId, recruitmentNumber));
+            var componentCapacity = shovelDecision.HasValue && shovelDecision.Value.ShouldSpawn
+                ? FiniteComponentRecruitmentConfig.MaxComponentsPerBatch - 1
+                : FiniteComponentRecruitmentConfig.MaxComponentsPerBatch;
+            var componentCount = Math.Min(plannedComponentCount, componentCapacity);
             var cards = new List<RecruitCard>(RecruitBatch.CardsPerRecruitment);
             var componentInstances = componentCount > 0
                 ? consume
@@ -342,6 +444,16 @@ namespace DragonBound.Recruitment
                     instance.ComponentInstanceId));
             }
 
+            if (shovelDecision.HasValue && shovelDecision.Value.ShouldSpawn)
+            {
+                cards.Add(CreateCard(
+                    recruitmentNumber,
+                    cards.Count,
+                    RecruitItemKind.Shovel,
+                    ShovelRecruitmentConfig.ShovelConfigId,
+                    string.Empty));
+            }
+
             var basicRandom = CreateFiniteBatchRandom("basic-unit", recruitmentNumber);
             while (cards.Count < RecruitBatch.CardsPerRecruitment)
             {
@@ -352,6 +464,100 @@ namespace DragonBound.Recruitment
             if (consume)
             {
                 CompletedRecruitments = recruitmentNumber;
+                if (shovelDecision.HasValue)
+                {
+                    shovelState.Commit(shovelDecision.Value);
+                }
+
+                HasLastFiniteBatchTelemetry = true;
+                LastFiniteBatchTelemetry = new FiniteRecruitBatchTelemetry(
+                    recruitmentNumber,
+                    plannedComponentCount,
+                    componentCount,
+                    CountCards(cards, RecruitItemKind.BasicUnit),
+                    shovelDecision.HasValue && shovelDecision.Value.ShouldSpawn,
+                    shovelDecision ?? default);
+            }
+
+            return new RecruitBatch(recruitmentNumber, cards);
+        }
+
+        private RecruitBatch BuildFiniteComponentBatchV3(bool consume)
+        {
+            var recruitmentNumber = CompletedRecruitments + 1;
+            var wave = ResolveV3Wave(recruitmentNumber);
+            var tier = DynamicComponentCatchupV3Config.GetTier(
+                recruitmentNumber,
+                wave,
+                finiteComponentBag.DrawnCount);
+            var weights = DynamicComponentCatchupV3Config.GetWeights(tier);
+            var componentRoll = CreateFiniteBatchRandom(
+                DynamicComponentCatchupV3Config.ComponentStreamId,
+                recruitmentNumber).NextUnit(DynamicComponentCatchupV3Config.ComponentContext);
+            var plannedComponentCount = DrawV3ComponentCount(componentRoll, weights);
+            var componentCount = Math.Min(
+                plannedComponentCount,
+                Math.Min(DynamicComponentCatchupV3Config.MaxComponentsPerRecruit, finiteComponentBag.RemainingCount));
+
+            var cards = new List<RecruitCard>(RecruitBatch.CardsPerRecruitment);
+            var componentInstances = componentCount > 0
+                ? consume
+                    ? finiteComponentBag.Draw(componentCount)
+                    : finiteComponentBag.Peek(componentCount)
+                : new HeroComponentInstanceDefinition[0];
+            foreach (var instance in componentInstances)
+            {
+                cards.Add(CreateCard(
+                    recruitmentNumber,
+                    cards.Count,
+                    RecruitItemKind.HeroComponent,
+                    instance.ComponentId,
+                    instance.ComponentInstanceId));
+            }
+
+            // V3 treats Forge Pick as an independent utility result. It occupies a basic slot
+            // only after the component count is fixed, so it cannot defer or discard a component.
+            var shovelDecision = shovelState?.PreviewDecision(
+                recruitmentNumber,
+                CreateFiniteBatchRandom(ShovelRecruitmentConfig.RandomStreamId, recruitmentNumber));
+            if (shovelDecision.HasValue && shovelDecision.Value.ShouldSpawn)
+            {
+                cards.Add(CreateCard(
+                    recruitmentNumber,
+                    cards.Count,
+                    RecruitItemKind.Shovel,
+                    ShovelRecruitmentConfig.ShovelConfigId,
+                    string.Empty));
+            }
+
+            var basicRandom = CreateFiniteBatchRandom("basic-unit", recruitmentNumber);
+            while (cards.Count < RecruitBatch.CardsPerRecruitment)
+            {
+                cards.Add(DrawBasicUnit(recruitmentNumber, cards.Count, basicRandom));
+            }
+
+            if (CountCards(cards, RecruitItemKind.BasicUnit) < FiniteComponentRecruitmentConfig.MinBasicUnitsPerBatch)
+            {
+                throw new InvalidOperationException("V3 finite recruitment must retain at least one basic unit.");
+            }
+
+            Shuffle(cards, CreateFiniteBatchRandom("slot-order", recruitmentNumber), "RecruitSlotOrder.v1");
+            if (consume)
+            {
+                CompletedRecruitments = recruitmentNumber;
+                if (shovelDecision.HasValue)
+                {
+                    shovelState.Commit(shovelDecision.Value);
+                }
+
+                HasLastFiniteBatchTelemetry = true;
+                LastFiniteBatchTelemetry = new FiniteRecruitBatchTelemetry(
+                    recruitmentNumber,
+                    plannedComponentCount,
+                    componentCount,
+                    CountCards(cards, RecruitItemKind.BasicUnit),
+                    shovelDecision.HasValue && shovelDecision.Value.ShouldSpawn,
+                    shovelDecision ?? default);
             }
 
             return new RecruitBatch(recruitmentNumber, cards);
@@ -382,48 +588,216 @@ namespace DragonBound.Recruitment
             return true;
         }
 
-        private int GetFiniteComponentCount(int recruitmentNumber)
+        private DynamicFiniteBatchKind DrawDynamicFiniteBatchKind(int recruitmentNumber)
         {
-            if (finiteComponentBag.IsExhausted ||
-                recruitmentNumber > FiniteComponentRecruitmentConfig.GuaranteedCompletionBatch)
+            if (finiteComponentBag.IsExhausted)
             {
-                return 0;
+                var emptyRoll = CreateFiniteBatchRandom(
+                    FiniteComponentRecruitmentConfig.DynamicKindStreamId,
+                    recruitmentNumber).NextUnit(FiniteComponentRecruitmentConfig.DynamicKindContext);
+                return emptyRoll < FiniteComponentRecruitmentConfig.BaseShovelWeight
+                    ? DynamicFiniteBatchKind.Shovel
+                    : DynamicFiniteBatchKind.PureBasic;
             }
 
-            if (recruitmentNumber == FiniteComponentRecruitmentConfig.GuaranteedCompletionBatch)
+            GetDynamicFiniteWeights(
+                out var pureBasicWeight,
+                out var oneComponentWeight,
+                out var multiComponentWeight,
+                out var shovelWeight);
+
+            var roll = CreateFiniteBatchRandom(
+                FiniteComponentRecruitmentConfig.DynamicKindStreamId,
+                recruitmentNumber).NextUnit(FiniteComponentRecruitmentConfig.DynamicKindContext);
+            if (roll < pureBasicWeight)
             {
-                return finiteComponentBag.RemainingCount;
+                return DynamicFiniteBatchKind.PureBasic;
             }
 
-            if (recruitmentNumber > FiniteComponentRecruitmentConfig.NormalProbabilityBatchCount)
+            roll -= pureBasicWeight;
+            if (roll < oneComponentWeight)
             {
-                return 0;
+                return DynamicFiniteBatchKind.OneComponent;
             }
 
-            var probabilityRandom = CreateFiniteBatchRandom("component-count", recruitmentNumber);
-            var requested = probabilityRandom.NextUnit("RecruitComponentCount.v1") <
-                            FiniteComponentRecruitmentConfig.ThreeComponentBatchChance
-                ? FiniteComponentRecruitmentConfig.NormalMaxComponentsPerBatch
-                : FiniteComponentRecruitmentConfig.NormalMinComponentsPerBatch;
-            return ResolveFiniteComponentCount(requested, finiteComponentBag.RemainingCount);
+            roll -= oneComponentWeight;
+            return roll < multiComponentWeight
+                ? DynamicFiniteBatchKind.MultiComponent
+                : DynamicFiniteBatchKind.Shovel;
         }
 
-        private static int ResolveFiniteComponentCount(int requested, int remainingCount)
+        private int ResolveV3Wave(int recruitmentNumber)
         {
-            if (remainingCount <= 0)
+            if (currentWaveProvider != null)
+            {
+                return Math.Max(1, currentWaveProvider());
+            }
+
+            // Standalone decks and diagnostics use the documented Rn -> Wn mapping.
+            return Math.Max(1, recruitmentNumber);
+        }
+
+        private static int DrawV3ComponentCount(
+            float roll,
+            DynamicComponentCatchupV3Weights weights)
+        {
+            if (roll < weights.PureBasic)
             {
                 return 0;
             }
 
-            var count = Math.Min(requested, remainingCount);
-            // Keep normal batches at two or three components whenever possible. This prevents
-            // a previous three-component draw from stranding a single component before batch 11.
-            if (remainingCount - count == 1)
+            roll -= weights.PureBasic;
+            if (roll < weights.OneComponent)
             {
-                count = count == FiniteComponentRecruitmentConfig.NormalMaxComponentsPerBatch
-                    ? FiniteComponentRecruitmentConfig.NormalMinComponentsPerBatch
-                    : FiniteComponentRecruitmentConfig.NormalMaxComponentsPerBatch;
-                count = Math.Min(count, remainingCount);
+                return 1;
+            }
+
+            roll -= weights.OneComponent;
+            return roll < weights.TwoComponents
+                ? 2
+                : DynamicComponentCatchupV3Config.MaxComponentsPerRecruit;
+        }
+
+        private int GetDynamicFiniteComponentCount(
+            int recruitmentNumber,
+            DynamicFiniteBatchKind batchKind,
+            int maximumComponents)
+        {
+            if (finiteComponentBag.RemainingCount <= 0)
+            {
+                return 0;
+            }
+
+            switch (batchKind)
+            {
+                case DynamicFiniteBatchKind.OneComponent:
+                    return Math.Min(1, Math.Min(maximumComponents, finiteComponentBag.RemainingCount));
+                case DynamicFiniteBatchKind.MultiComponent:
+                    return Math.Min(
+                        DrawDynamicMultiComponentCount(recruitmentNumber),
+                        Math.Min(maximumComponents, finiteComponentBag.RemainingCount));
+                default:
+                    return 0;
+            }
+        }
+
+        private void GetDynamicFiniteWeights(
+            out float pureBasicWeight,
+            out float oneComponentWeight,
+            out float multiComponentWeight,
+            out float shovelWeight)
+        {
+            shovelWeight = FiniteComponentRecruitmentConfig.BaseShovelWeight;
+            pureBasicWeight = FiniteComponentRecruitmentConfig.BasePureBasicWeight;
+            oneComponentWeight = FiniteComponentRecruitmentConfig.BaseOneComponentWeight;
+            multiComponentWeight = FiniteComponentRecruitmentConfig.BaseMultiComponentWeight;
+
+            var catchupPressure = GetDynamicCatchupPressure();
+            if (catchupPressure <= 0f)
+            {
+                return;
+            }
+
+            var pureTransfer = pureBasicWeight * catchupPressure;
+            pureBasicWeight -= pureTransfer;
+            multiComponentWeight += pureTransfer;
+
+            var oneTransferPressure = Clamp01(
+                (catchupPressure - FiniteComponentRecruitmentConfig.OneComponentTransferPressureFloor) /
+                (1f - FiniteComponentRecruitmentConfig.OneComponentTransferPressureFloor));
+            var oneTransfer = oneComponentWeight * oneTransferPressure;
+            oneComponentWeight -= oneTransfer;
+            multiComponentWeight += oneTransfer;
+
+            NormalizeDynamicWeights(
+                ref pureBasicWeight,
+                ref oneComponentWeight,
+                ref multiComponentWeight,
+                ref shovelWeight);
+        }
+
+        private int DrawDynamicMultiComponentCount(int recruitmentNumber)
+        {
+            var pressure = GetDynamicCatchupPressure();
+            var weightTwo = 0.34f * (1f - pressure);
+            var weightThree = 0.33f * (1f - 0.75f * pressure);
+            var weightFour = 0.33f + 0.5875f * pressure;
+            var total = weightTwo + weightThree + weightFour;
+
+            var roll = CreateFiniteBatchRandom(
+                FiniteComponentRecruitmentConfig.DynamicMultiCountStreamId,
+                recruitmentNumber).NextUnit(FiniteComponentRecruitmentConfig.DynamicMultiCountContext) * total;
+            if (roll < weightTwo)
+            {
+                return 2;
+            }
+
+            return roll < weightTwo + weightThree ? 3 : 4;
+        }
+
+        private float GetDynamicCatchupPressure()
+        {
+            if (CompletedRecruitments < FiniteComponentRecruitmentConfig.OpeningProtectedRecruitCount)
+            {
+                return 0f;
+            }
+
+            var deliveredComponents = finiteComponentBag.DrawnCount;
+            var protectedExpected = FiniteComponentRecruitmentConfig.BaseExpectedComponentsPerRecruit *
+                                    FiniteComponentRecruitmentConfig.OpeningProtectedRecruitCount;
+            var catchupRecruitOrdinal = CompletedRecruitments -
+                                        FiniteComponentRecruitmentConfig.OpeningProtectedRecruitCount + 1;
+            var allowedAfterCurrentRecruit = protectedExpected +
+                                             FiniteComponentRecruitmentConfig.CatchupAllowedComponentsPerRecruit *
+                                             catchupRecruitOrdinal;
+            var projectedAfterNormalBaseRecruit = deliveredComponents +
+                                                  FiniteComponentRecruitmentConfig.BaseExpectedComponentsPerRecruit;
+            var lag = allowedAfterCurrentRecruit - projectedAfterNormalBaseRecruit;
+            return Clamp01(lag / FiniteComponentRecruitmentConfig.CatchupFullPressureLag);
+        }
+
+        private static void NormalizeDynamicWeights(
+            ref float pureBasicWeight,
+            ref float oneComponentWeight,
+            ref float multiComponentWeight,
+            ref float shovelWeight)
+        {
+            pureBasicWeight = Math.Max(0f, pureBasicWeight);
+            oneComponentWeight = Math.Max(0f, oneComponentWeight);
+            multiComponentWeight = Math.Max(0f, multiComponentWeight);
+            shovelWeight = Math.Max(0f, shovelWeight);
+            var total = pureBasicWeight + oneComponentWeight + multiComponentWeight + shovelWeight;
+            if (total <= 0f)
+            {
+                pureBasicWeight = 1f;
+                return;
+            }
+
+            pureBasicWeight /= total;
+            oneComponentWeight /= total;
+            multiComponentWeight /= total;
+            shovelWeight /= total;
+        }
+
+        private static float Clamp01(float value)
+        {
+            if (value <= 0f)
+            {
+                return 0f;
+            }
+
+            return value >= 1f ? 1f : value;
+        }
+
+        private static int CountCards(IReadOnlyList<RecruitCard> cards, RecruitItemKind kind)
+        {
+            var count = 0;
+            foreach (var card in cards)
+            {
+                if (card.Kind == kind)
+                {
+                    count++;
+                }
             }
 
             return count;

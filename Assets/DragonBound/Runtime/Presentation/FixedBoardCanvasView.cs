@@ -27,7 +27,7 @@ namespace DragonBound.Presentation
         private readonly Dictionary<string, FixedBoardMapArtSlot> mapArtSlots =
             new Dictionary<string, FixedBoardMapArtSlot>(StringComparer.Ordinal);
 
-        [SerializeField] private string layoutId;
+        [SerializeField] private bool authoredLayout;
         [SerializeField] private RectTransform screenRoot;
         [SerializeField] private RectTransform boardRect;
         [SerializeField] private RectTransform terrainLayer;
@@ -36,6 +36,7 @@ namespace DragonBound.Presentation
         [SerializeField] private RectTransform laneLayer;
         [SerializeField] private RectTransform unitLayer;
         [SerializeField] private RectTransform combatFxLayer;
+        [SerializeField] private BoardBackgroundClickReceiver backgroundClickReceiver;
         [SerializeField] private RectTransform overlayLayer;
         [SerializeField] private RectTransform centerDivider;
         [SerializeField] private BoardDebugOverlay debugOverlay;
@@ -43,11 +44,13 @@ namespace DragonBound.Presentation
         private FixedBoardLayoutDefinition layout;
 
         public FixedBoardLayoutDefinition Layout => layout;
+        public bool IsAuthoredLayout => authoredLayout;
         public RectTransform BoardRect => boardRect;
         public RectTransform LaneLayer => laneLayer;
         public RectTransform UnitLayer => unitLayer;
         public RectTransform CombatFxLayer => combatFxLayer;
         public RectTransform OverlayLayer => overlayLayer;
+        public event Action BackgroundClicked;
         /// <summary>
         /// Development-only, non-interactive map inspection layer. It is created disabled and
         /// is excluded from the formal UI hierarchy.
@@ -96,14 +99,18 @@ namespace DragonBound.Presentation
                 throw new ArgumentNullException(nameof(authoredCellTemplate));
             }
 
-            var existing = targetScreenRoot.Find("ART_FixedBoardCanvas");
+            var existing = targetScreenRoot.Find("ART_FixedBoardCanvasRuntime");
             if (existing != null && existing.TryGetComponent<FixedBoardCanvasView>(out var existingView))
             {
-                existingView.BindAuthoredLayout(definition);
+                if (existingView.layout != definition)
+                {
+                    throw new InvalidOperationException("A fixed board canvas cannot switch layouts during a match.");
+                }
+
                 return existingView;
             }
 
-            var root = new GameObject("ART_FixedBoardCanvas", typeof(RectTransform), typeof(FixedBoardCanvasView));
+            var root = new GameObject("ART_FixedBoardCanvasRuntime", typeof(RectTransform), typeof(FixedBoardCanvasView));
             root.transform.SetParent(targetScreenRoot, false);
             var result = root.GetComponent<FixedBoardCanvasView>();
             result.Initialize(targetScreenRoot, definition, authoredCellTemplate);
@@ -111,44 +118,36 @@ namespace DragonBound.Presentation
         }
 
         /// <summary>
-        /// Binds gameplay state to a board already authored and saved in the screen prefab.
-        /// This method deliberately does not create objects or change RectTransforms, sprites,
-        /// colors, hierarchy, or other artist-owned presentation values.
+        /// Binds gameplay to the fixed board already serialized in the scene/prefab. This path
+        /// deliberately does not create, resize, reposition or restyle any authored UI object.
         /// </summary>
-        public void BindAuthoredLayout(FixedBoardLayoutDefinition definition)
+        public void BindAuthored(RectTransform targetScreenRoot, FixedBoardLayoutDefinition definition)
         {
-            if (definition == null)
-            {
-                throw new ArgumentNullException(nameof(definition));
-            }
-
-            if (!string.IsNullOrWhiteSpace(layoutId) &&
-                !string.Equals(layoutId, definition.LayoutId, StringComparison.Ordinal))
+            if (!authoredLayout)
             {
                 throw new InvalidOperationException(
-                    $"Authored fixed board layout '{layoutId}' cannot bind runtime layout '{definition.LayoutId}'.");
+                    "Greybox_Main requires an authored fixed board. Run the UI authoring migration in the Editor.");
             }
 
+            if (targetScreenRoot == null) throw new ArgumentNullException(nameof(targetScreenRoot));
+            if (definition == null) throw new ArgumentNullException(nameof(definition));
+
+            screenRoot = targetScreenRoot;
             layout = definition;
-            layoutId = definition.LayoutId;
-            screenRoot = screenRoot != null ? screenRoot : transform.parent as RectTransform;
             boardRect = boardRect != null ? boardRect : (RectTransform)transform;
             ResolveAuthoredReferences();
             RebuildAuthoredLookups();
+            if (backgroundClickReceiver != null)
+            {
+                backgroundClickReceiver.Clicked -= HandleBackgroundClicked;
+                backgroundClickReceiver.Clicked += HandleBackgroundClicked;
+            }
         }
 
-        /// <summary>
-        /// Editor-bake operation. Saves board bounds for the project's reference resolution;
-        /// runtime binding never recalculates or overwrites these authored values.
-        /// </summary>
-        public void BakeReferenceBounds(Vector2 referenceResolution)
+        /// <summary>Editor-authoring seam. Call only after the generated preview hierarchy is saved.</summary>
+        public void MarkAsAuthored()
         {
-            if (referenceResolution.x <= 0f || referenceResolution.y <= 0f)
-            {
-                throw new ArgumentOutOfRangeException(nameof(referenceResolution));
-            }
-
-            RefreshBoardBounds(referenceResolution);
+            authoredLayout = true;
         }
 
         public bool TryGetCellView(GridPosition position, out GridCellView cellView)
@@ -205,23 +204,43 @@ namespace DragonBound.Presentation
                 throw new ArgumentNullException(nameof(authoredRoadTemplate));
             }
 
+            ClearLaneArt(side);
             var waypoints = side == TeamSide.Player
                 ? definition.PlayerLaneWaypoints
                 : definition.AiLaneWaypoints;
-            if (laneArt.TryGetValue(side, out var authoredInstances) &&
-                authoredInstances.Count == waypoints.Count - 2)
+            var instances = new List<RectTransform>();
+            if (authoredLayout)
             {
+                var slots = roadLayer.GetComponentsInChildren<FixedBoardMapArtSlot>(true);
+                for (var index = 1; index < waypoints.Count - 1; index++)
+                {
+                    var position = waypoints[index];
+                    var slotId = FixedBoardArtContract.GetLaneSurfaceSlot(
+                        layout,
+                        side == TeamSide.Player ? FixedBoardCellOwner.Player : FixedBoardCellOwner.AI,
+                        position);
+                    FixedBoardMapArtSlot match = null;
+                    foreach (var slot in slots)
+                    {
+                        if (slot != null && string.Equals(slot.ArtSlotId, slotId, StringComparison.Ordinal))
+                        {
+                            match = slot;
+                            break;
+                        }
+                    }
+
+                    if (match == null)
+                    {
+                        throw new InvalidOperationException($"Authored road art is missing: {slotId}");
+                    }
+
+                    instances.Add((RectTransform)match.transform);
+                }
+
+                laneArt.Add(side, instances);
                 return;
             }
 
-            if (Application.isPlaying)
-            {
-                throw new InvalidOperationException(
-                    $"The {side} lane art is missing from the authored fixed-board prefab. Re-bake the editable board.");
-            }
-
-            ClearLaneArt(side);
-            var instances = new List<RectTransform>();
             for (var index = 1; index < waypoints.Count - 1; index++)
             {
                 var position = waypoints[index];
@@ -280,7 +299,6 @@ namespace DragonBound.Presentation
         {
             screenRoot = targetScreenRoot;
             layout = definition;
-            layoutId = definition.LayoutId;
             boardRect = (RectTransform)transform;
             PlaceBelowRuntimeUnits();
             CreateLayers();
@@ -292,123 +310,50 @@ namespace DragonBound.Presentation
             RefreshBoardBounds();
         }
 
-        private void ResolveAuthoredReferences()
-        {
-            terrainLayer = ResolveRect(terrainLayer, boardRect, "ART_FixedBoardTerrainLayer");
-            cellLayer = ResolveRect(cellLayer, boardRect, "ART_FixedBoardCellLayer");
-            roadLayer = ResolveRect(roadLayer, boardRect, "ART_FixedBoardRoadLayer");
-            laneLayer = ResolveRect(laneLayer, boardRect, "ART_FixedBoardLaneLayer");
-            unitLayer = ResolveRect(unitLayer, boardRect, "ART_FixedBoardUnitLayer");
-            combatFxLayer = ResolveRect(combatFxLayer, boardRect, "ART_FixedBoardCombatFxLayer");
-            overlayLayer = ResolveRect(overlayLayer, screenRoot, "ART_FixedBoardOverlay");
-            centerDivider = ResolveRect(centerDivider, terrainLayer, "ART_CenterDivider");
-            if (debugOverlay == null && overlayLayer != null)
-            {
-                debugOverlay = overlayLayer.GetComponentInChildren<BoardDebugOverlay>(true);
-            }
-
-            if (terrainLayer == null || cellLayer == null || roadLayer == null ||
-                laneLayer == null || unitLayer == null || combatFxLayer == null || overlayLayer == null)
-            {
-                throw new InvalidOperationException(
-                    "The authored fixed-board prefab is incomplete. Re-bake it before entering Play mode.");
-            }
-        }
-
-        private void RebuildAuthoredLookups()
-        {
-            cellViews.Clear();
-            visualCells.Clear();
-            laneArt.Clear();
-            mapArtSlots.Clear();
-
-            foreach (var cell in boardRect.GetComponentsInChildren<GridCellView>(true))
-            {
-                if (cell == null || !layout.TryGetCellDefinition(cell.Position, out var definition))
-                {
-                    continue;
-                }
-
-                cell.BindAuthoredFixedBoardDefinition(definition);
-                if (!visualCells.TryAdd(cell.Position, cell))
-                {
-                    throw new InvalidOperationException($"Duplicate authored fixed-board cell at {cell.Position}.");
-                }
-
-                if (definition.Role == FixedBoardCellRole.Deployment)
-                {
-                    cellViews.Add(cell.Position, cell);
-                }
-            }
-
-            if (visualCells.Count != layout.Columns * layout.Rows)
-            {
-                throw new InvalidOperationException(
-                    $"Authored fixed board has {visualCells.Count} cells; expected {layout.Columns * layout.Rows}.");
-            }
-
-            AddMapArtSlots(boardRect);
-            AddMapArtSlots(overlayLayer);
-
-            RebuildLaneArtLookup(TeamSide.Player, layout.PlayerLaneWaypoints);
-            RebuildLaneArtLookup(TeamSide.AI, layout.AiLaneWaypoints);
-        }
-
-        private void RebuildLaneArtLookup(TeamSide side, IReadOnlyList<GridPosition> waypoints)
-        {
-            var owner = side == TeamSide.Player
-                ? FixedBoardCellOwner.Player
-                : FixedBoardCellOwner.AI;
-            var instances = new List<RectTransform>();
-            for (var index = 1; index < waypoints.Count - 1; index++)
-            {
-                var slotId = FixedBoardArtContract.GetLaneSurfaceSlot(layout, owner, waypoints[index]);
-                if (mapArtSlots.TryGetValue(slotId, out var slot))
-                {
-                    instances.Add((RectTransform)slot.transform);
-                }
-            }
-
-            laneArt[side] = instances;
-        }
-
-        private void AddMapArtSlots(RectTransform root)
-        {
-            if (root == null)
-            {
-                return;
-            }
-
-            foreach (var slot in root.GetComponentsInChildren<FixedBoardMapArtSlot>(true))
-            {
-                if (slot != null && !string.IsNullOrWhiteSpace(slot.ArtSlotId))
-                {
-                    mapArtSlots[slot.ArtSlotId] = slot;
-                }
-            }
-        }
-
-        private static RectTransform ResolveRect(
-            RectTransform current,
-            RectTransform parent,
-            string childName)
-        {
-            if (current != null || parent == null)
-            {
-                return current;
-            }
-
-            return parent.Find(childName) as RectTransform;
-        }
-
         private void CreateLayers()
         {
             terrainLayer = CreateRuntimeLayer("ART_FixedBoardTerrainLayer", boardRect);
             cellLayer = CreateRuntimeLayer("ART_FixedBoardCellLayer", boardRect);
+            CreateBackgroundClickSurface();
             roadLayer = CreateRuntimeLayer("ART_FixedBoardRoadLayer", boardRect);
             laneLayer = CreateRuntimeLayer("ART_FixedBoardLaneLayer", boardRect);
             unitLayer = CreateRuntimeLayer("ART_FixedBoardUnitLayer", boardRect);
             combatFxLayer = CreateRuntimeLayer("ART_FixedBoardCombatFxLayer", boardRect);
+        }
+
+        private void CreateBackgroundClickSurface()
+        {
+            var surface = new GameObject(
+                "BoardBackgroundClickSurface",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image));
+            var rect = surface.GetComponent<RectTransform>();
+            rect.SetParent(cellLayer, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            rect.SetAsFirstSibling();
+
+            var image = surface.GetComponent<Image>();
+            image.color = Color.clear;
+            image.raycastTarget = true;
+            backgroundClickReceiver = surface.AddComponent<BoardBackgroundClickReceiver>();
+            backgroundClickReceiver.Clicked += HandleBackgroundClicked;
+        }
+
+        private void HandleBackgroundClicked()
+        {
+            BackgroundClicked?.Invoke();
+        }
+
+        private void OnDestroy()
+        {
+            if (backgroundClickReceiver != null)
+            {
+                backgroundClickReceiver.Clicked -= HandleBackgroundClicked;
+            }
         }
 
         private void CreateMapArtSlots()
@@ -553,13 +498,8 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            RefreshBoardBounds(screenRoot.rect.size);
-        }
-
-        private void RefreshBoardBounds(Vector2 screenSize)
-        {
-            var availableWidth = screenSize.x * (1f - (HorizontalMargin * 2f));
-            var availableHeight = screenSize.y * (ArenaMaxY - ArenaMinY);
+            var availableWidth = screenRoot.rect.width * (1f - (HorizontalMargin * 2f));
+            var availableHeight = screenRoot.rect.height * (ArenaMaxY - ArenaMinY);
             var cellSize = Mathf.Min(availableWidth / layout.Columns, availableHeight / layout.Rows);
             var size = new Vector2(cellSize * layout.Columns, cellSize * layout.Rows);
             var center = new Vector2(0.5f, (ArenaMinY + ArenaMaxY) * 0.5f);
@@ -595,15 +535,92 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            foreach (var instance in existing)
+            if (!authoredLayout)
             {
-                if (instance != null)
+                foreach (var instance in existing)
                 {
-                    Destroy(instance.gameObject);
+                    if (instance != null)
+                    {
+                        Destroy(instance.gameObject);
+                    }
                 }
             }
 
             laneArt.Remove(side);
+        }
+
+        private void ResolveAuthoredReferences()
+        {
+            terrainLayer = RequireRect(terrainLayer, transform, "ART_FixedBoardTerrainLayer");
+            cellLayer = RequireRect(cellLayer, transform, "ART_FixedBoardCellLayer");
+            roadLayer = RequireRect(roadLayer, transform, "ART_FixedBoardRoadLayer");
+            laneLayer = RequireRect(laneLayer, transform, "ART_FixedBoardLaneLayer");
+            unitLayer = RequireRect(unitLayer, transform, "ART_FixedBoardUnitLayer");
+            combatFxLayer = RequireRect(combatFxLayer, transform, "ART_FixedBoardCombatFxLayer");
+            overlayLayer = RequireRect(overlayLayer, screenRoot, "ART_FixedBoardOverlay");
+            centerDivider = centerDivider != null
+                ? centerDivider
+                : terrainLayer.Find("ART_CenterDivider") as RectTransform;
+            backgroundClickReceiver = backgroundClickReceiver != null
+                ? backgroundClickReceiver
+                : cellLayer.GetComponentInChildren<BoardBackgroundClickReceiver>(true);
+            debugOverlay = debugOverlay != null
+                ? debugOverlay
+                : overlayLayer.GetComponentInChildren<BoardDebugOverlay>(true);
+            if (centerDivider == null || backgroundClickReceiver == null)
+            {
+                throw new InvalidOperationException("The authored fixed board hierarchy is incomplete.");
+            }
+        }
+
+        private void RebuildAuthoredLookups()
+        {
+            cellViews.Clear();
+            visualCells.Clear();
+            mapArtSlots.Clear();
+            laneArt.Clear();
+
+            foreach (var cell in boardRect.GetComponentsInChildren<GridCellView>(true))
+            {
+                if (cell == null || !layout.TryGetCellDefinition(cell.Position, out var definition)) continue;
+                if (visualCells.ContainsKey(cell.Position))
+                {
+                    throw new InvalidOperationException($"Duplicate authored fixed-board cell: {cell.Position}");
+                }
+
+                cell.BindAuthoredFixedBoardDefinition(definition);
+                visualCells.Add(cell.Position, cell);
+                if (definition.Role == FixedBoardCellRole.Deployment)
+                {
+                    cellViews.Add(cell.Position, cell);
+                }
+            }
+
+            if (visualCells.Count != layout.CellDefinitions.Count || cellViews.Count != 48)
+            {
+                throw new InvalidOperationException(
+                    $"Authored fixed board does not match {layout.LayoutId}. " +
+                    $"Semantic={visualCells.Count}/{layout.CellDefinitions.Count} Deployment={cellViews.Count}/48");
+            }
+
+            RegisterMapArtSlots(boardRect);
+            RegisterMapArtSlots(overlayLayer);
+        }
+
+        private void RegisterMapArtSlots(RectTransform root)
+        {
+            foreach (var slot in root.GetComponentsInChildren<FixedBoardMapArtSlot>(true))
+            {
+                if (slot == null || string.IsNullOrWhiteSpace(slot.ArtSlotId)) continue;
+                if (!mapArtSlots.ContainsKey(slot.ArtSlotId)) mapArtSlots.Add(slot.ArtSlotId, slot);
+            }
+        }
+
+        private static RectTransform RequireRect(RectTransform current, Transform parent, string name)
+        {
+            var result = current != null ? current : parent.Find(name) as RectTransform;
+            if (result == null) throw new InvalidOperationException($"Authored fixed-board node is missing: {name}");
+            return result;
         }
 
         private static RectTransform CreateRuntimeLayer(string name, Transform parent)

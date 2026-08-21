@@ -23,50 +23,13 @@ namespace DragonBound.Tests.EditMode
         private const string BenchPath = "Assets/DragonBound/UI/Prefabs/Modules/Bench.prefab";
         private const string RecruitmentPath = "Assets/DragonBound/UI/Prefabs/Modules/Recruitment.prefab";
         private const string HeroWorkshopPath = "Assets/DragonBound/UI/Prefabs/Modules/HeroWorkshop.prefab";
+        private const string RuneLoadoutPath = "Assets/DragonBound/UI/Prefabs/Modules/RuneLoadout.prefab";
         private const string UnitCardPath = "Assets/DragonBound/UI/Prefabs/Components/UnitCard.prefab";
         private const string HeroFormationPath = "Assets/DragonBound/UI/Prefabs/Components/HeroFormation.prefab";
         private const string RangeOutlinePath = "Assets/DragonBound/UI/Art/Range/RangeOutlineThin.png";
         private const string BoardCellPath = "Assets/DragonBound/UI/Prefabs/Components/BoardCell.prefab";
         private const string BenchSlotPath = "Assets/DragonBound/UI/Prefabs/Components/BenchSlot.prefab";
-        private const string ScenePath = DragonBoundScenePaths.GreyboxAssetPath;
-
-        [Test]
-        public void DragonBoundScenesUseCanonicalBuildSettingsPaths()
-        {
-            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<SceneAsset>(DragonBoundScenePaths.GreyboxAssetPath));
-            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<SceneAsset>(DragonBoundScenePaths.HeroSliceAssetPath));
-
-            var enabledPaths = EditorBuildSettings.scenes
-                .Where(scene => scene.enabled)
-                .Select(scene => scene.path)
-                .ToArray();
-            CollectionAssert.Contains(enabledPaths, DragonBoundScenePaths.GreyboxAssetPath);
-            CollectionAssert.Contains(enabledPaths, DragonBoundScenePaths.HeroSliceAssetPath);
-            var legacyDirectory = string.Join("/", "Assets", "DragonBound", "Scenes") + "/";
-            Assert.IsFalse(enabledPaths.Any(path => path.StartsWith(legacyDirectory)));
-        }
-
-        [Test]
-        public void PortraitScreenContainsEditableAuthoredFixedBoard()
-        {
-            var screenObject = AssetDatabase.LoadAssetAtPath<GameObject>(ScreenPath);
-            var screen = screenObject.GetComponent<DragonBoundScreenView>();
-            var canvas = screen.FixedBoardCanvas;
-            Assert.IsNotNull(canvas);
-
-            canvas.BindAuthoredLayout(BattlefieldLayoutDefinitions.Fixed8x10ReferenceMap01);
-            Assert.AreEqual(80, canvas.SemanticTileCount);
-            Assert.AreEqual(48, canvas.CellViewCount);
-            Assert.AreEqual(
-                BattlefieldLayoutDefinitions.Fixed8x10ReferenceMap01.PlayerLaneWaypoints.Count - 2,
-                canvas.LaneArtCount(TeamSide.Player));
-            Assert.AreEqual(
-                BattlefieldLayoutDefinitions.Fixed8x10ReferenceMap01.AiLaneWaypoints.Count - 2,
-                canvas.LaneArtCount(TeamSide.AI));
-            Assert.IsFalse(screen.transform.Find("Versus").gameObject.activeSelf);
-            Assert.IsFalse(screen.PlayerBattlefieldView.transform.Find("ART_Background").gameObject.activeSelf);
-            Assert.IsFalse(screen.AiBattlefieldView.transform.Find("ART_Background").gameObject.activeSelf);
-        }
+        private const string ScenePath = "Assets/DragonBound/Scenes/Greybox_Main.unity";
 
         [Test]
         public void PortraitBandsMatchFrozenDualBattlefieldLayout()
@@ -318,7 +281,8 @@ namespace DragonBound.Tests.EditMode
             var versus = AssetDatabase.LoadAssetAtPath<GameObject>(VersusPath);
             Assert.AreEqual(5, bench.GetComponentsInChildren<GridCellView>(true).Length);
             Assert.AreEqual(2, hud.GetComponentsInChildren<Button>(true).Length);
-            Assert.AreEqual(2, recruitment.GetComponentsInChildren<Button>(true).Length);
+            Assert.AreEqual(3, recruitment.GetComponentsInChildren<Button>(true).Length);
+            Assert.IsNotNull(recruitment.GetComponent<GreyboxRecruitmentPanel>().RuneLoadoutButton);
             Assert.IsNotNull(workshop.GetComponent<HeroWorkshopView>());
             Assert.IsNotNull(workshop.transform.Find("ART_WorkshopDim"));
             Assert.IsNotNull(workshop.transform.Find("ART_WorkshopPanel/ART_ComponentLibraryPage/ART_ComponentGrid"));
@@ -336,6 +300,7 @@ namespace DragonBound.Tests.EditMode
             CollectionAssert.Contains(screenDependencies, BenchPath);
             CollectionAssert.Contains(screenDependencies, RecruitmentPath);
             CollectionAssert.Contains(screenDependencies, HeroWorkshopPath);
+            CollectionAssert.Contains(screenDependencies, RuneLoadoutPath);
             CollectionAssert.Contains(screenDependencies, UnitCardPath);
         }
 

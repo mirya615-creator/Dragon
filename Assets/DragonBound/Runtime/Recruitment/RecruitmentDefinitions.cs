@@ -8,7 +8,8 @@ namespace DragonBound.Recruitment
     public enum RecruitItemKind
     {
         BasicUnit,
-        HeroComponent
+        HeroComponent,
+        Shovel
     }
 
     public enum HeroRecipeRarity

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using DragonBound.Core;
 using DragonBound.Recruitment;
+using DragonBound.Runes;
+using GameShared.Random;
 
 namespace DragonBound.Combat
 {
-    public readonly struct HeroDamageResult
+    public readonly struct HeroDamageResult : IDamageResultPort
     {
         public HeroDamageResult(
             AttackKind kind,
@@ -14,7 +16,10 @@ namespace DragonBound.Combat
             float damage,
             bool killed,
             float effectDuration = 0f,
-            float effectRadius = 0f)
+            float effectRadius = 0f,
+            bool isRuneDerived = false,
+            float shieldDamage = 0f,
+            float healthDamage = 0f)
         {
             Kind = kind;
             Target = target;
@@ -22,14 +27,21 @@ namespace DragonBound.Combat
             Killed = killed;
             EffectDuration = effectDuration;
             EffectRadius = effectRadius;
+            IsRuneDerived = isRuneDerived;
+            ShieldDamage = shieldDamage;
+            HealthDamage = healthDamage;
         }
 
         public AttackKind Kind { get; }
         public EnemyRuntime Target { get; }
+        public string TargetRuntimeId => Target == null ? string.Empty : Target.RuntimeId;
         public float Damage { get; }
         public bool Killed { get; }
         public float EffectDuration { get; }
         public float EffectRadius { get; }
+        public bool IsRuneDerived { get; }
+        public float ShieldDamage { get; }
+        public float HealthDamage { get; }
     }
 
     internal readonly struct AbyssHarpoonDirectionSelection
@@ -49,7 +61,7 @@ namespace DragonBound.Combat
         public IReadOnlyList<EnemyRuntime> Targets { get; }
     }
 
-    public sealed class HeroProgressionState
+    public sealed class HeroProgressionState : IHeroProgression
     {
         private readonly HeroDefinition definition;
 
@@ -122,6 +134,10 @@ namespace DragonBound.Combat
         private bool skyhunterRadianceActive;
         private float skyhunterRadianceElapsed;
         private string skyhunterRadiancePrimaryRuntimeId;
+        private RuneDefinition runeDefinition;
+        private float temporaryRuneAttackSpeedMultiplier = 1f;
+        private float temporaryRuneAttackSpeedRemaining;
+        private readonly List<EnemyRuntime> basicAttackSucceededTargets = new List<EnemyRuntime>();
 
         public HeroCombatState(string heroId, bool formationComplete = false)
             : this(
@@ -188,7 +204,31 @@ namespace DragonBound.Combat
         public int SkyHuntStacks => skyHuntStacks;
         public string SkyHuntTargetRuntimeId => skyHuntTargetRuntimeId;
         public string CurrentTargetRuntimeId { get; private set; }
-        public float Attack => definition.BaseAttack * definition.GetLevelStats(Level).AttackMultiplier;
+        public float Attack
+        {
+            get
+            {
+                var input = new RuneModifierInput
+                {
+                    BaseAttackDamage = definition.BaseAttack,
+                    HeroLevelMultiplier = definition.GetLevelStats(Level).AttackMultiplier
+                };
+                return RuneModifierPipeline.Evaluate(input, runeDefinition).AttackDamage;
+            }
+        }
+
+        private float RuneModifiedBaseAttack
+        {
+            get
+            {
+                var input = new RuneModifierInput
+                {
+                    BaseAttackDamage = definition.BaseAttack,
+                    HeroLevelMultiplier = 1f
+                };
+                return RuneModifierPipeline.Evaluate(input, runeDefinition).AttackDamage;
+            }
+        }
         public float AttackSpeed
         {
             get
@@ -199,10 +239,14 @@ namespace DragonBound.Combat
                     speed *= 1f + (GetScalar(skill, "AttackSpeedBonusPerStack", 0.06f) * skyHuntStacks);
                 }
 
-                return speed;
+                return speed * temporaryRuneAttackSpeedMultiplier;
             }
         }
-        public float RangeCells => definition.RangeCells;
+        public float RangeCells => definition.RangeCells +
+                                   (runeDefinition != null && runeDefinition.EffectType == RuneEffectType.AttackRangeFlat
+                                       ? runeDefinition.GetParameter("RangeCells", runeDefinition.Parameter)
+                                       : 0f);
+        public IReadOnlyList<EnemyRuntime> BasicAttackSucceededTargets => basicAttackSucceededTargets;
         public int ActiveGroundHazardCount => groundHazards.ActiveCount;
         public IReadOnlyList<GroundHazardRuntime> ActiveGroundHazards => groundHazards.ActiveHazards;
         public float FormationProgress => Math.Min(1f, formationElapsed / FormationDurationSeconds);
@@ -250,6 +294,22 @@ namespace DragonBound.Combat
             }
         }
 
+        public void SetRuneDefinition(RuneDefinition value)
+        {
+            runeDefinition = value;
+        }
+
+        public void ApplyRuneAttackSpeedBuff(float multiplier, float durationSeconds)
+        {
+            if (multiplier <= 1f || durationSeconds <= 0f)
+            {
+                return;
+            }
+
+            temporaryRuneAttackSpeedMultiplier = Math.Max(temporaryRuneAttackSpeedMultiplier, multiplier);
+            temporaryRuneAttackSpeedRemaining = Math.Max(temporaryRuneAttackSpeedRemaining, durationSeconds);
+        }
+
         public void ResetTargetingAfterRelocation()
         {
             CurrentTargetRuntimeId = null;
@@ -290,6 +350,9 @@ namespace DragonBound.Combat
             skyhunterRadianceActive = false;
             skyhunterRadianceElapsed = 0f;
             skyhunterRadiancePrimaryRuntimeId = null;
+            temporaryRuneAttackSpeedMultiplier = 1f;
+            temporaryRuneAttackSpeedRemaining = 0f;
+            basicAttackSucceededTargets.Clear();
             groundHazards.Clear();
         }
 
@@ -328,9 +391,16 @@ namespace DragonBound.Combat
             }
 
             var results = new List<HeroDamageResult>();
+            basicAttackSucceededTargets.Clear();
             if (deltaSeconds <= 0f || !IsFormationComplete || IsCombatSuspended)
             {
                 return results;
+            }
+
+            temporaryRuneAttackSpeedRemaining = Math.Max(0f, temporaryRuneAttackSpeedRemaining - deltaSeconds);
+            if (temporaryRuneAttackSpeedRemaining <= 0.0001f)
+            {
+                temporaryRuneAttackSpeedMultiplier = 1f;
             }
 
             var blocksNormalAttacks = false;
@@ -380,6 +450,11 @@ namespace DragonBound.Combat
                 }
 
                 attackElapsed -= interval;
+                if (!string.IsNullOrEmpty(CurrentTargetRuntimeId) &&
+                    registry.TryGet(CurrentTargetRuntimeId, out var successfulTarget))
+                {
+                    basicAttackSucceededTargets.Add(successfulTarget);
+                }
             }
 
             return results;
@@ -518,7 +593,8 @@ namespace DragonBound.Combat
             {
                 ApplyDamage(
                     target,
-                    Attack * GetScalar(skill, "SecondaryDamageMultiplier", 0.75f),
+                    Attack * GetScalar(skill, "SecondaryDamageMultiplier", 0.75f) *
+                    definition.GetLevelStats(Level).SkillMultiplier,
                     AttackKind.EmberExplosiveSplash,
                     results,
                     effectRadius: radius);
@@ -579,9 +655,13 @@ namespace DragonBound.Combat
                 width,
                 registry.Snapshot(),
                 maximumTargets);
-            foreach (var target in lineTargets)
+            for (var index = 0; index < lineTargets.Count; index++)
             {
-                ApplyDamage(target, Attack, AttackKind.RuneboltPierce, results);
+                ApplyDamage(
+                    lineTargets[index],
+                    Attack * (index == 0 ? 1f : definition.GetLevelStats(Level).SkillMultiplier),
+                    AttackKind.RuneboltPierce,
+                    results);
             }
 
             return true;
@@ -677,7 +757,8 @@ namespace DragonBound.Combat
             }
 
             CurrentTargetRuntimeId = target.RuntimeId;
-            var bonusPerStack = GetScalar(skill, "FinalDamageBonusPerStack", 0.08f);
+            var bonusPerStack = GetScalar(skill, "FinalDamageBonusPerStack", 0.08f) *
+                                definition.GetLevelStats(Level).SkillMultiplier;
             var damage = Attack * (1f + (duelMomentumStacks * bonusPerStack));
             ApplyDamage(target, damage, AttackKind.CrownSwordStrike, results);
 
@@ -696,9 +777,10 @@ namespace DragonBound.Combat
                 !targeting.IsWithinRange(origin, marked, RangeCells))
             {
                 huntMarkTargetRuntimeId = null;
+                marked = null;
             }
 
-            var target = SelectHighestHealthInRange(origin, registry, RangeCells);
+            var target = marked ?? SelectHighestHealthInRange(origin, registry, RangeCells);
             if (target == null)
             {
                 CurrentTargetRuntimeId = null;
@@ -707,12 +789,15 @@ namespace DragonBound.Combat
             }
 
             CurrentTargetRuntimeId = target.RuntimeId;
-            // The mark is applied as soon as the target is selected, so this first
-            // attack already receives the configured marked-target multiplier.
-            huntMarkTargetRuntimeId = target.RuntimeId;
+            if (string.IsNullOrEmpty(huntMarkTargetRuntimeId))
+            {
+                // A mark persists until its target leaves range or is no longer alive.
+                huntMarkTargetRuntimeId = target.RuntimeId;
+            }
             ApplyDamage(
                 target,
-                Attack * GetScalar(skill, "MarkedAttackDamageMultiplier", skill.DamageMultiplier),
+                Attack * GetScalar(skill, "MarkedAttackDamageMultiplier", skill.DamageMultiplier) *
+                definition.GetLevelStats(Level).SkillMultiplier,
                 AttackKind.CrownHunterShot,
                 results);
             return true;
@@ -794,7 +879,7 @@ namespace DragonBound.Combat
                     var duration = skill.BaseStunDuration * levelMultiplier * GetStunMultiplier(target.Archetype);
                     ApplyDamage(
                         target,
-                        Attack * skill.DamageMultiplier * levelMultiplier,
+                        Attack * skill.DamageMultiplier,
                         AttackKind.ThunderDominion,
                         results,
                         duration);
@@ -902,7 +987,9 @@ namespace DragonBound.Combat
             CurrentTargetRuntimeId = target.RuntimeId;
             ApplyDamage(
                 target,
-                Attack,
+                Attack * (skyhunterRadianceActive
+                    ? definition.GetLevelStats(Level).SkillMultiplier
+                    : 1f),
                 skyhunterRadianceActive ? AttackKind.SkyhunterRadiancePrimary : AttackKind.SkyhunterShot,
                 results);
             var maximumStacks = GetSkillSeriesParameterInt("MaxStacksByLevel", Level, 5);
@@ -910,7 +997,8 @@ namespace DragonBound.Combat
 
             if (skyhunterRadianceActive)
             {
-                var secondaryDamage = Attack * GetScalar(skill, "SecondaryDamageMultiplier", 0.40f);
+                var secondaryDamage = Attack * GetScalar(skill, "SecondaryDamageMultiplier", 0.40f) *
+                                      definition.GetLevelStats(Level).SkillMultiplier;
                 foreach (var secondary in SelectSkyhunterSecondaryTargets(
                              origin,
                              target,
@@ -1037,7 +1125,12 @@ namespace DragonBound.Combat
                 var multiplier = GetSkillSeriesParameter("DamageMultiplierByHit", hitIndex, 1f);
                 ApplyDamage(
                     target,
-                    executeTarget ? target.HitPoints : GetNightfangDamage(target, multiplier, isFinalHit),
+                    executeTarget
+                        ? target.HitPoints
+                        : GetNightfangDamage(
+                            target,
+                            multiplier * definition.GetLevelStats(Level).SkillMultiplier,
+                            isFinalHit),
                     AttackKind.NightfangExecutionSlash,
                     results);
 
@@ -1084,7 +1177,8 @@ namespace DragonBound.Combat
                     var target = targets[index];
                     ApplyDamage(
                         target,
-                        Attack * GetSkillSeriesParameter("DamageMultiplierByHit", index, 1f),
+                        Attack * GetSkillSeriesParameter("DamageMultiplierByHit", index, 1f) *
+                        definition.GetLevelStats(Level).SkillMultiplier,
                         AttackKind.AbyssHarpoonStrike,
                         results);
                     ApplyAbyssHarpoonDisplacement(target, pathDisplacement);
@@ -1280,7 +1374,7 @@ namespace DragonBound.Combat
             EnemyRegistry registry,
             ICollection<HeroDamageResult> results)
         {
-            var frontmost = SelectFrontmostInRange(origin, registry, float.MaxValue / 4f);
+            var frontmost = SelectFrontmostInRange(origin, registry, skill.Length);
             if (frontmost == null)
             {
                 CurrentTargetRuntimeId = null;
@@ -1316,7 +1410,7 @@ namespace DragonBound.Combat
                 0f,
                 skill.Duration,
                 skill.TickInterval,
-                definition.BaseAttack * tickMultiplier * definition.GetLevelStats(Level).SkillMultiplier,
+                RuneModifiedBaseAttack * tickMultiplier * definition.GetLevelStats(Level).SkillMultiplier,
                 GetAttackParameterInt("AttackMaxTargets", 4),
                 direction,
                 length,
@@ -1853,14 +1947,17 @@ namespace DragonBound.Combat
                 return;
             }
 
-            target.HitPoints = Math.Max(0f, target.HitPoints - damage);
+            var application = target.ApplyDamage(damage);
             results.Add(new HeroDamageResult(
                 kind,
                 target,
                 damage,
                 target.HitPoints <= 0.0001f,
                 effectDuration,
-                effectRadius));
+                effectRadius,
+                false,
+                application.ShieldDamage,
+                application.HealthDamage));
         }
 
         private static int CompareFrontmost(EnemyRuntime first, EnemyRuntime second)
@@ -1909,6 +2006,10 @@ namespace DragonBound.Combat
     public sealed class HeroPairCombatProxy
     {
         private readonly HeroCombatState state;
+        private readonly string sourceRuntimeId;
+        private readonly List<RuneDamageResult> pendingWarcries = new List<RuneDamageResult>();
+        private RuneEffectExecutor runeEffects;
+        private CombatPoint lastCombatOrigin;
 
         public HeroPairCombatProxy(string heroId, HeroProgressionState progression)
             : this(heroId, progression, TeamSide.Player, "hero." + heroId, heroId)
@@ -1922,6 +2023,7 @@ namespace DragonBound.Combat
             string sourceRuntimeId,
             string sourceRecipeId)
         {
+            this.sourceRuntimeId = sourceRuntimeId;
             state = new HeroCombatState(
                 heroId,
                 progression,
@@ -1944,6 +2046,7 @@ namespace DragonBound.Combat
         public float Attack => state.Attack;
         public float AttackSpeed => state.AttackSpeed;
         public float RangeCells => state.RangeCells;
+        public string RuneId => runeEffects == null ? string.Empty : runeEffects.Definition.RuneId;
         public float FormationProgress => state.FormationProgress;
         public string CurrentTargetRuntimeId => state.CurrentTargetRuntimeId;
         public int ActiveGroundHazardCount => state.ActiveGroundHazardCount;
@@ -1959,13 +2062,72 @@ namespace DragonBound.Combat
             return state.AddExperience(amount);
         }
 
+        public void ConfigureRune(RuneDefinition rune, int runSeed)
+        {
+            state.SetRuneDefinition(rune);
+            runeEffects = rune == null
+                ? null
+                : new RuneEffectExecutor(
+                    rune,
+                    new RunRandom(DeriveRuneSeed(runSeed, sourceRuntimeId, rune.RuneId)),
+                    sourceRuntimeId);
+        }
+
+        public void NotifyHeroLevelUp()
+        {
+            runeEffects?.OnHeroLevelUp();
+        }
+
+        public List<HeroDamageResult> NotifyHeroKill(EnemyRuntime killedEnemy, EnemyRegistry registry, bool wasRuneDerived)
+        {
+            var results = new List<HeroDamageResult>();
+            if (runeEffects == null)
+            {
+                return results;
+            }
+
+            AddRuneResults(
+                results,
+                runeEffects.OnHeroKill(
+                    new RuneCombatContext(lastCombatOrigin, Attack, RangeCells, registry),
+                    killedEnemy,
+                    wasRuneDerived));
+            return results;
+        }
+
+        public List<RuneDamageResult> DrainWarcries()
+        {
+            var result = new List<RuneDamageResult>(pendingWarcries);
+            pendingWarcries.Clear();
+            return result;
+        }
+
+        public void ApplyRuneAttackSpeedBuff(float multiplier, float durationSeconds)
+        {
+            state.ApplyRuneAttackSpeedBuff(multiplier, durationSeconds);
+        }
+
         public List<HeroDamageResult> TickCombat(
             float deltaSeconds,
             CombatPoint origin,
             EnemyRegistry registry,
             PathDisplacementSystem pathDisplacement = null)
         {
-            return state.TickCombat(deltaSeconds, origin, registry, pathDisplacement);
+            lastCombatOrigin = origin;
+            var results = state.TickCombat(deltaSeconds, origin, registry, pathDisplacement);
+            if (runeEffects == null)
+            {
+                return results;
+            }
+
+            var context = new RuneCombatContext(origin, Attack, RangeCells, registry);
+            AddRuneResults(results, runeEffects.Tick(context, deltaSeconds));
+            foreach (var target in state.BasicAttackSucceededTargets)
+            {
+                AddRuneResults(results, runeEffects.OnBasicAttackSucceeded(context, target));
+            }
+
+            return results;
         }
 
         public void SetCombatSuspended(bool suspended)
@@ -1981,6 +2143,60 @@ namespace DragonBound.Combat
         public void StopAndReset()
         {
             state.StopAndReset();
+            pendingWarcries.Clear();
+        }
+
+        private void AddRuneResults(ICollection<HeroDamageResult> destination, IReadOnlyList<RuneDamageResult> runeResults)
+        {
+            if (runeResults == null)
+            {
+                return;
+            }
+
+            foreach (var result in runeResults)
+            {
+                if (result.IsWarcry)
+                {
+                    pendingWarcries.Add(result);
+                    continue;
+                }
+
+                if (result.Target != null)
+                {
+                    destination.Add(new HeroDamageResult(
+                        result.Kind,
+                        result.Target,
+                        result.Damage,
+                        result.Killed,
+                        effectRadius: result.EffectRadius,
+                        isRuneDerived: true));
+                }
+            }
+        }
+
+        private static int DeriveRuneSeed(int runSeed, string runtimeId, string runeId)
+        {
+            unchecked
+            {
+                var hash = 2166136261u;
+                hash = (hash ^ (uint)runSeed) * 16777619u;
+                foreach (var character in RuneDropRules.AlgorithmVersion)
+                {
+                    hash = (hash ^ character) * 16777619u;
+                }
+
+                foreach (var character in runeId ?? string.Empty)
+                {
+                    hash = (hash ^ character) * 16777619u;
+                }
+
+                foreach (var character in runtimeId ?? string.Empty)
+                {
+                    hash = (hash ^ character) * 16777619u;
+                }
+
+                return (int)hash;
+            }
         }
     }
 }

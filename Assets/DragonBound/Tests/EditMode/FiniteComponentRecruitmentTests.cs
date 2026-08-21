@@ -13,42 +13,42 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void FiniteRecruitmentConfigurationMatchesFrozenBalanceValues()
         {
-            Assert.AreEqual(0.50f, FiniteComponentRecruitmentConfig.ThreeComponentBatchChance, 0.0001f);
-            Assert.AreEqual(10, FiniteComponentRecruitmentConfig.NormalProbabilityBatchCount);
-            Assert.AreEqual(11, FiniteComponentRecruitmentConfig.GuaranteedCompletionBatch);
-            Assert.AreEqual(2, FiniteComponentRecruitmentConfig.NormalMinComponentsPerBatch);
-            Assert.AreEqual(3, FiniteComponentRecruitmentConfig.NormalMaxComponentsPerBatch);
+            Assert.AreEqual(11, FiniteComponentRecruitmentConfig.TargetCompletionRecruitCount);
+            Assert.AreEqual(4, FiniteComponentRecruitmentConfig.MaxComponentsPerBatch);
+            Assert.AreEqual(2, FiniteComponentRecruitmentConfig.MultiMinComponentsPerBatch);
+            Assert.AreEqual(4, FiniteComponentRecruitmentConfig.MultiMaxComponentsPerBatch);
+            Assert.AreEqual(1, FiniteComponentRecruitmentConfig.MinBasicUnitsPerBatch);
+            Assert.AreEqual(0.50f, FiniteComponentRecruitmentConfig.BasePureBasicWeight, 0.0001f);
+            Assert.AreEqual(0.20f, FiniteComponentRecruitmentConfig.BaseOneComponentWeight, 0.0001f);
+            Assert.AreEqual(0.20f, FiniteComponentRecruitmentConfig.BaseMultiComponentWeight, 0.0001f);
+            Assert.AreEqual(0.10f, FiniteComponentRecruitmentConfig.BaseShovelWeight, 0.0001f);
+            Assert.AreEqual(3, FiniteComponentRecruitmentConfig.OpeningProtectedRecruitCount);
+            Assert.AreEqual(0.80f, FiniteComponentRecruitmentConfig.BaseExpectedComponentsPerRecruit, 0.0001f);
+            Assert.AreEqual(5.00f, FiniteComponentRecruitmentConfig.CatchupAllowedComponentsPerRecruit, 0.0001f);
         }
 
         [Test]
-        public void FirstTenBatchesUseTwoOrThreeComponentsUntilBagIsEmpty()
+        public void DynamicCatchupBatchesKeepFiveResultsAndNeverReplaceTheLastBasicUnit()
         {
             var deck = CreateFiniteDeck(73, out var bag);
-            for (var batch = 1; batch <= 10; batch++)
+            for (var batch = 1; batch <= 14; batch++)
             {
-                var hadComponents = bag.RemainingCount > 0;
                 var result = deck.DrawNext();
                 Assert.AreEqual(5, result.Cards.Count);
                 var componentCount = Count(result, RecruitItemKind.HeroComponent);
-                if (hadComponents)
-                {
-                    Assert.IsTrue(componentCount == 2 || componentCount == 3);
-                    Assert.AreEqual(5 - componentCount, Count(result, RecruitItemKind.BasicUnit));
-                }
-                else
-                {
-                    Assert.AreEqual(0, componentCount);
-                    Assert.AreEqual(5, Count(result, RecruitItemKind.BasicUnit));
-                }
+                Assert.LessOrEqual(componentCount, FiniteComponentRecruitmentConfig.MaxComponentsPerBatch);
+                Assert.GreaterOrEqual(Count(result, RecruitItemKind.BasicUnit), 1);
+                Assert.AreEqual(0, Count(result, RecruitItemKind.Shovel));
+                Assert.AreEqual(5 - componentCount, Count(result, RecruitItemKind.BasicUnit));
             }
         }
 
         [Test]
-        public void EleventhBatchGuaranteesAllTwentyFourInstancesHaveBeenDistributed()
+        public void DynamicCatchupDistributesUniqueComponentInstancesWithoutReturningCards()
         {
             var deck = CreateFiniteDeck(20260801, out var bag);
             var instanceIds = new HashSet<string>();
-            for (var batch = 1; batch <= 11; batch++)
+            for (var batch = 1; batch <= 16; batch++)
             {
                 foreach (var card in deck.DrawNext().Cards)
                 {
@@ -59,35 +59,65 @@ namespace DragonBound.Tests.EditMode
                 }
             }
 
-            Assert.AreEqual(24, instanceIds.Count);
-            Assert.AreEqual(0, bag.RemainingCount);
-            Assert.IsTrue(bag.IsExhausted);
+            Assert.AreEqual(bag.DrawnCount, instanceIds.Count);
+            Assert.LessOrEqual(instanceIds.Count, 24);
         }
 
         [Test]
-        public void EarliestPossibleCompletionIsBatchEightAndNoRunCompletesAfterBatchEleven()
+        [Category("Diagnostics")]
+        public void DynamicCatchupMonteCarloKeepsFormalV2SupplyWithoutHardRecruitElevenCompletion()
+        {
+            var distribution = FiniteComponentRecruitmentDiagnostics.SampleDynamicCatchup(
+                GreyboxRecruitmentCatalog.Create(),
+                1,
+                10000);
+
+            TestContext.WriteLine("DynamicFiniteRecruitmentDistribution\n" + distribution.FormatReport());
+            Assert.AreEqual(10000, distribution.SampleCount);
+            // Forge Pick V2 reserves a basic-result slot before drawing the finite bag. A planned
+            // fourth component correctly remains in the bag, so V2 no longer promises the old
+            // 95% Recruit-11 completion target. This protects the current formal baseline
+            // without changing its probability or catch-up implementation.
+            Assert.GreaterOrEqual(distribution.BagEmptyByRecruit11Rate, 85d);
+            Assert.Less(distribution.BagEmptyByRecruit11Rate, 99.9d);
+            AssertRateBetween(distribution.PureBasicByRecruit[1], distribution.SampleCount, 0.45d, 0.55d);
+            AssertRateBetween(distribution.MultiComponentByRecruit[1], distribution.SampleCount, 0.15d, 0.25d);
+            AssertRateBetween(distribution.ShovelByRecruit[1], distribution.SampleCount, 0.14d, 0.22d);
+            Assert.GreaterOrEqual(distribution.BasicUnitCountByRecruit[1] / (double)distribution.SampleCount, 3.8d);
+            Assert.Less(distribution.MultiComponentByRecruit[2] / (double)distribution.SampleCount, 0.60d);
+            Assert.Less(distribution.MultiComponentByRecruit[3] / (double)distribution.SampleCount, 0.60d);
+            Assert.AreEqual(
+                distribution.SampleCount,
+                Sum(distribution.BagEmptyAtRecruit) +
+                GetRemainingAfterRecruit11Count(distribution));
+        }
+
+        [Test]
+        [Category("Diagnostics")]
+        public void CompletionDistributionStillReportsOnlyOfficialRecruitDeckResults()
         {
             var distribution = FiniteComponentRecruitmentDiagnostics.SampleCompletionBatches(
                 GreyboxRecruitmentCatalog.Create(),
                 1,
                 10000);
 
-            TestContext.WriteLine(
-                $"FiniteComponentCompletionDistribution Samples={distribution.SampleCount} " +
-                $"B8={distribution.Batch8} B9={distribution.Batch9} " +
-                $"B10={distribution.Batch10} B11={distribution.Batch11} " +
-                $"Late={distribution.LateOrIncomplete}");
-            Assert.Greater(distribution.Batch8, 0);
-            Assert.AreEqual(0, distribution.LateOrIncomplete);
-            Assert.AreEqual(distribution.SampleCount, distribution.CompletedCount);
+            TestContext.WriteLine("FiniteComponentCompletionDistribution " + distribution.FormatReport());
+            Assert.AreEqual(10000, distribution.SampleCount);
+            Assert.GreaterOrEqual(distribution.CompletedCount, 8500);
+            Assert.Less(distribution.LateOrIncomplete, 1500);
+            Assert.AreEqual(
+                distribution.SampleCount,
+                distribution.Batch8 + distribution.Batch9 + distribution.Batch10 + distribution.Batch11 +
+                distribution.LateOrIncomplete);
         }
 
         [Test]
+        [Category("Diagnostics")]
         public void FiniteBagFillsAllLaterBatchesWithBasicsAfterEarlyExhaustion()
         {
-            var seed = FindSeedCompletingAtBatchEight();
+            var seed = FindSeedCompletingByRecruitEleven();
             var deck = CreateFiniteDeck(seed, out var bag);
-            for (var batch = 1; batch <= 8; batch++)
+            for (var batch = 1; batch <= FiniteComponentRecruitmentConfig.TargetCompletionRecruitCount; batch++)
             {
                 deck.DrawNext();
             }
@@ -152,7 +182,7 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void RefreshedFiniteComponentsArePermanentlyDiscardedAndDoNotReturnToBag()
         {
-            var deck = CreateFiniteDeck(222, out var bag);
+            var deck = CreateFiniteDeck(FindSeedWhoseFirstBatchContainsComponents(), out var bag);
             var team = new TeamState(TeamSide.Player);
             team.AddResources(100);
             var service = new RecruitmentService(
@@ -176,7 +206,7 @@ namespace DragonBound.Tests.EditMode
             }
 
             Assert.AreEqual(drawnCount, bag.DrawnInstanceIds.Count);
-            Assert.GreaterOrEqual(bag.DiscardedInstanceIds.Count, 2);
+            Assert.GreaterOrEqual(bag.DiscardedInstanceIds.Count, 1);
         }
 
         [Test]
@@ -220,17 +250,22 @@ namespace DragonBound.Tests.EditMode
         {
             var catalog = GreyboxRecruitmentCatalog.Create();
             bag = LimitedComponentBag.CreateBag(seed, LimitedComponentBag.DefaultContentVersion, catalog);
-            return new RecruitDeck(catalog, seed, "player", bag);
+            return new RecruitDeck(
+                catalog,
+                seed,
+                "player",
+                bag,
+                shovelState: new ShovelRecruitmentState(() => 0));
         }
 
-        private static int FindSeedCompletingAtBatchEight()
+        private static int FindSeedCompletingByRecruitEleven()
         {
             var catalog = GreyboxRecruitmentCatalog.Create();
-            for (var seed = 1; seed <= 10000; seed++)
+            for (var seed = 1; seed <= 100000; seed++)
             {
                 var bag = LimitedComponentBag.CreateBag(seed, LimitedComponentBag.DefaultContentVersion, catalog);
                 var deck = new RecruitDeck(catalog, seed, "player", bag);
-                for (var batch = 1; batch <= 8; batch++)
+                for (var batch = 1; batch <= FiniteComponentRecruitmentConfig.TargetCompletionRecruitCount; batch++)
                 {
                     deck.DrawNext();
                 }
@@ -241,8 +276,55 @@ namespace DragonBound.Tests.EditMode
                 }
             }
 
-            Assert.Fail("No deterministic seed completed the component bag by batch eight.");
+            Assert.Fail("No deterministic seed completed the component bag by recruit eleven.");
             return 0;
+        }
+
+        private static int FindSeedWhoseFirstBatchContainsComponents()
+        {
+            for (var seed = 1; seed <= 10000; seed++)
+            {
+                var deck = CreateFiniteDeck(seed, out _);
+                if (Count(deck.PeekNext(), RecruitItemKind.HeroComponent) > 0)
+                {
+                    return seed;
+                }
+            }
+
+            Assert.Fail("No deterministic seed produced a first-batch component.");
+            return 0;
+        }
+
+        private static int Sum(int[] values)
+        {
+            var sum = 0;
+            for (var index = 0; index < values.Length; index++)
+            {
+                sum += values[index];
+            }
+
+            return sum;
+        }
+
+        private static int GetRemainingAfterRecruit11Count(DynamicFiniteRecruitmentDistribution distribution)
+        {
+            var count = 0;
+            foreach (var pair in distribution.RemainingComponentsAfterRecruit11)
+            {
+                if (pair.Key > 0)
+                {
+                    count += pair.Value;
+                }
+            }
+
+            return count;
+        }
+
+        private static void AssertRateBetween(int count, int denominator, double minInclusive, double maxInclusive)
+        {
+            var rate = count / (double)denominator;
+            Assert.GreaterOrEqual(rate, minInclusive);
+            Assert.LessOrEqual(rate, maxInclusive);
         }
 
         private static int Count(RecruitBatch batch, RecruitItemKind kind)

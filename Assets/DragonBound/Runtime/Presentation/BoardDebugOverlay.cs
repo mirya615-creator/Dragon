@@ -198,7 +198,7 @@ namespace DragonBound.Presentation
                 var root = CreateRect($"DEV_Cell_{cell.Coordinate.X}_{cell.Coordinate.Y}", transform);
                 ConfigureCellRect(root, cell.Coordinate);
 
-                var bounds = CreateRect("ART_DEV_CellBounds", root);
+                var bounds = CreateRect("DEV_CellBounds", root);
                 Stretch(bounds);
                 var boundsImage = bounds.gameObject.AddComponent<Image>();
                 boundsImage.color = new Color(0.2f, 0.9f, 1f, 0.012f);

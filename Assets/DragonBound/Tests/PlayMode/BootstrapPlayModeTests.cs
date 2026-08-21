@@ -8,6 +8,7 @@ using DragonBound.Presentation;
 using DragonBound.Recruitment;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
@@ -32,18 +33,27 @@ namespace DragonBound.Tests.PlayMode
             }
             Assert.AreEqual(20260801, bootstrap.Seed.Value);
             Assert.AreEqual(MatchState.Running, bootstrap.Match.State);
-            Assert.AreEqual(0, bootstrap.Match.CurrentWave);
+            Assert.AreEqual(1, bootstrap.Match.CurrentWave);
             Assert.AreEqual(20, bootstrap.Match.Player.Resources);
             Assert.AreEqual(10, bootstrap.Match.AI.Resources);
             Assert.AreEqual(0, bootstrap.Match.Player.RemainingEnemyCount);
             Assert.AreEqual(0, bootstrap.Match.AI.RemainingEnemyCount);
-            Assert.IsFalse(bootstrap.EnableHeroComponents);
+            Assert.IsTrue(bootstrap.EnableHeroComponents);
+            Assert.IsTrue(bootstrap.UseTwentyWavePressureRuntime);
+            Assert.IsNotNull(bootstrap.TwentyWave);
+            Assert.IsNull(bootstrap.ThreeWave);
             Assert.IsFalse(bootstrap.Recruitment.HasLastAttempt);
             Assert.AreEqual(1, bootstrap.AiRecruitment.CompletedRecruitments);
-            Assert.AreEqual(4, bootstrap.AiRecruitDestination.TotalObjectCount);
-            Assert.AreEqual(2, bootstrap.AiRecruitDestination.CampCount);
-            Assert.AreEqual(2, bootstrap.AiRecruitDestination.DeployedCount);
-            Assert.IsTrue(bootstrap.AiRecruitDestination.GetDeployedCards().Any(card => card.Level == 2));
+            Assert.AreEqual(
+                bootstrap.AiRecruitDestination.TotalObjectCount,
+                bootstrap.AiRecruitDestination.CampCount + bootstrap.AiRecruitDestination.DeployedCount);
+            Assert.LessOrEqual(bootstrap.AiRecruitDestination.TotalObjectCount, 5);
+            Assert.GreaterOrEqual(bootstrap.AiRecruitDestination.TotalObjectCount, 1);
+            Assert.Greater(
+                bootstrap.AiRecruitDestination.GetDeployedCards()
+                    .Count(card => card.Kind == RecruitItemKind.BasicUnit),
+                0,
+                "AI V0 must deploy at least one ordinary unit before pressure begins.");
 
             AssertBoardModel(bootstrap.PlayerBoard, bootstrap.BattlefieldLayout);
             AssertBoardModel(bootstrap.AiBoard, bootstrap.BattlefieldLayout);
@@ -93,8 +103,13 @@ namespace DragonBound.Tests.PlayMode
             Assert.AreEqual(MatchState.Running, bootstrap.Match.State);
             yield return null;
             Assert.AreEqual(1, bootstrap.Match.CurrentWave);
-            Assert.AreEqual(ThreeWaveSliceRuntime.Wave1DurationSeconds, bootstrap.ThreeWave.WaveDurationSeconds);
-            Assert.LessOrEqual(bootstrap.ThreeWave.WaveRemainingSeconds, ThreeWaveSliceRuntime.Wave1DurationSeconds);
+            Assert.IsNotNull(bootstrap.TwentyWave);
+            Assert.AreEqual(
+                bootstrap.TwentyWave.Configuration.GetWave(1).WaveDurationSeconds,
+                bootstrap.TwentyWave.WaveDurationSeconds);
+            Assert.LessOrEqual(
+                bootstrap.TwentyWave.WaveRemainingSeconds,
+                bootstrap.TwentyWave.WaveDurationSeconds);
         }
 
         [UnityTest]
@@ -111,7 +126,7 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsFalse(first.RefreshedBench);
             Assert.IsNotNull(first.Batch);
             Assert.AreEqual(RecruitmentService.CardsPerRecruitment, first.Batch.Cards.Count);
-            Assert.IsTrue(first.Batch.Cards.All(card => card.Kind == RecruitItemKind.BasicUnit));
+            Assert.IsTrue(first.Batch.Cards.Any(card => card.Kind == RecruitItemKind.BasicUnit));
             var firstIds = GetBenchOccupants(bootstrap.PlayerBoard);
             Assert.AreEqual(RecruitmentService.CardsPerRecruitment, firstIds.Count);
             Assert.AreEqual(RecruitmentService.CardsPerRecruitment, bootstrap.RecruitDestination.TotalObjectCount);
@@ -119,8 +134,8 @@ namespace DragonBound.Tests.PlayMode
 
             bootstrap.BoardView.RefreshUnits();
             yield return null;
-            Assert.AreEqual(
-                "REFRESH 5 LEFT\nCOST 12",
+            StringAssert.Contains(
+                "COST 12",
                 FindScreen().RecruitmentView.RecruitButtonLabel.text);
             foreach (var firstId in firstIds)
             {
@@ -176,16 +191,18 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsFalse(playerView.RangePreview.enabled);
             var recruit = bootstrap.Recruitment.TryRecruit();
             Assert.AreEqual(RecruitmentStatus.Success, recruit.Status);
+            var basicCard = recruit.Batch.Cards.First(card => card.Kind == RecruitItemKind.BasicUnit);
             var bench = bootstrap.PlayerBoard.GetPositions(CellType.Bench);
             var battle = bootstrap.PlayerBoard.GetPositions(CellType.Battle)[0];
-            Assert.IsTrue(bootstrap.PlayerBoard.TryMove(bench[0], battle));
+            Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(basicCard.RuntimeId, out var basicOrigin));
+            Assert.IsTrue(bootstrap.PlayerBoard.TryMove(basicOrigin, battle));
             playerView.RefreshUnits();
             playerView.SetUnitPresentation(
-                recruit.Batch.Cards[0].RuntimeId,
+                basicCard.RuntimeId,
                 "AXE 1",
                 UnitRangeRules.GetRadius(BasicUnitArchetype.Axe),
                 true);
-            playerView.SelectUnit(recruit.Batch.Cards[0].RuntimeId);
+            playerView.SelectUnit(basicCard.RuntimeId);
             var range = playerView.RangePreview;
             Assert.IsNotNull(range);
             Assert.IsTrue(range.enabled);
@@ -197,18 +214,18 @@ namespace DragonBound.Tests.PlayMode
             Assert.That(rangeOutline.color.a, Is.InRange(0.5f, 0.7f));
             Assert.AreEqual(range.rectTransform.sizeDelta.x, range.rectTransform.sizeDelta.y, 0.01f);
 
-            Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(recruit.Batch.Cards[0].RuntimeId, out var axePosition));
+            Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(basicCard.RuntimeId, out var axePosition));
             var axeCell = playerView.GetCellView(axePosition);
             Assert.IsNotNull(axeCell);
             var cellSize = Mathf.Min(axeCell.RectTransform.rect.width, axeCell.RectTransform.rect.height);
             var expectedDiameter = cellSize * UnitRangeRules.GetRadius(BasicUnitArchetype.Axe) * 2f;
             Assert.AreEqual(expectedDiameter, range.rectTransform.sizeDelta.x, 0.01f);
             Assert.Less(Vector3.Distance(range.rectTransform.position, axeCell.ContentAnchor.position), 0.1f);
-            Assert.IsTrue(playerView.BeginDrag(recruit.Batch.Cards[0].RuntimeId));
-            Assert.IsTrue(bootstrap.RecruitDestination.IsCombatSuspended(recruit.Batch.Cards[0].RuntimeId));
+            Assert.IsTrue(playerView.BeginDrag(basicCard.RuntimeId));
+            Assert.IsTrue(bootstrap.RecruitDestination.IsCombatSuspended(basicCard.RuntimeId));
             Assert.IsFalse(range.enabled, "Range must hide as soon as dragging starts.");
-            playerView.CompleteDrag(recruit.Batch.Cards[0].RuntimeId, new Vector2(-1000f, -1000f));
-            Assert.IsFalse(bootstrap.RecruitDestination.IsCombatSuspended(recruit.Batch.Cards[0].RuntimeId));
+            playerView.CompleteDrag(basicCard.RuntimeId, new Vector2(-1000f, -1000f));
+            Assert.IsFalse(bootstrap.RecruitDestination.IsCombatSuspended(basicCard.RuntimeId));
             Assert.IsFalse(range.enabled, "Range must remain hidden after a cancelled drag.");
 
             while (bootstrap.Match.State == MatchState.Ready)
@@ -224,6 +241,13 @@ namespace DragonBound.Tests.PlayMode
                 FindScreen().PlayerBattlefieldView.LaneView,
                 FindScreen().AiBattlefieldView.LaneView
             };
+            // The formal twenty-wave runtime deliberately gives the player a four-second
+            // preparation window. Enemy presentation must respect that schedule instead of
+            // forcing the first pair of views into the first few rendered frames.
+            yield return new WaitForSecondsRealtime(
+                TwentyWavePressureConfiguration.StartPreparationSeconds - 0.15f);
+            Assert.IsTrue(lanes.All(lane => lane.EnemyViewCount == 0));
+            yield return new WaitForSecondsRealtime(0.30f);
             for (var frame = 0; frame < 10 && lanes.Any(lane => lane.EnemyViewCount == 0); frame++)
             {
                 yield return null;
@@ -244,6 +268,108 @@ namespace DragonBound.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator ClickingAnEmptyBattleCellClearsRangePreview()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var bootstrap = FindBootstrap();
+            var recruit = bootstrap.Recruitment.TryRecruit();
+            Assert.AreEqual(RecruitmentStatus.Success, recruit.Status);
+            var basicCard = recruit.Batch.Cards.First(card => card.Kind == RecruitItemKind.BasicUnit);
+            var battle = bootstrap.PlayerBoard.GetPositions(CellType.Battle);
+            Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(basicCard.RuntimeId, out var basicOrigin));
+            Assert.IsTrue(bootstrap.PlayerBoard.TryMove(basicOrigin, battle[0]));
+            bootstrap.BoardView.RefreshUnits();
+            bootstrap.BoardView.SetUnitPresentation(
+                basicCard.RuntimeId,
+                "测试单位",
+                UnitRangeRules.GetRadius(BasicUnitArchetype.Axe),
+                true);
+            bootstrap.BoardView.SelectUnit(basicCard.RuntimeId);
+            Assert.IsTrue(bootstrap.BoardView.RangePreview.enabled);
+
+            var emptyCell = bootstrap.BoardView.GetCellView(battle[1]);
+            Assert.IsNotNull(emptyCell);
+            var pointer = new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left
+            };
+            emptyCell.OnPointerClick(pointer);
+
+            Assert.IsFalse(bootstrap.BoardView.RangePreview.enabled);
+        }
+
+        [UnityTest]
+        public IEnumerator ClickingBoardBackgroundClearsRangePreviewWithoutAnotherUnit()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var bootstrap = FindBootstrap();
+            var recruit = bootstrap.Recruitment.TryRecruit();
+            Assert.AreEqual(RecruitmentStatus.Success, recruit.Status);
+            var basicCard = recruit.Batch.Cards.First(card => card.Kind == RecruitItemKind.BasicUnit);
+            var battle = bootstrap.PlayerBoard.GetPositions(CellType.Battle);
+            Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(basicCard.RuntimeId, out var basicOrigin));
+            Assert.IsTrue(bootstrap.PlayerBoard.TryMove(basicOrigin, battle[0]));
+            bootstrap.BoardView.RefreshUnits();
+            bootstrap.BoardView.SetUnitPresentation(
+                basicCard.RuntimeId,
+                "测试单位",
+                UnitRangeRules.GetRadius(BasicUnitArchetype.Axe),
+                true);
+            bootstrap.BoardView.SelectUnit(basicCard.RuntimeId);
+            Assert.IsTrue(bootstrap.BoardView.RangePreview.enabled);
+
+            var receiver = FindScreen().FixedBoardCanvas.transform
+                .Find("ART_FixedBoardCellLayer/BoardBackgroundClickSurface")
+                ?.GetComponent<BoardBackgroundClickReceiver>();
+            Assert.IsNotNull(receiver, "Fixed board must expose a transparent background click surface.");
+            var pointer = new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left
+            };
+            receiver.OnPointerClick(pointer);
+
+            Assert.IsFalse(bootstrap.BoardView.RangePreview.enabled);
+        }
+
+        [UnityTest]
+        public IEnumerator ClickingScreenEmptySpaceClearsRangePreviewWithoutAnotherUnit()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var bootstrap = FindBootstrap();
+            var recruit = bootstrap.Recruitment.TryRecruit();
+            Assert.AreEqual(RecruitmentStatus.Success, recruit.Status);
+            var basicCard = recruit.Batch.Cards.First(card => card.Kind == RecruitItemKind.BasicUnit);
+            var battle = bootstrap.PlayerBoard.GetPositions(CellType.Battle);
+            Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(basicCard.RuntimeId, out var basicOrigin));
+            Assert.IsTrue(bootstrap.PlayerBoard.TryMove(basicOrigin, battle[0]));
+            bootstrap.BoardView.RefreshUnits();
+            bootstrap.BoardView.SetUnitPresentation(
+                basicCard.RuntimeId,
+                "测试单位",
+                UnitRangeRules.GetRadius(BasicUnitArchetype.Axe),
+                true);
+            bootstrap.BoardView.SelectUnit(basicCard.RuntimeId);
+            Assert.IsTrue(bootstrap.BoardView.RangePreview.enabled);
+
+            var receiver = FindScreen().transform.Find("RangeDismissSurface")
+                ?.GetComponent<BoardBackgroundClickReceiver>();
+            Assert.IsNotNull(receiver, "Screen must expose a bottom-layer empty-space click surface.");
+            var pointer = new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left
+            };
+            receiver.OnPointerClick(pointer);
+
+            Assert.IsFalse(bootstrap.BoardView.RangePreview.enabled);
+        }
+
+        [UnityTest]
         public IEnumerator DeployedUnitCanReturnToBenchAndIsRemovedByNextRecruitment()
         {
             SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
@@ -252,16 +378,18 @@ namespace DragonBound.Tests.PlayMode
             var bootstrap = FindBootstrap();
             var first = bootstrap.Recruitment.TryRecruit();
             Assert.AreEqual(RecruitmentStatus.Success, first.Status);
-            var unitId = first.Batch.Cards[0].RuntimeId;
-            var bench = bootstrap.PlayerBoard.GetPositions(CellType.Bench);
+            var unitId = first.Batch.Cards
+                .First(card => card.Kind == RecruitItemKind.BasicUnit)
+                .RuntimeId;
             var battle = bootstrap.PlayerBoard.GetPositions(CellType.Battle)[0];
-            Assert.IsTrue(bootstrap.PlayerBoard.TryMove(bench[0], battle));
+            Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(unitId, out var basicOrigin));
+            Assert.IsTrue(bootstrap.PlayerBoard.TryMove(basicOrigin, battle));
             bootstrap.BoardView.RefreshUnits();
             yield return null;
 
             Assert.IsTrue(bootstrap.BoardView.BeginDrag(unitId));
             Assert.IsTrue(bootstrap.RecruitDestination.IsCombatSuspended(unitId));
-            var benchCell = bootstrap.BoardView.GetCellView(bench[0]);
+            var benchCell = bootstrap.BoardView.GetCellView(basicOrigin);
             var benchScreenPosition = RectTransformUtility.WorldToScreenPoint(
                 null,
                 benchCell.ContentAnchor.position);
@@ -269,7 +397,7 @@ namespace DragonBound.Tests.PlayMode
 
             Assert.IsFalse(bootstrap.RecruitDestination.IsCombatSuspended(unitId));
             Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(unitId, out var returnedPosition));
-            Assert.AreEqual(bench[0], returnedPosition);
+            Assert.AreEqual(basicOrigin, returnedPosition);
             bootstrap.Match.Player.AddResources(
                 bootstrap.Recruitment.NextCost - bootstrap.Match.Player.Resources);
             var second = bootstrap.Recruitment.TryRecruit();
@@ -282,6 +410,46 @@ namespace DragonBound.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator BenchShovelCanBeDraggedOntoLockedCellToUnlockIt()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var bootstrap = FindBootstrap();
+            var shovelId = "playmode-shovel";
+            var batch = new RecruitBatch(901, new List<RecruitCard>
+            {
+                new RecruitCard(shovelId, RecruitItemKind.Shovel, ShovelRecruitmentConfig.ShovelConfigId, string.Empty),
+                new RecruitCard("playmode-basic-a", RecruitItemKind.BasicUnit, "axe", string.Empty),
+                new RecruitCard("playmode-basic-b", RecruitItemKind.BasicUnit, "axe", string.Empty),
+                new RecruitCard("playmode-basic-c", RecruitItemKind.BasicUnit, "axe", string.Empty),
+                new RecruitCard("playmode-basic-d", RecruitItemKind.BasicUnit, "axe", string.Empty)
+            });
+            bootstrap.RecruitDestination.Commit(bootstrap.RecruitDestination.Plan(5), batch);
+            bootstrap.BoardView.RefreshUnits();
+            yield return null;
+
+            var target = bootstrap.PlayerBoard.GetPositions(CellType.Locked)[0];
+            Assert.IsTrue(bootstrap.RecruitDestination.TryGetCard(shovelId, out _));
+            Assert.AreEqual(1, bootstrap.RecruitDestination.GetBenchShovelCount());
+            Assert.AreEqual(CellType.Locked, GetCellType(bootstrap.PlayerBoard, target));
+
+            var targetCell = bootstrap.BoardView.GetCellView(target);
+            Assert.IsNotNull(targetCell);
+            var targetScreenPosition = RectTransformUtility.WorldToScreenPoint(
+                null,
+                targetCell.ContentAnchor.position);
+
+            Assert.IsTrue(bootstrap.BoardView.BeginDrag(shovelId));
+            bootstrap.BoardView.CompleteDrag(shovelId, targetScreenPosition);
+            yield return null;
+
+            Assert.AreEqual(CellType.Battle, GetCellType(bootstrap.PlayerBoard, target));
+            Assert.AreEqual(0, bootstrap.RecruitDestination.GetBenchShovelCount());
+            Assert.IsFalse(bootstrap.RecruitDestination.TryGetCard(shovelId, out _));
+        }
+
+        [UnityTest]
         public IEnumerator RuntimeUnitCardsRemainInsideTheirAssignedCells()
         {
             SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
@@ -291,20 +459,27 @@ namespace DragonBound.Tests.PlayMode
             var recruitment = bootstrap.Recruitment.TryRecruit();
             Assert.AreEqual(RecruitmentStatus.Success, recruitment.Status);
             bootstrap.BoardView.RefreshUnits();
+            bootstrap.AiBoardView.RefreshUnits();
             yield return null;
 
             Assert.AreEqual(
                 5,
                 bootstrap.BoardView.UnitLayer.GetComponentsInChildren<DraggableUnitView>(true).Length,
                 "Player must show exactly the five recruited cards; there is no free initial unit.");
+            var aiUnitViewCount = bootstrap.AiBoardView.UnitLayer.GetComponentsInChildren<DraggableUnitView>(true).Length;
             Assert.AreEqual(
+                bootstrap.AiRecruitDestination.GetDeployedCards().Count,
+                aiUnitViewCount,
+                "AI view must show every deployed object controlled by the AI survival controller.");
+            Assert.GreaterOrEqual(
+                bootstrap.AiRecruitDestination.GetBoardCards()
+                    .Count(card => card.Kind == RecruitItemKind.BasicUnit),
                 2,
-                bootstrap.AiBoardView.UnitLayer.GetComponentsInChildren<DraggableUnitView>(true).Length,
-                "AI must show the two deployed units remaining after its deterministic opening merge.");
+                "AI V0 must still expose basic units for the placement bounds check.");
             Assert.AreEqual(
-                7,
+                5 + aiUnitViewCount,
                 Object.FindObjectsOfType<DraggableUnitView>().Length,
-                "The two battlefield views must expose five player cards and two deployed AI cards.");
+                "The two battlefield views must expose five player cards plus the current AI board objects.");
             AssertUnitCardsInsideCells(bootstrap.BoardView, bootstrap.PlayerBoard);
             AssertUnitCardsInsideCells(bootstrap.AiBoardView, bootstrap.AiBoard);
         }
@@ -348,6 +523,12 @@ namespace DragonBound.Tests.PlayMode
             }
 
             return ids;
+        }
+
+        private static CellType GetCellType(BoardGrid board, GridPosition position)
+        {
+            Assert.IsTrue(board.TryGetCellType(position, out var type));
+            return type;
         }
 
         private static DraggableUnitView FindUnitView(GreyboxBoardView boardView, string unitId)

@@ -35,6 +35,30 @@ namespace DragonBound.Presentation
             boardView?.ConfigureFixedBoardCanvas(canvasView);
             laneView?.ConfigureFixedBoardCanvas(canvasView);
             combatFxView?.ConfigureFixedBoardCanvas(canvasView);
+            if (!canvasView.IsAuthoredLayout)
+            {
+                HideLegacyFixedBoardVisuals();
+            }
+        }
+
+        private void HideLegacyFixedBoardVisuals()
+        {
+            HideChild("ART_Background");
+            HideChild("ART_Spawn");
+            HideChild("ART_Hatchling");
+            HideChild("ART_BossTrack");
+            if (sideLabel != null) sideLabel.gameObject.SetActive(false);
+            if (hatchlingLabel != null) hatchlingLabel.gameObject.SetActive(false);
+            if (enemyProgressLabel != null) enemyProgressLabel.gameObject.SetActive(false);
+        }
+
+        private void HideChild(string childName)
+        {
+            var child = transform.Find(childName);
+            if (child != null)
+            {
+                child.gameObject.SetActive(false);
+            }
         }
 
         public void Configure(
@@ -95,7 +119,7 @@ namespace DragonBound.Presentation
             laneView.BindEnemyRegistry(registry, side);
         }
 
-        public void BindCombatRuntime(ThreeWaveSliceRuntime runtime)
+        public void BindCombatRuntime(IWaveRuntime runtime)
         {
             combatFxView?.Bind(runtime);
         }
