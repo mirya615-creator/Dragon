@@ -11,12 +11,15 @@ namespace DragonBound.Presentation
     /// Runtime layout host for the formal board. It only arranges instances of authored
     /// cell and ART_Path templates; gameplay state remains owned by the two BoardGrid instances.
     /// </summary>
+    [ExecuteAlways]
     [DisallowMultipleComponent]
     public sealed class FixedBoardCanvasView : MonoBehaviour
     {
         private const float HorizontalMargin = 0.04f;
         private const float ArenaMinY = 0.23f;
         private const float ArenaMaxY = 0.89f;
+        private const float DefaultVisualCellSize = 110f;
+        private const float DefaultCenterRiverGap = 120f;
 
         private readonly Dictionary<GridPosition, GridCellView> cellViews =
             new Dictionary<GridPosition, GridCellView>();
@@ -40,8 +43,19 @@ namespace DragonBound.Presentation
         [SerializeField] private RectTransform overlayLayer;
         [SerializeField] private RectTransform centerDivider;
         [SerializeField] private BoardDebugOverlay debugOverlay;
+        [Header("River board layout")]
+        [SerializeField, Min(1f)] private float visualCellSize = DefaultVisualCellSize;
+        [SerializeField, Min(1f)] private float centerRiverGap = DefaultCenterRiverGap;
+        [SerializeField, HideInInspector] private bool authoredRiverLayoutApplied;
 
         private FixedBoardLayoutDefinition layout;
+        private float visualLayoutScale = 1f;
+#if UNITY_EDITOR
+        private bool applyingEditorPreview;
+        private Vector2 lastEditorScreenSize = new Vector2(float.NaN, float.NaN);
+        private float lastEditorCellSize = float.NaN;
+        private float lastEditorRiverGap = float.NaN;
+#endif
 
         public FixedBoardLayoutDefinition Layout => layout;
         public bool IsAuthoredLayout => authoredLayout;
@@ -57,10 +71,13 @@ namespace DragonBound.Presentation
         /// </summary>
         public BoardDebugOverlay DebugOverlay => debugOverlay;
         /// <summary>
-        /// Pure presentation seam between config rows 4 and 5. This is intentionally
+        /// Pure presentation river between config rows 4 and 5. This is intentionally
         /// below road art, so it never breaks the grid-aligned route tiles.
         /// </summary>
         public RectTransform CenterDivider => centerDivider;
+        public float VisualCellSize => visualCellSize > 0f ? visualCellSize : DefaultVisualCellSize;
+        public float CenterRiverGap => centerRiverGap > 0f ? centerRiverGap : DefaultCenterRiverGap;
+        public bool AuthoredRiverLayoutApplied => authoredRiverLayoutApplied;
         public int CellViewCount => cellViews.Count;
         /// <summary>
         /// Number of semantic map cells rendered by the fixed-board canvas. This includes
@@ -68,11 +85,9 @@ namespace DragonBound.Presentation
         /// number of interactive deployment cells.
         /// </summary>
         public int SemanticTileCount => visualCells.Count;
-        public Vector2 CellSize => boardRect == null || layout == null
+        public Vector2 CellSize => layout == null
             ? Vector2.zero
-            : new Vector2(
-                boardRect.rect.width / layout.Columns,
-                boardRect.rect.height / layout.Rows);
+            : Vector2.one * (VisualCellSize * visualLayoutScale);
 
         public int LaneArtCount(TeamSide side)
         {
@@ -118,8 +133,8 @@ namespace DragonBound.Presentation
         }
 
         /// <summary>
-        /// Binds gameplay to the fixed board already serialized in the scene/prefab. This path
-        /// deliberately does not create, resize, reposition or restyle any authored UI object.
+        /// Binds gameplay to the fixed board already serialized in the scene/prefab and reapplies
+        /// its centralized two-half river geometry. No gameplay coordinate or cell state changes.
         /// </summary>
         public void BindAuthored(RectTransform targetScreenRoot, FixedBoardLayoutDefinition definition)
         {
@@ -137,6 +152,7 @@ namespace DragonBound.Presentation
             boardRect = boardRect != null ? boardRect : (RectTransform)transform;
             ResolveAuthoredReferences();
             RebuildAuthoredLookups();
+            ApplyRiverVisualLayout();
             if (backgroundClickReceiver != null)
             {
                 backgroundClickReceiver.Clicked -= HandleBackgroundClicked;
@@ -148,6 +164,73 @@ namespace DragonBound.Presentation
         public void MarkAsAuthored()
         {
             authoredLayout = true;
+        }
+
+#if UNITY_EDITOR
+        private void OnEnable()
+        {
+            if (!Application.isPlaying) RefreshEditorPreviewIfNeeded(true);
+        }
+
+        private void OnValidate()
+        {
+            if (!Application.isPlaying) RefreshEditorPreviewIfNeeded(true);
+        }
+
+        private void Update()
+        {
+            if (!Application.isPlaying) RefreshEditorPreviewIfNeeded(false);
+        }
+
+        private void RefreshEditorPreviewIfNeeded(bool force)
+        {
+            if (applyingEditorPreview || !authoredLayout || screenRoot == null ||
+                boardRect == null || terrainLayer == null || cellLayer == null ||
+                roadLayer == null || laneLayer == null || unitLayer == null ||
+                combatFxLayer == null || overlayLayer == null || centerDivider == null)
+            {
+                return;
+            }
+
+            var screenSize = screenRoot.rect.size;
+            if (!force && screenSize == lastEditorScreenSize &&
+                Mathf.Approximately(lastEditorCellSize, VisualCellSize) &&
+                Mathf.Approximately(lastEditorRiverGap, CenterRiverGap))
+            {
+                return;
+            }
+
+            applyingEditorPreview = true;
+            try
+            {
+                layout = BattlefieldLayoutDefinitions.Fixed8x10ReferenceMap01;
+                ResolveAuthoredReferences();
+                RebuildAuthoredLookups();
+                ApplyRiverVisualLayout();
+                lastEditorScreenSize = screenSize;
+                lastEditorCellSize = VisualCellSize;
+                lastEditorRiverGap = CenterRiverGap;
+            }
+            finally
+            {
+                applyingEditorPreview = false;
+            }
+        }
+#endif
+
+        /// <summary>
+        /// Applies the formal two-half presentation in the Editor. Gameplay coordinates remain
+        /// the original 8 by 10 logical map; only authored RectTransforms are repositioned.
+        /// </summary>
+        public void ApplyAuthoredRiverLayout(FixedBoardLayoutDefinition definition)
+        {
+            if (definition == null) throw new ArgumentNullException(nameof(definition));
+            layout = definition;
+            boardRect = boardRect != null ? boardRect : (RectTransform)transform;
+            ResolveAuthoredReferences();
+            RebuildAuthoredLookups();
+            ApplyRiverVisualLayout();
+            authoredRiverLayoutApplied = true;
         }
 
         public bool TryGetCellView(GridPosition position, out GridCellView cellView)
@@ -279,13 +362,10 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var anchor = new Vector2(
-                (position.X + 0.5f) / layout.Columns,
-                (position.Y + 0.5f) / layout.Rows);
-            target.anchorMin = anchor;
-            target.anchorMax = anchor;
+            target.anchorMin = new Vector2(0.5f, 0.5f);
+            target.anchorMax = new Vector2(0.5f, 0.5f);
             target.pivot = new Vector2(0.5f, 0.5f);
-            target.anchoredPosition = Vector2.zero;
+            target.anchoredPosition = GetCellCenter(position);
             if (!preserveSize)
             {
                 target.sizeDelta = Vector2.zero;
@@ -307,7 +387,7 @@ namespace DragonBound.Presentation
             CreateCenterDivider();
             CreateOverlayLayer();
             debugOverlay = BoardDebugOverlay.Create(overlayLayer, layout);
-            RefreshBoardBounds();
+            ApplyRiverVisualLayout();
         }
 
         private void CreateLayers()
@@ -445,7 +525,6 @@ namespace DragonBound.Presentation
                     definition.Coordinate.Y,
                     type,
                     cell.ArtImage,
-                    cell.HighlightImage,
                     cell.ContentAnchor);
                 cell.ApplyFixedBoardDefinition(definition);
                 cell.ApplyFixedBoardArtContract(
@@ -480,19 +559,24 @@ namespace DragonBound.Presentation
 
         private void ConfigureCellRect(RectTransform target, GridPosition position)
         {
-            target.anchorMin = new Vector2(
-                position.X / (float)layout.Columns,
-                position.Y / (float)layout.Rows);
-            target.anchorMax = new Vector2(
-                (position.X + 1f) / layout.Columns,
-                (position.Y + 1f) / layout.Rows);
+            target.anchorMin = new Vector2(0.5f, 0.5f);
+            target.anchorMax = new Vector2(0.5f, 0.5f);
             target.pivot = new Vector2(0.5f, 0.5f);
-            target.offsetMin = Vector2.zero;
-            target.offsetMax = Vector2.zero;
+            target.anchoredPosition = GetCellCenter(position);
+            target.sizeDelta = CellSize;
         }
 
         private void RefreshBoardBounds()
         {
+            // Authored scene/prefab roots are positioned by the UI artist. Runtime binding may
+            // arrange their internal board content, but must never replace the saved anchors,
+            // position, size, pivot or scale of ART_FixedBoardCanvas / ART_FixedBoardOverlay.
+            if (authoredLayout)
+            {
+                visualLayoutScale = 1f;
+                return;
+            }
+
             if (screenRoot == null || screenRoot.rect.width <= 0f || screenRoot.rect.height <= 0f)
             {
                 return;
@@ -500,8 +584,11 @@ namespace DragonBound.Presentation
 
             var availableWidth = screenRoot.rect.width * (1f - (HorizontalMargin * 2f));
             var availableHeight = screenRoot.rect.height * (ArenaMaxY - ArenaMinY);
-            var cellSize = Mathf.Min(availableWidth / layout.Columns, availableHeight / layout.Rows);
-            var size = new Vector2(cellSize * layout.Columns, cellSize * layout.Rows);
+            var requestedWidth = VisualCellSize * layout.Columns;
+            var requestedHeight = VisualCellSize * layout.Rows + CenterRiverGap;
+            var fitScale = Mathf.Min(1f, availableWidth / requestedWidth, availableHeight / requestedHeight);
+            visualLayoutScale = fitScale;
+            var size = new Vector2(requestedWidth * fitScale, requestedHeight * fitScale);
             var center = new Vector2(0.5f, (ArenaMinY + ArenaMaxY) * 0.5f);
             boardRect.anchorMin = center;
             boardRect.anchorMax = center;
@@ -517,6 +604,137 @@ namespace DragonBound.Presentation
                 overlayLayer.anchoredPosition = Vector2.zero;
                 overlayLayer.sizeDelta = size;
             }
+        }
+
+        private Vector2 GetCellCenter(GridPosition position)
+        {
+            var cellSize = VisualCellSize * visualLayoutScale;
+            var riverGap = CenterRiverGap * visualLayoutScale;
+            var halfRows = layout.Rows / 2;
+            var x = (position.X - ((layout.Columns - 1f) * 0.5f)) * cellSize;
+            float y;
+            if (position.Y < halfRows)
+            {
+                y = -(riverGap * 0.5f) - (halfRows * cellSize) +
+                    ((position.Y + 0.5f) * cellSize);
+            }
+            else
+            {
+                y = (riverGap * 0.5f) +
+                    (((position.Y - halfRows) + 0.5f) * cellSize);
+            }
+
+            return new Vector2(x, y);
+        }
+
+        private void ApplyRiverVisualLayout()
+        {
+            if (layout == null || boardRect == null) return;
+
+            RefreshBoardBounds();
+            foreach (var pair in visualCells)
+            {
+                if (pair.Value != null) ConfigureCellRect(pair.Value.RectTransform, pair.Key);
+            }
+
+            RepositionCoordinateNamedChildren(roadLayer);
+            RepositionAuthoredLaneWaypoints(TeamSide.Player);
+            RepositionAuthoredLaneWaypoints(TeamSide.AI);
+            ConfigureMapArtLayout();
+        }
+
+        private void RepositionCoordinateNamedChildren(RectTransform root)
+        {
+            if (root == null) return;
+            foreach (RectTransform child in root)
+            {
+                if (child != null && TryReadCoordinateSuffix(child.name, out var position))
+                {
+                    ConfigureCellRect(child, position);
+                }
+            }
+        }
+
+        private void RepositionAuthoredLaneWaypoints(TeamSide side)
+        {
+            if (laneLayer == null) return;
+            var lane = layout.GetLane(side);
+            var positions = side == TeamSide.Player
+                ? layout.PlayerLaneWaypoints
+                : layout.AiLaneWaypoints;
+            for (var index = 0; index < lane.NodeNames.Count && index < positions.Count; index++)
+            {
+                var waypoint = laneLayer.Find(lane.NodeNames[index]) as RectTransform;
+                if (waypoint != null) PositionAtCell(waypoint, positions[index]);
+            }
+        }
+
+        private void ConfigureMapArtLayout()
+        {
+            var cellSize = VisualCellSize * visualLayoutScale;
+            var riverGap = CenterRiverGap * visualLayoutScale;
+            var boardWidth = cellSize * layout.Columns;
+            var halfHeight = cellSize * (layout.Rows / 2f);
+            SetMapArtRect(FixedBoardArtContract.MapBackground, Vector2.zero,
+                new Vector2(boardWidth, halfHeight * 2f + riverGap));
+            SetMapArtRect(FixedBoardArtContract.ForegroundDecoration, Vector2.zero,
+                new Vector2(boardWidth, halfHeight * 2f + riverGap));
+            SetMapArtRect(FixedBoardArtContract.MapFrame, Vector2.zero,
+                new Vector2(boardWidth, halfHeight * 2f + riverGap));
+            SetMapArtRect(FixedBoardArtContract.AiHalfBackground,
+                new Vector2(0f, (riverGap + halfHeight) * 0.5f),
+                new Vector2(boardWidth, halfHeight));
+            SetMapArtRect(FixedBoardArtContract.PlayerHalfBackground,
+                new Vector2(0f, -(riverGap + halfHeight) * 0.5f),
+                new Vector2(boardWidth, halfHeight));
+
+            if (centerDivider != null)
+            {
+                SetFixedRect(centerDivider, Vector2.zero, new Vector2(boardWidth, riverGap));
+                foreach (var graphic in centerDivider.GetComponentsInChildren<Graphic>(true))
+                {
+                    graphic.raycastTarget = false;
+                }
+            }
+        }
+
+        private void SetMapArtRect(string slotId, Vector2 position, Vector2 size)
+        {
+            if (mapArtSlots.TryGetValue(slotId, out var slot) && slot != null &&
+                slot.transform is RectTransform rect)
+            {
+                SetFixedRect(rect, position, size);
+            }
+        }
+
+        private static void SetFixedRect(RectTransform rect, Vector2 position, Vector2 size)
+        {
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+        }
+
+        private static bool TryReadCoordinateSuffix(string value, out GridPosition position)
+        {
+            position = default;
+            if (string.IsNullOrEmpty(value)) return false;
+            var lastSeparator = value.LastIndexOf('_');
+            if (lastSeparator <= 0 || !int.TryParse(value.Substring(lastSeparator + 1), out var y))
+            {
+                return false;
+            }
+
+            var previousSeparator = value.LastIndexOf('_', lastSeparator - 1);
+            if (previousSeparator < 0 ||
+                !int.TryParse(value.Substring(previousSeparator + 1, lastSeparator - previousSeparator - 1), out var x))
+            {
+                return false;
+            }
+
+            position = new GridPosition(x, y);
+            return true;
         }
 
         private void PlaceBelowRuntimeUnits()

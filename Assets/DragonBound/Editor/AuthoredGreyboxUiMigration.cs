@@ -71,6 +71,11 @@ namespace DragonBound.Editor
             var existing = prefab.transform.Find(AuthoredBoardName);
             if (existing != null && existing.GetComponent<FixedBoardCanvasView>()?.IsAuthoredLayout == true)
             {
+                var existingCanvas = existing.GetComponent<FixedBoardCanvasView>();
+                if (!existingCanvas.AuthoredRiverLayoutApplied)
+                {
+                    ApplyRiverLayoutToAuthoredPrefab();
+                }
                 if (logWhenCurrent) Debug.Log("Greybox fixed board is already authored; no assets were overwritten.");
                 return;
             }
@@ -102,6 +107,7 @@ namespace DragonBound.Editor
 
                 var rangeDismiss = CreateRangeDismissSurface(root.transform);
                 canvas.MarkAsAuthored();
+                canvas.ApplyAuthoredRiverLayout(layout);
                 screen.ConfigureAuthoredUi(canvas, rangeDismiss);
 
                 EditorUtility.SetDirty(root);
@@ -135,22 +141,35 @@ namespace DragonBound.Editor
 
         private static void ApplyReferenceBounds(FixedBoardCanvasView canvas)
         {
-            const float horizontalMargin = 0.04f;
-            const float arenaMinY = 0.23f;
-            const float arenaMaxY = 0.89f;
-            var reference = PortraitLayoutMetrics.ReferenceResolution;
+            const float arenaCenterY = 0.56f;
             var layout = BattlefieldLayoutDefinitions.Fixed8x10ReferenceMap01;
-            var availableWidth = reference.x * (1f - horizontalMargin * 2f);
-            var availableHeight = reference.y * (arenaMaxY - arenaMinY);
-            var cellSize = Mathf.Min(
-                availableWidth / layout.Columns,
-                availableHeight / layout.Rows);
+            canvas.ApplyAuthoredRiverLayout(layout);
             var size = new Vector2(
-                cellSize * layout.Columns,
-                cellSize * layout.Rows);
-            var center = new Vector2(0.5f, (arenaMinY + arenaMaxY) * 0.5f);
+                canvas.VisualCellSize * layout.Columns,
+                canvas.VisualCellSize * layout.Rows + canvas.CenterRiverGap);
+            var center = new Vector2(0.5f, arenaCenterY);
             ApplyRect(canvas.BoardRect, center, size);
             ApplyRect(canvas.OverlayLayer, center, size);
+        }
+
+        private static void ApplyRiverLayoutToAuthoredPrefab()
+        {
+            var root = PrefabUtility.LoadPrefabContents(ScreenPrefabPath);
+            try
+            {
+                var screen = root.GetComponent<DragonBoundScreenView>();
+                var canvas = screen?.FixedBoardCanvas;
+                if (canvas == null) return;
+                canvas.ApplyAuthoredRiverLayout(BattlefieldLayoutDefinitions.Fixed8x10ReferenceMap01);
+                EditorUtility.SetDirty(root);
+                PrefabUtility.SaveAsPrefabAsset(root, ScreenPrefabPath);
+                AssetDatabase.SaveAssets();
+                Debug.Log("Authored fixed board updated to the two-half river layout.");
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
         }
 
         private static void ApplyRect(RectTransform rect, Vector2 center, Vector2 size)

@@ -74,6 +74,32 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void FixedCanvasSeparatesPlayerAndAiHalvesWithRiverGap()
+        {
+            var screen = CreateRect("Screen", null, new Vector2(1080f, 1920f));
+            var template = CreateRect("ART_CellTemplate", screen.transform, new Vector2(40f, 40f));
+            var cellTemplate = template.gameObject.AddComponent<GridCellView>();
+            try
+            {
+                var canvas = FixedBoardCanvasView.Create(
+                    screen,
+                    BattlefieldLayoutDefinitions.Fixed8x10ReferenceMap01,
+                    cellTemplate);
+
+                Assert.IsTrue(canvas.TryGetVisualCell(new GridPosition(3, 4), out var playerTop));
+                Assert.IsTrue(canvas.TryGetVisualCell(new GridPosition(3, 5), out var aiBottom));
+                var clearGap = aiBottom.RectTransform.anchoredPosition.y -
+                    playerTop.RectTransform.anchoredPosition.y - canvas.CellSize.y;
+                Assert.AreEqual(canvas.CenterRiverGap, clearGap, 0.001f);
+                Assert.AreEqual(canvas.CenterRiverGap, canvas.CenterDivider.rect.height, 0.001f);
+            }
+            finally
+            {
+                Object.DestroyImmediate(screen.gameObject);
+            }
+        }
+
+        [Test]
         public void FixedCanvasBindsEachLaneFromTheAuthoredRoadTemplate()
         {
             var screen = CreateRect("Screen", null, new Vector2(1080f, 1920f));

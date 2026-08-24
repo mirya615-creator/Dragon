@@ -197,7 +197,8 @@ namespace DragonBound.Presentation
                 unitDestination.HeroPairUnlinked += HandleHeroPairUnlinked;
             }
 
-            if (canvas == null || unitLayer == null || unitPrefab == null || cellViews == null)
+            if (canvas == null || unitLayer == null || unitPrefab == null ||
+                (fixedBoardCanvas == null && cellViews == null))
             {
                 throw new InvalidOperationException("Editable board view references are incomplete.");
             }
@@ -414,7 +415,6 @@ namespace DragonBound.Presentation
                 activeShovelDragId = unitId;
                 HideDragArrow();
                 HideRangePreview();
-                RefreshHighlights();
                 return true;
             }
 
@@ -431,7 +431,6 @@ namespace DragonBound.Presentation
 
             HideDragArrow();
             HideRangePreview();
-            RefreshHighlights();
             return true;
         }
 
@@ -480,7 +479,6 @@ namespace DragonBound.Presentation
                 }
 
                 HideDragArrow();
-                RefreshHighlights();
                 HideRangePreview();
                 return;
             }
@@ -503,7 +501,6 @@ namespace DragonBound.Presentation
             }
 
             HideDragArrow();
-            RefreshHighlights();
             RefreshUnits();
             HideRangePreview();
         }
@@ -840,14 +837,6 @@ namespace DragonBound.Presentation
             }
         }
 
-        private void RefreshHighlights()
-        {
-            foreach (var entry in cells)
-            {
-                entry.Value.SetHighlighted(false);
-            }
-        }
-
         private void HandleBoardChanged(GridMutation mutation)
         {
             RefreshCellStates();
@@ -944,20 +933,25 @@ namespace DragonBound.Presentation
             // Bench cells remain in the authored prefab below the board. Their logical coordinates
             // are deliberately outside the 8 x 10 map, so bind the visible slots by stable order.
             var authoredBenchCells = new List<GridCellView>();
-            foreach (var existing in cellViews)
+            if (cellViews != null)
             {
-                if (existing == null)
+                foreach (var existing in cellViews)
                 {
-                    continue;
-                }
+                    if (existing == null)
+                    {
+                        continue;
+                    }
 
-                if (existing.CellType == CellType.Bench)
-                {
-                    authoredBenchCells.Add(existing);
-                }
-                else
-                {
-                    existing.gameObject.SetActive(false);
+                    if (existing.CellType == CellType.Bench)
+                    {
+                        authoredBenchCells.Add(existing);
+                    }
+                    else
+                    {
+                        // Compatibility with older authored scenes. The current scene no longer
+                        // contains the legacy Battlefield-local formation cells.
+                        existing.gameObject.SetActive(false);
+                    }
                 }
             }
 
@@ -990,7 +984,6 @@ namespace DragonBound.Presentation
                         position.Y,
                         CellType.Bench,
                         benchCell.ArtImage,
-                        benchCell.HighlightImage,
                         benchCell.ContentAnchor);
                     benchCell.gameObject.SetActive(true);
                     bound.Add(benchCell);
@@ -1078,7 +1071,7 @@ namespace DragonBound.Presentation
                     canvasGroup);
                 beachItem.gameObject.SetActive(false);
 
-                cell.Configure(0, 0, CellType.Bench, slot.GetComponent<Image>(), null, slot);
+                cell.Configure(0, 0, CellType.Bench, slot.GetComponent<Image>(), slot);
                 beachItemViewsByCell[cell] = itemView;
                 authoredBeachItemViews.Add(itemView);
                 benchCells.Add(cell);
@@ -1103,7 +1096,7 @@ namespace DragonBound.Presentation
             transform.pivot = new Vector2(0.5f, 0.5f);
             transform.anchoredPosition = Vector2.zero;
             transform.sizeDelta = Vector2.one * cellSize;
-            cell.Configure(position.X, position.Y, type, cell.ArtImage, cell.HighlightImage, cell.ContentAnchor);
+            cell.Configure(position.X, position.Y, type, cell.ArtImage, cell.ContentAnchor);
         }
 
         private void RefreshCellStates()
@@ -1168,7 +1161,6 @@ namespace DragonBound.Presentation
             }
 
             HideDragArrow();
-            RefreshHighlights();
             HideRangePreview();
             if (refreshView && board != null)
             {

@@ -30,7 +30,12 @@ namespace DragonBound.Editor
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             EditorUserBuildSettings.buildAppBundle = false;
 
-            var scenes = new[] { "Assets/DragonBound/Scenes/Greybox_Main.unity" };
+            var scenes = new[]
+            {
+                "Assets/Scenes/Login.unity",
+                "Assets/Scenes/Main.unity",
+                "Assets/Scenes/Greybox_Main.unity"
+            };
             var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {
                 scenes = scenes,

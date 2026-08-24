@@ -14,7 +14,7 @@ namespace DragonBound.Presentation
 
             if (card.Kind == RecruitItemKind.Shovel)
             {
-                return "铲子";
+                return "SHOVEL";
             }
 
             var name = HeroSliceCatalog.GetComponentDisplayName(card.ConfigId);

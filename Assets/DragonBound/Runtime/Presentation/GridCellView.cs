@@ -12,7 +12,6 @@ namespace DragonBound.Presentation
         [SerializeField] private int gridY;
         [SerializeField] private CellType cellType;
         [SerializeField] private Image artImage;
-        [SerializeField] private Image highlightImage;
         [SerializeField] private RectTransform contentAnchor;
         [SerializeField] private GameObject lockOverlay;
         [SerializeField] private Text debugRangeBandLabel;
@@ -26,7 +25,6 @@ namespace DragonBound.Presentation
         public RectTransform RectTransform => (RectTransform)transform;
         public RectTransform ContentAnchor => contentAnchor != null ? contentAnchor : RectTransform;
         public Image ArtImage => artImage;
-        public Image HighlightImage => highlightImage;
         public event Action<GridPosition> Clicked;
 
         public void Configure(
@@ -34,14 +32,12 @@ namespace DragonBound.Presentation
             int y,
             CellType type,
             Image art,
-            Image highlight,
             RectTransform anchor)
         {
             gridX = x;
             gridY = y;
             cellType = type;
             artImage = art;
-            highlightImage = highlight;
             contentAnchor = anchor;
             EnsureInputReceiver();
             if (lockOverlay == null)
@@ -57,7 +53,6 @@ namespace DragonBound.Presentation
             }
 
             ApplyRuntimeState(type, null, false);
-            SetHighlighted(false);
         }
 
         public void ApplyFixedBoardDefinition(FixedBoardCellDefinition definition)
@@ -78,7 +73,6 @@ namespace DragonBound.Presentation
             gridY = definition.Coordinate.Y;
             EnsureInputReceiver();
             ConfigureFixedArt(definition);
-            SetHighlighted(false);
         }
 
         /// <summary>Restores gameplay semantics for a serialized cell without restyling authored UI.</summary>
@@ -167,14 +161,6 @@ namespace DragonBound.Presentation
                         ? "N"
                         : rangeBand.Value == BattlefieldRangeBand.Middle ? "M" : "F"
                     : string.Empty;
-            }
-        }
-
-        public void SetHighlighted(bool highlighted)
-        {
-            if (highlightImage != null)
-            {
-                highlightImage.enabled = highlighted;
             }
         }
 
@@ -342,6 +328,11 @@ namespace DragonBound.Presentation
             }
 
             marker.gameObject.SetActive(true);
+        }
+
+        internal void Configure(int x, int y, CellType type, RectTransform contentAnchor)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -58,6 +58,50 @@ namespace DragonBound.Tests.EditMode
             }
         }
 
+        [Test]
+        public void RuntimeBindingPreservesManuallyAuthoredBoardAndOverlayRoots()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ScreenPath);
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var screen = instance.GetComponent<DragonBoundScreenView>();
+                var canvas = screen.FixedBoardCanvas;
+                SetManualRoot(canvas.BoardRect, new Vector2(0.42f, 0.61f),
+                    new Vector2(37f, -24f), new Vector2(910f, 1280f), new Vector3(0.93f, 0.93f, 1f));
+                SetManualRoot(canvas.OverlayLayer, new Vector2(0.47f, 0.58f),
+                    new Vector2(-18f, 31f), new Vector2(940f, 1300f), new Vector3(0.9f, 0.9f, 1f));
+                var boardSnapshot = new Snapshot(canvas.BoardRect);
+                var overlaySnapshot = new Snapshot(canvas.OverlayLayer);
+
+                canvas.BindAuthored(
+                    (RectTransform)screen.transform,
+                    BattlefieldLayoutDefinitions.Fixed8x10ReferenceMap01);
+
+                boardSnapshot.AssertUnchanged(canvas.BoardRect);
+                overlaySnapshot.AssertUnchanged(canvas.OverlayLayer);
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
+
+        private static void SetManualRoot(
+            RectTransform rect,
+            Vector2 anchor,
+            Vector2 position,
+            Vector2 size,
+            Vector3 scale)
+        {
+            rect.anchorMin = anchor;
+            rect.anchorMax = anchor;
+            rect.pivot = new Vector2(0.38f, 0.64f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+            rect.localScale = scale;
+        }
+
         private readonly struct Snapshot
         {
             private readonly Vector2 anchorMin;

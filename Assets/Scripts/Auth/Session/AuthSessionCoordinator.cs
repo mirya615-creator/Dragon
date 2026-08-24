@@ -90,7 +90,7 @@ public sealed class AuthSessionCoordinator : MonoBehaviour
 
     private static bool IsProtectedScene(string sceneName)
     {
-        return sceneName == "Main" || sceneName == "Game" ||
-               sceneName == "Greybox_Main" || sceneName == "HeroSlice_Main";
+        return sceneName == "Main" || sceneName == "Greybox_Main" ||
+               sceneName == "HeroSlice_Main";
     }
 }

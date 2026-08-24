@@ -25,7 +25,7 @@ namespace DragonBound.Tests.EditMode
         private const string RangeOutlinePath = "Assets/DragonBound/UI/Art/Range/RangeOutlineThin.png";
         private const string BoardCellPath = "Assets/DragonBound/UI/Prefabs/Components/BoardCell.prefab";
         private const string BenchSlotPath = "Assets/DragonBound/UI/Prefabs/Components/BenchSlot.prefab";
-        private const string ScenePath = "Assets/DragonBound/Scenes/Greybox_Main.unity";
+        private const string ScenePath = "Assets/Scenes/Greybox_Main.unity";
 
         [Test]
         public void PortraitBandsMatchFrozenDualBattlefieldLayout()

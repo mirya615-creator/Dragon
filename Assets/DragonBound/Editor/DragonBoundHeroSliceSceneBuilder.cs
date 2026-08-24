@@ -9,8 +9,8 @@ namespace DragonBound.Editor
 {
     public static class DragonBoundHeroSliceSceneBuilder
     {
-        public const string BasicScenePath = "Assets/DragonBound/Scenes/Greybox_Main.unity";
-        public const string HeroScenePath = "Assets/DragonBound/Scenes/HeroSlice_Main.unity";
+        public const string BasicScenePath = "Assets/Scenes/Greybox_Main.unity";
+        public const string HeroScenePath = "Assets/Scenes/HeroSlice_Main.unity";
 
         [MenuItem("DragonBound/Hero Slice/Create or Update Scene")]
         public static void Build()

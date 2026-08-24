@@ -107,8 +107,8 @@ namespace DragonBound.Tests.PlayMode
             }
 
             Assert.IsNull(screen.transform.Find("Versus"));
-            Assert.IsFalse(screen.PlayerBattlefieldView.transform.Find("ART_Background").gameObject.activeSelf);
-            Assert.IsFalse(screen.AiBattlefieldView.transform.Find("ART_Background").gameObject.activeSelf);
+            AssertLegacyVisualIsAbsentOrInactive(screen.PlayerBattlefieldView.transform, "ART_Background");
+            AssertLegacyVisualIsAbsentOrInactive(screen.AiBattlefieldView.transform, "ART_Background");
 
             var locked = screen.FixedBoardCanvas.GetDeploymentCell(new GridPosition(1, 0), TeamSide.Player);
             var artSlot = locked.GetComponent<FixedBoardArtSlot>();
@@ -116,6 +116,39 @@ namespace DragonBound.Tests.PlayMode
             Assert.AreEqual("ART_Cell_Locked", artSlot.ArtSlotId);
             Assert.AreEqual(FixedBoardCellRole.Deployment, artSlot.Role);
             Assert.AreEqual(FixedBoardDeployState.LockedUnlockable, artSlot.DeployState);
+        }
+
+        [UnityTest]
+        public IEnumerator PausePanelContinuesOrSettlesTheRunAsDefeat()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();
+            var screen = Object.FindObjectOfType<DragonBoundScreenView>();
+            Assert.IsNotNull(bootstrap);
+            Assert.IsNotNull(screen);
+            var background = screen.transform.Find("ART_ScreenBackground");
+            var openButton = background.Find("ART_PauseButton").GetComponent<Button>();
+            var panel = background.Find("PausePanel").gameObject;
+            var finishButton = panel.transform.Find("Bg/PauseBtn").GetComponent<Button>();
+            var continueButton = panel.transform.Find("Bg/ContinueBtn").GetComponent<Button>();
+
+            openButton.onClick.Invoke();
+            Assert.AreEqual(MatchState.Paused, bootstrap.Match.State);
+            Assert.AreEqual(0f, Time.timeScale, 0.001f);
+            Assert.IsTrue(panel.activeSelf);
+
+            continueButton.onClick.Invoke();
+            Assert.AreNotEqual(MatchState.Paused, bootstrap.Match.State);
+            Assert.AreEqual(1f, Time.timeScale, 0.001f);
+            Assert.IsFalse(panel.activeSelf);
+
+            openButton.onClick.Invoke();
+            finishButton.onClick.Invoke();
+            Assert.AreEqual(MatchState.Defeat, bootstrap.Match.State);
+            Assert.AreEqual(1f, Time.timeScale, 0.001f);
+            Assert.IsFalse(panel.activeSelf);
         }
 
         private static void AssertEnemyTraversesOrderedPath(
@@ -136,6 +169,12 @@ namespace DragonBound.Tests.PlayMode
                 Assert.IsTrue(enemy.CombatPosition.Equals(lane.CombatPoints[index]));
                 Assert.AreEqual(index == lane.NodeNames.Count - 1, reachedGoal);
             }
+        }
+
+        private static void AssertLegacyVisualIsAbsentOrInactive(Transform parent, string childName)
+        {
+            var child = parent.Find(childName);
+            Assert.IsTrue(child == null || !child.gameObject.activeSelf);
         }
 
     }

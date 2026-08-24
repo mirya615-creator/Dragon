@@ -36,8 +36,10 @@ namespace DragonBound.Editor
             "Assets/DragonBound/UI/Prefabs/Components/HeroFormation.prefab";
         public const string RangeOutlineSpritePath =
             "Assets/DragonBound/UI/Art/Range/RangeOutlineThin.png";
-        public const string ScenePath = "Assets/DragonBound/Scenes/Greybox_Main.unity";
-        public const string HeroSliceScenePath = "Assets/DragonBound/Scenes/HeroSlice_Main.unity";
+        public const string ScenePath = "Assets/Scenes/Greybox_Main.unity";
+        public const string HeroSliceScenePath = "Assets/Scenes/HeroSlice_Main.unity";
+        private const string LoginScenePath = "Assets/Scenes/Login.unity";
+        private const string MainScenePath = "Assets/Scenes/Main.unity";
 
         private static readonly Color ScreenColor = new Color(0.055f, 0.065f, 0.07f, 1f);
         private static readonly Color HudColor = new Color(0.10f, 0.11f, 0.13f, 0.98f);
@@ -317,15 +319,11 @@ namespace DragonBound.Editor
                 TextAnchor.MiddleCenter);
             lockLabel.raycastTarget = false;
 
-            var highlight = CreateImage("ART_Highlight", root.transform, new Color(0.30f, 0.92f, 0.42f, 0.72f));
-            SetStretch(highlight.rectTransform, new Vector2(-5f, -5f), new Vector2(5f, 5f));
-            highlight.raycastTarget = false;
-
             var anchor = CreateRect("ContentAnchor", root.transform).GetComponent<RectTransform>();
             SetStretch(anchor);
 
             var view = root.AddComponent<GridCellView>();
-            view.Configure(0, 0, CellType.Locked, art, highlight, anchor);
+            view.Configure(0, 0, CellType.Locked, art, anchor);
             return SavePrefab(root, path);
         }
 
@@ -592,7 +590,7 @@ namespace DragonBound.Editor
             }
 
             view.ArtImage.color = type == CellType.Locked ? LockedColor : CellColor;
-            view.Configure(x, y, type, view.ArtImage, view.HighlightImage, view.ContentAnchor);
+            view.Configure(x, y, type, view.ArtImage, view.ContentAnchor);
         }
 
         private static void ConfigureBattlefieldInstance(GameObject instance, TeamSide side)
@@ -704,7 +702,7 @@ namespace DragonBound.Editor
                     lockOverlay.gameObject.SetActive(false);
                 }
 
-                view.Configure(x, 0, CellType.Bench, view.ArtImage, view.HighlightImage, view.ContentAnchor);
+                view.Configure(x, 0, CellType.Bench, view.ArtImage, view.ContentAnchor);
                 RecordInstanceOverrides(instance);
             }
 
@@ -881,7 +879,12 @@ namespace DragonBound.Editor
                 throw new InvalidOperationException($"Unable to save {ScenePath}.");
             }
 
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
+            EditorBuildSettings.scenes = new[]
+            {
+                new EditorBuildSettingsScene(LoginScenePath, true),
+                new EditorBuildSettingsScene(MainScenePath, true),
+                new EditorBuildSettingsScene(ScenePath, true)
+            };
         }
 
         private static void UpgradeScenePresentationReferences(string scenePath)
@@ -995,13 +998,21 @@ namespace DragonBound.Editor
 
         private static GridCellView[] CopyCells(IReadOnlyList<GridCellView> source)
         {
-            var result = new GridCellView[source.Count];
-            for (var index = 0; index < source.Count; index++)
+            if (source == null)
             {
-                result[index] = source[index];
+                return new GridCellView[0];
             }
 
-            return result;
+            var result = new List<GridCellView>(source.Count);
+            for (var index = 0; index < source.Count; index++)
+            {
+                if (source[index] != null)
+                {
+                    result.Add(source[index]);
+                }
+            }
+
+            return result.ToArray();
         }
 
         private static GameObject InstantiateNestedPrefab(GameObject prefab, Transform parent)

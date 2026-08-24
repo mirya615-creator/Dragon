@@ -136,9 +136,18 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            sideLabel.text = side == TeamSide.Player ? "PLAYER" : "AI";
-            hatchlingLabel.text = "HATCHLING";
-            enemyProgressLabel.text = $"ENEMIES {team.RemainingEnemyCount}";
+            if (sideLabel != null)
+            {
+                sideLabel.text = side == TeamSide.Player ? "PLAYER" : "AI";
+            }
+            if (hatchlingLabel != null)
+            {
+                hatchlingLabel.text = "HATCHLING";
+            }
+            if (enemyProgressLabel != null)
+            {
+                enemyProgressLabel.text = $"ENEMIES {team.RemainingEnemyCount}";
+            }
             if (bossProgressFill != null)
             {
                 bossProgressFill.fillAmount = team.RemainingEnemyCount <= 0

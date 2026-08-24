@@ -11,7 +11,7 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class MainEnergyController : MonoBehaviour
 {
-    private const string GameplaySceneName = "Game";
+    private const string GameplaySceneName = "Greybox_Main";
     private const int RewardedAdEnergy = 10;
     private const int RewardedAdDailyLimit = 3;
     private const string EnergyRewardPlacement = "energy_reward";

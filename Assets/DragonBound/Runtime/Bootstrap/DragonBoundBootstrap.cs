@@ -75,8 +75,6 @@ namespace DragonBound.Bootstrap
         public const float InitializationPromptSeconds = 1f;
         private float initializationRemaining;
         private PressureRunDiagnosticsPanel pressureDiagnosticsPanel;
-        private DevelopmentGameplayTestPanel developmentGameplayTestPanel;
-        private DevelopmentItemRunSnapshotProvider developmentItemSnapshotProvider;
         private int lastAiDiagnosticsWave;
 
         // Test-only injection keeps persistence tests away from a developer's real local profile.
@@ -381,8 +379,7 @@ namespace DragonBound.Bootstrap
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (!Application.isBatchMode && useTwentyWavePressureRuntime && ItemRunSnapshotProvider == null)
             {
-                developmentItemSnapshotProvider = new DevelopmentItemRunSnapshotProvider();
-                ItemRunSnapshotProvider = developmentItemSnapshotProvider;
+                ItemRunSnapshotProvider = new DevelopmentItemRunSnapshotProvider();
             }
 #endif
             RuneProfileRepository = RuneProfileRepositoryOverrideForTests ?? new LocalRuneProfileRepository();
@@ -510,15 +507,6 @@ namespace DragonBound.Bootstrap
                 screenView.BindWaveRuntime(ThreeWave);
             }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (!Application.isBatchMode && developmentItemSnapshotProvider != null)
-            {
-                developmentGameplayTestPanel = DevelopmentGameplayTestPanel.Create(
-                    this,
-                    developmentItemSnapshotProvider);
-            }
-#endif
-
             if (enablePressureRunDiagnostics && TwentyWave != null)
             {
                 PressureDiagnostics = new PressureRunDiagnostics(
@@ -606,12 +594,8 @@ namespace DragonBound.Bootstrap
             {
                 RecruitDestination?.TickPairLinks(Time.deltaTime);
                 AiRecruitDestination?.TickPairLinks(Time.deltaTime);
-                var developmentPanelOpen = developmentGameplayTestPanel?.IsOpen ?? false;
-                if (!developmentPanelOpen)
-                {
-                    initializationRemaining -= Time.deltaTime;
-                }
-                if (initializationRemaining <= 0f && !developmentPanelOpen)
+                initializationRemaining -= Time.deltaTime;
+                if (initializationRemaining <= 0f)
                 {
                     LockRuneLoadoutAtRunStart();
                     if (TwentyWave != null && !TwentyWave.StartRun())
@@ -668,36 +652,6 @@ namespace DragonBound.Bootstrap
             {
                 Destroy(pressureDiagnosticsPanel.gameObject);
             }
-        }
-
-        internal bool TryPrepareDevelopmentRuneProfile(out string reason)
-        {
-            if (Match == null || Match.State != MatchState.Ready || RuneSaveData == null)
-            {
-                reason = "RunAlreadyStarted";
-                return false;
-            }
-
-            RuneSaveData.AccountDay = RuneFeatureGate.UnlockAccountDay;
-            RuneSaveData.Loadout.UnlockForLoadoutEditing();
-            foreach (var rune in RuneCatalog.All)
-            {
-                var missingCopies = HeroDefinitionCatalog.Definitions.Count -
-                                    RuneSaveData.Inventory.OwnedCount(rune.RuneId);
-                if (missingCopies > 0)
-                {
-                    RuneSaveData.Inventory.AddComplete(rune.RuneId, missingCopies);
-                }
-            }
-
-            if (!PersistRuneProfile())
-            {
-                reason = "RuneProfileSaveFailed";
-                return false;
-            }
-
-            reason = string.Empty;
-            return true;
         }
 
         private bool PersistRuneProfile()
@@ -806,7 +760,7 @@ namespace DragonBound.Bootstrap
         {
             if (card.Kind == RecruitItemKind.Shovel)
             {
-                return "铲子";
+                return "SHOVEL";
             }
 
             if (card.Kind != RecruitItemKind.BasicUnit)

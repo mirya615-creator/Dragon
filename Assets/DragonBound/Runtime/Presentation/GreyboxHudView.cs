@@ -16,6 +16,7 @@ namespace DragonBound.Presentation
         [SerializeField] private Button pauseButton;
         [SerializeField] private Text pauseLabel;
         [SerializeField] private GameObject pausePanel;
+        [SerializeField] private Button finishMatchButton;
         [SerializeField] private Button continueButton;
         [SerializeField] private Text resourceLabel;
         [SerializeField] private Text waveLabel;
@@ -84,6 +85,15 @@ namespace DragonBound.Presentation
                 continueButton.onClick.RemoveListener(ResumeGame);
                 continueButton.onClick.AddListener(ResumeGame);
             }
+            if (finishMatchButton != null)
+            {
+                finishMatchButton.onClick.RemoveListener(SettlePausedMatchAsDefeat);
+                finishMatchButton.onClick.AddListener(SettlePausedMatchAsDefeat);
+            }
+            if (pausePanel != null && match.State != MatchState.Paused)
+            {
+                pausePanel.SetActive(false);
+            }
             Refresh();
         }
 
@@ -132,6 +142,10 @@ namespace DragonBound.Presentation
             if (continueButton != null)
             {
                 continueButton.onClick.RemoveListener(ResumeGame);
+            }
+            if (finishMatchButton != null)
+            {
+                finishMatchButton.onClick.RemoveListener(SettlePausedMatchAsDefeat);
             }
 
             ReleaseGlobalPause();
@@ -193,6 +207,7 @@ namespace DragonBound.Presentation
             if (authoredPanel != null)
             {
                 pausePanel = authoredPanel.gameObject;
+                finishMatchButton = authoredPanel.Find("Bg/PauseBtn")?.GetComponent<Button>();
                 continueButton = authoredPanel.Find("Bg/ContinueBtn")?.GetComponent<Button>();
                 EnsureOverlayCanvas(pausePanel, PausePanelSortingOrder, true);
             }
@@ -256,7 +271,31 @@ namespace DragonBound.Presentation
 
         private void ResumeGame()
         {
+            if (match == null || match.State != MatchState.Paused)
+            {
+                return;
+            }
+
             if (!match.TryTransition(stateBeforePause))
+            {
+                return;
+            }
+
+            ReleaseGlobalPause();
+            Refresh();
+        }
+
+        private void SettlePausedMatchAsDefeat()
+        {
+            if (match == null || match.State != MatchState.Paused)
+            {
+                return;
+            }
+
+            // Leaving from the pause panel is a normal completed loss, not an abnormal exit.
+            // MatchController notifies every existing settlement/diagnostic consumer through
+            // its ordinary Defeat transition.
+            if (!match.TryTransition(MatchState.Defeat))
             {
                 return;
             }

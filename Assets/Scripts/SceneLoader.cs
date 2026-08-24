@@ -48,7 +48,6 @@ public sealed class SceneLoader : MonoBehaviour
     {
         Scene activeScene = SceneManager.GetActiveScene();
         ResolveSceneLoadingUi(activeScene);
-        BindSceneButton(activeScene.name);
     }
 
     private void OnDestroy()
@@ -127,36 +126,11 @@ public sealed class SceneLoader : MonoBehaviour
         }
 
         ResolveSceneLoadingUi(scene);
-        BindSceneButton(scene.name);
         if (isLoading)
         {
             SetLoadingVisible(false);
         }
         isLoading = false;
-    }
-
-    private void BindSceneButton(string sceneName)
-    {
-        switch (sceneName)
-        {
-            case "Game":
-                BindButton("ReturnBtn", "Main");
-                break;
-        }
-    }
-
-    private void BindButton(string buttonObjectName, string targetScene)
-    {
-        GameObject buttonObject = GameObject.Find(buttonObjectName);
-        Button button = buttonObject != null ? buttonObject.GetComponent<Button>() : null;
-
-        if (button == null)
-        {
-            Debug.LogError($"Button '{buttonObjectName}' was not found in scene '{SceneManager.GetActiveScene().name}'.");
-            return;
-        }
-
-        button.onClick.AddListener(() => LoadSceneAsync(targetScene));
     }
 
     private void SetLoadingVisible(bool visible)
