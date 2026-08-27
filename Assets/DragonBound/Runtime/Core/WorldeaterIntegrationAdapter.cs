@@ -75,9 +75,19 @@ namespace DragonBound.Core
                 {
                     result.Add(new WorldeaterTarget(enemy.RuntimeId, WorldeaterTargetClass.Minion, 0));
                 }
+                else if (enemy.IsAlive && enemy.Archetype == EnemyArchetype.Boss &&
+                         string.Equals(enemy.BossId, WorldeaterWyrmConfiguration.SubBossId, StringComparison.Ordinal))
+                {
+                    result.Add(new WorldeaterTarget(enemy.RuntimeId, WorldeaterTargetClass.SubBoss, 0));
+                }
             }
 
             return result;
+        }
+
+        public bool HasEligibleBasic()
+        {
+            return destination != null && destination.GetDeployedUnits().Count > 0;
         }
 
         public bool IsStillEligible(WorldeaterTarget target)
@@ -101,8 +111,11 @@ namespace DragonBound.Core
                 return false;
             }
 
-            return sideRuntime.Registry.TryGet(target.RuntimeId, out var enemy) &&
-                   enemy.IsAlive && enemy.Archetype == EnemyArchetype.Swarm;
+            return sideRuntime.Registry.TryGet(target.RuntimeId, out var enemy) && enemy.IsAlive &&
+                   (target.TargetClass == WorldeaterTargetClass.Minion
+                       ? enemy.Archetype == EnemyArchetype.Swarm
+                       : enemy.Archetype == EnemyArchetype.Boss &&
+                         string.Equals(enemy.BossId, WorldeaterWyrmConfiguration.SubBossId, StringComparison.Ordinal));
         }
 
         public bool Consume(WorldeaterTarget target)
@@ -121,6 +134,32 @@ namespace DragonBound.Core
                 count,
                 maxHitPoints,
                 moveSpeedCellsPerSecond);
+        }
+
+        public bool HasAliveSubBoss()
+        {
+            foreach (var enemy in sideRuntime.Registry.Snapshot())
+            {
+                if (enemy.IsAlive && enemy.Archetype == EnemyArchetype.Boss &&
+                    string.Equals(enemy.BossId, WorldeaterWyrmConfiguration.SubBossId, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void SpawnSubBoss(float maxHitPoints, float moveSpeedCellsPerSecond)
+        {
+            sideRuntime.SpawnBossSummons(
+                20,
+                WorldeaterWyrmConfiguration.BossId,
+                WorldeaterWyrmConfiguration.SubBossId,
+                1,
+                maxHitPoints,
+                moveSpeedCellsPerSecond,
+                EnemyArchetype.Boss);
         }
 
         public SpellbreakerOutcome Evaluate(BossCastAttempt attempt)

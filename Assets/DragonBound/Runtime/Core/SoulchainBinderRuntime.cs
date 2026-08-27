@@ -71,6 +71,66 @@ namespace DragonBound.Core
         {
             return destination.SetCombatSuspended(runtimeId, disabled);
         }
+
+        /// <summary>
+        /// Returns every legal contiguous 2x2 battlefield area that currently contains at
+        /// least one deployed Basic. Bench cells are deliberately excluded.
+        /// </summary>
+        public IReadOnlyList<GridPosition> GetEligibleRegionAnchors()
+        {
+            var anchors = new List<GridPosition>();
+            var deployed = GetBasicCandidates();
+            for (var index = 0; index < deployed.Count; index++)
+            {
+                var cell = deployed[index].Cell;
+                for (var offsetX = -1; offsetX <= 0; offsetX++)
+                {
+                    for (var offsetY = -1; offsetY <= 0; offsetY++)
+                    {
+                        var anchor = new GridPosition(cell.X + offsetX, cell.Y + offsetY);
+                        if (!Contains(anchors, anchor) && IsLegalBattleRegion(anchor))
+                        {
+                            anchors.Add(anchor);
+                        }
+                    }
+                }
+            }
+
+            anchors.Sort();
+            return anchors;
+        }
+
+        private bool IsLegalBattleRegion(GridPosition anchor)
+        {
+            for (var x = 0; x <= 1; x++)
+            {
+                for (var y = 0; y <= 1; y++)
+                {
+                    if (!destination.Board.TryGetCellType(
+                            new GridPosition(anchor.X + x, anchor.Y + y),
+                            out var cellType) ||
+                        cellType == CellType.Bench)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static bool Contains(List<GridPosition> positions, GridPosition candidate)
+        {
+            for (var index = 0; index < positions.Count; index++)
+            {
+                if (positions[index] == candidate)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     internal sealed class EmptySoulChainTargetProvider : ISoulChainTargetProvider
@@ -401,16 +461,39 @@ namespace DragonBound.Core
 
         private GridPosition SelectRegionAnchor()
         {
+            if (targets is BoardSoulChainTargetProvider boardTargets)
+            {
+                var legalAnchors = boardTargets.GetEligibleRegionAnchors();
+                return legalAnchors.Count == 0
+                    ? default
+                    : legalAnchors[random.NextInt("SoulChain.Region", 0, legalAnchors.Count)];
+            }
+
             var candidates = targets.GetBasicCandidates();
             var anchors = new List<GridPosition>();
             for (var index = 0; index < candidates.Count; index++)
             {
-                if (!candidates[index].IsAlive || Contains(anchors, candidates[index].Cell))
+                if (!candidates[index].IsAlive)
                 {
                     continue;
                 }
 
-                anchors.Add(candidates[index].Cell);
+                // Non-board providers are used by deterministic diagnostics/tests. Generate
+                // all four possible 2x2 anchors around each Basic instead of biasing the
+                // selection toward areas whose upper-left cell happens to be occupied.
+                for (var offsetX = -1; offsetX <= 0; offsetX++)
+                {
+                    for (var offsetY = -1; offsetY <= 0; offsetY++)
+                    {
+                        var anchor = new GridPosition(
+                            candidates[index].Cell.X + offsetX,
+                            candidates[index].Cell.Y + offsetY);
+                        if (!Contains(anchors, anchor))
+                        {
+                            anchors.Add(anchor);
+                        }
+                    }
+                }
             }
 
             anchors.Sort();

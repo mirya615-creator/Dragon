@@ -235,6 +235,49 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void SubscribedBossWarningDefersBossWaveUntilConfirmed()
+        {
+            var match = new MatchController(612);
+            var runtime = new TwentyWavePressureRuntime(match, null, null, 612);
+            var requestedWave = 0;
+            runtime.BossWarningRequested += wave => requestedWave = wave;
+
+            Assert.IsTrue(runtime.StartRun());
+            Assert.IsTrue(runtime.JumpToWave(6));
+
+            Assert.AreEqual(6, requestedWave);
+            Assert.AreEqual(MatchState.BossPrompt, match.State);
+            Assert.IsTrue(runtime.IsBossWarningPending);
+            Assert.AreEqual(6, runtime.PendingBossWave);
+            Assert.AreEqual(1, runtime.CurrentWaveIndex);
+            Assert.IsNull(runtime.PlayerW6Boss);
+            Assert.IsNull(runtime.AiW6Boss);
+
+            runtime.Tick(10f);
+            Assert.AreEqual(0f, runtime.WaveElapsedTime, 0.0001f);
+            Assert.IsTrue(runtime.ConfirmBossWarning());
+            Assert.AreEqual(MatchState.Running, match.State);
+            Assert.AreEqual(6, runtime.CurrentWaveIndex);
+            Assert.IsNotNull(runtime.PlayerW6Boss);
+            Assert.IsNotNull(runtime.AiW6Boss);
+            Assert.IsFalse(runtime.IsBossWarningPending);
+            Assert.IsFalse(runtime.ConfirmBossWarning(), "Repeated confirmation must not duplicate the boss wave.");
+        }
+
+        [Test]
+        public void RuntimeWithoutBossWarningSubscriberKeepsLegacyImmediateWaveStart()
+        {
+            var runtime = CreateRuntime(613);
+
+            Assert.IsTrue(runtime.StartRun());
+            Assert.IsTrue(runtime.JumpToWave(6));
+
+            Assert.AreEqual(6, runtime.CurrentWaveIndex);
+            Assert.IsNotNull(runtime.PlayerW6Boss);
+            Assert.IsFalse(runtime.IsBossWarningPending);
+        }
+
+        [Test]
         public void DiagnosticsAreReadFromTheFormalConfiguration()
         {
             var configuration = TwentyWavePressureConfiguration.CreateGreyboxV1();

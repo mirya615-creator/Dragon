@@ -264,7 +264,7 @@ namespace DragonBound.Tests.PlayMode
             yield return null;
             var sigilView = FindCard(bootstrap.BoardView, firstSigil.RuntimeId);
             Assert.IsNotNull(sigilView);
-            StringAssert.Contains("契约幼龙", sigilView.GetComponentInChildren<Text>(true).text);
+            Assert.AreEqual("Contract Dragonling", sigilView.GetComponentInChildren<Text>(true).text);
             MoveDirect(bootstrap, firstSigil.RuntimeId, new GridPosition(2, 1));
 
             var second = bootstrap.Recruitment.TryRecruit();

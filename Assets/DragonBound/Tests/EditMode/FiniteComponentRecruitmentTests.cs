@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Recruitment;
@@ -244,6 +245,69 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(0, ai.CompletedRecruitments);
             Assert.AreEqual(24, aiBag.RemainingCount);
             Assert.IsFalse(aiBag.WasDiscarded(playerBag.OrderedComponentInstanceIds[0]));
+        }
+
+        [Test]
+        public void OpeningRecruitmentsDoNotGuaranteeAPurplePairOrTwoDeliveredComponents()
+        {
+            var catalog = GreyboxRecruitmentCatalog.Create();
+            var foundUnmatchedBagOpening = false;
+            var foundFewerThanTwoComponentsByRecruitThree = false;
+            for (var seed = 1; seed <= 512; seed++)
+            {
+                var bag = LimitedComponentBag.CreateBag(
+                    seed,
+                    LimitedComponentBag.DefaultContentVersion,
+                    catalog);
+                var first = bag.GetInstance(bag.OrderedComponentInstanceIds[0]).ComponentId;
+                var second = bag.GetInstance(bag.OrderedComponentInstanceIds[1]).ComponentId;
+                if (!catalog.Recipes.Any(recipe =>
+                        recipe.Rarity == HeroRecipeRarity.Purple && recipe.Matches(first, second)))
+                {
+                    foundUnmatchedBagOpening = true;
+                }
+
+                var deck = new RecruitDeck(
+                    catalog,
+                    seed,
+                    "player",
+                    bag,
+                    componentPolicy: RecruitComponentPolicy.V3,
+                    currentWaveProvider: () => 1);
+                deck.DrawNext();
+                deck.DrawNext();
+                deck.DrawNext();
+                if (bag.DrawnCount < 2)
+                {
+                    foundFewerThanTwoComponentsByRecruitThree = true;
+                }
+
+                if (foundUnmatchedBagOpening && foundFewerThanTwoComponentsByRecruitThree)
+                {
+                    break;
+                }
+            }
+
+            Assert.IsTrue(foundUnmatchedBagOpening,
+                "The shuffled bag must not force a purple recipe into its first two positions.");
+            Assert.IsTrue(foundFewerThanTwoComponentsByRecruitThree,
+                "Normal V3 rolls must allow fewer than two components across the first three recruits.");
+        }
+
+        [Test]
+        public void FiniteBasicUnitsUseEveryCatalogEntryBeforeRepeating()
+        {
+            var deck = CreateFiniteDeck(20260824, out _);
+            for (var batchIndex = 0; batchIndex < 8; batchIndex++)
+            {
+                var basicIds = deck.DrawNext().Cards
+                    .Where(card => card.Kind == RecruitItemKind.BasicUnit)
+                    .Select(card => card.ConfigId)
+                    .ToList();
+                Assert.AreEqual(
+                    System.Math.Min(basicIds.Count, 4),
+                    basicIds.Distinct().Count());
+            }
         }
 
         private static RecruitDeck CreateFiniteDeck(int seed, out LimitedComponentBag bag)

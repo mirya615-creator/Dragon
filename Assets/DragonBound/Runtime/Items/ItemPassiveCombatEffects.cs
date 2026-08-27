@@ -126,7 +126,20 @@ namespace DragonBound.Items
             reason = "PassiveOnly";
             return false;
         }
-        public void HandleCombatEvent(ItemRunContext context, ItemCombatEvent combatEvent) { }
+        public void HandleCombatEvent(ItemRunContext context, ItemCombatEvent combatEvent)
+        {
+            if (combatEvent.Kind != ItemCombatEventKind.EnemySpawned ||
+                !context.OwnRouteEnemies.TryGet(combatEvent.RuntimeId, out var enemy) ||
+                enemy.Team != context.OwnTeam.Side || !enemy.IsAlive)
+            {
+                return;
+            }
+
+            if (enemy.ApplyMovementSlow(SlowFraction, RunDurationSeconds))
+            {
+                LastAffectedEnemyCount++;
+            }
+        }
     }
 
     public sealed class WarTempoEffect : IItemEffectRuntime

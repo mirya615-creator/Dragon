@@ -129,6 +129,14 @@ namespace DragonBound.Presentation
             }
         }
 
+        public void SetCardColor(Color color)
+        {
+            if (artImage != null)
+            {
+                artImage.color = color;
+            }
+        }
+
         // Reuses the authored level corner so basic cards keep a short, readable main label.
         public void SetBasicLevel(int level)
         {

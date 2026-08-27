@@ -113,6 +113,31 @@ namespace DragonBound.Items
 
     public static class ItemCatalog
     {
+        private static readonly IReadOnlyDictionary<string, string> englishDisplayNames =
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                { ItemIds.WyrmfangSnare, "Wyrmfang Snare" },
+                { ItemIds.WinterveilRune, "Winterveil Scroll" },
+                { ItemIds.RuneburstMine, "Arcane Thunderburst" },
+                { ItemIds.FrenzyRune, "Berserker War Drum" },
+                { ItemIds.RuneOfTempering, "Tempering Hammer" },
+                { ItemIds.WarforgeSigil, "Warforge Sigil" },
+                { ItemIds.DrakeheartRelic, "Drakeheart Relic" },
+                { ItemIds.PactOfEndurance, "Pact of Endurance" },
+                { ItemIds.FarwatchCrest, "Farwatch Crest" },
+                { ItemIds.FrostMire, "Frost Mire" },
+                { ItemIds.WarTempo, "War Tempo" },
+                { ItemIds.VeteransMark, "Veteran's Mark" },
+                { ItemIds.QuartermastersSatchel, "Quartermaster's Satchel" },
+                { ItemIds.SpellbreakerSeal, "Spellbreaker Seal" },
+                { ItemIds.RivalryOath, "Rivalry Oath" },
+                { ItemIds.ForgeTreasury, "Forge Treasury" },
+                { ItemIds.BattlefieldCommand, "Battlefield Command" },
+                { ItemIds.ForgekeepersGift, "Forgekeeper's Gift" },
+                { ItemIds.DragonfallJudgment, "Dragonfall Judgment" },
+                { ItemIds.DraconicPresence, "Draconic Presence" }
+            };
+
         private static readonly IReadOnlyList<ItemDefinition> definitions = new List<ItemDefinition>
         {
             Define(ItemIds.WyrmfangSnare, ItemCategory.Active, ItemRarity.Rare,
@@ -175,6 +200,14 @@ namespace DragonBound.Items
             }
 
             return null;
+        }
+
+        public static string GetEnglishDisplayName(string itemId)
+        {
+            if (string.IsNullOrWhiteSpace(itemId)) return string.Empty;
+            return englishDisplayNames.TryGetValue(itemId, out string displayName)
+                ? displayName
+                : itemId;
         }
 
         public static IReadOnlyList<ItemDefinition> FormalCandidates

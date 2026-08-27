@@ -1,7 +1,11 @@
 using DragonBound.Core;
+using DragonBound.Bosses.Contracts;
+using DragonBound.Bosses.Runtime;
 using DragonBound.Items;
 using DragonBound.Recruitment;
+using System.Collections;
 using System.Text;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,12 +16,18 @@ namespace DragonBound.Presentation
         private const int ActiveItemSortingOrder = 105;
         private const int PauseButtonSortingOrder = 110;
         private const int PausePanelSortingOrder = 120;
+        private const int BossWarningSortingOrder = 125;
+        private const int SettlementPanelSortingOrder = 130;
 
         [SerializeField] private Button pauseButton;
         [SerializeField] private Text pauseLabel;
         [SerializeField] private GameObject pausePanel;
         [SerializeField] private Button finishMatchButton;
         [SerializeField] private Button continueButton;
+        [SerializeField] private GameObject bossWarning;
+        [SerializeField] private Button bossWarningConfirmButton;
+        [SerializeField] private GameObject settlementPanel;
+        [SerializeField] private TMP_Text settlementResultText;
         [SerializeField] private Text resourceLabel;
         [SerializeField] private Text waveLabel;
         [SerializeField] private Text debugLabel;
@@ -26,7 +36,10 @@ namespace DragonBound.Presentation
         [SerializeField] private Button activeItemSlotTwo;
         [SerializeField] private Text activeItemSlotOneLabel;
         [SerializeField] private Text activeItemSlotTwoLabel;
+        [SerializeField] private Image activeItemSlotOneCooldownMask;
+        [SerializeField] private Image activeItemSlotTwoCooldownMask;
         [SerializeField] private RectTransform activeItemContainer;
+        [SerializeField] private TMP_Text tipText;
         [SerializeField] private bool showDebugOverlay;
 
         private MatchController match;
@@ -38,8 +51,19 @@ namespace DragonBound.Presentation
         private MatchState stateBeforePause = MatchState.Preparing;
         private float timeScaleBeforePause = 1f;
         private bool ownsGlobalPause;
+        private bool ownsBossWarningPause;
+        private float timeScaleBeforeBossWarning = 1f;
+        private bool pauseExitRequested;
         private IWaveRuntime waveRuntime;
         private TwentyWavePressureRuntime itemRuntime;
+        // Passive items share the authored radial masks during the opening preparation window.
+        private readonly Image[] passiveItemCooldownMasks = new Image[6];
+        private readonly Transform[] passiveItemSlots = new Transform[6];
+        private Coroutine tipHideCoroutine;
+        private float initialItemCooldownDuration;
+        private float initialItemCooldownRemaining;
+
+        public event System.Action PauseExitRequested;
 
         public void Configure(
             Button pause,
@@ -71,6 +95,11 @@ namespace DragonBound.Presentation
             this.aiRecruitment = aiRecruitment;
             this.playerRecruitDestination = playerRecruitDestination;
             this.aiRecruitDestination = aiRecruitDestination;
+            if (this.playerRecruitDestination != null)
+            {
+                this.playerRecruitDestination.BasicMergeBlocked -= HandleBasicMergeBlocked;
+                this.playerRecruitDestination.BasicMergeBlocked += HandleBasicMergeBlocked;
+            }
             ResolveAuthoredScreenControls();
             if (pauseButton == null)
             {
@@ -87,12 +116,28 @@ namespace DragonBound.Presentation
             }
             if (finishMatchButton != null)
             {
-                finishMatchButton.onClick.RemoveListener(SettlePausedMatchAsDefeat);
-                finishMatchButton.onClick.AddListener(SettlePausedMatchAsDefeat);
+                finishMatchButton.onClick.RemoveListener(ExitPausedMatch);
+                finishMatchButton.onClick.AddListener(ExitPausedMatch);
+            }
+            if (bossWarningConfirmButton != null)
+            {
+                bossWarningConfirmButton.onClick.RemoveListener(ConfirmBossWarning);
+                bossWarningConfirmButton.onClick.AddListener(ConfirmBossWarning);
+            }
+            if (bossWarning != null && match.State != MatchState.BossPrompt)
+            {
+                bossWarning.SetActive(false);
             }
             if (pausePanel != null && match.State != MatchState.Paused)
             {
                 pausePanel.SetActive(false);
+            }
+            match.StateChanged -= HandleMatchStateChanged;
+            match.StateChanged += HandleMatchStateChanged;
+            if (settlementPanel != null &&
+                match.State != MatchState.Victory && match.State != MatchState.Defeat)
+            {
+                settlementPanel.SetActive(false);
             }
             Refresh();
         }
@@ -105,7 +150,30 @@ namespace DragonBound.Presentation
 
         public void BindItemRuntime(TwentyWavePressureRuntime runtime)
         {
+            if (itemRuntime != null)
+            {
+                itemRuntime.BossWarningRequested -= HandleBossWarningRequested;
+                itemRuntime.SoulChainCastEmitted -= HandleSoulChainCast;
+                itemRuntime.StormcallerCastEmitted -= HandleStormcallerCast;
+                itemRuntime.BloodcrownLifecycleEmitted -= HandleBloodcrownLifecycle;
+                itemRuntime.WorldeaterCastEmitted -= HandleWorldeaterCast;
+            }
             itemRuntime = runtime;
+            if (itemRuntime != null)
+            {
+                if (bossWarning != null && bossWarningConfirmButton != null)
+                {
+                    itemRuntime.BossWarningRequested += HandleBossWarningRequested;
+                }
+                itemRuntime.SoulChainCastEmitted += HandleSoulChainCast;
+                itemRuntime.StormcallerCastEmitted += HandleStormcallerCast;
+                itemRuntime.BloodcrownLifecycleEmitted += HandleBloodcrownLifecycle;
+                itemRuntime.WorldeaterCastEmitted += HandleWorldeaterCast;
+            }
+            initialItemCooldownDuration = runtime != null && runtime.Configuration != null
+                ? runtime.Configuration.GetWave(1).FirstSpawnDelaySeconds
+                : 0f;
+            initialItemCooldownRemaining = initialItemCooldownDuration;
             EnsureActiveItemSlots();
             Refresh();
         }
@@ -119,6 +187,10 @@ namespace DragonBound.Presentation
             activeItemSlotOneLabel = firstLabel;
             activeItemSlotTwo = second;
             activeItemSlotTwoLabel = secondLabel;
+            HideObsoleteItemLabel(activeItemSlotOneLabel);
+            HideObsoleteItemLabel(activeItemSlotTwoLabel);
+            activeItemSlotOneCooldownMask = EnsureCooldownMask(first != null ? first.transform : null);
+            activeItemSlotTwoCooldownMask = EnsureCooldownMask(second != null ? second.transform : null);
             AddActiveItemListeners();
         }
 
@@ -130,11 +202,22 @@ namespace DragonBound.Presentation
 
         protected virtual void LateUpdate()
         {
+            if (initialItemCooldownRemaining > 0f &&
+                match != null && match.State == MatchState.Running)
+            {
+                initialItemCooldownRemaining = Mathf.Max(
+                    0f,
+                    initialItemCooldownRemaining - Time.deltaTime);
+            }
             Refresh();
         }
 
         protected virtual void OnDestroy()
         {
+            if (match != null)
+            {
+                match.StateChanged -= HandleMatchStateChanged;
+            }
             if (pauseButton != null)
             {
                 pauseButton.onClick.RemoveListener(PauseGameFromButton);
@@ -145,10 +228,27 @@ namespace DragonBound.Presentation
             }
             if (finishMatchButton != null)
             {
-                finishMatchButton.onClick.RemoveListener(SettlePausedMatchAsDefeat);
+                finishMatchButton.onClick.RemoveListener(ExitPausedMatch);
+            }
+            if (bossWarningConfirmButton != null)
+            {
+                bossWarningConfirmButton.onClick.RemoveListener(ConfirmBossWarning);
+            }
+            if (itemRuntime != null)
+            {
+                itemRuntime.BossWarningRequested -= HandleBossWarningRequested;
+                itemRuntime.SoulChainCastEmitted -= HandleSoulChainCast;
+                itemRuntime.StormcallerCastEmitted -= HandleStormcallerCast;
+                itemRuntime.BloodcrownLifecycleEmitted -= HandleBloodcrownLifecycle;
+                itemRuntime.WorldeaterCastEmitted -= HandleWorldeaterCast;
+            }
+            if (playerRecruitDestination != null)
+            {
+                playerRecruitDestination.BasicMergeBlocked -= HandleBasicMergeBlocked;
             }
 
             ReleaseGlobalPause();
+            ReleaseBossWarningPause();
 
             RemoveActiveItemListeners();
         }
@@ -177,6 +277,9 @@ namespace DragonBound.Presentation
                 return;
             }
 
+            tipText = screen.transform.Find("TipText")?.GetComponent<TMP_Text>();
+            ResolvePassiveItemCooldownMasks(screen.transform);
+
             activeItemContainer = background.Find("ActiveItemContainer") as RectTransform;
             if (activeItemContainer == null)
             {
@@ -203,13 +306,32 @@ namespace DragonBound.Presentation
                 EnsureOverlayCanvas(authoredButton.gameObject, PauseButtonSortingOrder, true);
             }
 
-            var authoredPanel = background.Find("PausePanel");
+            // Current authored hierarchy keeps PausePanel beside ART_ScreenBackground.
+            // Retain the old nested lookup so older screen prefabs remain compatible.
+            var authoredPanel = screen.transform.Find("PausePanel") ??
+                                background.Find("PausePanel");
             if (authoredPanel != null)
             {
                 pausePanel = authoredPanel.gameObject;
                 finishMatchButton = authoredPanel.Find("Bg/PauseBtn")?.GetComponent<Button>();
                 continueButton = authoredPanel.Find("Bg/ContinueBtn")?.GetComponent<Button>();
                 EnsureOverlayCanvas(pausePanel, PausePanelSortingOrder, true);
+            }
+
+            var authoredSettlement = screen.transform.Find("SettlementPanel");
+            if (authoredSettlement != null)
+            {
+                settlementPanel = authoredSettlement.gameObject;
+                settlementResultText = authoredSettlement.Find("Text")?.GetComponent<TMP_Text>();
+                EnsureOverlayCanvas(settlementPanel, SettlementPanelSortingOrder, true);
+            }
+
+            var authoredBossWarning = screen.transform.Find("BossWarning");
+            if (authoredBossWarning != null)
+            {
+                bossWarning = authoredBossWarning.gameObject;
+                bossWarningConfirmButton = authoredBossWarning.Find("ConfirmBtn")?.GetComponent<Button>();
+                EnsureOverlayCanvas(bossWarning, BossWarningSortingOrder, true);
             }
 
             var debugRoot = background.Find("Debug");
@@ -285,22 +407,109 @@ namespace DragonBound.Presentation
             Refresh();
         }
 
-        private void SettlePausedMatchAsDefeat()
+        private void HandleBossWarningRequested(int wave)
+        {
+            if (match == null || match.State != MatchState.BossPrompt || bossWarning == null)
+            {
+                return;
+            }
+
+            timeScaleBeforeBossWarning = Time.timeScale > 0f ? Time.timeScale : 1f;
+            Time.timeScale = 0f;
+            ownsBossWarningPause = true;
+            bossWarning.SetActive(true);
+            bossWarning.transform.SetAsLastSibling();
+            if (bossWarningConfirmButton != null)
+            {
+                bossWarningConfirmButton.interactable = true;
+            }
+            Refresh();
+        }
+
+        private void ConfirmBossWarning()
+        {
+            if (itemRuntime == null || !itemRuntime.ConfirmBossWarning())
+            {
+                return;
+            }
+
+            if (bossWarningConfirmButton != null)
+            {
+                bossWarningConfirmButton.interactable = false;
+            }
+            ReleaseBossWarningPause();
+            Refresh();
+        }
+
+        private void ReleaseBossWarningPause()
+        {
+            if (ownsBossWarningPause)
+            {
+                // A separate player pause owns Time.timeScale while MatchState is Paused.
+                if (match == null || match.State != MatchState.Paused)
+                {
+                    Time.timeScale = timeScaleBeforeBossWarning;
+                }
+                ownsBossWarningPause = false;
+            }
+
+            if (bossWarning != null)
+            {
+                bossWarning.SetActive(false);
+            }
+        }
+
+        private void ExitPausedMatch()
+        {
+            if (match == null || match.State != MatchState.Paused || pauseExitRequested)
+            {
+                return;
+            }
+
+            if (PauseExitRequested == null)
+            {
+                Debug.LogError("Pause exit requires a reward/scene-transition handler.");
+                return;
+            }
+
+            pauseExitRequested = true;
+            if (finishMatchButton != null) finishMatchButton.interactable = false;
+            if (continueButton != null) continueButton.interactable = false;
+            PauseExitRequested.Invoke();
+        }
+
+        public void CancelPauseExitRequest()
         {
             if (match == null || match.State != MatchState.Paused)
             {
                 return;
             }
 
-            // Leaving from the pause panel is a normal completed loss, not an abnormal exit.
-            // MatchController notifies every existing settlement/diagnostic consumer through
-            // its ordinary Defeat transition.
-            if (!match.TryTransition(MatchState.Defeat))
+            pauseExitRequested = false;
+            if (finishMatchButton != null) finishMatchButton.interactable = true;
+            if (continueButton != null) continueButton.interactable = true;
+        }
+
+        private void HandleMatchStateChanged(MatchState state)
+        {
+            if (state != MatchState.Victory && state != MatchState.Defeat)
             {
                 return;
             }
 
+            // A terminal match state already stops the combat runtimes. Release a possible
+            // pause-owned time scale so the settlement UI and following scene remain healthy.
             ReleaseGlobalPause();
+            ReleaseBossWarningPause();
+            if (settlementResultText != null)
+            {
+                settlementResultText.text = state == MatchState.Victory ? "Victory" : "Defeat";
+            }
+            if (settlementPanel != null)
+            {
+                settlementPanel.SetActive(true);
+                settlementPanel.transform.SetAsLastSibling();
+            }
             Refresh();
         }
 
@@ -376,7 +585,8 @@ namespace DragonBound.Presentation
             }
             if (pauseButton != null)
             {
-                pauseButton.interactable = match.State != MatchState.Paused;
+                pauseButton.interactable = match.State != MatchState.Paused &&
+                                           match.State != MatchState.BossPrompt;
             }
             RefreshActiveItemSlots();
         }
@@ -385,6 +595,8 @@ namespace DragonBound.Presentation
         {
             if (activeItemSlotOne != null && activeItemSlotTwo != null)
             {
+                activeItemSlotOneCooldownMask = EnsureCooldownMask(activeItemSlotOne.transform);
+                activeItemSlotTwoCooldownMask = EnsureCooldownMask(activeItemSlotTwo.transform);
                 AddActiveItemListeners();
                 return;
             }
@@ -409,17 +621,9 @@ namespace DragonBound.Presentation
             button = slot.GetComponent<Button>();
             button.targetGraphic = image;
             EnsureOverlayCanvas(slot, ActiveItemSortingOrder + index, true);
-            var labelObject = new GameObject("Label", typeof(RectTransform), typeof(Text));
-            labelObject.transform.SetParent(slot.transform, false);
-            var labelRect = labelObject.GetComponent<RectTransform>();
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = Vector2.zero;
-            labelRect.offsetMax = Vector2.zero;
-            label = labelObject.GetComponent<Text>();
-            label.alignment = TextAnchor.MiddleCenter;
-            label.color = Color.white;
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label = null;
+            var cooldownMask = EnsureCooldownMask(slot.transform);
+            cooldownMask.transform.SetAsLastSibling();
         }
 
         private void AddActiveItemListeners()
@@ -453,19 +657,45 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            itemRuntime.TryUseItem(TeamSide.Player, snapshot.ActiveItems[slot], out _);
+            if (!itemRuntime.TryUseItem(
+                    TeamSide.Player,
+                    snapshot.ActiveItems[slot],
+                    out var reason))
+            {
+                if (reason == "NoAliveTargets")
+                {
+                    ShowTip("No enemies");
+                }
+                Debug.LogWarning(
+                    $"Active item rejected: Item={snapshot.ActiveItems[slot]} Reason={reason}",
+                    this);
+            }
             Refresh();
         }
 
         private void RefreshActiveItemSlots()
         {
-            RefreshActiveItemSlot(activeItemSlotOne, activeItemSlotOneLabel, 0);
-            RefreshActiveItemSlot(activeItemSlotTwo, activeItemSlotTwoLabel, 1);
+            bool initialCooldownVisible = initialItemCooldownRemaining > 0.0001f &&
+                                          initialItemCooldownDuration > 0.0001f;
+            float initialFill = initialCooldownVisible
+                ? Mathf.Clamp01(initialItemCooldownRemaining / initialItemCooldownDuration)
+                : 0f;
+            SetPassiveInitialCooldownVisual(initialFill, initialCooldownVisible);
+            RefreshActiveItemSlot(
+                activeItemSlotOne,
+                activeItemSlotOneLabel,
+                activeItemSlotOneCooldownMask,
+                0);
+            RefreshActiveItemSlot(
+                activeItemSlotTwo,
+                activeItemSlotTwoLabel,
+                activeItemSlotTwoCooldownMask,
+                1);
         }
 
-        private void RefreshActiveItemSlot(Button button, Text label, int slot)
+        private void RefreshActiveItemSlot(Button button, Text label, Image cooldownMask, int slot)
         {
-            if (button == null || label == null)
+            if (button == null)
             {
                 return;
             }
@@ -473,17 +703,214 @@ namespace DragonBound.Presentation
             var snapshot = itemRuntime?.PlayerItems?.Snapshot;
             if (snapshot == null || slot >= snapshot.ActiveItems.Count)
             {
-                label.text = "EMPTY";
+                if (label != null) label.text = string.Empty;
                 button.interactable = false;
+                SetCooldownMask(cooldownMask, 0f, false);
+                button.gameObject.SetActive(false);
                 return;
             }
 
+            if (!button.gameObject.activeSelf) button.gameObject.SetActive(true);
             var itemId = snapshot.ActiveItems[slot];
             var cooldown = itemRuntime.PlayerItems.GetCooldownRemainingSeconds(itemId);
-            button.interactable = cooldown <= 0.0001f && match != null && match.State == MatchState.Running;
-            label.text = cooldown > 0.0001f
-                ? itemId + "\nCD " + Mathf.CeilToInt(cooldown) + "s"
-                : itemId + "\nREADY";
+            var cooldownDuration = itemRuntime.PlayerItems.GetCooldownDurationSeconds(itemId);
+            bool initialCooldownVisible = initialItemCooldownRemaining > 0.0001f &&
+                                          initialItemCooldownDuration > 0.0001f;
+            button.interactable = !initialCooldownVisible &&
+                                  cooldown <= 0.0001f &&
+                                  match != null && match.State == MatchState.Running;
+            if (label != null) label.text = string.Empty;
+            if (initialCooldownVisible)
+            {
+                SetCooldownMask(
+                    cooldownMask,
+                    Mathf.Clamp01(initialItemCooldownRemaining / initialItemCooldownDuration),
+                    true);
+            }
+            else
+            {
+                SetCooldownMask(
+                    cooldownMask,
+                    cooldownDuration > 0.0001f ? Mathf.Clamp01(cooldown / cooldownDuration) : 0f,
+                    cooldown > 0.0001f && cooldownDuration > 0.0001f);
+            }
+        }
+
+        private static void HideObsoleteItemLabel(Text label)
+        {
+            if (label == null) return;
+            label.text = string.Empty;
+            label.gameObject.SetActive(false);
+        }
+
+        private void ShowTip(string message)
+        {
+            if (tipText == null || string.IsNullOrWhiteSpace(message)) return;
+            if (tipHideCoroutine != null) StopCoroutine(tipHideCoroutine);
+            tipText.text = message;
+            tipText.gameObject.SetActive(true);
+            tipHideCoroutine = StartCoroutine(HideTipAfterDelay());
+        }
+
+        private void HandleBasicMergeBlocked()
+        {
+            ShowTip("Merge blocked by Boss");
+        }
+
+        private void HandleSoulChainCast(TeamSide side, SoulChainCastEvent value)
+        {
+            if (side != TeamSide.Player) return;
+            if (value.Kind == SoulChainCastEventKind.CastStarted)
+            {
+                ShowTip("Soul Chain incoming");
+            }
+            else if (value.Kind == SoulChainCastEventKind.EffectApplied)
+            {
+                ShowTip(value.AffectedCount > 0
+                    ? $"Boss：Soul Chain locked {value.AffectedCount} unit(s)"
+                    : "Boss：Soul Chain found no target");
+            }
+            else if (value.Kind == SoulChainCastEventKind.CastFailed)
+            {
+                ShowTip("Soul Chain interrupted");
+            }
+        }
+
+        private void HandleStormcallerCast(TeamSide side, StormcallerCastEvent value)
+        {
+            if (side != TeamSide.Player) return;
+            if (value.Kind == StormcallerCastEventKind.CastStarted)
+            {
+                ShowTip("Storm Call incoming");
+            }
+            else if (value.Kind == StormcallerCastEventKind.EffectApplied)
+            {
+                ShowTip($"Boss：Storm Call shielded and hastened {value.AffectedCount} enemy unit(s)");
+            }
+            else if (value.Kind == StormcallerCastEventKind.CastFailed)
+            {
+                ShowTip("Storm Call interrupted");
+            }
+        }
+
+        private void HandleBloodcrownLifecycle(TeamSide side, BossSkillLifecycleEvent value)
+        {
+            if (side != TeamSide.Player) return;
+            if (value.Lifecycle == BossSkillLifecycle.Start)
+            {
+                ShowTip("Bloodcrown Decree incoming");
+            }
+            else if (value.Lifecycle == BossSkillLifecycle.Resolve)
+            {
+                ShowTip("Boss：All Basic units are treated as Lv1 and cannot merge");
+            }
+            else if (value.Lifecycle == BossSkillLifecycle.Blocked)
+            {
+                ShowTip("Bloodcrown Decree interrupted");
+            }
+        }
+
+        private void HandleWorldeaterCast(TeamSide side, WorldeaterCastEvent value)
+        {
+            if (side != TeamSide.Player) return;
+            if (value.Outcome == WorldeaterCastOutcome.Started)
+            {
+                ShowTip(value.Kind == WorldeaterCastKind.Devour
+                    ? "Worldeater is targeting Devour"
+                    : "Worldeater is summoning");
+            }
+            else if (value.Outcome == WorldeaterCastOutcome.Blocked)
+            {
+                ShowTip("Worldeater skill interrupted");
+            }
+            else if (value.Outcome == WorldeaterCastOutcome.Resolved)
+            {
+                ShowTip(value.Kind == WorldeaterCastKind.Devour
+                    ? "Boss：Devoured a target and increased HP"
+                    : value.Kind == WorldeaterCastKind.SummonSubBoss
+                        ? "Boss：Summoned a SubBoss"
+                        : $"Boss：Summoned {value.AffectedCount} minions");
+            }
+        }
+
+        private void ResolvePassiveItemCooldownMasks(Transform screen)
+        {
+            Transform passiveContainer = null;
+            foreach (Transform candidate in screen.GetComponentsInChildren<Transform>(true))
+            {
+                if (candidate.name == "Passtive" || candidate.name == "Passive")
+                {
+                    passiveContainer = candidate;
+                    break;
+                }
+            }
+
+            if (passiveContainer == null) return;
+            for (int index = 0; index < passiveItemCooldownMasks.Length; index++)
+            {
+                Transform slot = passiveContainer.Find("Passtive" + index) ??
+                                 passiveContainer.Find("Passive" + index);
+                passiveItemCooldownMasks[index] = slot?.Find("CooldownMask")?.GetComponent<Image>();
+                passiveItemSlots[index] = slot;
+            }
+        }
+
+        private void SetPassiveInitialCooldownVisual(float fillAmount, bool visible)
+        {
+            fillAmount = Mathf.Clamp01(fillAmount);
+            for (int index = 0; index < passiveItemCooldownMasks.Length; index++)
+            {
+                Image mask = passiveItemCooldownMasks[index];
+                if (mask == null) continue;
+                bool hasItem = passiveItemSlots[index] != null &&
+                               passiveItemSlots[index].gameObject.activeSelf;
+                bool show = visible && hasItem;
+                mask.fillAmount = show ? fillAmount : 0f;
+                if (mask.gameObject.activeSelf != show) mask.gameObject.SetActive(show);
+            }
+        }
+
+        private IEnumerator HideTipAfterDelay()
+        {
+            yield return new WaitForSecondsRealtime(1.5f);
+            tipHideCoroutine = null;
+            if (tipText == null) yield break;
+            tipText.text = string.Empty;
+            tipText.gameObject.SetActive(false);
+        }
+
+        private static Image EnsureCooldownMask(Transform slot)
+        {
+            if (slot == null) return null;
+            var existing = slot.Find("CooldownMask")?.GetComponent<Image>();
+            if (existing != null) return existing;
+
+            var maskObject = new GameObject("CooldownMask", typeof(RectTransform), typeof(Image));
+            maskObject.transform.SetParent(slot, false);
+            var rect = maskObject.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            var image = maskObject.GetComponent<Image>();
+            image.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+            image.type = Image.Type.Filled;
+            image.fillMethod = Image.FillMethod.Radial360;
+            image.fillOrigin = (int)Image.Origin360.Top;
+            image.fillClockwise = true;
+            image.fillAmount = 0f;
+            image.preserveAspect = true;
+            image.color = new Color(0f, 0f, 0f, 0.58f);
+            image.raycastTarget = false;
+            maskObject.SetActive(false);
+            return image;
+        }
+
+        private static void SetCooldownMask(Image mask, float fillAmount, bool visible)
+        {
+            if (mask == null) return;
+            mask.fillAmount = fillAmount;
+            if (mask.gameObject.activeSelf != visible) mask.gameObject.SetActive(visible);
         }
 
         private static string FormatEnemies(string label, EnemyRegistry registry)

@@ -15,10 +15,16 @@ namespace DragonBound.Presentation
         [SerializeField] private RectTransform contentAnchor;
         [SerializeField] private GameObject lockOverlay;
         [SerializeField] private Text debugRangeBandLabel;
+        [Header("Development state art")]
+        [SerializeField] private Image developmentStateImage;
+        [SerializeField] private Sprite lockedSprite;
+        [SerializeField] private Sprite unlockedSprite;
 
         private bool usesFixedBoardVisual;
         private FixedBoardCellRole fixedRole;
         private FixedBoardArtSlot fixedArtSlot;
+        private static Sprite cachedLockedSprite;
+        private static Sprite cachedUnlockedSprite;
 
         public GridPosition Position => new GridPosition(gridX, gridY);
         public CellType CellType => cellType;
@@ -73,6 +79,7 @@ namespace DragonBound.Presentation
             gridY = definition.Coordinate.Y;
             EnsureInputReceiver();
             ConfigureFixedArt(definition);
+            ApplyDevelopmentVisual(cellType);
         }
 
         /// <summary>Restores gameplay semantics for a serialized cell without restyling authored UI.</summary>
@@ -94,6 +101,8 @@ namespace DragonBound.Presentation
                 var label = transform.Find("DebugRangeBandLabel");
                 debugRangeBandLabel = label != null ? label.GetComponent<Text>() : null;
             }
+
+            ApplyDevelopmentVisual(cellType);
         }
 
         public void OnPointerClick(PointerEventData eventData)
@@ -123,7 +132,19 @@ namespace DragonBound.Presentation
 
             EnsureBorder();
             var locked = fixedRole == FixedBoardCellRole.Deployment && cellType == CellType.Locked;
+            var usesDevelopmentStateArt = ApplyDevelopmentVisual(cellType);
+            // Keep the authored handoff anchor for compatibility, but the full-cell Lock/UnLock
+            // artwork is now the visible state indicator.
             EnsureLockMarker(locked);
+            if (usesDevelopmentStateArt)
+            {
+                var marker = transform.Find(FixedBoardArtContract.LockMarker);
+                if (marker != null)
+                {
+                    marker.gameObject.SetActive(false);
+                }
+            }
+
             fixedArtSlot?.BindPresentationContract(surfaceArtSlotId, true, locked);
         }
 
@@ -144,12 +165,13 @@ namespace DragonBound.Presentation
                 lockOverlay.SetActive(type == CellType.Locked && !usesFixedBoardVisual);
             }
 
+            var usesDevelopmentStateArt = ApplyDevelopmentVisual(type);
             if (usesFixedBoardVisual && artImage != null && fixedRole == FixedBoardCellRole.Deployment)
             {
                 var marker = transform.Find(FixedBoardArtContract.LockMarker);
                 if (marker != null)
                 {
-                    marker.gameObject.SetActive(type == CellType.Locked);
+                    marker.gameObject.SetActive(type == CellType.Locked && !usesDevelopmentStateArt);
                 }
             }
 
@@ -218,6 +240,88 @@ namespace DragonBound.Presentation
                     return new Color(0.20f, 0.16f, 0.20f, 1f);
             }
         }
+
+        private bool ApplyDevelopmentVisual(CellType type)
+        {
+            if (!usesFixedBoardVisual || fixedRole != FixedBoardCellRole.Deployment)
+            {
+                return false;
+            }
+
+            ResolveDevelopmentStateArt();
+            var target = developmentStateImage != null ? developmentStateImage : artImage;
+            var sprite = type == CellType.Locked ? lockedSprite : unlockedSprite;
+            if (target == null || sprite == null)
+            {
+                return false;
+            }
+
+            target.sprite = sprite;
+            target.color = Color.white;
+            target.enabled = true;
+            target.raycastTarget = false;
+
+            if (lockOverlay != null)
+            {
+                lockOverlay.SetActive(false);
+            }
+
+            var marker = transform.Find(FixedBoardArtContract.LockMarker);
+            if (marker != null)
+            {
+                marker.gameObject.SetActive(false);
+            }
+
+            return true;
+        }
+
+        private void ResolveDevelopmentStateArt()
+        {
+            if (developmentStateImage == null)
+            {
+                developmentStateImage = artImage;
+            }
+
+            if (lockedSprite == null)
+            {
+                if (cachedLockedSprite == null)
+                {
+                    cachedLockedSprite = Resources.Load<Sprite>("GameUI/Lock");
+                }
+
+                lockedSprite = cachedLockedSprite;
+            }
+
+            if (unlockedSprite == null)
+            {
+                if (cachedUnlockedSprite == null)
+                {
+                    cachedUnlockedSprite = Resources.Load<Sprite>("GameUI/UnLock");
+                }
+
+                unlockedSprite = cachedUnlockedSprite;
+            }
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (artImage == null)
+            {
+                artImage = GetComponent<Image>();
+            }
+
+            fixedArtSlot = GetComponent<FixedBoardArtSlot>();
+            if (fixedArtSlot == null || fixedArtSlot.Role != FixedBoardCellRole.Deployment)
+            {
+                return;
+            }
+
+            usesFixedBoardVisual = true;
+            fixedRole = FixedBoardCellRole.Deployment;
+            ApplyDevelopmentVisual(cellType);
+        }
+#endif
 
         private void EnsureBorder()
         {

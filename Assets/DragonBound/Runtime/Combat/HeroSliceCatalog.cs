@@ -219,7 +219,19 @@ namespace DragonBound.Combat
 
             return HeroComponentCatalog.TryGet(componentId, out var formalComponent)
                 ? formalComponent.DisplayNameZh
-                : "英雄组件";
+                : "Hero Component";
+        }
+
+        public static string GetComponentDisplayNameEn(string componentId)
+        {
+            if (HeroSliceRecruitmentConfig.TryGetComponent(componentId, out var sliceComponent))
+            {
+                return sliceComponent.DisplayNameEn;
+            }
+
+            return HeroComponentCatalog.TryGet(componentId, out var formalComponent)
+                ? formalComponent.DisplayNameEn
+                : "Hero Component";
         }
 
         public static bool IsUniqueComponent(string componentId)

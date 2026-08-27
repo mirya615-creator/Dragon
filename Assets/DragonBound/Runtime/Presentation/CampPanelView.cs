@@ -55,7 +55,9 @@ namespace DragonBound.Presentation
 
             recruitment = recruitmentService ?? throw new ArgumentNullException(nameof(recruitmentService));
             destination = recruitDestination ?? throw new ArgumentNullException(nameof(recruitDestination));
-            artProvider = provider ?? artCatalog;
+            artProvider = provider ??
+                          (ICampArtProvider)artCatalog ??
+                          ResourcesCampComponentArtProvider.Shared;
 
             ResolveUi();
             BuildUnitEntries();
@@ -68,7 +70,9 @@ namespace DragonBound.Presentation
 
         public void SetArtProvider(ICampArtProvider provider)
         {
-            artProvider = provider;
+            artProvider = provider ??
+                          (ICampArtProvider)artCatalog ??
+                          ResourcesCampComponentArtProvider.Shared;
             Refresh();
         }
 
@@ -97,38 +101,32 @@ namespace DragonBound.Presentation
             RefreshSelectedHero();
         }
 
-        public static string BuildSkillSummary(HeroRecipeDefinition recipe, SkillDefinition skill)
+        public static string BuildHeroSummary(
+            HeroRecipeDefinition recipe,
+            string firstComponentName,
+            string secondComponentName,
+            string descriptionEn)
         {
             if (recipe == null)
             {
                 throw new ArgumentNullException(nameof(recipe));
             }
-            if (skill == null)
+            if (string.IsNullOrWhiteSpace(firstComponentName) ||
+                string.IsNullOrWhiteSpace(secondComponentName) ||
+                string.IsNullOrWhiteSpace(descriptionEn))
             {
-                throw new ArgumentNullException(nameof(skill));
+                throw new ArgumentException("Hero summary requires component names and an English description.");
             }
 
-            var fields = new List<string>
-            {
-                "Formation: " + (recipe.FormationOrientation == HeroFormationOrientation.Horizontal ? "Line" : "Column"),
-                "Skill: " + GetEnglishSkillName(skill),
-                "Trigger: " + GetEnglishTriggerText(skill)
-            };
-
-            if (skill.DamageMultiplier > 0f)
-            {
-                fields.Add("Damage: x" + FormatNumber(skill.DamageMultiplier));
-            }
-            if (skill.Cooldown > 0f)
-            {
-                fields.Add("Cooldown: " + FormatNumber(skill.Cooldown) + "s");
-            }
-            if (skill.BaseStunDuration > 0f)
-            {
-                fields.Add("Stun: " + FormatNumber(skill.BaseStunDuration) + "s");
-            }
-
-            return string.Join("    ", fields);
+            var firstLabel = recipe.FormationOrientation == HeroFormationOrientation.Horizontal
+                ? "Left"
+                : "Top";
+            var secondLabel = recipe.FormationOrientation == HeroFormationOrientation.Horizontal
+                ? "Right"
+                : "Bottom";
+            return firstLabel + ": " + firstComponentName +
+                   "  " + secondLabel + ": " + secondComponentName +
+                   "\n" + descriptionEn.Trim();
         }
 
         private void OnEnable()
@@ -188,14 +186,19 @@ namespace DragonBound.Presentation
             for (var i = 0; i < BasicUnitIds.Length; i++)
             {
                 var slot = slots[i];
-                var image = RequireComponent<Image>(slot, "Img");
-                var label = slot.GetComponentInChildren<TMP_Text>(true);
-                if (label == null)
+                // The authored Unit0-3 objects are the image slots themselves. Keep the
+                // older nested Img lookup as a compatibility fallback for legacy prefabs.
+                var image = slot.GetComponent<Image>();
+                if (image == null)
                 {
-                    throw new InvalidOperationException(slot.name + " is missing Text (TMP).");
+                    image = slot.Find("Img")?.GetComponent<Image>();
+                }
+                if (image == null)
+                {
+                    throw new InvalidOperationException(slot.name + " is missing an Image component.");
                 }
 
-                unitEntries.Add(new UnitEntry(BasicUnitIds[i], image, label));
+                unitEntries.Add(new UnitEntry(BasicUnitIds[i], image));
             }
         }
 
@@ -204,34 +207,19 @@ namespace DragonBound.Presentation
             var definitions = HeroComponentCatalog.Definitions;
             var slots = GetDirectChildren(componentContainer);
             RequireSlotCount("ComponentContainer", slots.Count, definitions.Count);
-            var prefab = Resources.Load<GameObject>("prefabs/HeroDetail");
-            if (prefab == null)
-            {
-                throw new InvalidOperationException("Resources/prefabs/HeroDetail.prefab is missing.");
-            }
 
             for (var i = 0; i < definitions.Count; i++)
             {
                 var slot = slots[i];
                 slot.gameObject.SetActive(true);
-                var detail = slot.Find("HeroDetail");
-                if (detail == null)
-                {
-                    var instance = Instantiate(prefab, slot, false);
-                    instance.name = "HeroDetail";
-                    detail = instance.transform;
-                }
-
-                var rect = detail.GetComponent<RectTransform>();
-                rect.anchorMin = Vector2.zero;
-                rect.anchorMax = Vector2.one;
-                rect.offsetMin = Vector2.zero;
-                rect.offsetMax = Vector2.zero;
-                var icon = detail.GetComponent<Image>();
-                var count = detail.Find("Count")?.GetComponent<TMP_Text>();
+                // Image0-17 are authored slots. Do not instantiate or resize UI at runtime,
+                // so scene layout and manual edits remain authoritative.
+                var icon = slot.GetComponent<Image>();
+                var count = slot.GetComponentInChildren<TMP_Text>(true);
                 if (icon == null || count == null)
                 {
-                    throw new InvalidOperationException("HeroDetail requires a root Image and Count TMP text.");
+                    throw new InvalidOperationException(
+                        slot.name + " requires a root Image and child Text (TMP).");
                 }
 
                 componentEntries.Add(new ComponentEntry(definitions[i], icon, count));
@@ -283,7 +271,6 @@ namespace DragonBound.Presentation
         {
             foreach (var entry in unitEntries)
             {
-                entry.Label.text = BasicUnitCatalog.GetDisplayName(entry.UnitId);
                 if (artProvider != null && artProvider.TryGetBasicUnitSprite(entry.UnitId, out var sprite))
                 {
                     entry.Image.sprite = sprite;
@@ -296,26 +283,29 @@ namespace DragonBound.Presentation
             foreach (var entry in componentEntries)
             {
                 var remaining = recruitment.GetRemainingHeroComponentCount(entry.Definition.Id);
-                var initial = recruitment.GetInitialHeroComponentCount(entry.Definition.Id);
-                if (initial <= 0)
-                {
-                    initial = entry.Definition.CopiesPerRun;
-                }
-
-                entry.Count.text = remaining + "/" + initial;
+                entry.Count.text = remaining.ToString(CultureInfo.InvariantCulture);
                 var canStillAppear = recruitment.EnableHeroComponents && remaining > 0;
                 if (artProvider != null && artProvider.TryGetHeroComponentSprite(entry.Definition.Id, out var sprite))
                 {
                     entry.Image.sprite = sprite;
-                    entry.Image.color = canStillAppear ? Color.white : new Color(0.34f, 0.34f, 0.34f, 0.72f);
+                    entry.Image.color = canStillAppear ? Color.white : GetExhaustedColor(Color.white);
                 }
                 else
                 {
-                    entry.Image.color = canStillAppear
-                        ? GetComponentCategoryColor(entry.Definition.Category)
-                        : new Color(0.34f, 0.34f, 0.34f, 0.72f);
+                    var availableColor = entry.AuthoredColor;
+                    entry.Image.color = canStillAppear ? availableColor : GetExhaustedColor(availableColor);
                 }
             }
+        }
+
+        private static Color GetExhaustedColor(Color availableColor)
+        {
+            const float brightness = 0.34f;
+            return new Color(
+                availableColor.r * brightness,
+                availableColor.g * brightness,
+                availableColor.b * brightness,
+                availableColor.a);
         }
 
         private void RefreshHeroes()
@@ -354,11 +344,17 @@ namespace DragonBound.Presentation
 
             var hero = HeroDefinitionCatalog.Get(selectedHeroId);
             var recipe = HeroRecipeCatalog.Get(selectedHeroId);
-            var skill = FrozenHeroConfigurationCatalog.GetSkill(hero.SkillId);
+            var metadata = HeroDefinitionCatalog.GetMetadata(selectedHeroId);
+            var firstComponentId = GetFirstComponentId(recipe);
+            var secondComponentId = GetSecondComponentId(recipe);
             heroNameText.text = hero.DisplayNameEn;
-            skillText.text = BuildSkillSummary(recipe, skill);
-            ApplyComponentDetail(firstComponentImage, GetFirstComponentId(recipe));
-            ApplyComponentDetail(secondComponentImage, GetSecondComponentId(recipe));
+            skillText.text = BuildHeroSummary(
+                recipe,
+                HeroComponentCatalog.Get(firstComponentId).DisplayNameEn,
+                HeroComponentCatalog.Get(secondComponentId).DisplayNameEn,
+                metadata.DescriptionEn);
+            ApplyComponentDetail(firstComponentImage, firstComponentId);
+            ApplyComponentDetail(secondComponentImage, secondComponentId);
         }
 
         private void ApplyComponentDetail(Image image, string componentId)
@@ -387,37 +383,6 @@ namespace DragonBound.Presentation
             return recipe.FormationOrientation == HeroFormationOrientation.Horizontal
                 ? recipe.RightComponentId
                 : recipe.BottomComponentId;
-        }
-
-        private static string GetEnglishSkillName(SkillDefinition skill)
-        {
-            return string.IsNullOrWhiteSpace(skill.DisplayNameEn) ? skill.SkillId : skill.DisplayNameEn;
-        }
-
-        private static string GetEnglishTriggerText(SkillDefinition skill)
-        {
-            switch (skill.TriggerType)
-            {
-                case HeroSkillTriggerType.EveryNthAttack:
-                    return "Every " + skill.TriggerCount + " attacks";
-                case HeroSkillTriggerType.Cooldown:
-                    return "Cooldown trigger";
-                case HeroSkillTriggerType.OnHit:
-                    return "On hit";
-                case HeroSkillTriggerType.OnFirstAttack:
-                    return "First attack";
-                case HeroSkillTriggerType.OnSameTargetAttack:
-                    return "Repeated attacks on the same target";
-                case HeroSkillTriggerType.NormalAttack:
-                    return "Normal attack";
-                default:
-                    return "Passive";
-            }
-        }
-
-        private static string FormatNumber(float value)
-        {
-            return value.ToString("0.##", CultureInfo.InvariantCulture);
         }
 
         private static Transform Require(Transform parent, string path)
@@ -511,16 +476,14 @@ namespace DragonBound.Presentation
 
         private sealed class UnitEntry
         {
-            public UnitEntry(string unitId, Image image, TMP_Text label)
+            public UnitEntry(string unitId, Image image)
             {
                 UnitId = unitId;
                 Image = image;
-                Label = label;
             }
 
             public string UnitId { get; }
             public Image Image { get; }
-            public TMP_Text Label { get; }
         }
 
         private sealed class ComponentEntry
@@ -530,11 +493,13 @@ namespace DragonBound.Presentation
                 Definition = definition;
                 Image = image;
                 Count = count;
+                AuthoredColor = image.color;
             }
 
             public HeroComponentDefinition Definition { get; }
             public Image Image { get; }
             public TMP_Text Count { get; }
+            public Color AuthoredColor { get; }
         }
 
         private sealed class HeroEntry

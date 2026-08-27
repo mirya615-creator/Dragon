@@ -82,6 +82,7 @@ namespace DragonBound.Items
 
     public enum ItemCombatEventKind
     {
+        EnemySpawned,
         EnemyKilled,
         EnemyLeaked,
         RecruitSucceeded,
@@ -120,6 +121,63 @@ namespace DragonBound.Items
         public string RuntimeId { get; }
         public bool IsLegalKill { get; }
         public ItemCombatEventSource Source { get; }
+    }
+
+    public readonly struct ItemEnemyDamageResult
+    {
+        public ItemEnemyDamageResult(
+            bool applied,
+            bool killed,
+            float shieldDamage,
+            float healthDamage)
+        {
+            Applied = applied;
+            Killed = killed;
+            ShieldDamage = shieldDamage;
+            HealthDamage = healthDamage;
+        }
+
+        public bool Applied { get; }
+        public bool Killed { get; }
+        public float ShieldDamage { get; }
+        public float HealthDamage { get; }
+        public static ItemEnemyDamageResult Rejected =>
+            new ItemEnemyDamageResult(false, false, 0f, 0f);
+    }
+
+    public interface IItemEnemyDamagePort
+    {
+        ItemEnemyDamageResult ApplyItemDamage(string itemId, string enemyRuntimeId, float damage);
+    }
+
+    internal sealed class DirectRegistryItemEnemyDamagePort : IItemEnemyDamagePort
+    {
+        private readonly EnemyRegistry registry;
+
+        public DirectRegistryItemEnemyDamagePort(EnemyRegistry registry)
+        {
+            this.registry = registry ?? throw new ArgumentNullException(nameof(registry));
+        }
+
+        public ItemEnemyDamageResult ApplyItemDamage(
+            string itemId,
+            string enemyRuntimeId,
+            float damage)
+        {
+            if (damage <= 0f ||
+                !registry.TryGet(enemyRuntimeId ?? string.Empty, out var enemy) ||
+                !enemy.IsAlive)
+            {
+                return ItemEnemyDamageResult.Rejected;
+            }
+
+            var result = enemy.ApplyDamage(damage);
+            return new ItemEnemyDamageResult(
+                true,
+                result.Killed,
+                result.ShieldDamage,
+                result.HealthDamage);
+        }
     }
 
     public interface IItemRunResourcePort
@@ -196,7 +254,8 @@ namespace DragonBound.Items
             IItemSpellbreakerPort spellbreaker = null,
             IItemRunResourcePort runResource = null,
             IItemFreeRecruitPort freeRecruit = null,
-            IItemForgePickPort forgePick = null)
+            IItemForgePickPort forgePick = null,
+            IItemEnemyDamagePort itemEnemyDamage = null)
         {
             OwnTeam = ownTeam ?? throw new ArgumentNullException(nameof(ownTeam));
             OwnRouteEnemies = ownRouteEnemies ?? throw new ArgumentNullException(nameof(ownRouteEnemies));
@@ -210,6 +269,8 @@ namespace DragonBound.Items
             RunResource = runResource ?? new TeamStateRunResourcePort(OwnTeam);
             FreeRecruit = freeRecruit;
             ForgePick = forgePick;
+            ItemEnemyDamage = itemEnemyDamage ??
+                              new DirectRegistryItemEnemyDamagePort(OwnRouteEnemies);
         }
 
         public TeamState OwnTeam { get; }
@@ -224,6 +285,7 @@ namespace DragonBound.Items
         public IItemRunResourcePort RunResource { get; }
         public IItemFreeRecruitPort FreeRecruit { get; }
         public IItemForgePickPort ForgePick { get; }
+        public IItemEnemyDamagePort ItemEnemyDamage { get; }
         public float ElapsedSeconds { get; internal set; }
         public string ActivationTargetId { get; internal set; }
         public int NextActivationOrdinal { get; internal set; }
@@ -394,7 +456,8 @@ namespace DragonBound.Items
             IItemSpellbreakerPort spellbreaker = null,
             IItemRunResourcePort runResource = null,
             IItemFreeRecruitPort freeRecruit = null,
-            IItemForgePickPort forgePick = null)
+            IItemForgePickPort forgePick = null,
+            IItemEnemyDamagePort itemEnemyDamage = null)
         {
             Snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
             context = new ItemRunContext(
@@ -409,7 +472,8 @@ namespace DragonBound.Items
                 spellbreaker,
                 runResource,
                 freeRecruit,
-                forgePick);
+                forgePick,
+                itemEnemyDamage);
             BuildEffects();
         }
 
@@ -495,6 +559,21 @@ namespace DragonBound.Items
             if (effects.TryGetValue(itemId, out effect) && effect is WinterveilRuneEffect winterveil)
             {
                 return winterveil.CooldownRemainingSeconds;
+            }
+
+            return 0f;
+        }
+
+        public float GetCooldownDurationSeconds(string itemId)
+        {
+            if (effects.TryGetValue(itemId, out var effect) && effect is ItemCooldownEffectBase cooldown)
+            {
+                return cooldown.CooldownSeconds;
+            }
+
+            if (effects.TryGetValue(itemId, out effect) && effect is WinterveilRuneEffect)
+            {
+                return WinterveilRuneEffect.CooldownSeconds;
             }
 
             return 0f;

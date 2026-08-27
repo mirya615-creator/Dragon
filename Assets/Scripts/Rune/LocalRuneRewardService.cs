@@ -73,7 +73,7 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
         if (PlayerPrefs.HasKey(settledKey)) return Task.FromResult(profile);
 
         profile.LastRunRewards.Clear();
-        if (rewards != null)
+        if (profile.AccountDay >= 3 && rewards != null)
         {
             for (int index = 0; index < rewards.Count && index < 4; index++)
             {
@@ -135,6 +135,10 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
 
         string profileKey = GetProfileKey(playerId);
         RuneProfile profile = LoadProfileByKey(profileKey);
+        if (profile.AccountDay < 3)
+        {
+            return MutationResult(false, profile);
+        }
         RuneInventoryEntry inventory = FindInventoryEntry(profile, runeId);
         if (inventory == null)
         {
@@ -176,6 +180,10 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
 
         string profileKey = GetProfileKey(playerId);
         RuneProfile profile = LoadProfileByKey(profileKey);
+        if (profile.AccountDay < 3)
+        {
+            return MutationResult(false, profile);
+        }
         HeroRuneLoadoutEntry heroLoadout = FindHeroLoadout(profile, heroId);
         if (heroLoadout == null || string.IsNullOrEmpty(heroLoadout.RuneId))
         {
@@ -201,16 +209,19 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
     private static RuneProfile LoadProfileByKey(string profileKey)
     {
         string json = PlayerPrefs.GetString(profileKey, string.Empty);
-        if (string.IsNullOrEmpty(json)) return new RuneProfile();
+        if (string.IsNullOrEmpty(json)) return ApplyAccountDay(new RuneProfile());
 
         try
         {
             RuneProfile profile = JsonUtility.FromJson<RuneProfile>(json);
-            if (profile == null) return new RuneProfile();
+            if (profile == null) return ApplyAccountDay(new RuneProfile());
+            profile.AccountDay = LocalRuneProgressionSettings.ResolveAccountDay(profile.AccountDay);
             if (profile.Inventory == null) profile.Inventory = new List<RuneInventoryEntry>();
             if (profile.LastRunRewards == null) profile.LastRunRewards = new List<RuneReward>();
             if (profile.Loadouts == null) profile.Loadouts = new List<HeroRuneLoadoutEntry>();
-            if (NormalizeLegacyFragmentOverflow(profile))
+            bool normalizedFragments = NormalizeLegacyFragmentOverflow(profile);
+            bool normalizedHeroes = NormalizeLegacyHeroIds(profile);
+            if (normalizedFragments || normalizedHeroes)
             {
                 SaveProfile(profileKey, profile);
             }
@@ -219,8 +230,14 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
         catch (Exception exception)
         {
             Debug.LogError($"Rune profile is invalid and will be recreated: {exception.Message}");
-            return new RuneProfile();
+            return ApplyAccountDay(new RuneProfile());
         }
+    }
+
+    private static RuneProfile ApplyAccountDay(RuneProfile profile)
+    {
+        profile.AccountDay = LocalRuneProgressionSettings.ResolveAccountDay(profile.AccountDay);
+        return profile;
     }
 
     private static RuneInventoryEntry FindOrCreateEntry(RuneProfile profile, string runeId)
@@ -282,6 +299,31 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
             changed |= previousOwned != entry.OwnedCount ||
                        previousFragments != entry.FragmentCount;
         }
+        return changed;
+    }
+
+    private static bool NormalizeLegacyHeroIds(RuneProfile profile)
+    {
+        bool changed = false;
+        var assignedHeroes = new HashSet<string>(StringComparer.Ordinal);
+        for (int index = 0; index < profile.Loadouts.Count; index++)
+        {
+            HeroRuneLoadoutEntry loadout = profile.Loadouts[index];
+            if (loadout == null) continue;
+
+            string canonicalHeroId = HeroRuneIdentityCatalog.ResolvePersisted(loadout.HeroId);
+            if (string.IsNullOrEmpty(canonicalHeroId)) continue;
+            if (!string.Equals(loadout.HeroId, canonicalHeroId, StringComparison.Ordinal))
+            {
+                loadout.HeroId = canonicalHeroId;
+                changed = true;
+            }
+
+            if (assignedHeroes.Add(canonicalHeroId)) continue;
+            profile.Loadouts.RemoveAt(index--);
+            changed = true;
+        }
+
         return changed;
     }
 

@@ -121,6 +121,9 @@ public sealed class RuneDragItem : MonoBehaviour, IBeginDragHandler, IDragHandle
         }
         proxyImage.raycastTarget = false;
 
+        // Rune artwork now lives under Weapon/BG rather than on the card root.
+        // Clone that child so the drag proxy remains visible while the root Image stays transparent.
+        CloneVisualChild("BG", proxyRect);
         CloneVisualChild("Name", proxyRect);
 
         CanvasGroup proxyGroup = proxyObject.GetComponent<CanvasGroup>();

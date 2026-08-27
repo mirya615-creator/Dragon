@@ -37,6 +37,7 @@ namespace DragonBound.Bosses.Runtime
     public interface IWorldeaterTargetPort
     {
         IReadOnlyList<WorldeaterTarget> GetEligibleTargets();
+        bool HasEligibleBasic();
         bool IsStillEligible(WorldeaterTarget target);
         bool Consume(WorldeaterTarget target);
     }
@@ -44,6 +45,8 @@ namespace DragonBound.Bosses.Runtime
     public interface IWorldeaterSummonPort
     {
         void SpawnMinions(int count, float maxHitPoints, float moveSpeedCellsPerSecond);
+        bool HasAliveSubBoss();
+        void SpawnSubBoss(float maxHitPoints, float moveSpeedCellsPerSecond);
     }
 
     public interface IWorldeaterSpellbreaker
@@ -54,7 +57,8 @@ namespace DragonBound.Bosses.Runtime
     public enum WorldeaterCastKind
     {
         Devour,
-        Summon
+        Summon,
+        SummonSubBoss
     }
 
     public enum WorldeaterCastOutcome
@@ -312,9 +316,13 @@ namespace DragonBound.Bosses.Runtime
         {
             summonActive = false;
             nextSummonStart = elapsedSeconds + WorldeaterWyrmConfiguration.SummonCooldownSeconds;
+            var summonSubBoss = !targets.HasEligibleBasic();
+            var castKind = summonSubBoss ? WorldeaterCastKind.SummonSubBoss : WorldeaterCastKind.Summon;
             var attempt = new BossCastAttempt(
                 definition.BossId,
-                new BossSkillId(WorldeaterWyrmConfiguration.SummonSkillId),
+                new BossSkillId(summonSubBoss
+                    ? WorldeaterWyrmConfiguration.SubBossSummonSkillId
+                    : WorldeaterWyrmConfiguration.SummonSkillId),
                 SummonCastCount,
                 elapsedSeconds,
                 true,
@@ -326,7 +334,22 @@ namespace DragonBound.Bosses.Runtime
             {
                 var reflection = boss.MaxHitPoints * WorldeaterWyrmConfiguration.SpellbreakerReflectionFraction;
                 boss.ApplyReflectedDamage(reflection);
-                Emit(WorldeaterCastKind.Summon, WorldeaterCastOutcome.Blocked, SummonCastCount, reflection, string.Empty);
+                Emit(castKind, WorldeaterCastOutcome.Blocked, SummonCastCount, reflection, string.Empty);
+                return;
+            }
+
+            if (summonSubBoss)
+            {
+                if (summons.HasAliveSubBoss())
+                {
+                    Emit(castKind, WorldeaterCastOutcome.NoTarget, SummonCastCount, 0f, string.Empty);
+                    return;
+                }
+
+                summons.SpawnSubBoss(
+                    WorldeaterWyrmConfiguration.SubBossMaxHitPoints,
+                    WorldeaterWyrmConfiguration.SubBossMoveSpeedCellsPerSecond);
+                Emit(castKind, WorldeaterCastOutcome.Resolved, SummonCastCount, 0f, string.Empty);
                 return;
             }
 
@@ -334,7 +357,7 @@ namespace DragonBound.Bosses.Runtime
                 WorldeaterWyrmConfiguration.SummonCount,
                 WorldeaterWyrmConfiguration.MinionMaxHitPoints,
                 WorldeaterWyrmConfiguration.MinionMoveSpeedCellsPerSecond);
-            Emit(WorldeaterCastKind.Summon, WorldeaterCastOutcome.Resolved, SummonCastCount, 0f, string.Empty);
+            Emit(castKind, WorldeaterCastOutcome.Resolved, SummonCastCount, 0f, string.Empty);
         }
 
         private static WorldeaterTarget SelectTarget(IReadOnlyList<WorldeaterTarget> candidates)
@@ -368,8 +391,10 @@ namespace DragonBound.Bosses.Runtime
                 outcome,
                 castNumber,
                 elapsedSeconds,
-                outcome == WorldeaterCastOutcome.Resolved && kind == WorldeaterCastKind.Summon
-                    ? WorldeaterWyrmConfiguration.SummonCount
+                outcome == WorldeaterCastOutcome.Resolved
+                    ? kind == WorldeaterCastKind.Summon
+                        ? WorldeaterWyrmConfiguration.SummonCount
+                        : kind == WorldeaterCastKind.SummonSubBoss ? 1 : 0
                     : 0,
                 reflectionDamage,
                 targetRuntimeId));

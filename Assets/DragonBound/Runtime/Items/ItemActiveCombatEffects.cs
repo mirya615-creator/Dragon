@@ -232,7 +232,14 @@ namespace DragonBound.Items
             LastDamage = target.Archetype == EnemyArchetype.Boss
                 ? Math.Min(BossDamageCap, target.MaxHitPoints * BossMaxHealthFraction)
                 : target.MaxHitPoints * NormalMaxHealthFraction;
-            target.ApplyDamage(LastDamage);
+            if (!context.ItemEnemyDamage.ApplyItemDamage(
+                    ItemId,
+                    target.RuntimeId,
+                    LastDamage).Applied)
+            {
+                reason = "DamageRejected";
+                return false;
+            }
             CompleteActivation();
             return true;
         }
@@ -262,7 +269,7 @@ namespace DragonBound.Items
                 return false;
             }
 
-            foreach (var enemy in context.OwnRouteEnemies.Enemies)
+            foreach (var enemy in context.OwnRouteEnemies.Snapshot())
             {
                 if (enemy.Team != context.OwnTeam.Side || !enemy.IsAlive ||
                     enemy.CombatPosition.DistanceSquared(target.CombatPosition) > AreaRadius * AreaRadius + 0.0001f)
@@ -271,7 +278,13 @@ namespace DragonBound.Items
                 }
 
                 var damage = ItemCombatEffectTargeting.DamageFor(enemy, NormalDamage, BossDamageCap, BossMaxHealthFraction);
-                enemy.ApplyDamage(damage);
+                if (!context.ItemEnemyDamage.ApplyItemDamage(
+                        ItemId,
+                        enemy.RuntimeId,
+                        damage).Applied)
+                {
+                    continue;
+                }
                 LastAffectedEnemyCount++;
                 LastTotalDamage += damage;
             }
@@ -410,8 +423,10 @@ namespace DragonBound.Items
             LastDamage = enemy.Archetype == EnemyArchetype.Boss
                 ? Math.Min(BossDamageCap, enemy.MaxHitPoints * BossMaxHealthFraction)
                 : enemy.MaxHitPoints * NormalMaxHealthFraction;
-            enemy.ApplyDamage(LastDamage);
-            Used = true;
+            Used = context.ItemEnemyDamage.ApplyItemDamage(
+                ItemId,
+                enemy.RuntimeId,
+                LastDamage).Applied;
         }
     }
 }

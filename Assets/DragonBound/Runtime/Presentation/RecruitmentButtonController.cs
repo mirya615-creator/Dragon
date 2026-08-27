@@ -1,9 +1,12 @@
 using System;
+using System.Collections;
 using DragonBound.Combat;
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Recruitment;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace DragonBound.Presentation
@@ -13,11 +16,14 @@ namespace DragonBound.Presentation
     {
         [SerializeField] private Button recruitButton;
         [SerializeField] private Text recruitButtonLabel;
+        [SerializeField] private TMP_Text tipText;
 
         private TeamState team;
         private RecruitmentService recruitment;
         private GreyboxBoardView boardView;
         private bool initialized;
+        private bool unavailableAtPointerDown;
+        private Coroutine tipHideCoroutine;
 
         public Button RecruitButton => recruitButton;
         public Text RecruitButtonLabel => recruitButtonLabel;
@@ -27,7 +33,8 @@ namespace DragonBound.Presentation
             RecruitmentService recruitmentService,
             GreyboxBoardView playerBoardView,
             Button button,
-            Text buttonLabel)
+            Text buttonLabel,
+            TMP_Text unavailableTipText)
         {
             if (initialized)
             {
@@ -39,9 +46,12 @@ namespace DragonBound.Presentation
             boardView = playerBoardView ?? throw new ArgumentNullException(nameof(playerBoardView));
             recruitButton = button ?? throw new ArgumentNullException(nameof(button));
             recruitButtonLabel = buttonLabel ?? throw new ArgumentNullException(nameof(buttonLabel));
+            tipText = unavailableTipText;
 
             recruitButton.onClick.RemoveListener(Recruit);
             recruitButton.onClick.AddListener(Recruit);
+            BindUnavailableClick();
+            HideTip();
             initialized = true;
             RefreshButton();
         }
@@ -69,10 +79,12 @@ namespace DragonBound.Presentation
             var attempt = recruitment.TryRecruit();
             if (attempt.Status != RecruitmentStatus.Success || attempt.Batch == null)
             {
+                ShowUnavailableReason();
                 RefreshButton();
                 return;
             }
 
+            HideTip();
             boardView.RefreshUnits();
             foreach (var card in attempt.Batch.Cards)
             {
@@ -96,25 +108,79 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            recruitButton.interactable = recruitment.CanAffordNext;
-            if (recruitment.PendingRefreshCount > 0 &&
-                recruitment.PendingRefreshContainsUniqueHeroComponent)
+            recruitButton.interactable = recruitment.CanRecruitNext;
+            recruitButtonLabel.text = recruitment.NextCost.ToString();
+            if (recruitment.CanRecruitNext)
             {
-                recruitButtonLabel.text =
-                    $"REFRESH WILL LOSE UNIQUE\nCOST {recruitment.NextCost}";
+                HideTip();
             }
-            else if (recruitment.PendingRefreshCount > 0)
+        }
+
+        private void BindUnavailableClick()
+        {
+            var trigger = recruitButton.GetComponent<EventTrigger>();
+            if (trigger == null)
             {
-                recruitButtonLabel.text =
-                    $"REFRESH {recruitment.PendingRefreshCount} LEFT\nCOST {recruitment.NextCost}";
+                trigger = recruitButton.gameObject.AddComponent<EventTrigger>();
             }
-            else if (!recruitment.CanAffordNext)
+
+            trigger.triggers ??= new System.Collections.Generic.List<EventTrigger.Entry>();
+            var pointerDown = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
+            pointerDown.callback.AddListener(_ =>
+                unavailableAtPointerDown = recruitment != null && !recruitment.CanRecruitNext);
+            trigger.triggers.Add(pointerDown);
+
+            var pointerClick = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
+            pointerClick.callback.AddListener(_ =>
             {
-                recruitButtonLabel.text = $"Need {recruitment.NextCost} Supplies";
+                if (unavailableAtPointerDown)
+                {
+                    ShowUnavailableReason();
+                }
+            });
+            trigger.triggers.Add(pointerClick);
+        }
+
+        private void ShowUnavailableReason()
+        {
+            if (!initialized || recruitment == null || recruitment.CanRecruitNext || tipText == null)
+            {
+                return;
             }
-            else
+
+            tipText.text = !recruitment.CanAffordNext
+                ? $"Not enough Supplies. Need {recruitment.NextCost}."
+                : "Recruitment is currently unavailable.";
+            tipText.gameObject.SetActive(true);
+            if (tipHideCoroutine != null)
             {
-                recruitButtonLabel.text = $"RECRUIT\n{recruitment.NextCost} Supplies";
+                StopCoroutine(tipHideCoroutine);
+            }
+
+            tipHideCoroutine = StartCoroutine(HideTipAfterDelay());
+        }
+
+        private void HideTip()
+        {
+            if (tipHideCoroutine != null)
+            {
+                StopCoroutine(tipHideCoroutine);
+                tipHideCoroutine = null;
+            }
+
+            if (tipText != null)
+            {
+                tipText.gameObject.SetActive(false);
+            }
+        }
+
+        private IEnumerator HideTipAfterDelay()
+        {
+            yield return new WaitForSecondsRealtime(1.5f);
+            tipHideCoroutine = null;
+            if (tipText != null)
+            {
+                tipText.gameObject.SetActive(false);
             }
         }
     }

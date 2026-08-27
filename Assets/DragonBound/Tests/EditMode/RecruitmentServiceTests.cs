@@ -240,6 +240,35 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(0, deck.RemainingHeroComponents);
         }
 
+        [Test]
+        public void ProtectedRecruitmentRequiresHeroComponentsToLeaveBenchBeforeRefresh()
+        {
+            var team = new TeamState(TeamSide.Player);
+            team.AddResources(100);
+            var board = DragonBoundBoardLayout.CreateInitial();
+            var deck = new RecruitDeck(
+                GreyboxRecruitmentCatalog.Create(),
+                new RunSeed(73).Random,
+                "protected.player",
+                true,
+                true);
+            var service = new RecruitmentService(
+                team,
+                deck,
+                new BoardRecruitDestination(board),
+                protectHeroComponentsOnRefresh: true);
+
+            Assert.AreEqual(RecruitmentStatus.Success, service.TryRecruit().Status);
+            var resourcesAfterFirst = team.Resources;
+            var blocked = service.TryRecruit();
+
+            Assert.AreEqual(RecruitmentStatus.PendingHeroComponents, blocked.Status);
+            Assert.AreEqual("DEPLOY_HERO_COMPONENTS", blocked.ResultSummary);
+            Assert.AreEqual(resourcesAfterFirst, team.Resources);
+            Assert.AreEqual(1, deck.CompletedRecruitments);
+            Assert.IsTrue(service.IsRefreshBlockedByHeroComponents);
+        }
+
         private static HashSet<string> GetBenchOccupants(BoardGrid board)
         {
             var ids = new HashSet<string>();

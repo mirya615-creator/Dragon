@@ -25,7 +25,7 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void ProductionW20SummonAddsFourSwarmEntitiesAndTheySurviveBossDeath()
+        public void ProductionW20WithoutBasicSummonsSubBossAndItSurvivesBossDeath()
         {
             var match = new MatchController(2002);
             var runtime = new TwentyWavePressureRuntime(match, null, null, 2002);
@@ -33,16 +33,16 @@ namespace DragonBound.Tests.EditMode
             Assert.IsTrue(runtime.JumpToWave(20));
 
             runtime.Tick(12.75f);
-            Assert.AreEqual(4, CountSwarms(runtime.PlayerEnemyRegistry));
+            Assert.AreEqual(1, CountWorldeaterSubBosses(runtime.PlayerEnemyRegistry));
 
             runtime.PlayerW20Boss.ApplyDamage(100000f);
             runtime.Tick(0.01f);
             Assert.IsTrue(runtime.PlayerW20BossRuntime.IsDead);
-            Assert.AreEqual(4, CountSwarms(runtime.PlayerEnemyRegistry));
+            Assert.AreEqual(1, CountWorldeaterSubBosses(runtime.PlayerEnemyRegistry));
         }
 
         [Test]
-        public void W20MinionReachingGoalInstantDefeatsItsSide()
+        public void W20SubBossReachingGoalInstantDefeatsItsSide()
         {
             var match = new MatchController(2003, 1000);
             var runtime = new TwentyWavePressureRuntime(match, null, null, 2003);
@@ -73,6 +73,21 @@ namespace DragonBound.Tests.EditMode
             foreach (var enemy in registry.Snapshot())
             {
                 if (enemy.Archetype == EnemyArchetype.Swarm)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static int CountWorldeaterSubBosses(EnemyRegistry registry)
+        {
+            var count = 0;
+            foreach (var enemy in registry.Snapshot())
+            {
+                if (enemy.Archetype == EnemyArchetype.Boss &&
+                    enemy.BossId == WorldeaterWyrmConfiguration.SubBossId)
                 {
                     count++;
                 }

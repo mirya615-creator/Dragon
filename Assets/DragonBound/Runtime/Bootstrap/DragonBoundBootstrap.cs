@@ -7,14 +7,25 @@ using DragonBound.Items;
 using DragonBound.Presentation;
 using DragonBound.Recruitment;
 using DragonBound.Runes;
+using DragonBound.Services;
 using GameShared.Random;
+using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 namespace DragonBound.Bootstrap
 {
+    public sealed class ExternalRuneLoadoutAssignment
+    {
+        public string HeroId;
+        public string RuneId;
+    }
+
     public sealed class DragonBoundBootstrap : MonoBehaviour
     {
         [SerializeField] private int runSeed = 20260801;
+        [SerializeField] private bool deferInitializationUntilItemSnapshotReady;
+        [SerializeField] private bool useFixedSeedForDiagnostics;
         [SerializeField] private string battlefieldLayoutId = BattlefieldLayoutDefinitions.Fixed8x10ReferenceMap01Id;
         [SerializeField] private bool enableHeroComponents = false;
         [SerializeField] private bool heroSliceMode = false;
@@ -27,6 +38,9 @@ namespace DragonBound.Bootstrap
 
         public MatchController Match { get; private set; }
         public RunSeed Seed { get; private set; }
+        public string GameplayRunId { get; private set; }
+        public int ReconnectGraceSeconds { get; private set; } = 90;
+        public int AfkTimeoutSeconds { get; private set; } = 180;
         public BoardGrid Board => PlayerBoard;
         public BoardGrid PlayerBoard { get; private set; }
         public BoardGrid AiBoard { get; private set; }
@@ -71,11 +85,19 @@ namespace DragonBound.Bootstrap
         public IItemRunSnapshotProvider ItemRunSnapshotProvider { get; set; }
         /// <summary>External account boundary for a validated player profile and AI snapshot.</summary>
         public IItemValidatedProfileSnapshotSource ItemProfileSnapshotSource { get; set; }
+        /// <summary>Account-owned, immutable Rune assignments supplied before initialization.
+        /// When present, this snapshot replaces the legacy Greybox-local Rune profile for the Run.</summary>
+        private RuneLoadoutSnapshot externalPlayerRuneLoadoutSnapshot;
+        private int? externalPlayerRuneAccountDay;
+        public bool IsInitialized { get; private set; }
 
         public const float InitializationPromptSeconds = 1f;
         private float initializationRemaining;
         private PressureRunDiagnosticsPanel pressureDiagnosticsPanel;
         private int lastAiDiagnosticsWave;
+        private int playerRecruitSeed;
+        private int aiRecruitSeed;
+        private int combatSeed;
 
         // Test-only injection keeps persistence tests away from a developer's real local profile.
         public static IRuneProfileRepository RuneProfileRepositoryOverrideForTests { get; set; }
@@ -359,8 +381,77 @@ namespace DragonBound.Bootstrap
 
         private void Awake()
         {
+            if (!deferInitializationUntilItemSnapshotReady)
+            {
+                InitializeRuntime();
+            }
+        }
+
+        public void InitializeWithItemSnapshotProvider(IItemRunSnapshotProvider provider)
+        {
+            if (provider == null)
+            {
+                throw new System.ArgumentNullException(nameof(provider));
+            }
+
+            if (IsInitialized) return;
+            ItemRunSnapshotProvider = provider;
+            InitializeRuntime();
+        }
+
+        public bool TrySetPlayerRuneLoadoutSnapshot(
+            IEnumerable<ExternalRuneLoadoutAssignment> source,
+            out string error)
+        {
+            if (IsInitialized)
+            {
+                error = "RuntimeAlreadyInitialized";
+                return false;
+            }
+
+            var assignments = new List<RuneLoadoutAssignment>();
+            if (source != null)
+            {
+                foreach (var value in source)
+                {
+                    assignments.Add(value == null
+                        ? null
+                        : new RuneLoadoutAssignment { HeroId = value.HeroId, RuneId = value.RuneId });
+                }
+            }
+
+            return RuneLoadoutSnapshot.TryCreate(
+                assignments,
+                out externalPlayerRuneLoadoutSnapshot,
+                out error);
+        }
+
+        public bool TrySetPlayerRuneAccountDay(int accountDay, out string error)
+        {
+            if (IsInitialized)
+            {
+                error = "RuntimeAlreadyInitialized";
+                return false;
+            }
+
+            if (accountDay < 1)
+            {
+                error = "InvalidAccountDay";
+                return false;
+            }
+
+            externalPlayerRuneAccountDay = accountDay;
+            error = string.Empty;
+            return true;
+        }
+
+        private void InitializeRuntime()
+        {
+            if (IsInitialized) return;
+            IsInitialized = true;
             Time.timeScale = 1f;
             Debug.Log("TimeScaleInitialized Time.timeScale=1");
+            BeginGameplayRun();
             if (heroSliceMode && !enableHeroComponents)
             {
                 Debug.LogError("HeroSliceMode requires EnableHeroComponents=true.");
@@ -385,6 +476,10 @@ namespace DragonBound.Bootstrap
             RuneProfileRepository = RuneProfileRepositoryOverrideForTests ?? new LocalRuneProfileRepository();
             var runeProfileResult = RuneProfileRepository.Load();
             RuneSaveData = runeProfileResult.Data ?? new RuneSaveData();
+            if (externalPlayerRuneAccountDay.HasValue)
+            {
+                RuneSaveData.AccountDay = Mathf.Max(1, externalPlayerRuneAccountDay.Value);
+            }
             RuneFeatureGate = new RuneFeatureGate(new RuneProfileProgressionProvider(RuneSaveData));
             PlayerRuneLoadout = new RuneLoadoutService(
                 RuneSaveData,
@@ -425,20 +520,34 @@ namespace DragonBound.Bootstrap
                 LimitedComponentBag.DefaultContentVersion,
                 catalog);
             AiComponentBag = LimitedComponentBag.CreateBag(
-                unchecked(runSeed ^ 0x2468ACE0),
+                aiRecruitSeed,
                 LimitedComponentBag.DefaultContentVersion,
                 catalog);
             PlayerShovelState = new ShovelRecruitmentState(
                 () => PlayerBoard.GetPositions(CellType.Locked).Count);
             AiShovelState = new ShovelRecruitmentState(
                 () => AiBoard.GetPositions(CellType.Locked).Count);
-            var deck = CreateRecruitDeck(catalog, "player", ComponentBag, 0x13579BDF, PlayerShovelState);
-            var aiDeck = CreateRecruitDeck(catalog, "ai", AiComponentBag, 0x2468ACE0, AiShovelState);
+            var deck = CreateRecruitDeck(
+                catalog,
+                "player",
+                ComponentBag,
+                playerRecruitSeed,
+                PlayerShovelState);
+            var aiDeck = CreateRecruitDeck(
+                catalog,
+                "ai",
+                AiComponentBag,
+                aiRecruitSeed,
+                AiShovelState);
             RecruitDestination = new BoardRecruitDestination(
                 PlayerBoard,
-                runeRunSeed: runSeed);
-            Recruitment = new RecruitmentService(Match.Player, deck, RecruitDestination);
-            AiRecruitDestination = new BoardRecruitDestination(AiBoard, runeRunSeed: unchecked(runSeed ^ 0x2468ACE0));
+                runeRunSeed: combatSeed);
+            Recruitment = new RecruitmentService(
+                Match.Player,
+                deck,
+                RecruitDestination,
+                protectHeroComponentsOnRefresh: false);
+            AiRecruitDestination = new BoardRecruitDestination(AiBoard, runeRunSeed: aiRecruitSeed);
             AiRecruitment = new RecruitmentService(Match.AI, aiDeck, AiRecruitDestination);
             PlayerShovelUnlocks = new ShovelUnlockService(PlayerBoard, RecruitDestination);
             AiShovelUnlocks = new ShovelUnlockService(AiBoard, AiRecruitDestination);
@@ -555,14 +664,14 @@ namespace DragonBound.Bootstrap
             RecruitmentCatalog catalog,
             string runtimePrefix,
             LimitedComponentBag componentBag,
-            int sideSeedSalt,
+            int recruitmentSeed,
             ShovelRecruitmentState shovelState)
         {
             if (enableHeroComponents && !heroSliceMode)
             {
                 return new RecruitDeck(
                     catalog,
-                    unchecked(runSeed ^ sideSeedSalt),
+                    recruitmentSeed,
                     runtimePrefix,
                     componentBag,
                     shovelState: shovelState,
@@ -572,10 +681,54 @@ namespace DragonBound.Bootstrap
 
             return new RecruitDeck(
                 catalog,
-                new RunRandom(unchecked(runSeed ^ sideSeedSalt)),
+                new RunRandom(recruitmentSeed),
                 runtimePrefix,
                 enableHeroComponents,
                 heroSliceMode);
+        }
+
+        private void BeginGameplayRun()
+        {
+            bool hasLaunchContext = GameplayLaunchContext.TryGet(
+                out string launchPlayerId,
+                out string launchNonce);
+            if (!hasLaunchContext)
+            {
+                launchPlayerId = string.Empty;
+                launchNonce = System.Guid.NewGuid().ToString("N");
+            }
+            var request = new StartGameplayRunRequest
+            {
+                PlayerId = launchPlayerId,
+                GameMode = useTwentyWavePressureRuntime ? "TwentyWave" : "Greybox",
+                ClientRunNonce = launchNonce,
+                UseDiagnosticSeed = useFixedSeedForDiagnostics,
+                DiagnosticSeed = runSeed
+            };
+            var result = GameplayRunGatewayRegistry.Current
+                .StartRunAsync(request, CancellationToken.None)
+                .GetAwaiter()
+                .GetResult();
+            if (result == null)
+            {
+                throw new System.InvalidOperationException("Gameplay gateway returned no run configuration.");
+            }
+
+            GameplayRunId = result.RunId;
+            runSeed = result.RunSeed;
+            playerRecruitSeed = result.PlayerRecruitSeed;
+            aiRecruitSeed = result.AiRecruitSeed;
+            combatSeed = result.CombatSeed;
+            ReconnectGraceSeconds = result.ReconnectGraceSeconds > 0
+                ? result.ReconnectGraceSeconds
+                : 90;
+            AfkTimeoutSeconds = result.AfkTimeoutSeconds > 0
+                ? result.AfkTimeoutSeconds
+                : 180;
+            if (hasLaunchContext) GameplayLaunchContext.Complete(launchNonce);
+            Debug.Log(
+                $"GameplayRunStarted RunId={GameplayRunId} Rules={result.RulesVersion} " +
+                $"DiagnosticSeed={useFixedSeedForDiagnostics}");
         }
 
         private void Update()
@@ -621,7 +774,7 @@ namespace DragonBound.Bootstrap
                     TwentyWave.StartRun();
                 }
 
-                if (enableAiSurvivalController)
+                if (enableAiSurvivalController && Match.State == MatchState.Running)
                 {
                     AiController.Tick();
                     if (AiController.LastCycleChanged)
@@ -672,6 +825,18 @@ namespace DragonBound.Bootstrap
 
         private void LockRuneLoadoutAtRunStart()
         {
+            if (externalPlayerRuneLoadoutSnapshot != null)
+            {
+                if (RecruitDestination != null &&
+                    !RecruitDestination.TrySetRuneLoadoutSnapshot(externalPlayerRuneLoadoutSnapshot))
+                {
+                    Debug.LogError("ExternalRuneLoadoutSnapshotRejectedAfterHeroFormation");
+                }
+
+                RecruitDestination?.SealRuneLoadoutSnapshot();
+                return;
+            }
+
             if (PlayerRuneLoadout == null)
             {
                 return;
@@ -765,7 +930,7 @@ namespace DragonBound.Bootstrap
 
             if (card.Kind != RecruitItemKind.BasicUnit)
             {
-                return HeroSliceCatalog.GetComponentDisplayName(card.ConfigId);
+                return HeroSliceCatalog.GetComponentDisplayNameEn(card.ConfigId);
             }
 
             return $"{BasicUnitCatalog.GetDisplayName(card.ConfigId)} {card.Level}";

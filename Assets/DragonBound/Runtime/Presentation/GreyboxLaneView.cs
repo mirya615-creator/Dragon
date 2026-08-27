@@ -11,6 +11,8 @@ namespace DragonBound.Presentation
         [SerializeField] private RectTransform enemyMarker;
         [SerializeField] private RectTransform[] waypoints;
         [SerializeField] private EnemyView enemyViewTemplate;
+        [SerializeField] private EnemyView enemyViewPrefab;
+        [SerializeField] private RectTransform enemyViewContainer;
         [SerializeField] private float travelSeconds = 12f;
         [SerializeField] private bool reverseDirection;
 
@@ -116,6 +118,12 @@ namespace DragonBound.Presentation
             travelSeconds = seconds;
             progress = 0f;
             ApplyPosition();
+        }
+
+        public void ConfigureEnemyPresentation(EnemyView prefab, RectTransform container = null)
+        {
+            enemyViewPrefab = prefab;
+            enemyViewContainer = container;
         }
 
         public void Initialize(MatchController value)
@@ -346,16 +354,23 @@ namespace DragonBound.Presentation
 
         private void RefreshEnemyViews()
         {
-            if (registry == null || enemyViewTemplate == null || waypoints == null || waypoints.Length < 2)
+            var presentationSource = enemyViewPrefab != null ? enemyViewPrefab : enemyViewTemplate;
+            if (registry == null || presentationSource == null || waypoints == null || waypoints.Length < 2)
             {
                 return;
             }
+
+            var presentationParent = enemyViewContainer != null
+                ? enemyViewContainer
+                : enemyViewTemplate != null
+                    ? enemyViewTemplate.transform.parent
+                    : transform;
 
             foreach (var enemy in registry.Enemies)
             {
                 if (!enemyViews.TryGetValue(enemy.RuntimeId, out var view) || view == null)
                 {
-                    view = Instantiate(enemyViewTemplate, enemyViewTemplate.transform.parent);
+                    view = Instantiate(presentationSource, presentationParent, false);
                     view.gameObject.SetActive(true);
                     view.name = $"Enemy_{enemy.RuntimeId}";
                     enemyViews[enemy.RuntimeId] = view;

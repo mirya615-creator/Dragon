@@ -32,6 +32,8 @@ namespace DragonBound.Editor
             "Assets/DragonBound/UI/Prefabs/Components/BenchSlot.prefab";
         public const string UnitCardPrefabPath =
             "Assets/DragonBound/UI/Prefabs/Components/UnitCard.prefab";
+        public const string EnemyCardPrefabPath =
+            "Assets/DragonBound/UI/Prefabs/Components/EnemyCard.prefab";
         public const string HeroFormationPrefabPath =
             "Assets/DragonBound/UI/Prefabs/Components/HeroFormation.prefab";
         public const string RangeOutlineSpritePath =
@@ -263,13 +265,9 @@ namespace DragonBound.Editor
             group.blocksRaycasts = false;
             group.interactable = false;
 
-            var border = CreateImage("ART_DoubleCellBorder", root.transform, new Color(0.67f, 0.35f, 1f, 0.06f));
+            var border = CreateImage("ART_DoubleCellBorder", root.transform, Color.white);
             SetStretch(border.rectTransform);
             border.raycastTarget = false;
-            var outline = border.gameObject.AddComponent<Outline>();
-            outline.effectDistance = new Vector2(5f, -5f);
-            outline.effectColor = new Color(0.67f, 0.35f, 1f, 0.92f);
-            outline.useGraphicAlpha = false;
 
             var connector = CreateImage("ART_ComponentConnector", root.transform, Color.white);
             SetCentered(connector.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(100f, 7f));
@@ -502,18 +500,39 @@ namespace DragonBound.Editor
             var attackLine = CreateImage("ART_AttackLine", root.transform, new Color(1f, 0.86f, 0.30f, 0.92f));
             SetCentered(attackLine.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(120f, 7f));
             attackLine.raycastTarget = false;
+            attackLine.gameObject.AddComponent<CombatFxAuthoring>().Configure(
+                CombatFxPlacementMode.StretchBetweenPoints,
+                0.28f,
+                true);
             var bowProjectile = CreateImage("ART_BowProjectile", root.transform, new Color(0.95f, 0.90f, 0.45f, 1f));
             SetCentered(bowProjectile.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(22f, 22f));
             bowProjectile.raycastTarget = false;
+            bowProjectile.gameObject.AddComponent<CombatFxAuthoring>().Configure(
+                CombatFxPlacementMode.Projectile,
+                0.28f,
+                false,
+                true);
             var spearPierce = CreateImage("ART_SpearPierceLine", root.transform, new Color(0.42f, 0.82f, 1f, 0.92f));
             SetCentered(spearPierce.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(120f, 7f));
             spearPierce.raycastTarget = false;
+            spearPierce.gameObject.AddComponent<CombatFxAuthoring>().Configure(
+                CombatFxPlacementMode.StretchBetweenPoints,
+                0.28f,
+                true);
             var riderSweep = CreateCircleImage("ART_RiderSweepCircle", root.transform, new Color(0.90f, 0.45f, 0.23f, 0.28f));
             SetCentered(riderSweep.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(132f, 132f));
             riderSweep.raycastTarget = false;
+            riderSweep.gameObject.AddComponent<CombatFxAuthoring>().Configure(
+                CombatFxPlacementMode.TemplateSizeAtTarget,
+                0.28f,
+                true);
             var starfallWarning = CreateCircleImage("ART_StarfallWarning", root.transform, new Color(0.72f, 0.78f, 0.94f, 0.20f));
             SetCentered(starfallWarning.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(180f, 180f));
             starfallWarning.raycastTarget = false;
+            starfallWarning.gameObject.AddComponent<CombatFxAuthoring>().Configure(
+                CombatFxPlacementMode.GameplayRadius,
+                0.28f,
+                true);
             var damageNumber = CreateText("DamageNumber", root.transform, "-1", Vector2.zero, Vector2.one, 24, TextAnchor.MiddleCenter);
             SetCentered(damageNumber.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(160f, 40f));
             damageNumber.color = new Color(1f, 0.38f, 0.28f, 1f);
@@ -644,6 +663,11 @@ namespace DragonBound.Editor
             });
             var marker = instance.transform.Find("ART_EnemyMarker").GetComponent<RectTransform>();
             lane.Configure(marker, route.ToArray(), 12f, false);
+            var enemyCard = AssetDatabase.LoadAssetAtPath<GameObject>(EnemyCardPrefabPath);
+            if (enemyCard != null)
+            {
+                lane.ConfigureEnemyPresentation(enemyCard.GetComponent<EnemyView>());
+            }
 
             var board = instance.GetComponent<GreyboxBoardView>();
             var sideView = instance.GetComponent<GreyboxBattlefieldSideView>();

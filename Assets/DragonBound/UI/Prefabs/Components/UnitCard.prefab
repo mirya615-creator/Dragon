@@ -58,7 +58,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -149,6 +149,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   artImage: {fileID: 1028010299472515281}
   label: {fileID: 4517016449302621239}
+  alternateLabel: {fileID: 0}
+  levelLabel: {fileID: 0}
   canvasGroup: {fileID: 1233400772030940043}
   rarityBorder: {fileID: 8543914124930404472}
   heroLevelLabel: {fileID: 9093077910849217568}
@@ -378,7 +380,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

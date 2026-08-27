@@ -14,6 +14,7 @@ public sealed class LocalPlayerGoldGateway : IPlayerGoldGateway
 {
     public const long VictoryReward = 20;
     public const long DefeatReward = 10;
+    public const long EarlyExitReward = 5;
 
     private const string GoldKeyPrefix = "dragonbound.player-gold.";
     private const string MatchKeySegment = ".match.";
@@ -141,6 +142,9 @@ public sealed class LocalPlayerGoldGateway : IPlayerGoldGateway
                 break;
             case MatchOutcome.Defeat:
                 baseReward = DefeatReward;
+                break;
+            case MatchOutcome.EarlyExit:
+                baseReward = EarlyExitReward;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(outcome), outcome, "Unknown match outcome.");

@@ -15,6 +15,8 @@ public static class LocalServiceModule
         var runes = new LocalRuneRewardService();
         var rewardedAds = new MockRewardedAdService();
         var share = new MockShareService();
+        var gameplay = new DragonBound.Services.LocalGameplayRunGateway();
+        DragonBound.Services.GameplayRunGatewayRegistry.Install(gameplay);
 
         return new ClientServices(
             auth,
@@ -28,6 +30,7 @@ public static class LocalServiceModule
             merchant,
             runes,
             rewardedAds,
-            share);
+            share,
+            gameplay);
     }
 }

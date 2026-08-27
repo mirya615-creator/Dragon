@@ -14,6 +14,7 @@ namespace DragonBound.Presentation
         [SerializeField] private Image bowProjectileTemplate;
         [SerializeField] private Image spearPierceTemplate;
         [SerializeField] private Image riderSweepTemplate;
+        [SerializeField] private Image itemImpactTemplate;
         [SerializeField] private Image starfallWarningTemplate;
         [Header("ART_HeroCombat")]
         [SerializeField] private Image ART_EmberExplosiveFireball;
@@ -103,6 +104,7 @@ namespace DragonBound.Presentation
             MoveTemplateToLayer(bowProjectileTemplate, canvasView.CombatFxLayer);
             MoveTemplateToLayer(spearPierceTemplate, canvasView.CombatFxLayer);
             MoveTemplateToLayer(riderSweepTemplate, canvasView.CombatFxLayer);
+            MoveTemplateToLayer(itemImpactTemplate, canvasView.CombatFxLayer);
             MoveTemplateToLayer(starfallWarningTemplate, canvasView.CombatFxLayer);
             MoveTemplateToLayer(ART_EmberExplosiveFireball, canvasView.CombatFxLayer);
             MoveTemplateToLayer(ART_ShadowExecution, canvasView.CombatFxLayer);
@@ -174,7 +176,7 @@ namespace DragonBound.Presentation
                 if (fx.Image != null && fx.Fade)
                 {
                     var color = fx.Image.color;
-                    color.a = 1f - normalized;
+                    color.a = fx.StartAlpha * (1f - normalized);
                     fx.Image.color = color;
                 }
 
@@ -215,41 +217,44 @@ namespace DragonBound.Presentation
                     return;
                 case AttackKind.EmberExplosiveFireball:
                 case AttackKind.EmberExplosiveSplash:
-                    SpawnImage(ART_EmberExplosiveFireball ?? riderSweepTemplate, attacker, target, false, true);
+                    SpawnImage(ART_EmberExplosiveFireball ?? riderSweepTemplate, attacker, target, CombatFxPlacementMode.TemplateSizeAtTarget, true);
                     break;
                 case AttackKind.NightfangExecutionSlash:
-                    SpawnImage(ART_ExecutionSlash ?? ART_ShadowExecution ?? attackLineTemplate, attacker, target, false, true, 0.16f);
+                    SpawnImage(ART_ExecutionSlash ?? ART_ShadowExecution ?? attackLineTemplate, attacker, target, CombatFxPlacementMode.StretchBetweenPoints, true, 0.16f);
                     break;
                 case AttackKind.AbyssHarpoonWarning:
                     SpawnImage(
                         ART_AbyssHarpoonWarning ?? spearPierceTemplate,
                         attacker,
                         target,
-                        false,
+                        CombatFxPlacementMode.StretchBetweenPoints,
                         true,
                         Mathf.Max(0.1f, combatEvent.EffectDuration));
                     break;
                 case AttackKind.AbyssHarpoonStrike:
-                    SpawnImage(ART_HarpoonChain ?? ART_AbyssHarpoon ?? spearPierceTemplate, attacker, target, false, true);
+                    SpawnImage(ART_HarpoonChain ?? ART_AbyssHarpoon ?? spearPierceTemplate, attacker, target, CombatFxPlacementMode.StretchBetweenPoints, true);
                     break;
                 case AttackKind.SkyhunterRadiancePrimary:
-                    SpawnImage(ART_ValkyriePrimaryArrow ?? bowProjectileTemplate, attacker, target, true, false);
+                    SpawnImage(ART_ValkyriePrimaryArrow ?? bowProjectileTemplate, attacker, target, CombatFxPlacementMode.Projectile, false);
                     break;
                 case AttackKind.SkyhunterRadianceSecondary:
-                    SpawnImage(ART_ValkyrieSecondaryArrow ?? bowProjectileTemplate, attacker, target, true, false);
+                    SpawnImage(ART_ValkyrieSecondaryArrow ?? bowProjectileTemplate, attacker, target, CombatFxPlacementMode.Projectile, false);
                     break;
                 case AttackKind.BowProjectile:
-                    SpawnImage(bowProjectileTemplate, attacker, target, true, false);
+                    SpawnImage(bowProjectileTemplate, attacker, target, CombatFxPlacementMode.Projectile, false);
                     break;
                 case AttackKind.SpearPierce:
                 case AttackKind.LeviathanHarpoon:
-                    SpawnImage(spearPierceTemplate, attacker, target, false, true);
+                    SpawnImage(spearPierceTemplate, attacker, target, CombatFxPlacementMode.StretchBetweenPoints, true);
                     break;
                 case AttackKind.RiderSweep:
-                    SpawnImage(riderSweepTemplate, target, target, false, true);
+                    SpawnImage(riderSweepTemplate, target, target, CombatFxPlacementMode.TemplateSizeAtTarget, true);
+                    break;
+                case AttackKind.Item:
+                    SpawnImage(itemImpactTemplate ?? attackLineTemplate, attacker, target, CombatFxPlacementMode.TemplateSizeAtTarget, true);
                     break;
                 default:
-                    SpawnImage(attackLineTemplate, attacker, target, false, true);
+                    SpawnImage(attackLineTemplate, attacker, target, CombatFxPlacementMode.StretchBetweenPoints, true);
                     break;
             }
 
@@ -272,9 +277,9 @@ namespace DragonBound.Presentation
             Image template,
             Vector3 start,
             Vector3 end,
-            bool projectile,
-            bool fade,
-            float duration = 0.28f)
+            CombatFxPlacementMode fallbackPlacement,
+            bool fallbackFade,
+            float? durationOverride = null)
         {
             if (template == null)
             {
@@ -285,25 +290,37 @@ namespace DragonBound.Presentation
             image.gameObject.SetActive(true);
             var rect = image.rectTransform;
             var distance = Vector3.Distance(start, end);
-            if (projectile)
+            var authoring = template.GetComponent<CombatFxAuthoring>();
+            var placement = authoring != null ? authoring.Placement : fallbackPlacement;
+            var offset = authoring != null ? (Vector3)authoring.PositionOffset : Vector3.zero;
+            var angle = Mathf.Atan2(end.y - start.y, end.x - start.x) * Mathf.Rad2Deg;
+            var authoredRotation = rect.localRotation;
+
+            if (placement == CombatFxPlacementMode.Projectile)
             {
-                rect.position = start;
-                rect.sizeDelta = Vector2.one * 22f;
+                rect.position = start + offset;
             }
-            else if (template == riderSweepTemplate)
+            else if (placement == CombatFxPlacementMode.StretchBetweenPoints)
             {
-                rect.position = end;
-                rect.sizeDelta = Vector2.one * 132f;
+                rect.position = ((start + end) * 0.5f) + offset;
+                var lengthScale = authoring != null ? authoring.LengthScale : 1f;
+                rect.sizeDelta = new Vector2(Mathf.Max(8f, distance * lengthScale), rect.sizeDelta.y);
+                rect.localRotation = Quaternion.Euler(0f, 0f, angle) * authoredRotation;
             }
             else
             {
-                rect.position = (start + end) * 0.5f;
-                rect.sizeDelta = new Vector2(Mathf.Max(8f, distance), 7f);
-                var angle = Mathf.Atan2(end.y - start.y, end.x - start.x) * Mathf.Rad2Deg;
-                rect.localRotation = Quaternion.Euler(0f, 0f, angle);
+                rect.position = end + offset;
             }
 
-            active.Add(new ActiveFx(rect, image, null, start, end, projectile, fade, duration));
+            if (authoring != null && authoring.OrientToAttackDirection && placement != CombatFxPlacementMode.StretchBetweenPoints)
+            {
+                rect.localRotation = Quaternion.Euler(0f, 0f, angle) * authoredRotation;
+            }
+
+            var projectile = placement == CombatFxPlacementMode.Projectile;
+            var fade = authoring != null ? authoring.Fade : fallbackFade;
+            var duration = durationOverride ?? (authoring != null ? authoring.Duration : 0.28f);
+            active.Add(new ActiveFx(rect, image, null, start + offset, end + offset, projectile, fade, duration));
         }
 
         private void SpawnWarning(Image template, Vector3 position, float radiusCells, float duration)
@@ -316,12 +333,18 @@ namespace DragonBound.Presentation
             var warning = Instantiate(template, template.transform.parent);
             warning.gameObject.SetActive(true);
             warning.raycastTarget = false;
+            var authoring = template.GetComponent<CombatFxAuthoring>();
             var cellSize = fixedBoardCanvas != null
                 ? Mathf.Min(fixedBoardCanvas.CellSize.x, fixedBoardCanvas.CellSize.y)
                 : 64f;
-            var diameter = Mathf.Max(20f, radiusCells * cellSize * 2f);
-            warning.rectTransform.position = position;
-            warning.rectTransform.sizeDelta = Vector2.one * diameter;
+            var radiusScale = authoring != null ? authoring.RadiusScale : 1f;
+            var diameter = Mathf.Max(20f, radiusCells * cellSize * 2f * radiusScale);
+            var useGameplayRadius = authoring == null || authoring.Placement == CombatFxPlacementMode.GameplayRadius;
+            warning.rectTransform.position = position + (authoring != null ? (Vector3)authoring.PositionOffset : Vector3.zero);
+            if (useGameplayRadius)
+            {
+                warning.rectTransform.sizeDelta = Vector2.one * diameter;
+            }
             active.Add(new ActiveFx(
                 warning.rectTransform,
                 warning,
@@ -329,7 +352,7 @@ namespace DragonBound.Presentation
                 position,
                 position,
                 false,
-                true,
+                authoring != null ? authoring.Fade : true,
                 Mathf.Max(0.1f, duration)));
         }
 
@@ -353,6 +376,7 @@ namespace DragonBound.Presentation
             if (bowProjectileTemplate != null) bowProjectileTemplate.gameObject.SetActive(false);
             if (spearPierceTemplate != null) spearPierceTemplate.gameObject.SetActive(false);
             if (riderSweepTemplate != null) riderSweepTemplate.gameObject.SetActive(false);
+            if (itemImpactTemplate != null) itemImpactTemplate.gameObject.SetActive(false);
             if (starfallWarningTemplate != null) starfallWarningTemplate.gameObject.SetActive(false);
             if (ART_EmberExplosiveFireball != null) ART_EmberExplosiveFireball.gameObject.SetActive(false);
             if (ART_ShadowExecution != null) ART_ShadowExecution.gameObject.SetActive(false);
@@ -398,7 +422,8 @@ namespace DragonBound.Presentation
                 End = end;
                 Projectile = projectile;
                 Fade = fade;
-                Duration = duration;
+                Duration = Mathf.Max(0.01f, duration);
+                StartAlpha = image != null ? image.color.a : 1f;
             }
 
             public RectTransform Root { get; }
@@ -409,6 +434,7 @@ namespace DragonBound.Presentation
             public bool Projectile { get; }
             public bool Fade { get; }
             public float Duration { get; }
+            public float StartAlpha { get; }
             public float Elapsed { get; set; }
         }
     }

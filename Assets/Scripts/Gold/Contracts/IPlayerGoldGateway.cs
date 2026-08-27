@@ -11,7 +11,8 @@ public sealed class PlayerGoldState
 public enum MatchOutcome
 {
     Victory,
-    Defeat
+    Defeat,
+    EarlyExit
 }
 
 public enum GoldClaimType

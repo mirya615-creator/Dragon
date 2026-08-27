@@ -8,6 +8,43 @@ namespace DragonBound.Runes
         private readonly Dictionary<string, string> assignments;
         internal RuneLoadoutSnapshot(Dictionary<string, string> source) { assignments = new Dictionary<string, string>(source, StringComparer.Ordinal); }
         public static RuneLoadoutSnapshot Empty { get; } = new RuneLoadoutSnapshot(new Dictionary<string, string>(StringComparer.Ordinal));
+        public static bool TryCreate(
+            IEnumerable<RuneLoadoutAssignment> source,
+            out RuneLoadoutSnapshot snapshot,
+            out string error)
+        {
+            var values = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (source != null)
+            {
+                foreach (var assignment in source)
+                {
+                    if (assignment == null || string.IsNullOrWhiteSpace(assignment.HeroId))
+                    {
+                        snapshot = Empty;
+                        error = "InvalidHeroId";
+                        return false;
+                    }
+
+                    if (RuneCatalog.Get(assignment.RuneId) == null)
+                    {
+                        snapshot = Empty;
+                        error = "UnknownRuneId:" + assignment.RuneId;
+                        return false;
+                    }
+
+                    if (!values.TryAdd(assignment.HeroId, assignment.RuneId))
+                    {
+                        snapshot = Empty;
+                        error = "DuplicateHeroId:" + assignment.HeroId;
+                        return false;
+                    }
+                }
+            }
+
+            snapshot = values.Count == 0 ? Empty : new RuneLoadoutSnapshot(values);
+            error = string.Empty;
+            return true;
+        }
         public string GetRune(string heroId) { string runeId; return assignments.TryGetValue(heroId, out runeId) ? runeId : string.Empty; }
         public IReadOnlyDictionary<string, string> Assignments => assignments;
     }

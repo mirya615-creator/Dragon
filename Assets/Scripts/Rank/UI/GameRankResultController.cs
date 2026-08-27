@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using DragonBound.Bootstrap;
+using DragonBound.Services;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,14 +22,12 @@ public sealed class GameRankResultController : MonoBehaviour
     private TMP_Text goldText;
     private Button receiveButton;
     private Button doubleButton;
-    private IPlayerRankGateway rankGateway;
-    private IPlayerGoldGateway goldGateway;
-    private IMerchantGateway merchantGateway;
+    private DragonBoundBootstrap bootstrap;
+    private GameSettlementCoordinator settlementCoordinator;
     private IRewardedAdService rewardedAdService;
     private IAuthSessionStore authSessionStore;
     private CancellationTokenSource lifetimeCancellation;
     private string matchId;
-    private MatchOutcome pendingOutcome;
     private bool isFinishing;
     private bool gameReady;
     private bool hasPendingOutcome;
@@ -40,13 +40,10 @@ public sealed class GameRankResultController : MonoBehaviour
         defeatButton = FindButton("DefaltBtn");
         returnButton = FindButton("ReturnBtn");
         loadingPanel = transform.Find("LoadingPanel")?.gameObject;
-        rankGateway = services.Rank;
-        goldGateway = services.Gold;
-        merchantGateway = services.Merchant;
+        settlementCoordinator = new GameSettlementCoordinator(services);
         rewardedAdService = services.RewardedAds;
         authSessionStore = services.AuthSession;
         lifetimeCancellation = new CancellationTokenSource();
-        matchId = Guid.NewGuid().ToString("N");
 
         if (loadingPanel == null)
         {
@@ -64,7 +61,6 @@ public sealed class GameRankResultController : MonoBehaviour
         loadingPanel.transform.SetAsLastSibling();
         SetGameControlsInteractable(false);
         settlementPanel.SetActive(false);
-        GameRuneDropSession.Begin(matchId);
 
         if (victoryButton != null) victoryButton.onClick.AddListener(OnVictoryClicked);
         if (defeatButton != null) defeatButton.onClick.AddListener(OnDefeatClicked);
@@ -86,8 +82,14 @@ public sealed class GameRankResultController : MonoBehaviour
             Task minimumDisplay = Task.Delay(
                 MinimumLoadingMilliseconds,
                 lifetimeCancellation.Token);
-            Task initialization = InitializeGameAsync(lifetimeCancellation.Token);
+            Task<DragonBoundBootstrap> initialization = InitializeGameAsync(
+                lifetimeCancellation.Token);
             await Task.WhenAll(minimumDisplay, initialization);
+            bootstrap = initialization.Result;
+            matchId = bootstrap.GameplayRunId;
+            if (string.IsNullOrWhiteSpace(matchId))
+                throw new InvalidOperationException("Game settlement requires the gameplay RunId.");
+            GameRuneDropSession.Begin(matchId);
 
             gameReady = true;
             loadingPanel.SetActive(false);
@@ -104,13 +106,25 @@ public sealed class GameRankResultController : MonoBehaviour
         }
     }
 
-    private static async Task InitializeGameAsync(CancellationToken cancellationToken)
+    private static async Task<DragonBoundBootstrap> InitializeGameAsync(
+        CancellationToken cancellationToken)
     {
-        // Awake has created the match session and initialized the Game services.
-        // Yield once so every Game object can finish its first-frame setup.
-        await Task.Yield();
-        cancellationToken.ThrowIfCancellationRequested();
+        DragonBoundBootstrap bootstrap = FindObjectOfType<DragonBoundBootstrap>();
+        if (bootstrap == null)
+        {
+            throw new InvalidOperationException("Greybox_Main requires DragonBoundBootstrap.");
+        }
+
+        // Merchant items and the account-owned Rune loadout are both asynchronous. Keep the
+        // authored LoadingPanel visible until their immutable Run snapshots have been injected.
+        while (!bootstrap.IsInitialized)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Yield();
+        }
+
         Canvas.ForceUpdateCanvases();
+        return bootstrap;
     }
 
     private void OnDestroy()
@@ -145,16 +159,18 @@ public sealed class GameRankResultController : MonoBehaviour
 
         try
         {
-            RankProgressResult result = await rankGateway.RecordVictoryAsync(
+            RecordCurrentRuneRewards();
+            GameSettlementPreparation preparation = await settlementCoordinator.PrepareAsync(
                 session.PlayerId,
                 matchId,
+                ServerMatchResult.Victory,
+                GameplayTerminationReason.Natural,
+                GameplayFaultAttribution.None,
+                bootstrap.Match != null ? bootstrap.Match.CurrentWave : 0,
+                bootstrap.Match != null ? bootstrap.Match.Player.Resources : 0,
+                bootstrap.Recruitment != null ? bootstrap.Recruitment.CompletedRecruitments : 0,
                 lifetimeCancellation.Token);
-            RankPromotionStore.Set(session.PlayerId, result);
-            await GameRuneDropSession.SettleAsync(
-                session.PlayerId,
-                matchId,
-                lifetimeCancellation.Token);
-            ShowSettlement(MatchOutcome.Victory);
+            ShowSettlement(preparation);
         }
         catch (OperationCanceledException)
         {
@@ -181,15 +197,18 @@ public sealed class GameRankResultController : MonoBehaviour
 
         try
         {
-            await rankGateway.RecordDefeatAsync(
+            RecordCurrentRuneRewards();
+            GameSettlementPreparation preparation = await settlementCoordinator.PrepareAsync(
                 session.PlayerId,
                 matchId,
+                ServerMatchResult.Defeat,
+                GameplayTerminationReason.Natural,
+                GameplayFaultAttribution.None,
+                bootstrap.Match != null ? bootstrap.Match.CurrentWave : 0,
+                bootstrap.Match != null ? bootstrap.Match.Player.Resources : 0,
+                bootstrap.Recruitment != null ? bootstrap.Recruitment.CompletedRecruitments : 0,
                 lifetimeCancellation.Token);
-            await GameRuneDropSession.SettleAsync(
-                session.PlayerId,
-                matchId,
-                lifetimeCancellation.Token);
-            ShowSettlement(MatchOutcome.Defeat);
+            ShowSettlement(preparation);
         }
         catch (OperationCanceledException)
         {
@@ -258,21 +277,12 @@ public sealed class GameRankResultController : MonoBehaviour
             throw new InvalidOperationException("Gold cannot be settled without an authenticated PlayerId.");
         }
 
-        await goldGateway.SettleMatchAsync(
+        await settlementCoordinator.ClaimGoldAsync(
             session.PlayerId,
             matchId,
-            pendingOutcome,
             claimType,
             adVerificationId,
             lifetimeCancellation.Token);
-        MerchantRunResult merchantResult = await merchantGateway.RecordCompletedRunAsync(
-            session.PlayerId,
-            matchId,
-            lifetimeCancellation.Token);
-        if (merchantResult.Offer != null)
-        {
-            MerchantPresentationStore.MarkPending(session.PlayerId);
-        }
         LoadMainScene();
     }
 
@@ -289,15 +299,23 @@ public sealed class GameRankResultController : MonoBehaviour
         return true;
     }
 
-    private void ShowSettlement(MatchOutcome outcome)
+    private void ShowSettlement(GameSettlementPreparation preparation)
     {
-        pendingOutcome = outcome;
         hasPendingOutcome = true;
-        settlementResultText.text = outcome == MatchOutcome.Victory ? "Victory" : "Defalt";
-        long baseReward = outcome == MatchOutcome.Victory
+        settlementResultText.text = preparation.Result.Result == ServerMatchResult.Victory
+            ? "Victory"
+            : preparation.Result.Result == ServerMatchResult.Defeat
+                ? "Defeat"
+                : preparation.Result.Result == ServerMatchResult.NoContest
+                    ? "No Contest"
+                    : "Settlement Pending";
+        long baseReward = !preparation.CanClaimGold
+            ? 0
+            : preparation.GoldOutcome == MatchOutcome.Victory
             ? LocalPlayerGoldGateway.VictoryReward
             : LocalPlayerGoldGateway.DefeatReward;
         goldText.text = "+" + baseReward;
+        doubleButton.gameObject.SetActive(preparation.CanClaimGold);
         settlementPanel.SetActive(true);
         settlementPanel.transform.SetAsLastSibling();
         SetClaimBusy(false);
@@ -374,5 +392,12 @@ public sealed class GameRankResultController : MonoBehaviour
     private void LoadMainScene()
     {
         SceneLoader.Instance.LoadSceneAsync("Main");
+    }
+
+    private void RecordCurrentRuneRewards()
+    {
+        if (bootstrap?.PlayerRuneRewards?.GrantedRewards == null) return;
+        foreach (DragonBound.Runes.RuneReward reward in bootstrap.PlayerRuneRewards.GrantedRewards)
+            GameRuneDropSession.RecordCompletedWaveReward(reward);
     }
 }

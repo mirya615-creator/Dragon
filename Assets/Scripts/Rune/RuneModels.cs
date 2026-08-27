@@ -43,6 +43,7 @@ public sealed class HeroRuneLoadoutEntry
 [Serializable]
 public sealed class RuneProfile
 {
+    public int AccountDay = 1;
     public List<RuneInventoryEntry> Inventory = new List<RuneInventoryEntry>();
     public List<RuneReward> LastRunRewards = new List<RuneReward>();
     public List<HeroRuneLoadoutEntry> Loadouts = new List<HeroRuneLoadoutEntry>();

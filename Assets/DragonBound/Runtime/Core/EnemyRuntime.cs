@@ -30,7 +30,8 @@ namespace DragonBound.Core
             float maxHitPoints = DefaultMaxHitPoints,
             EnemyArchetype archetype = EnemyArchetype.Normal,
             int spawnSequence = 0,
-            string bossId = "")
+            string bossId = "",
+            int spawnWaveIndex = 1)
         {
             if (string.IsNullOrWhiteSpace(runtimeId))
             {
@@ -47,6 +48,7 @@ namespace DragonBound.Core
             Archetype = archetype;
             BossId = bossId ?? string.Empty;
             SpawnSequence = spawnSequence;
+            SpawnWaveIndex = Math.Max(1, spawnWaveIndex);
             MaxHitPoints = maxHitPoints;
             HitPoints = maxHitPoints;
             State = EnemyRuntimeState.Spawned;
@@ -56,6 +58,7 @@ namespace DragonBound.Core
         public TeamSide Team { get; }
         public EnemyArchetype Archetype { get; }
         public int SpawnSequence { get; }
+        public int SpawnWaveIndex { get; }
         public string BossId { get; }
         public int ExperienceReward => Archetype == EnemyArchetype.Boss
             ? BossExperienceRewards.Get(BossId)

@@ -123,14 +123,16 @@ namespace DragonBound.Core
         RuneSkybreakerPrimary,
         RuneSkybreakerSecondary,
         RuneWyrmguardSpirit,
-        RuneDragonbloom
+        RuneDragonbloom,
+        Item
     }
 
     public enum CombatDamageOwnerKind
     {
         None,
         BasicUnit,
-        Hero
+        Hero,
+        Item
     }
 
     public readonly struct CombatDamageOwner

@@ -831,14 +831,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1589,6 +1589,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5550729788648808470}
   lockOverlay: {fileID: 5130669406521060154}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7910123325384783388}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &4937313994124936919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1666,14 +1669,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2811,14 +2814,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.79, g: 0.82, b: 0.78, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2846,7 +2849,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1896533380953604277
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3363,6 +3366,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7969687427449199600}
   lockOverlay: {fileID: 8138085670088956657}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 3486048426518465716}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &8276220651859382604
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4241,14 +4247,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4390,7 +4396,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8290079980671419346
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5328,6 +5334,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7682630648598825834}
   lockOverlay: {fileID: 5875277929908354397}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 4867049681090936865}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &562231672706683675
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5775,14 +5784,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.76, g: 0.72, b: 0.79, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6834,6 +6843,12 @@ MonoBehaviour:
   hpFill: {fileID: 2305250093082053537}
   runtimeLabel: {fileID: 6073758217167353273}
   artCatalog: {fileID: 0}
+  healthDecreaseDuration: 0.2
+  healthIncreaseDuration: 0.35
+  deathHealthDecreaseDuration: 0.12
+  preserveAuthoredColor: 1
+  preserveAuthoredSprite: 0
+  preserveAuthoredSize: 1
 --- !u!1 &677145636162111132
 GameObject:
   m_ObjectHideFlags: 0
@@ -7539,7 +7554,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7659327599757811935
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7631,7 +7646,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5629970679734617189
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7877,6 +7892,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 309560452629761309}
   lockOverlay: {fileID: 3715487597058940072}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &6552444376506727896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7955,6 +7973,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 1420653653959262619}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &795491759122561946
 GameObject:
   m_ObjectHideFlags: 0
@@ -8593,6 +8614,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 1561662446256953387}
   lockOverlay: {fileID: 7926076953248682855}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 4495533606343041807}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &6472454200984717240
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9587,14 +9611,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.76, g: 0.72, b: 0.79, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -9700,6 +9724,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 1488004929364309917}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &1001400057291733040
 GameObject:
   m_ObjectHideFlags: 0
@@ -11684,6 +11711,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6551613447968077786}
   lockOverlay: {fileID: 3393448308724292379}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &1161908417132554848
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11801,6 +11831,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 1783873109302367144}
   lockOverlay: {fileID: 1984543039463053698}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 5275498384526062745}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &2114379416805293899
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11916,6 +11949,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 671381468974484245}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &1170765023268008845
 GameObject:
   m_ObjectHideFlags: 0
@@ -12648,6 +12684,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7890634203492354336}
   lockOverlay: {fileID: 5484703353708579844}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &8212308225780456216
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12988,6 +13027,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 3430670869025302675}
   lockOverlay: {fileID: 6691183732976171906}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &2074901391041506040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13646,6 +13688,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 9049540001916622084}
   lockOverlay: {fileID: 7155973124572736279}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &4052696284824156361
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13723,14 +13768,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -13758,7 +13803,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &862394005061046937
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14973,6 +15018,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8433379692518127570}
   lockOverlay: {fileID: 4973589654567327775}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7910558137613843090}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &8132296603772069733
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15055,6 +15103,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8029620705242529596}
   lockOverlay: {fileID: 5951188989939073300}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 5012808959278457476}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &1479407810062029787
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16705,14 +16756,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -17735,6 +17786,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 3238639801055476605}
   lockOverlay: {fileID: 4834637669010320978}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 9088798515836852332}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &3669149106759590521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17817,6 +17871,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8159925011183247961}
   lockOverlay: {fileID: 972397608111125358}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 3875670067053188144}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &8896376767263414255
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18644,6 +18701,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 110907854735041705}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &1796846216345878518
 GameObject:
   m_ObjectHideFlags: 0
@@ -19551,6 +19611,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 238009245970087037}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &1893360695493643007
 GameObject:
   m_ObjectHideFlags: 0
@@ -20485,6 +20548,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7290195117199107030}
   lockOverlay: {fileID: 8250336441967949899}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 8910638971254073393}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &7789253102798863454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20637,14 +20703,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -21327,14 +21393,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.76, g: 0.72, b: 0.79, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -21406,6 +21472,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 4644735343049114984}
   lockOverlay: {fileID: 4084165654140429441}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &2046772335182905968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21692,7 +21761,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7560626553763334623
 RectTransform:
   m_ObjectHideFlags: 0
@@ -21942,14 +22011,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.79, g: 0.82, b: 0.78, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -22128,6 +22197,10 @@ MonoBehaviour:
   dragArrowPreview: {fileID: 1019464835806041526}
   allowInteraction: 0
   showDebugRangeBands: 0
+  basicUnitColor: {r: 1, g: 1, b: 1, a: 1}
+  heroComponentColor: {r: 0.32, g: 0.62, b: 1, a: 1}
+  purpleHeroColor: {r: 0.67, g: 0.35, b: 1, a: 0.92}
+  goldHeroColor: {r: 1, g: 0.73, b: 0.16, a: 0.92}
 --- !u!114 &1231463157546253163
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22159,6 +22232,8 @@ MonoBehaviour:
   - {fileID: 6269138990331934470}
   - {fileID: 3154382198647848604}
   enemyViewTemplate: {fileID: 7242630355955114854}
+  enemyViewPrefab: {fileID: 100104, guid: e19cf55667234a2cb1fc1189bace0011, type: 3}
+  enemyViewContainer: {fileID: 0}
   travelSeconds: 12
   reverseDirection: 0
 --- !u!114 &6638741664280780762
@@ -22197,6 +22272,7 @@ MonoBehaviour:
   bowProjectileTemplate: {fileID: 6488704180333022576}
   spearPierceTemplate: {fileID: 6756538996948416751}
   riderSweepTemplate: {fileID: 7054019968696059242}
+  itemImpactTemplate: {fileID: 0}
   starfallWarningTemplate: {fileID: 6973189180852746349}
   ART_EmberExplosiveFireball: {fileID: 0}
   ART_ShadowExecution: {fileID: 0}
@@ -23128,6 +23204,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 1746856175795364055}
   lockOverlay: {fileID: 8321192480924140288}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7377985930240069474}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &5374545323697006418
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23200,7 +23279,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4635743411838804001
 RectTransform:
   m_ObjectHideFlags: 0
@@ -23966,7 +24045,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8550650709485769009
 RectTransform:
   m_ObjectHideFlags: 0
@@ -24743,7 +24822,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7564112075298440106
 RectTransform:
   m_ObjectHideFlags: 0
@@ -25279,6 +25358,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 4160568707099268590}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &2365891509042975328
 GameObject:
   m_ObjectHideFlags: 0
@@ -26632,6 +26714,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 4285981042516708666}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &2460535224838808199
 GameObject:
   m_ObjectHideFlags: 0
@@ -27345,6 +27430,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 4468607788166849711}
   lockOverlay: {fileID: 3088347688173064608}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 1988227250511042183}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &5095263431537615800
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27426,6 +27514,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 885690066673105777}
   lockOverlay: {fileID: 5095928838266266196}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &486749171901103409
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27916,14 +28007,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.76, g: 0.72, b: 0.79, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -28186,7 +28277,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4363359828602972104
 RectTransform:
   m_ObjectHideFlags: 0
@@ -28402,6 +28493,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 4650678045950372182}
   lockOverlay: {fileID: 2328192916252474105}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 6195674612183403081}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &4668902478417483476
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -28795,14 +28889,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -29068,6 +29162,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7434503580019372447}
   lockOverlay: {fileID: 4508116845592942998}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7655637779832754303}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &6127599091534207236
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30027,6 +30124,10 @@ MonoBehaviour:
   dragArrowPreview: {fileID: 3806956524701793317}
   allowInteraction: 1
   showDebugRangeBands: 0
+  basicUnitColor: {r: 1, g: 1, b: 1, a: 1}
+  heroComponentColor: {r: 0.32, g: 0.62, b: 1, a: 1}
+  purpleHeroColor: {r: 0.67, g: 0.35, b: 1, a: 0.92}
+  goldHeroColor: {r: 1, g: 0.73, b: 0.16, a: 0.92}
 --- !u!114 &3163728300254843640
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30058,6 +30159,8 @@ MonoBehaviour:
   - {fileID: 1324393214528073215}
   - {fileID: 2951451535344661692}
   enemyViewTemplate: {fileID: 6805544835167439605}
+  enemyViewPrefab: {fileID: 100104, guid: e19cf55667234a2cb1fc1189bace0011, type: 3}
+  enemyViewContainer: {fileID: 0}
   travelSeconds: 12
   reverseDirection: 0
 --- !u!114 &7408798834555795017
@@ -30096,6 +30199,7 @@ MonoBehaviour:
   bowProjectileTemplate: {fileID: 6988558600526079203}
   spearPierceTemplate: {fileID: 7436805814102462844}
   riderSweepTemplate: {fileID: 6562926487352651001}
+  itemImpactTemplate: {fileID: 0}
   starfallWarningTemplate: {fileID: 6500213283400651262}
   ART_EmberExplosiveFireball: {fileID: 0}
   ART_ShadowExecution: {fileID: 0}
@@ -30287,6 +30391,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7810973443463760543}
   lockOverlay: {fileID: 3405598607099632083}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 1007859406900219631}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &1184706388117374655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30368,6 +30475,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5813175134463881511}
   lockOverlay: {fileID: 8936296370243363173}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &5725264806255591047
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30958,14 +31068,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.79, g: 0.82, b: 0.78, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -31124,14 +31234,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -31722,14 +31832,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -31797,14 +31907,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -31876,6 +31986,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8919228556050419748}
   lockOverlay: {fileID: 2238022522735730774}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &6339318507650556096
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31994,6 +32107,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6166805432660099057}
   lockOverlay: {fileID: 7883185607621783537}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &3891429442778872439
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33173,6 +33289,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 1032601137853180346}
   lockOverlay: {fileID: 5342645124280657956}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &6606433087945344703
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33943,6 +34062,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 3720504306563883654}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &3088347688173064608
 GameObject:
   m_ObjectHideFlags: 0
@@ -34875,7 +34997,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2839009120934924355
 RectTransform:
   m_ObjectHideFlags: 0
@@ -35506,6 +35628,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7425567127440086421}
   lockOverlay: {fileID: 7952137245284270950}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 6947801630533503995}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &961824280740428871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35658,14 +35783,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -35847,6 +35972,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6150234479844661019}
   lockOverlay: {fileID: 8379247880936312147}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &6959709680995440160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36083,6 +36211,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 2418949046861105436}
   lockOverlay: {fileID: 4605931589055686472}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7192475208830171209}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &2866271301330115166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36500,14 +36631,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -37064,6 +37195,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7293493919610595369}
   lockOverlay: {fileID: 2431451045878781187}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 2237070122059405584}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &3516349837775583220
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37701,14 +37835,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -37781,6 +37915,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 265911632685900081}
   lockOverlay: {fileID: 8519090430470282903}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 3505799496336804501}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &7929318888385131637
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38091,6 +38228,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 1472543621143278864}
   lockOverlay: {fileID: 3406462118869620526}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &8969053565581644309
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38244,6 +38384,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 2974618686047283208}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &3480899226203883660
 GameObject:
   m_ObjectHideFlags: 0
@@ -38506,6 +38649,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6364298955728046905}
   lockOverlay: {fileID: 7862225067675173189}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 2612964058067508068}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &2209516747684252504
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38653,7 +38799,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8460978748164083317
 RectTransform:
   m_ObjectHideFlags: 0
@@ -38789,6 +38935,10 @@ MonoBehaviour:
   pausePanel: {fileID: 0}
   finishMatchButton: {fileID: 0}
   continueButton: {fileID: 0}
+  bossWarning: {fileID: 0}
+  bossWarningConfirmButton: {fileID: 0}
+  settlementPanel: {fileID: 0}
+  settlementResultText: {fileID: 0}
   resourceLabel: {fileID: 6462575986513954879}
   waveLabel: {fileID: 4869246117721638882}
   debugLabel: {fileID: 6031739937605861818}
@@ -38797,7 +38947,10 @@ MonoBehaviour:
   activeItemSlotTwo: {fileID: 0}
   activeItemSlotOneLabel: {fileID: 0}
   activeItemSlotTwoLabel: {fileID: 0}
+  activeItemSlotOneCooldownMask: {fileID: 0}
+  activeItemSlotTwoCooldownMask: {fileID: 0}
   activeItemContainer: {fileID: 0}
+  tipText: {fileID: 0}
   showDebugOverlay: 0
 --- !u!1 &3551861254256331532
 GameObject:
@@ -39534,14 +39687,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -40065,7 +40218,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8057832340288301171
 RectTransform:
   m_ObjectHideFlags: 0
@@ -40316,6 +40469,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8018490423443907867}
   lockOverlay: {fileID: 972796880961484105}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 534744375012406235}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &7195048975319533250
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40540,6 +40696,12 @@ MonoBehaviour:
   hpFill: {fileID: 2669860149478007346}
   runtimeLabel: {fileID: 7978841409506679850}
   artCatalog: {fileID: 0}
+  healthDecreaseDuration: 0.2
+  healthIncreaseDuration: 0.35
+  deathHealthDecreaseDuration: 0.12
+  preserveAuthoredColor: 1
+  preserveAuthoredSprite: 0
+  preserveAuthoredSize: 1
 --- !u!1 &3719672264225715171
 GameObject:
   m_ObjectHideFlags: 0
@@ -40921,14 +41083,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -41728,6 +41890,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6355730957285607036}
   lockOverlay: {fileID: 7562981516198337020}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 284374456368463828}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &6973723811595461272
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42401,6 +42566,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 4252195469371819734}
   lockOverlay: {fileID: 5601979983252718271}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 3986890721384588843}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &4793113355062758951
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42813,7 +42981,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2415711826723211504
 RectTransform:
   m_ObjectHideFlags: 0
@@ -43024,6 +43192,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7122512163752692367}
   lockOverlay: {fileID: 8289313774427162626}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &6385787469894327720
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43377,14 +43548,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.79, g: 0.82, b: 0.78, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -43453,6 +43624,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 3470342415288080827}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &3914875355761844146
 GameObject:
   m_ObjectHideFlags: 0
@@ -43662,6 +43836,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8806440500192379615}
   lockOverlay: {fileID: 5784136510332995732}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7762468890388521260}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &3215412309108394526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44023,6 +44200,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 3339049200641252878}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &3985905212754448190
 GameObject:
   m_ObjectHideFlags: 0
@@ -44273,6 +44453,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7555066805146691362}
   lockOverlay: {fileID: 8829248729970788700}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &540173783133640067
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44310,7 +44493,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6102944504045230024
 RectTransform:
   m_ObjectHideFlags: 0
@@ -44666,7 +44849,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7438301535720005458
 RectTransform:
   m_ObjectHideFlags: 0
@@ -44849,7 +45032,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6797882124281459422
 RectTransform:
   m_ObjectHideFlags: 0
@@ -45468,7 +45651,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &907406957512680005
 RectTransform:
   m_ObjectHideFlags: 0
@@ -45679,6 +45862,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 2551551994875115160}
   lockOverlay: {fileID: 4518029173225137189}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &7831552749635402514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46394,6 +46580,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 2240545141719331430}
   lockOverlay: {fileID: 3791371086994138368}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 4191484039567810410}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &5536450628360595533
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46554,6 +46743,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6649202510315672819}
   lockOverlay: {fileID: 402136465371493045}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &7588367993652471800
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46591,7 +46783,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1393249063409617984
 RectTransform:
   m_ObjectHideFlags: 0
@@ -46817,6 +47009,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 35904274854660938}
   lockOverlay: {fileID: 8351347760376028005}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 5875828351361140887}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &2284009105054145530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46898,6 +47093,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 3933648835339930116}
   lockOverlay: {fileID: 7738027167982779879}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 8189653364362697739}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &3264913396343265297
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -47445,6 +47643,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 2856637545435986741}
   lockOverlay: {fileID: 3107201206111445710}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 3943074623268251073}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &639480509009197115
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -47800,14 +48001,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -48049,6 +48250,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6384229053474234008}
   lockOverlay: {fileID: 5335340958869789019}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &26965952088350943
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48728,6 +48932,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 2514954514519350226}
   lockOverlay: {fileID: 5423123105354099668}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 569036344941927436}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &1922096459720110396
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -49401,6 +49608,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6163999682413067643}
   lockOverlay: {fileID: 7366217232289966596}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7545815148032219309}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &501828142132639591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50544,6 +50754,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 1050981658651833370}
   lockOverlay: {fileID: 4692031484029920942}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &7192127620609839134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -51290,6 +51503,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5037825563360096190}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &4911012943141544200
 GameObject:
   m_ObjectHideFlags: 0
@@ -52269,14 +52485,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -53591,6 +53807,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 2718412111117808000}
   lockOverlay: {fileID: 8182058808147665719}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &205146241527180233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54171,6 +54390,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5704158313554292076}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &5302865669588041758
 GameObject:
   m_ObjectHideFlags: 0
@@ -54308,14 +54530,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -55427,6 +55649,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 1610932279207641741}
   lockOverlay: {fileID: 1075543851951966917}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 4972626260320124147}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &6472362565532787892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55767,6 +55992,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5355838095251888342}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &5499251592269928541
 GameObject:
   m_ObjectHideFlags: 0
@@ -56504,6 +56732,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6102701793990017059}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &5612757369358369626
 GameObject:
   m_ObjectHideFlags: 0
@@ -56562,14 +56793,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -56676,7 +56907,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4947949489235429791
 RectTransform:
   m_ObjectHideFlags: 0
@@ -57943,14 +58174,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -58101,14 +58332,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -58176,14 +58407,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.76, g: 0.72, b: 0.79, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -58256,6 +58487,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8429871439400972856}
   lockOverlay: {fileID: 6460483563606414085}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 4937311906793004373}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &2661180018568702599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58384,7 +58618,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5032906552200980487
 RectTransform:
   m_ObjectHideFlags: 0
@@ -58718,7 +58952,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5218130675110173322
 RectTransform:
   m_ObjectHideFlags: 0
@@ -58810,7 +59044,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4630535600656458837
 RectTransform:
   m_ObjectHideFlags: 0
@@ -59821,6 +60055,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8660974500170913460}
   lockOverlay: {fileID: 1790061267089924068}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 3608171017314187025}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &2399691187393673333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59903,6 +60140,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7441169037563997972}
   lockOverlay: {fileID: 2269352836330870363}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 110376595946983923}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &9217798762472165115
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60565,7 +60805,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2837300090508618774
 RectTransform:
   m_ObjectHideFlags: 0
@@ -62636,14 +62876,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -62803,6 +63043,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5500143568806614009}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &6157459264965013250
 GameObject:
   m_ObjectHideFlags: 0
@@ -64509,6 +64752,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 4300182435894961176}
   lockOverlay: {fileID: 1036622923134257108}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 8240027811660666579}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &3600275685072061844
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -64587,6 +64833,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5897769910129568999}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &6328527754648748383
 GameObject:
   m_ObjectHideFlags: 0
@@ -64732,7 +64981,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1484971739952134874
 RectTransform:
   m_ObjectHideFlags: 0
@@ -65089,7 +65338,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1576021199146405887
 RectTransform:
   m_ObjectHideFlags: 0
@@ -65257,7 +65506,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3304193958006262076
 RectTransform:
   m_ObjectHideFlags: 0
@@ -65536,7 +65785,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2594772182517566900
 RectTransform:
   m_ObjectHideFlags: 0
@@ -66028,6 +66277,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 385052085813659097}
   lockOverlay: {fileID: 2942449460783391605}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 6861231427838520806}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &5047020442503811654
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -67545,14 +67797,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -68098,6 +68350,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5932698038381602038}
   lockOverlay: {fileID: 4936977236716131056}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 2829858172177613720}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &7299466330340324794
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -69255,14 +69510,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -69481,6 +69736,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5150390897757084716}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &6786238092130697868
 GameObject:
   m_ObjectHideFlags: 0
@@ -69650,7 +69908,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &879778627579576472
 RectTransform:
   m_ObjectHideFlags: 0
@@ -69861,14 +70119,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -70253,14 +70511,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -70332,6 +70590,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 2172195676043862179}
   lockOverlay: {fileID: 6061693488688725939}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7224062741496453688}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &453593836877463521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -70651,6 +70912,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5107353555976371716}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &6899732381149254874
 GameObject:
   m_ObjectHideFlags: 0
@@ -70746,14 +71010,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.79, g: 0.82, b: 0.78, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -72321,6 +72585,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8806497496265738353}
   lockOverlay: {fileID: 8719148219887884023}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &9192854162594410302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72507,6 +72774,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   recruitButton: {fileID: 7497013295838438717}
   recruitButtonLabel: {fileID: 9079969339882232051}
+  tipText: {fileID: 0}
 --- !u!1 &7069368618837373161
 GameObject:
   m_ObjectHideFlags: 0
@@ -72644,6 +72912,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5015268986684036072}
   lockOverlay: {fileID: 4211147943285977374}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &2988642023415875606
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -73046,6 +73317,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7472742875205900065}
   lockOverlay: {fileID: 941005554346476209}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 9194783284034826573}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &1730370989526381358
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74075,7 +74349,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5103925970841297691
 RectTransform:
   m_ObjectHideFlags: 0
@@ -74167,7 +74441,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8367612901343158633
 RectTransform:
   m_ObjectHideFlags: 0
@@ -74581,6 +74855,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 4746753339053602611}
   lockOverlay: {fileID: 6786796220113495211}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 790755822259193513}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &6830504667450497135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74983,6 +75260,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 9045768113374328255}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &7271742741975719972
 GameObject:
   m_ObjectHideFlags: 0
@@ -75132,14 +75412,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -75207,14 +75487,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -75399,6 +75679,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8939695735511750551}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &7323185613802123485
 GameObject:
   m_ObjectHideFlags: 0
@@ -76753,14 +77036,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.79, g: 0.82, b: 0.78, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -78504,6 +78787,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8401151379263982966}
   lockOverlay: {fileID: 8288321038978640139}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 5421669875855326588}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &8185744581770251729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78983,7 +79269,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3238932911746695683
 RectTransform:
   m_ObjectHideFlags: 0
@@ -79187,7 +79473,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8296978502750395083
 RectTransform:
   m_ObjectHideFlags: 0
@@ -79601,7 +79887,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &674317370410835270
 RectTransform:
   m_ObjectHideFlags: 0
@@ -79978,6 +80264,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7624600234598377430}
   lockOverlay: {fileID: 6667289621842243195}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &2615039428542405599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -80860,6 +81149,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 4375162742738147092}
   lockOverlay: {fileID: 1932573054138687543}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &8070061880129844790
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -82041,6 +82333,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 48370610500134535}
   lockOverlay: {fileID: 1130176060710825765}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 4492654607606587445}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &4165667661117878051
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -82298,6 +82593,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 4550253483540898660}
   lockOverlay: {fileID: 6506013974287811774}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &8273471684887692042
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -82375,14 +82673,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -82410,7 +82708,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8334611510609198643
 RectTransform:
   m_ObjectHideFlags: 0
@@ -82621,6 +82919,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 5434459585828159079}
   lockOverlay: {fileID: 3362022610775879437}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &8337563041805412497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -82815,6 +83116,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8549156423187184234}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &8058629497668896527
 GameObject:
   m_ObjectHideFlags: 0
@@ -84014,6 +84318,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8095123204212485235}
   lockOverlay: {fileID: 8535428135488673220}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 4024814890274495077}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &6997417653370180683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -84689,14 +84996,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -84924,6 +85231,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 276012094228731386}
   lockOverlay: {fileID: 3914875355761844146}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 8584243784357503759}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &7349103114287930101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -85160,6 +85470,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6891258791322107510}
   lockOverlay: {fileID: 1587586536682117439}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &3583244183976397340
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -85631,14 +85944,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.76, g: 0.72, b: 0.79, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -86260,14 +86573,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -87900,7 +88213,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1131911214415139599
 RectTransform:
   m_ObjectHideFlags: 0
@@ -88032,14 +88345,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -88278,6 +88591,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7181930758253504840}
   lockOverlay: {fileID: 7751302449666194138}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &8015608683534518994
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -88696,6 +89012,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8108179917328129359}
   lockOverlay: {fileID: 214827243693822436}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7303610485474327289}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &7923634770465744977
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -89045,6 +89364,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 310700642609786902}
   lockOverlay: {fileID: 6834898997615013284}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &2072298919728312193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -89823,6 +90145,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 8230830599542320379}
   lockOverlay: {fileID: 1697719592132098306}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7774325099470934028}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &4484198912855349682
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -89904,6 +90229,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6973467080330085071}
   lockOverlay: {fileID: 8829410419047355620}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &6151895832081320268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90017,6 +90345,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7944910379222968752}
   lockOverlay: {fileID: 0}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!1 &8597622019347762904
 GameObject:
   m_ObjectHideFlags: 0
@@ -90075,14 +90406,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -90539,6 +90870,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6504448493226947473}
   lockOverlay: {fileID: 4008782351791864931}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7864181842047992652}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &206490265312191583
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90927,14 +91261,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -91426,14 +91760,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -91584,6 +91918,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 6766960677586530934}
   lockOverlay: {fileID: 2742744837902073949}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &2325415048777469464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -93139,14 +93476,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.26, g: 0.23, b: 0.29, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -93605,6 +93942,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 77449390721618153}
   lockOverlay: {fileID: 3976243729659111063}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 0}
+  lockedSprite: {fileID: 0}
+  unlockedSprite: {fileID: 0}
 --- !u!114 &8370135694585159494
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -93851,6 +94191,9 @@ MonoBehaviour:
   contentAnchor: {fileID: 7424033667079536478}
   lockOverlay: {fileID: 1678654676858426608}
   debugRangeBandLabel: {fileID: 0}
+  developmentStateImage: {fileID: 7041964689033908253}
+  lockedSprite: {fileID: 21300000, guid: 5113f431243f70744ae275c4f8708452, type: 3}
+  unlockedSprite: {fileID: 21300000, guid: d6bd4a26d7b701b4886ed868d3ec43c6, type: 3}
 --- !u!114 &5036338919300759523
 MonoBehaviour:
   m_ObjectHideFlags: 0

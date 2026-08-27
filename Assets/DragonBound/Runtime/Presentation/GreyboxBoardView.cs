@@ -25,6 +25,11 @@ namespace DragonBound.Presentation
         [SerializeField] private DragArrowPreviewView dragArrowPreview;
         [SerializeField] private bool allowInteraction = true;
         [SerializeField] private bool showDebugRangeBands;
+        [Header("Recruit item colors")]
+        [SerializeField] private Color basicUnitColor = Color.white;
+        [SerializeField] private Color heroComponentColor = new Color(0.32f, 0.62f, 1f, 1f);
+        [SerializeField] private Color purpleHeroColor = new Color(0.67f, 0.35f, 1f, 0.92f);
+        [SerializeField] private Color goldHeroColor = new Color(1f, 0.73f, 0.16f, 0.92f);
 
         private readonly Dictionary<GridPosition, GridCellView> cells =
             new Dictionary<GridPosition, GridCellView>();
@@ -52,6 +57,8 @@ namespace DragonBound.Presentation
         private FixedBoardCanvasView fixedBoardCanvas;
         private string selectedUnitId;
         private string activeShovelDragId;
+        private bool isRefreshingUnits;
+        private bool refreshUnitsPending;
 
         public Canvas Canvas => canvas;
         public BoardGrid Board => board;
@@ -67,6 +74,40 @@ namespace DragonBound.Presentation
         public RectTransform DragGhostRectTransform => null;
         public bool HasDragArrowPreview => dragArrowPreview != null;
         public bool IsDragArrowVisible => dragArrowPreview != null && dragArrowPreview.IsVisible;
+        public Color BasicUnitColor => basicUnitColor;
+        public Color HeroComponentColor => heroComponentColor;
+        public Color PurpleHeroColor => purpleHeroColor;
+        public Color GoldHeroColor => goldHeroColor;
+
+        public void ConfigureRecruitItemColors(
+            Color basic,
+            Color component,
+            Color purpleHero,
+            Color goldHero)
+        {
+            basicUnitColor = basic;
+            heroComponentColor = component;
+            purpleHeroColor = purpleHero;
+            goldHeroColor = goldHero;
+            if (board != null)
+            {
+                RefreshUnits();
+            }
+        }
+
+        public Color GetRecruitItemColor(RecruitItemKind kind)
+        {
+            return kind == RecruitItemKind.HeroComponent
+                ? heroComponentColor
+                : basicUnitColor;
+        }
+
+        public Color GetHeroRarityColor(HeroRecipeRarity rarity)
+        {
+            return rarity == HeroRecipeRarity.Gold
+                ? goldHeroColor
+                : purpleHeroColor;
+        }
 
         public bool TryGetUnitPosition(string runtimeId, out Vector3 position)
         {
@@ -277,6 +318,30 @@ namespace DragonBound.Presentation
 
         public void RefreshUnits()
         {
+            if (isRefreshingUnits)
+            {
+                refreshUnitsPending = true;
+                return;
+            }
+
+            do
+            {
+                refreshUnitsPending = false;
+                isRefreshingUnits = true;
+                try
+                {
+                    RefreshUnitsCore();
+                }
+                finally
+                {
+                    isRefreshingUnits = false;
+                }
+            }
+            while (refreshUnitsPending);
+        }
+
+        private void RefreshUnitsCore()
+        {
             var previousViews = new Dictionary<string, DraggableUnitView>(unitViews, StringComparer.Ordinal);
             var usedViews = new HashSet<DraggableUnitView>();
             var currentIds = new HashSet<string>(StringComparer.Ordinal);
@@ -467,13 +532,10 @@ namespace DragonBound.Presentation
             if (string.Equals(activeShovelDragId, unitId, StringComparison.Ordinal))
             {
                 activeShovelDragId = null;
-                if (TryGetPositionAt(screenPosition, out var shovelTarget) &&
-                    shovelUnlockService != null &&
-                    shovelUnlockService.TryUnlockCell(shovelTarget))
-                {
-                    RefreshUnits();
-                }
-                else
+                var unlocked = TryGetPositionAt(screenPosition, out var shovelTarget) &&
+                               shovelUnlockService != null &&
+                               shovelUnlockService.TryUnlockCell(shovelTarget);
+                if (!unlocked)
                 {
                     shovelUnlockService?.CancelSelection();
                 }
@@ -627,6 +689,7 @@ namespace DragonBound.Presentation
         {
             if (card.Kind == RecruitItemKind.BasicUnit)
             {
+                unitView?.SetCardColor(GetRecruitItemColor(card.Kind));
                 var stats = BasicUnitCatalog.GetStats(card.ConfigId, card.Level);
                 unitLabels[card.RuntimeId] = BasicUnitCatalog.GetDisplayName(card.ConfigId);
                 unitRangeCells[card.RuntimeId] = stats.RangeCells;
@@ -635,7 +698,11 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            unitLabels[card.RuntimeId] = HeroSliceCardPresentation.GetLabel(card, recruitment);
+            unitView?.SetCardColor(GetRecruitItemColor(card.Kind));
+
+            unitLabels[card.RuntimeId] = allowInteraction
+                ? HeroSliceCardPresentation.GetLabel(card, recruitment)
+                : HeroSliceCardPresentation.GetEnglishLabel(card, recruitment);
             unitRangeCells[card.RuntimeId] = 0f;
             unitShowsRange[card.RuntimeId] = false;
         }
@@ -650,9 +717,9 @@ namespace DragonBound.Presentation
             // Any board-cell tap is an explicit selection change. This also lets an empty
             // deployment or road cell dismiss a previously selected unit's range preview.
             HideRangePreview();
-            if (allowInteraction && shovelUnlockService != null && shovelUnlockService.TryUnlockCell(position))
+            if (allowInteraction && shovelUnlockService != null)
             {
-                RefreshUnits();
+                shovelUnlockService.TryUnlockCell(position);
             }
         }
 
@@ -667,7 +734,10 @@ namespace DragonBound.Presentation
 
         private void HandleShovelStateChanged()
         {
-            if (board != null)
+            // BeginSelection raises StateChanged from inside the pointer/drag callback. Rebuilding
+            // BeachItem views at that point deactivates the object Unity is currently dispatching
+            // input to and can recursively enter RefreshUnits via DraggableUnitView.OnDisable.
+            if (board != null && (shovelUnlockService == null || !shovelUnlockService.IsSelecting))
             {
                 RefreshUnits();
             }
@@ -762,7 +832,7 @@ namespace DragonBound.Presentation
             }
         }
 
-        private static void ApplyPairPresentation(
+        private void ApplyPairPresentation(
             ActiveHeroPair activePair,
             HeroFormationView pairView,
             PairLayout layout)
@@ -770,21 +840,14 @@ namespace DragonBound.Presentation
             var pairLink = activePair.PairLink;
             var combat = pairLink.CombatProxy;
             var definition = HeroSliceCatalog.Get(pairLink.HeroId);
-            var maxLevel = combat.Level >= definition.MaxLevel;
-            var nextThreshold = maxLevel
-                ? definition.GetLevelStats(definition.MaxLevel).RequiredExperience
-                : definition.GetLevelStats(combat.Level + 1).RequiredExperience;
-            var experienceText = maxLevel
-                ? $"{combat.Experience}/MAX"
-                : $"{combat.Experience}/{nextThreshold}";
             pairView.Initialize(
                 layout.Center,
                 layout.Primary - layout.Center,
                 layout.Secondary - layout.Center,
                 layout.PairSize,
                 layout.CellSize,
-                $"{definition.DisplayName}\nLv{combat.Level}  XP {experienceText}",
-                GetRarityColor(definition.Rarity));
+                GetHeroRarityColor(definition.Rarity),
+                definition.Rarity);
             pairView.SetProgress(combat.FormationProgress);
         }
 
@@ -801,13 +864,6 @@ namespace DragonBound.Presentation
             }
 
             pairPresentations.Remove(pairLinkId);
-        }
-
-        private static Color GetRarityColor(HeroRecipeRarity rarity)
-        {
-            return rarity == HeroRecipeRarity.Gold
-                ? new Color(1f, 0.73f, 0.16f, 0.92f)
-                : new Color(0.67f, 0.35f, 1f, 0.92f);
         }
 
         private void Start()

@@ -183,11 +183,20 @@ public interface IMerchantItemIconProvider
 
 public sealed class ResourcesMerchantItemIconProvider : IMerchantItemIconProvider
 {
-    private const string IconRoot = "Merchant/Icons/";
+    private static readonly HashSet<string> MissingIconKeys = new HashSet<string>();
 
     public UnityEngine.Sprite Load(string iconKey)
     {
         if (string.IsNullOrWhiteSpace(iconKey)) return null;
-        return UnityEngine.Resources.Load<UnityEngine.Sprite>(IconRoot + iconKey);
+
+        UnityEngine.Sprite sprite = UnityEngine.Resources.Load<UnityEngine.Sprite>(iconKey);
+        if (sprite == null && MissingIconKeys.Add(iconKey))
+        {
+            UnityEngine.Debug.LogWarning(
+                $"Merchant item icon is missing at Resources/{iconKey}. " +
+                "The authored placeholder will remain visible.");
+        }
+
+        return sprite;
     }
 }

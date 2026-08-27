@@ -1,6 +1,9 @@
+using System.Collections;
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Recruitment;
+using DragonBound.Runes;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -19,6 +22,11 @@ namespace DragonBound.Presentation
         [SerializeField] private CampPanelView campPanelView;
         [SerializeField] private FixedBoardCanvasView fixedBoardCanvas;
         [SerializeField] private BoardBackgroundClickReceiver rangeDismissSurface;
+
+        private TwentyWavePressureRuntime runeTipRuntime;
+        private TMP_Text runeTipText;
+        private Coroutine runeTipHideCoroutine;
+        private int runeTipVersion;
 
         public GreyboxBoardView BoardView => PlayerBoardView;
         public GreyboxBoardView PlayerBoardView => playerBattlefieldView != null ? playerBattlefieldView.BoardView : null;
@@ -87,7 +95,11 @@ namespace DragonBound.Presentation
                 aiRecruitDestination);
             if (recruitmentView != null)
             {
-                recruitmentView.Initialize(match.Player, recruitment, PlayerBoardView);
+                recruitmentView.Initialize(
+                    match.Player,
+                    recruitment,
+                    PlayerBoardView,
+                    ResolveTipText());
             }
             else
             {
@@ -97,7 +109,8 @@ namespace DragonBound.Presentation
                     recruitment,
                     PlayerBoardView,
                     ResolveRecruitButton(),
-                    ResolveRecruitButtonLabel());
+                    ResolveRecruitButtonLabel(),
+                    ResolveTipText());
             }
             ResolveCampPanelView();
             if (campPanelView != null)
@@ -129,6 +142,76 @@ namespace DragonBound.Presentation
 
             ResolveOverlayController();
             overlayController.BindItemRuntime(runtime);
+            BindRuneDropTip(runtime);
+        }
+
+        private void BindRuneDropTip(TwentyWavePressureRuntime runtime)
+        {
+            if (runeTipRuntime != null)
+            {
+                runeTipRuntime.PlayerRuneRewardGranted -= HandleRuneRewardGranted;
+            }
+
+            runeTipRuntime = runtime;
+            runeTipText = ResolveTipText();
+            runeTipRuntime.PlayerRuneRewardGranted += HandleRuneRewardGranted;
+        }
+
+        private void HandleRuneRewardGranted(RuneReward reward)
+        {
+            if (reward == null || runeTipText == null)
+            {
+                return;
+            }
+
+            var message = ResolveRuneDisplayName(reward.RuneId);
+            runeTipVersion++;
+            if (runeTipHideCoroutine != null)
+            {
+                StopCoroutine(runeTipHideCoroutine);
+            }
+
+            runeTipText.text = message;
+            runeTipText.gameObject.SetActive(true);
+            runeTipHideCoroutine = StartCoroutine(
+                HideRuneTipAfterDelay(message, runeTipVersion));
+        }
+
+        private IEnumerator HideRuneTipAfterDelay(string displayedMessage, int version)
+        {
+            yield return new WaitForSecondsRealtime(1.5f);
+            runeTipHideCoroutine = null;
+            if (runeTipText == null ||
+                version != runeTipVersion ||
+                runeTipText.text != displayedMessage)
+            {
+                yield break;
+            }
+
+            runeTipText.text = string.Empty;
+            runeTipText.gameObject.SetActive(false);
+        }
+
+        private static string ResolveRuneDisplayName(string runeId)
+        {
+            switch (runeId)
+            {
+                case "Might": return "Rune of Might";
+                case "Farreach": return "Farreach Rune";
+                case "Power": return "Power Rune";
+                case "Longshot": return "Longshot Rune";
+                case "Frostbite": return "Frostbite Rune";
+                case "Ricochet": return "Ricochet Rune";
+                case "Volley": return "Volley Rune";
+                case "BladeTempest": return "Blade Tempest Rune";
+                case "Ambush": return "Ambush Rune";
+                case "Windhawk": return "Windhawk Rune";
+                case "Skybreaker": return "Skybreaker Rune";
+                case "Wyrmguard": return "Wyrmguard Rune";
+                case "Dragonbloom": return "Dragonbloom Rune";
+                case "Warcry": return "Warcry Rune";
+                default: return string.IsNullOrWhiteSpace(runeId) ? "Rune" : runeId;
+            }
         }
 
         private void ResolveOverlayController()
@@ -159,7 +242,8 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var campPanel = transform.Find("ART_ScreenBackground/campPanel");
+            var campPanel = transform.Find("campPanel") ??
+                            transform.Find("ART_ScreenBackground/campPanel");
             if (campPanel == null)
             {
                 return;
@@ -221,8 +305,25 @@ namespace DragonBound.Presentation
             return label;
         }
 
+        private TMP_Text ResolveTipText()
+        {
+            var target = transform.Find("TipText");
+            return target != null ? target.GetComponent<TMP_Text>() : null;
+        }
+
         private void OnDestroy()
         {
+            if (runeTipRuntime != null)
+            {
+                runeTipRuntime.PlayerRuneRewardGranted -= HandleRuneRewardGranted;
+            }
+
+            if (runeTipHideCoroutine != null)
+            {
+                StopCoroutine(runeTipHideCoroutine);
+                runeTipHideCoroutine = null;
+            }
+
             if (rangeDismissSurface != null)
             {
                 rangeDismissSurface.Clicked -= HandleRangeDismissClick;

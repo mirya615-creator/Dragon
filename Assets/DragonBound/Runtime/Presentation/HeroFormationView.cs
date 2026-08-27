@@ -1,3 +1,4 @@
+using DragonBound.Recruitment;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,6 +16,9 @@ namespace DragonBound.Presentation
 
         private Vector3 connectorScale = Vector3.one;
         private bool connectorScaleCaptured;
+        private static Sprite purpleFrameSprite;
+        private static Sprite goldFrameSprite;
+        private static bool rarityFramesLoaded;
 
         public RectTransform RectTransform => (RectTransform)transform;
 
@@ -40,8 +44,8 @@ namespace DragonBound.Presentation
             Vector2 secondaryOffset,
             Vector2 footprintSize,
             Vector2 cellSize,
-            string heroName,
-            Color rarityColor)
+            Color rarityColor,
+            HeroRecipeRarity rarity)
         {
             RectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             RectTransform.anchorMax = new Vector2(0.5f, 0.5f);
@@ -59,30 +63,15 @@ namespace DragonBound.Presentation
             DisableRaycast(primaryFlash);
             DisableRaycast(secondaryFlash);
             DisableRaycast(doubleCellBorder);
-            DisableRaycast(heroNameLabel);
-            if (heroNameLabel != null)
-            {
-                heroNameLabel.text = heroName;
-            }
+
+            // HeroNameLabel is authored UI. Its text, layout, style, active state and
+            // raycast setting intentionally remain exactly as configured in the prefab.
 
             PositionFlash(primaryFlash, primaryOffset, cellSize, rarityColor);
             PositionFlash(secondaryFlash, secondaryOffset, cellSize, rarityColor);
             if (doubleCellBorder != null)
             {
-                var borderColor = rarityColor;
-                var outline = doubleCellBorder.GetComponent<Outline>();
-                if (outline != null)
-                {
-                    outline.effectColor = borderColor;
-                    outline.useGraphicAlpha = false;
-                }
-
-                borderColor.a = 0.06f;
-                doubleCellBorder.color = borderColor;
-                doubleCellBorder.rectTransform.anchorMin = Vector2.zero;
-                doubleCellBorder.rectTransform.anchorMax = Vector2.one;
-                doubleCellBorder.rectTransform.offsetMin = Vector2.zero;
-                doubleCellBorder.rectTransform.offsetMax = Vector2.zero;
+                ApplyRarityFrame(rarity, footprintSize, secondaryOffset - primaryOffset);
             }
 
             if (connectorLine != null)
@@ -93,8 +82,9 @@ namespace DragonBound.Presentation
                 connectorLine.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
                 connectorLine.rectTransform.pivot = new Vector2(0.5f, 0.5f);
                 connectorLine.rectTransform.anchoredPosition = (primaryOffset + secondaryOffset) * 0.5f;
+                var authoredHeight = connectorLine.rectTransform.sizeDelta.y;
                 connectorLine.rectTransform.sizeDelta =
-                    new Vector2(delta.magnitude, Mathf.Max(3f, Mathf.Min(cellSize.x, cellSize.y) * 0.08f));
+                    new Vector2(delta.magnitude, authoredHeight);
                 connectorLine.rectTransform.localRotation =
                     Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
                 if (!connectorScaleCaptured)
@@ -117,7 +107,6 @@ namespace DragonBound.Presentation
             var flash = Mathf.Sin(progress * Mathf.PI);
             SetGraphicAlpha(primaryFlash, flash);
             SetGraphicAlpha(secondaryFlash, flash);
-            SetGraphicAlpha(doubleCellBorder, Mathf.Lerp(0.12f, 0.20f, flash));
             if (connectorLine != null)
             {
                 connectorLine.rectTransform.localScale =
@@ -127,6 +116,52 @@ namespace DragonBound.Presentation
             if (canvasGroup != null)
             {
                 canvasGroup.alpha = 1f;
+            }
+        }
+
+        private void ApplyRarityFrame(
+            HeroRecipeRarity rarity,
+            Vector2 footprintSize,
+            Vector2 pairDirection)
+        {
+            LoadRarityFrames();
+            doubleCellBorder.sprite = rarity == HeroRecipeRarity.Gold
+                ? goldFrameSprite
+                : purpleFrameSprite;
+            doubleCellBorder.color = Color.white;
+            doubleCellBorder.type = Image.Type.Simple;
+            doubleCellBorder.preserveAspect = false;
+            doubleCellBorder.raycastTarget = false;
+
+            var frameRect = doubleCellBorder.rectTransform;
+            frameRect.anchorMin = new Vector2(0.5f, 0.5f);
+            frameRect.anchorMax = new Vector2(0.5f, 0.5f);
+            frameRect.pivot = new Vector2(0.5f, 0.5f);
+            frameRect.anchoredPosition = Vector2.zero;
+
+            var vertical = Mathf.Abs(pairDirection.y) > Mathf.Abs(pairDirection.x);
+            frameRect.localRotation = vertical
+                ? Quaternion.Euler(0f, 0f, 90f)
+                : Quaternion.identity;
+            frameRect.sizeDelta = vertical
+                ? new Vector2(footprintSize.y, footprintSize.x)
+                : footprintSize;
+        }
+
+        private static void LoadRarityFrames()
+        {
+            if (rarityFramesLoaded)
+            {
+                return;
+            }
+
+            rarityFramesLoaded = true;
+            purpleFrameSprite = Resources.Load<Sprite>("GameUI/HeroPurple");
+            goldFrameSprite = Resources.Load<Sprite>("GameUI/HeroGold");
+            if (purpleFrameSprite == null || goldFrameSprite == null)
+            {
+                Debug.LogError(
+                    "HeroFormation rarity UI is missing. Expected Resources/GameUI/HeroPurple and HeroGold sprites.");
             }
         }
 

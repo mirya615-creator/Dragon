@@ -417,13 +417,16 @@ namespace DragonBound.Recruitment
             HeroNameFreezeState nameFreezeState,
             HeroRuntimeCombatState runtimeCombatState,
             bool galleryVisible,
-            string artSlotId)
+            string artSlotId,
+            string descriptionEn)
         {
             if (string.IsNullOrWhiteSpace(heroId) ||
                 string.IsNullOrWhiteSpace(recipeId) ||
-                string.IsNullOrWhiteSpace(artSlotId))
+                string.IsNullOrWhiteSpace(artSlotId) ||
+                string.IsNullOrWhiteSpace(descriptionEn))
             {
-                throw new ArgumentException("Hero catalog metadata requires hero, recipe, and art slot ids.");
+                throw new ArgumentException(
+                    "Hero catalog metadata requires hero, recipe, art slot ids, and an English description.");
             }
 
             HeroId = heroId;
@@ -432,6 +435,7 @@ namespace DragonBound.Recruitment
             RuntimeCombatState = runtimeCombatState;
             GalleryVisible = galleryVisible;
             ArtSlotId = artSlotId;
+            DescriptionEn = descriptionEn;
         }
 
         public string HeroId { get; }
@@ -440,6 +444,7 @@ namespace DragonBound.Recruitment
         public HeroRuntimeCombatState RuntimeCombatState { get; }
         public bool GalleryVisible { get; }
         public string ArtSlotId { get; }
+        public string DescriptionEn { get; }
     }
 
     public sealed class RecruitmentCatalog

@@ -671,7 +671,7 @@ namespace DragonBound.Grid
             var aiLane = CreateReferenceMap01AiLane();
             return new FixedBoardLayoutDefinition(
                 Fixed8x10ReferenceMap01Id,
-                "固定8×10参考地图01",
+                "Fixed 8x10 Reference Map 01",
                 CreateReferenceMap01Cells(),
                 playerLane,
                 aiLane,

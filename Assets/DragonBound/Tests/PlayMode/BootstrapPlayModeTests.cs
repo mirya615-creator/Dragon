@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using DragonBound.Bootstrap;
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Presentation;
 using DragonBound.Recruitment;
+using DragonBound.Services;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -17,6 +20,73 @@ namespace DragonBound.Tests.PlayMode
 {
     public sealed class BootstrapPlayModeTests
     {
+        [SetUp]
+        public void UseDeterministicGameplayRun()
+        {
+            GameplayRunGatewayRegistry.Install(new FixedGameplayRunGateway(20260801));
+        }
+
+        [Test]
+        public void HeroGallerySummaryUsesTwoLineComponentAndDescriptionFormat()
+        {
+            var recipe = HeroRecipeCatalog.Get(DragonBoundHeroIds.RuneboltMage);
+
+            Assert.AreEqual(
+                "Left: Rune Staff  Right: Rune Apprentice\n" +
+                "A rune mage whose attacks pierce through enemies in a straight line.",
+                CampPanelView.BuildHeroSummary(
+                    recipe,
+                    "Rune Staff",
+                    "Rune Apprentice",
+                    "A rune mage whose attacks pierce through enemies in a straight line."));
+        }
+
+        [UnityTest]
+        public IEnumerator CampDeckPartInitializesFromCurrentScreenHierarchy()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            DragonBoundScreenView screen = FindScreen();
+            Assert.IsNotNull(screen.CampPanelView);
+            Assert.AreEqual(4, screen.CampPanelView.UnitEntryCount);
+            Assert.AreEqual(18, screen.CampPanelView.ComponentEntryCount);
+        }
+
+        [UnityTest]
+        public IEnumerator CampComponentSpritesPopulateDeckAndSelectedHeroRecipe()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            DragonBoundScreenView screen = FindScreen();
+            var provider = new ResourcesCampComponentArtProvider();
+            var componentContainer = screen.transform.Find(
+                "campPanel/CampBg/DeckPart/ComponentContainer");
+            Assert.IsNotNull(componentContainer);
+
+            for (var index = 0; index < HeroComponentCatalog.Definitions.Count; index++)
+            {
+                var definition = HeroComponentCatalog.Definitions[index];
+                Assert.IsTrue(provider.TryGetHeroComponentSprite(definition.Id, out var expected));
+                Assert.AreSame(
+                    expected,
+                    componentContainer.GetChild(index).GetComponent<Image>().sprite,
+                    definition.Id);
+            }
+
+            var collectionPart = screen.transform.Find("campPanel/CampBg/CollectionPart");
+            Assert.IsNotNull(collectionPart);
+            Assert.IsTrue(provider.TryGetHeroComponentSprite(
+                DragonBoundComponentIds.SkyRanger,
+                out var expectedTop));
+            Assert.IsTrue(provider.TryGetHeroComponentSprite(
+                DragonBoundComponentIds.ContractHatchling,
+                out var expectedBottom));
+            Assert.AreSame(expectedTop, collectionPart.Find("Img1").GetComponent<Image>().sprite);
+            Assert.AreSame(expectedBottom, collectionPart.Find("Img2").GetComponent<Image>().sprite);
+        }
+
         [UnityTest]
         public IEnumerator GreyboxMainInitializesIndependentPlayerAndAiBattlefields()
         {
@@ -83,6 +153,40 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsFalse(bootstrap.AiBoard.TryGetPosition("greybox.ai.axe", out _));
         }
 
+        private sealed class FixedGameplayRunGateway : IGameplayRunGateway
+        {
+            private readonly int seed;
+            private readonly LocalGameplayRunGateway inner = new LocalGameplayRunGateway();
+
+            public FixedGameplayRunGateway(int seed)
+            {
+                this.seed = seed;
+            }
+
+            public Task<StartGameplayRunResult> StartRunAsync(
+                StartGameplayRunRequest request,
+                CancellationToken cancellationToken)
+            {
+                request.UseDiagnosticSeed = true;
+                request.DiagnosticSeed = seed;
+                return inner.StartRunAsync(request, cancellationToken);
+            }
+
+            public Task<RecruitGameplayResult> RecruitAsync(
+                RecruitGameplayRequest request,
+                CancellationToken cancellationToken)
+            {
+                return inner.RecruitAsync(request, cancellationToken);
+            }
+
+            public Task<FinishGameplayRunResult> FinishRunAsync(
+                FinishGameplayRunRequest request,
+                CancellationToken cancellationToken)
+            {
+                return inner.FinishRunAsync(request, cancellationToken);
+            }
+        }
+
         [UnityTest]
         public IEnumerator InitializationCompletesBeforeWaveRuntimeStarts()
         {
@@ -134,8 +238,8 @@ namespace DragonBound.Tests.PlayMode
 
             bootstrap.BoardView.RefreshUnits();
             yield return null;
-            StringAssert.Contains(
-                "COST 12",
+            Assert.AreEqual(
+                bootstrap.Recruitment.NextCost.ToString(),
                 FindScreen().RecruitmentView.RecruitButtonLabel.text);
             foreach (var firstId in firstIds)
             {
@@ -283,7 +387,7 @@ namespace DragonBound.Tests.PlayMode
             bootstrap.BoardView.RefreshUnits();
             bootstrap.BoardView.SetUnitPresentation(
                 basicCard.RuntimeId,
-                "测试单位",
+                "Test Unit",
                 UnitRangeRules.GetRadius(BasicUnitArchetype.Axe),
                 true);
             bootstrap.BoardView.SelectUnit(basicCard.RuntimeId);
@@ -316,7 +420,7 @@ namespace DragonBound.Tests.PlayMode
             bootstrap.BoardView.RefreshUnits();
             bootstrap.BoardView.SetUnitPresentation(
                 basicCard.RuntimeId,
-                "测试单位",
+                "Test Unit",
                 UnitRangeRules.GetRadius(BasicUnitArchetype.Axe),
                 true);
             bootstrap.BoardView.SelectUnit(basicCard.RuntimeId);
@@ -351,7 +455,7 @@ namespace DragonBound.Tests.PlayMode
             bootstrap.BoardView.RefreshUnits();
             bootstrap.BoardView.SetUnitPresentation(
                 basicCard.RuntimeId,
-                "测试单位",
+                "Test Unit",
                 UnitRangeRules.GetRadius(BasicUnitArchetype.Axe),
                 true);
             bootstrap.BoardView.SelectUnit(basicCard.RuntimeId);

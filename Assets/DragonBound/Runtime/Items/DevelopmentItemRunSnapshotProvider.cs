@@ -3,6 +3,53 @@ using System.Collections.Generic;
 
 namespace DragonBound.Items
 {
+    public static class MerchantItemSnapshotFactory
+    {
+        private static readonly IReadOnlyDictionary<string, string> LegacyToRuntime =
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                { "ITEM_MANABURST_MINE", ItemIds.RuneburstMine },
+                { "ITEM_RUNE_TEMPERING", ItemIds.RuneOfTempering },
+                { "ITEM_PACT_ENDURANCE", ItemIds.PactOfEndurance },
+                { "ITEM_VETERAN_MARK", ItemIds.VeteransMark },
+                { "ITEM_QUARTERMASTER_SATCHEL", ItemIds.QuartermastersSatchel },
+                { "ITEM_FORGEGIFTERS_GIFT", ItemIds.ForgekeepersGift }
+            };
+
+        public static bool TryCreate(
+            IEnumerable<string> merchantProductIds,
+            out IItemRunSnapshotProvider provider,
+            out string reason)
+        {
+            var runtimeItemIds = new List<string>();
+            if (merchantProductIds != null)
+            {
+                foreach (string merchantProductId in merchantProductIds)
+                {
+                    if (string.IsNullOrWhiteSpace(merchantProductId)) continue;
+                    string runtimeItemId = LegacyToRuntime.TryGetValue(
+                        merchantProductId,
+                        out string mappedItemId)
+                        ? mappedItemId
+                        : merchantProductId;
+                    if (ItemCatalog.Get(runtimeItemId) == null) continue;
+                    if (!runtimeItemIds.Contains(runtimeItemId)) runtimeItemIds.Add(runtimeItemId);
+                }
+            }
+
+            var developmentProvider = new DevelopmentItemRunSnapshotProvider();
+            if (!developmentProvider.TryConfigure(runtimeItemIds, false, out reason))
+            {
+                provider = null;
+                return false;
+            }
+
+            provider = developmentProvider;
+            reason = ItemOperationFailure.None;
+            return true;
+        }
+    }
+
     /// <summary>
     /// Mutable development-only input for manual gameplay QA. It builds snapshots through the
     /// same ItemProfile validation path as a validated account profile.

@@ -93,6 +93,7 @@ namespace DragonBound.Runes
     {
         private readonly int runSeed;
         private readonly RuneDropState state = new RuneDropState();
+        private readonly List<RuneReward> grantedRewards = new List<RuneReward>();
         private readonly RuneFeatureGate gate;
         private readonly Action onInventoryChanged;
         private readonly RuneAnalyticsAdapterV2 analytics;
@@ -119,6 +120,7 @@ namespace DragonBound.Runes
 
         public RuneInventory Inventory { get; }
         public int SuccessfulRewards => state.SuccessfulRewards;
+        public IReadOnlyList<RuneReward> GrantedRewards => grantedRewards;
 
         public RuneReward CompleteWave(int completedWave)
         {
@@ -149,6 +151,7 @@ namespace DragonBound.Runes
             RuneDropRules.GrantToInventory(reward, Inventory);
             if (reward != null)
             {
+                grantedRewards.Add(reward);
                 onInventoryChanged?.Invoke();
             }
             var reason = reward == null

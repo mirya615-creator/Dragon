@@ -179,6 +179,7 @@ namespace DragonBound.Recruitment
         public event Action<HeroPairUnlinkedEvent> HeroPairUnlinked;
         public event Action<CombatRegistrationChangedEvent> CombatRegistrationChanged;
         public event Action<BasicUnitMergedEvent> BasicUnitMerged;
+        public event Action BasicMergeBlocked;
 
         /// <summary>Integration hook for boss policies that temporarily forbid all Basic merges.</summary>
         public void SetMergeBlockedProvider(Func<bool> provider)
@@ -223,6 +224,24 @@ namespace DragonBound.Recruitment
                         cardsByRuntimeId.TryGetValue(runtimeId, out var card) &&
                         card.Kind == RecruitItemKind.HeroComponent &&
                         card.IsUnique)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        public bool PendingRefreshContainsHeroComponent
+        {
+            get
+            {
+                foreach (var position in board.GetPositions(CellType.Bench))
+                {
+                    if (board.TryGetOccupant(position, out var runtimeId) &&
+                        cardsByRuntimeId.TryGetValue(runtimeId, out var card) &&
+                        card.Kind == RecruitItemKind.HeroComponent)
                     {
                         return true;
                     }
@@ -646,6 +665,7 @@ namespace DragonBound.Recruitment
             if (sourceCard.IsSameBasicUnitAndLevel(targetCard) &&
                 (mergeBlockedProvider?.Invoke() ?? false))
             {
+                BasicMergeBlocked?.Invoke();
                 return false;
             }
 
@@ -673,6 +693,7 @@ namespace DragonBound.Recruitment
             if (sourceCard.IsSameBasicUnitAndLevel(targetCard) &&
                 (mergeBlockedProvider?.Invoke() ?? false))
             {
+                BasicMergeBlocked?.Invoke();
                 return OccupiedDropResolution.Rejected;
             }
 

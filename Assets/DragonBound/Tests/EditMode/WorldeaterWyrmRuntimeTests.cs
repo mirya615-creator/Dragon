@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DragonBound.Bosses.Contracts;
 using DragonBound.Bosses.Runtime;
+using DragonBound.Core;
 using NUnit.Framework;
 
 namespace DragonBound.Tests.EditMode
@@ -12,6 +13,7 @@ namespace DragonBound.Tests.EditMode
         {
             var boss = WorldeaterWyrmConfiguration.CreateGreyboxDefinition();
             var minion = WorldeaterWyrmConfiguration.CreateMinionDefinition();
+            var subBoss = WorldeaterWyrmConfiguration.CreateSubBossDefinition();
 
             Assert.AreEqual(FixedBossIds.W20WorldeaterWyrm, boss.BossId);
             Assert.AreEqual(20, boss.Wave.Value);
@@ -26,6 +28,13 @@ namespace DragonBound.Tests.EditMode
             Assert.IsFalse(minion.Policy.DespawnOnBossDeath);
             Assert.IsFalse(minion.Policy.BlocksWaveScheduleCompletion);
             Assert.IsTrue(minion.Policy.PersistsAcrossWave);
+            Assert.AreEqual(1, subBoss.Count);
+            Assert.AreEqual(900f, subBoss.MaxHitPoints, 0.0001f);
+            Assert.AreEqual(0.45f, subBoss.MoveSpeed, 0.0001f);
+            Assert.AreEqual(EnemyArchetype.Boss, subBoss.Archetype);
+            Assert.AreEqual(0, subBoss.Policy.HeroXpReward);
+            Assert.AreEqual(0, subBoss.Policy.RunResourceReward);
+            Assert.IsTrue(subBoss.Policy.PersistsAcrossWave);
         }
 
         [Test]
@@ -82,13 +91,25 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void SummonResolvesAtTwelvePointSevenFiveAndAlwaysAddsFourWithoutCap()
         {
-            var fixture = CreateFixture();
+            var fixture = CreateFixture(new WorldeaterTarget("basic.present", WorldeaterTargetClass.Basic, 1));
             fixture.Runtime.Tick(12.74f);
             Assert.AreEqual(0, fixture.Summons.TotalSpawned);
             fixture.Runtime.Tick(0.01f);
             Assert.AreEqual(4, fixture.Summons.TotalSpawned);
             fixture.Runtime.Tick(18.75f);
             Assert.AreEqual(8, fixture.Summons.TotalSpawned);
+        }
+
+        [Test]
+        public void SummonWithoutBasicCreatesOneSubBossAndDoesNotDuplicateIt()
+        {
+            var fixture = CreateFixture();
+            fixture.Runtime.Tick(12.75f);
+            Assert.AreEqual(1, fixture.Summons.SubBossSpawned);
+            Assert.AreEqual(0, fixture.Summons.TotalSpawned);
+
+            fixture.Runtime.Tick(18.75f);
+            Assert.AreEqual(1, fixture.Summons.SubBossSpawned);
         }
 
         [Test]
@@ -157,6 +178,14 @@ namespace DragonBound.Tests.EditMode
             public bool InvalidAfterStart { get; set; }
             public void Add(WorldeaterTarget target) => targets.Add(target);
             public IReadOnlyList<WorldeaterTarget> GetEligibleTargets() => targets;
+            public bool HasEligibleBasic()
+            {
+                foreach (var target in targets)
+                {
+                    if (target.TargetClass == WorldeaterTargetClass.Basic) return true;
+                }
+                return false;
+            }
             public bool IsStillEligible(WorldeaterTarget target) => !InvalidAfterStart;
             public bool Consume(WorldeaterTarget target) { ConsumedId = target.RuntimeId; return true; }
         }
@@ -164,7 +193,10 @@ namespace DragonBound.Tests.EditMode
         private sealed class FakeSummons : IWorldeaterSummonPort
         {
             public int TotalSpawned { get; private set; }
+            public int SubBossSpawned { get; private set; }
             public void SpawnMinions(int count, float maxHitPoints, float moveSpeedCellsPerSecond) { TotalSpawned += count; }
+            public bool HasAliveSubBoss() => SubBossSpawned > 0;
+            public void SpawnSubBoss(float maxHitPoints, float moveSpeedCellsPerSecond) { SubBossSpawned++; }
         }
 
         private sealed class FakeSpellbreaker : IWorldeaterSpellbreaker

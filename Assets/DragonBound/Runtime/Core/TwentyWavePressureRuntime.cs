@@ -39,6 +39,7 @@ namespace DragonBound.Core
         private bool started;
         private bool paused;
         private bool wavesExhausted;
+        private int pendingBossWave;
         private ISoulChainSpellbreakerResolver playerSpellbreakerResolver;
         private ISoulChainSpellbreakerResolver aiSpellbreakerResolver;
         private SoulchainBinderRuntime playerW6Boss;
@@ -104,8 +105,18 @@ namespace DragonBound.Core
                 "Player", "TwentyWave", TeamSide.Player, match.Player, playerDestination, Emit, RaiseCombatEvent);
             ai = new PressureRaceSideRuntime(
                 "AI", "TwentyWave", TeamSide.AI, match.AI, aiDestination, Emit, RaiseCombatEvent);
-            player.EnemyLifecycleEmitted += value => PlayerEnemyLifecycleEmitted?.Invoke(value);
-            ai.EnemyLifecycleEmitted += value => AiEnemyLifecycleEmitted?.Invoke(value);
+            player.EnemyLifecycleEmitted += HandlePlayerEnemyLifecycle;
+            ai.EnemyLifecycleEmitted += HandleAiEnemyLifecycle;
+            player.EnemyApproachingGoal += runtimeId => playerItems?.HandleCombatEvent(
+                new ItemCombatEvent(
+                    ItemCombatEventKind.EnemyApproachingGoal,
+                    TeamSide.Player,
+                    runtimeId));
+            ai.EnemyApproachingGoal += runtimeId => aiItems?.HandleCombatEvent(
+                new ItemCombatEvent(
+                    ItemCombatEventKind.EnemyApproachingGoal,
+                    TeamSide.AI,
+                    runtimeId));
             if (playerDestination != null)
             {
                 playerDestination.BasicUnitMerged += value => playerW6Boss?.NotifyMerge(value.SourceUnitId, value.TargetUnitId);
@@ -128,6 +139,11 @@ namespace DragonBound.Core
         public event Action<TeamSide, BossSkillLifecycleEvent> BloodcrownLifecycleEmitted;
         public event Action<TeamSide, BossCastResult> BloodcrownCastEmitted;
         public event Action<TeamSide, WorldeaterCastEvent> WorldeaterCastEmitted;
+        /// <summary>
+        /// Raised immediately before a configured boss wave begins. When no presentation
+        /// subscribes, the runtime keeps the legacy behaviour and starts the wave directly.
+        /// </summary>
+        public event Action<int> BossWarningRequested;
 
         public TwentyWavePressureConfiguration Configuration => configuration;
         public string RngVersion => CompositionRngVersion;
@@ -143,6 +159,8 @@ namespace DragonBound.Core
         public bool IsComplete { get; private set; }
         public bool EmitLogs { get; set; } = true;
         public bool IsRunEnded => IsComplete;
+        public bool IsBossWarningPending => pendingBossWave > 0;
+        public int PendingBossWave => pendingBossWave;
         public int CurrentWaveIndex => currentWaveIndex;
         public bool IsGameplayRunning => started && !paused && match.State == MatchState.Running;
         public int CurrentWave => CurrentWaveIndex;
@@ -195,6 +213,37 @@ namespace DragonBound.Core
         public ItemRunRuntime AiItems => aiItems;
         public string LastEvent { get; private set; } = "NONE";
 
+        private void HandlePlayerEnemyLifecycle(EnemyLifecycleEvent value)
+        {
+            PlayerEnemyLifecycleEmitted?.Invoke(value);
+            ForwardItemEnemyLifecycle(playerItems, TeamSide.Player, value);
+        }
+
+        private void HandleAiEnemyLifecycle(EnemyLifecycleEvent value)
+        {
+            AiEnemyLifecycleEmitted?.Invoke(value);
+            ForwardItemEnemyLifecycle(aiItems, TeamSide.AI, value);
+        }
+
+        private static void ForwardItemEnemyLifecycle(
+            ItemRunRuntime itemRuntime,
+            TeamSide side,
+            EnemyLifecycleEvent value)
+        {
+            if (itemRuntime == null) return;
+            var kind = value.Kind == EnemyLifecycleEventKind.Spawned
+                ? ItemCombatEventKind.EnemySpawned
+                : value.Kind == EnemyLifecycleEventKind.Killed
+                    ? ItemCombatEventKind.EnemyKilled
+                    : ItemCombatEventKind.EnemyLeaked;
+            itemRuntime.HandleCombatEvent(new ItemCombatEvent(
+                kind,
+                side,
+                value.RuntimeId,
+                isLegalKill: value.Kind == EnemyLifecycleEventKind.Killed,
+                source: ItemCombatEventSource.System));
+        }
+
         public void SetSpellbreakerResolver(TeamSide side, ISoulChainSpellbreakerResolver resolver)
         {
             if (started)
@@ -230,7 +279,7 @@ namespace DragonBound.Core
             }
 
             started = true;
-            BeginWave(1);
+            BeginWaveWithOptionalBossPrompt(1);
             return true;
         }
 
@@ -250,6 +299,7 @@ namespace DragonBound.Core
             started = false;
             paused = false;
             wavesExhausted = false;
+            pendingBossWave = 0;
             IsComplete = false;
             playerW6Boss = null;
             aiW6Boss = null;
@@ -286,6 +336,26 @@ namespace DragonBound.Core
                 return false;
             }
 
+            BeginWaveWithOptionalBossPrompt(wave);
+            return true;
+        }
+
+        /// <summary>Confirms the authored warning and starts the deferred boss wave.</summary>
+        public bool ConfirmBossWarning()
+        {
+            if (!started || IsComplete || pendingBossWave <= 0 || match.State != MatchState.BossPrompt)
+            {
+                return false;
+            }
+
+            if (!match.TryTransition(MatchState.Running))
+            {
+                return false;
+            }
+
+            var wave = pendingBossWave;
+            pendingBossWave = 0;
+            Emit($"TwentyWave Event=BossWarningConfirmed Wave={wave}");
             BeginWave(wave);
             return true;
         }
@@ -471,14 +541,16 @@ namespace DragonBound.Core
                 player.Registry,
                 runSeed: runSeed,
                 opposingTeam: match.AI,
-                opposingRouteEnemies: ai.Registry);
+                opposingRouteEnemies: ai.Registry,
+                itemEnemyDamage: player);
             aiItems = new ItemRunRuntime(
                 aiSnapshot,
                 match.AI,
                 ai.Registry,
                 runSeed: runSeed,
                 opposingTeam: match.Player,
-                opposingRouteEnemies: player.Registry);
+                opposingRouteEnemies: player.Registry,
+                itemEnemyDamage: ai);
             if (!playerItems.StartRun(out reason) || !aiItems.StartRun(out reason))
             {
                 Emit("TwentyWave ItemRuntimeStartRejected Reason=" + (reason ?? "Unknown"));
@@ -647,6 +719,26 @@ namespace DragonBound.Core
             }
         }
 
+        private void BeginWaveWithOptionalBossPrompt(int wave)
+        {
+            var definition = configuration.GetWave(wave);
+            if (!definition.HasBossSlot || BossWarningRequested == null)
+            {
+                BeginWave(wave);
+                return;
+            }
+
+            if (pendingBossWave > 0 || match.State != MatchState.Running ||
+                !match.TryTransition(MatchState.BossPrompt))
+            {
+                return;
+            }
+
+            pendingBossWave = wave;
+            Emit($"TwentyWave Event=BossWarningRequested Wave={wave}");
+            BossWarningRequested.Invoke(wave);
+        }
+
 
         private void EndCurrentWave()
         {
@@ -671,7 +763,7 @@ namespace DragonBound.Core
                 return;
             }
 
-            BeginWave(currentWaveIndex + 1);
+            BeginWaveWithOptionalBossPrompt(currentWaveIndex + 1);
         }
 
         private void SettleRun()

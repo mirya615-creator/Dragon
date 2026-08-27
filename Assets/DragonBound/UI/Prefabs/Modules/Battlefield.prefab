@@ -273,6 +273,8 @@ MonoBehaviour:
   - {fileID: 5295485573991170691}
   - {fileID: 8786918485235928924}
   enemyViewTemplate: {fileID: 9148600983831563253}
+  enemyViewPrefab: {fileID: 100104, guid: e19cf55667234a2cb1fc1189bace0011, type: 3}
+  enemyViewContainer: {fileID: 0}
   travelSeconds: 12
   reverseDirection: 0
 --- !u!114 &5068007183710500681

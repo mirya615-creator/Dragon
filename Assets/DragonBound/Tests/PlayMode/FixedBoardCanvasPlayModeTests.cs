@@ -149,6 +149,33 @@ namespace DragonBound.Tests.PlayMode
             Assert.AreEqual(MatchState.Defeat, bootstrap.Match.State);
             Assert.AreEqual(1f, Time.timeScale, 0.001f);
             Assert.IsFalse(panel.activeSelf);
+            var settlement = screen.transform.Find("SettlementPanel");
+            Assert.IsTrue(settlement.gameObject.activeSelf);
+            Assert.AreEqual("Defalt", ReadAuthoredText(settlement.Find("Text")));
+        }
+
+        [UnityTest]
+        public IEnumerator AiDefeatShowsVictorySettlementPanel()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();
+            var screen = Object.FindObjectOfType<DragonBoundScreenView>();
+            Assert.IsNotNull(bootstrap);
+            Assert.IsNotNull(screen);
+
+            Assert.IsTrue(bootstrap.Match.TryTransition(MatchState.Victory));
+            var settlement = screen.transform.Find("SettlementPanel");
+            Assert.IsTrue(settlement.gameObject.activeSelf);
+            Assert.AreEqual("Victory", ReadAuthoredText(settlement.Find("Text")));
+        }
+
+        private static string ReadAuthoredText(Transform target)
+        {
+            var component = target.GetComponent("TextMeshProUGUI");
+            Assert.IsNotNull(component);
+            return (string)component.GetType().GetProperty("text").GetValue(component);
         }
 
         private static void AssertEnemyTraversesOrderedPath(

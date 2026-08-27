@@ -14,7 +14,8 @@ public sealed class ClientServices : IClientServices
         IMerchantGateway merchant,
         IRuneProfileGateway runes,
         IRewardedAdService rewardedAds,
-        IShareService share)
+        IShareService share,
+        DragonBound.Services.IGameplayRunGateway gameplay)
     {
         Auth = auth ?? throw new ArgumentNullException(nameof(auth));
         AuthSession = authSession ?? throw new ArgumentNullException(nameof(authSession));
@@ -28,6 +29,7 @@ public sealed class ClientServices : IClientServices
         Runes = runes ?? throw new ArgumentNullException(nameof(runes));
         RewardedAds = rewardedAds ?? throw new ArgumentNullException(nameof(rewardedAds));
         Share = share ?? throw new ArgumentNullException(nameof(share));
+        Gameplay = gameplay ?? throw new ArgumentNullException(nameof(gameplay));
     }
 
     public IAuthGateway Auth { get; }
@@ -42,4 +44,5 @@ public sealed class ClientServices : IClientServices
     public IRuneProfileGateway Runes { get; }
     public IRewardedAdService RewardedAds { get; }
     public IShareService Share { get; }
+    public DragonBound.Services.IGameplayRunGateway Gameplay { get; }
 }

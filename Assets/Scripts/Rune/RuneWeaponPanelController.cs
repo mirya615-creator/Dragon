@@ -12,9 +12,34 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
 {
     private const string WeaponPrefabPath = "prefabs/Weapon";
     private const string Weapon0PrefabPath = "prefabs/Weapon0";
-    private const int PageSize = 25;
+    private const string RuneUiPathPrefix = "RuneUI/";
+    private const int FallbackPageSize = 25;
+    private static readonly Dictionary<string, int> RuneUiNumbers =
+        new Dictionary<string, int>(StringComparer.Ordinal)
+        {
+            { "RUNE_MIGHT", 1 },
+            { "RUNE_FARREACH", 2 },
+            { "RUNE_POWER", 3 },
+            { "RUNE_LONGSHOT", 4 },
+            { "RUNE_FROSTBITE", 5 },
+            { "RUNE_RICOCHET", 6 },
+            { "RUNE_VOLLEY", 7 },
+            { "RUNE_BLADE_TEMPEST", 8 },
+            { "RUNE_AMBUSH", 9 },
+            { "RUNE_WINDHAWK", 10 },
+            { "RUNE_SKYBREAKER", 11 },
+            { "RUNE_WYRMGUARD", 12 },
+            { "RUNE_DRAGONBLOOM", 13 },
+            { "RUNE_WARCRY", 14 }
+        };
+    private static readonly Color32 CommonNameColor = new Color32(80, 200, 120, 255);
+    private static readonly Color32 ExcellentNameColor = new Color32(77, 163, 255, 255);
+    private static readonly Color32 EpicNameColor = new Color32(181, 108, 255, 255);
+    private static readonly Color32 LegendaryNameColor = new Color32(255, 210, 74, 255);
 
     private Transform weaponContainer;
+    private RectTransform weaponContainerRect;
+    private GridLayoutGroup weaponGrid;
     private Transform heroContainer;
     private Button pageLeftButton;
     private Button pageRightButton;
@@ -29,6 +54,8 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     private Coroutine pendingInventoryChange;
     private bool runeOperationInProgress;
     private readonly List<InventoryDisplayEntry> displayEntries = new List<InventoryDisplayEntry>();
+    private readonly Dictionary<string, Sprite> runeUiSprites =
+        new Dictionary<string, Sprite>(StringComparer.Ordinal);
     private int currentPageIndex;
 
     private sealed class InventoryDisplayEntry
@@ -46,20 +73,27 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         authSessionStore = services.AuthSession;
         lifetimeCancellation = new CancellationTokenSource();
         weaponContainer = transform.Find("WeaponContainer");
+        weaponContainerRect = weaponContainer as RectTransform;
+        weaponGrid = weaponContainer != null
+            ? weaponContainer.GetComponent<GridLayoutGroup>()
+            : null;
         heroContainer = transform.Find("MyHeroBg/HeroContainer");
         pageLeftButton = GetButton(transform.Find("PageLeft"));
         pageRightButton = GetButton(transform.Find("PageRight"));
         pageText = GetText(transform.Find("page"));
         weaponPrefab = Resources.Load<GameObject>(WeaponPrefabPath);
         weapon0Prefab = Resources.Load<GameObject>(Weapon0PrefabPath);
+        LoadRuneUiSprites();
 
         if (weaponContainer == null || heroContainer == null ||
             weaponPrefab == null || weapon0Prefab == null ||
-            pageLeftButton == null || pageRightButton == null || pageText == null)
+            pageLeftButton == null || pageRightButton == null || pageText == null ||
+            weaponGrid == null)
         {
             Debug.LogError(
                 "RuneWeaponPanelController requires WeaponContainer, MyHeroBg/HeroContainer " +
-                "PageLeft, PageRight, page and Resources/prefabs/Weapon(0).");
+                "PageLeft, PageRight, page, a WeaponContainer GridLayoutGroup " +
+                "and Resources/prefabs/Weapon(0).");
         }
 
         if (pageLeftButton != null) pageLeftButton.onClick.AddListener(ShowPreviousPage);
@@ -111,6 +145,13 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
                 playerId,
                 lifetimeCancellation.Token);
             if (!isActiveAndEnabled) return;
+            if (currentProfile == null || currentProfile.AccountDay < 3)
+            {
+                ClearContainer();
+                displayEntries.Clear();
+                UpdatePageControls();
+                return;
+            }
             SetupHeroDropZones();
             RefreshHeroRuneNames();
             RefreshInventoryPages();
@@ -170,8 +211,9 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     {
         ClearContainer();
 
-        int startIndex = currentPageIndex * PageSize;
-        int endIndex = Mathf.Min(startIndex + PageSize, displayEntries.Count);
+        int pageSize = GetPageSize();
+        int startIndex = currentPageIndex * pageSize;
+        int endIndex = Mathf.Min(startIndex + pageSize, displayEntries.Count);
         for (int index = startIndex; index < endIndex; index++)
         {
             CreateInventoryCard(displayEntries[index]);
@@ -189,7 +231,8 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         instance.name = entry.IsFragmentProgress
             ? $"Rune_{entry.Definition.RuneId}_Fragments"
             : $"Rune_{entry.Definition.RuneId}_Complete";
-        SetText(instance.transform.Find("Name"), entry.Definition.DisplayName);
+        ApplyRuneUi(instance, entry.Definition);
+        SetRuneName(instance.transform.Find("Name"), entry.Definition);
 
         if (entry.IsFragmentProgress)
         {
@@ -204,7 +247,111 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         dragItem.Initialize(entry.Definition.RuneId, entry.AvailableCompleteRunes);
     }
 
-    private int TotalPages => Mathf.Max(1, Mathf.CeilToInt(displayEntries.Count / (float)PageSize));
+    private void LoadRuneUiSprites()
+    {
+        runeUiSprites.Clear();
+        foreach (KeyValuePair<string, int> mapping in RuneUiNumbers)
+        {
+            Sprite sprite = Resources.Load<Sprite>($"{RuneUiPathPrefix}{mapping.Value}");
+            if (sprite == null)
+            {
+                Debug.LogWarning(
+                    $"Rune UI sprite '{RuneUiPathPrefix}{mapping.Value}' is missing for " +
+                    $"rune '{mapping.Key}'.",
+                    this);
+                continue;
+            }
+
+            runeUiSprites[mapping.Key] = sprite;
+        }
+    }
+
+    private void ApplyRuneUi(GameObject instance, RuneDefinition definition)
+    {
+        if (instance == null || definition == null ||
+            !runeUiSprites.TryGetValue(definition.RuneId, out Sprite sprite))
+        {
+            return;
+        }
+
+        Transform background = instance.transform.Find("BG");
+        Image runeImage = background != null ? background.GetComponent<Image>() : null;
+        if (runeImage == null)
+        {
+            Debug.LogError($"{instance.name} requires BG with an Image for its rune UI sprite.", instance);
+            return;
+        }
+
+        runeImage.sprite = sprite;
+        runeImage.type = Image.Type.Simple;
+        runeImage.preserveAspect = true;
+        runeImage.color = Color.white;
+    }
+
+    private int TotalPages
+    {
+        get
+        {
+            int pageSize = GetPageSize();
+            return Mathf.Max(1, Mathf.CeilToInt(displayEntries.Count / (float)pageSize));
+        }
+    }
+
+    private int GetPageSize()
+    {
+        if (weaponContainerRect == null || weaponGrid == null)
+        {
+            return FallbackPageSize;
+        }
+
+        RectOffset padding = weaponGrid.padding;
+        float availableWidth = Mathf.Max(
+            0f,
+            weaponContainerRect.rect.width - padding.horizontal);
+        float availableHeight = Mathf.Max(
+            0f,
+            weaponContainerRect.rect.height - padding.vertical);
+
+        int fittedColumns = CalculateFittedCount(
+            availableWidth,
+            weaponGrid.cellSize.x,
+            weaponGrid.spacing.x);
+        int fittedRows = CalculateFittedCount(
+            availableHeight,
+            weaponGrid.cellSize.y,
+            weaponGrid.spacing.y);
+
+        int columns = fittedColumns;
+        int rows = fittedRows;
+        if (weaponGrid.constraint == GridLayoutGroup.Constraint.FixedColumnCount)
+        {
+            columns = Mathf.Max(1, weaponGrid.constraintCount);
+        }
+        else if (weaponGrid.constraint == GridLayoutGroup.Constraint.FixedRowCount)
+        {
+            rows = Mathf.Max(1, weaponGrid.constraintCount);
+        }
+
+        long capacity = (long)Mathf.Max(1, columns) * Mathf.Max(1, rows);
+        return capacity > int.MaxValue ? int.MaxValue : (int)capacity;
+    }
+
+    private static int CalculateFittedCount(float availableSize, float cellSize, float spacing)
+    {
+        if (cellSize <= 0f)
+        {
+            return 1;
+        }
+
+        float step = cellSize + spacing;
+        if (step <= 0f)
+        {
+            return 1;
+        }
+
+        // The last cell has no trailing spacing, hence the + spacing numerator.
+        return Mathf.Max(1, Mathf.FloorToInt((availableSize + spacing) / step));
+    }
 
     private void ShowPreviousPage()
     {
@@ -225,8 +372,8 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         int totalPages = TotalPages;
         currentPageIndex = Mathf.Clamp(currentPageIndex, 0, totalPages - 1);
         if (pageText != null) pageText.text = $"{currentPageIndex + 1}/{totalPages}";
-        if (pageLeftButton != null) pageLeftButton.interactable = true;
-        if (pageRightButton != null) pageRightButton.interactable = true;
+        if (pageLeftButton != null) pageLeftButton.interactable = currentPageIndex > 0;
+        if (pageRightButton != null) pageRightButton.interactable = currentPageIndex < totalPages - 1;
     }
 
     private static void SetAvailableCount(Transform item, int availableCompleteRunes)
@@ -322,6 +469,7 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     public bool RequestUnequipRune(string heroId)
     {
         if (string.IsNullOrEmpty(heroId) || string.IsNullOrEmpty(playerId) ||
+            currentProfile == null || currentProfile.AccountDay < 3 ||
             pendingInventoryChange != null || runeOperationInProgress)
         {
             return false;
@@ -334,7 +482,8 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     public bool RequestEquipRune(string heroId, string runeId)
     {
         if (string.IsNullOrEmpty(heroId) || string.IsNullOrEmpty(runeId) ||
-            string.IsNullOrEmpty(playerId) || pendingInventoryChange != null ||
+            string.IsNullOrEmpty(playerId) || currentProfile == null ||
+            currentProfile.AccountDay < 3 || pendingInventoryChange != null ||
             runeOperationInProgress)
         {
             return false;
@@ -442,9 +591,18 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
             if (weapon == null) continue;
 
             TMP_Text heroName = GetText(hero.Find("Name"));
-            string heroId = heroName != null && !string.IsNullOrWhiteSpace(heroName.text)
-                ? heroName.text.Trim()
-                : $"HERO_SLOT_{index + 1:00}";
+            HeroRuneSlotIdentity identity = hero.GetComponent<HeroRuneSlotIdentity>();
+            if (identity == null) identity = hero.gameObject.AddComponent<HeroRuneSlotIdentity>();
+            string heroId = HeroRuneIdentityCatalog.ResolveSlot(
+                index,
+                identity.HeroId,
+                heroName != null ? heroName.text : string.Empty);
+            identity.InitializeIfEmpty(heroId);
+            if (string.IsNullOrWhiteSpace(heroId))
+            {
+                Debug.LogError($"WeaponPanel hero slot {index + 1} has no valid HeroId.", hero);
+                continue;
+            }
             TMP_Text runeName = GetText(weapon.Find("Text (TMP)"));
             RuneDropZone zone = weapon.GetComponent<RuneDropZone>();
             if (zone == null) zone = weapon.gameObject.AddComponent<RuneDropZone>();
@@ -504,6 +662,30 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     {
         TMP_Text text = GetText(target);
         if (text != null) text.text = value;
+    }
+
+    private static void SetRuneName(Transform target, RuneDefinition definition)
+    {
+        TMP_Text text = GetText(target);
+        if (text == null || definition == null) return;
+
+        text.text = definition.DisplayName;
+        text.color = GetRarityNameColor(definition.Rarity);
+    }
+
+    private static Color32 GetRarityNameColor(RuneRarity rarity)
+    {
+        switch (rarity)
+        {
+            case RuneRarity.Excellent:
+                return ExcellentNameColor;
+            case RuneRarity.Epic:
+                return EpicNameColor;
+            case RuneRarity.Legendary:
+                return LegendaryNameColor;
+            default:
+                return CommonNameColor;
+        }
     }
 
     private static TMP_Text GetText(Transform target)

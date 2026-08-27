@@ -16,6 +16,7 @@ namespace DragonBound.Recruitment
     {
         int PendingRefreshCount { get; }
         bool PendingRefreshContainsUniqueHeroComponent { get; }
+        bool PendingRefreshContainsHeroComponent { get; }
         RecruitDestinationPlan Plan(int cardCount);
         RecruitDestinationReceipt Commit(RecruitDestinationPlan plan, RecruitBatch batch);
     }
@@ -52,7 +53,8 @@ namespace DragonBound.Recruitment
     public enum RecruitmentStatus
     {
         Success,
-        InsufficientResources
+        InsufficientResources,
+        PendingHeroComponents
     }
 
     public readonly struct RecruitmentAttempt
@@ -113,6 +115,7 @@ namespace DragonBound.Recruitment
         private readonly TeamState team;
         private readonly RecruitDeck deck;
         private readonly IRecruitDestination destination;
+        private readonly bool protectHeroComponentsOnRefresh;
         private readonly HashSet<string> appearedHeroComponentIds =
             new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> discardedHeroComponentIds =
@@ -120,11 +123,16 @@ namespace DragonBound.Recruitment
         private long attemptSequence;
         private RecruitmentAttempt lastAttempt;
 
-        public RecruitmentService(TeamState team, RecruitDeck deck, IRecruitDestination destination)
+        public RecruitmentService(
+            TeamState team,
+            RecruitDeck deck,
+            IRecruitDestination destination,
+            bool protectHeroComponentsOnRefresh = false)
         {
             this.team = team ?? throw new ArgumentNullException(nameof(team));
             this.deck = deck ?? throw new ArgumentNullException(nameof(deck));
             this.destination = destination ?? throw new ArgumentNullException(nameof(destination));
+            this.protectHeroComponentsOnRefresh = protectHeroComponentsOnRefresh;
         }
 
         public event Action<RecruitmentAttempt> Attempted;
@@ -137,6 +145,8 @@ namespace DragonBound.Recruitment
         public int PendingRefreshCount => destination.PendingRefreshCount;
         public bool PendingRefreshContainsUniqueHeroComponent =>
             destination.PendingRefreshContainsUniqueHeroComponent;
+        public bool PendingRefreshContainsHeroComponent =>
+            destination.PendingRefreshContainsHeroComponent;
         public int RemainingHeroComponents => deck.RemainingHeroComponents;
         public int DrawnHeroComponents => deck.DrawnHeroComponents;
         public int DiscardedHeroComponents => deck.DiscardedHeroComponents;
@@ -144,6 +154,11 @@ namespace DragonBound.Recruitment
         public bool EnableHeroComponents => deck.EnableHeroComponents;
         public bool HeroSliceMode => deck.HeroSliceMode;
         public bool CanAffordNext => team.Resources >= NextCost;
+        public bool IsRefreshBlockedByHeroComponents =>
+            protectHeroComponentsOnRefresh &&
+            destination.PendingRefreshCount > 0 &&
+            destination.PendingRefreshContainsHeroComponent;
+        public bool CanRecruitNext => CanAffordNext && !IsRefreshBlockedByHeroComponents;
         public bool HasLastAttempt { get; private set; }
         public RecruitmentAttempt LastAttempt => lastAttempt;
         public string LastRecruitResult => HasLastAttempt ? lastAttempt.ResultSummary : "NONE";
@@ -187,6 +202,20 @@ namespace DragonBound.Recruitment
                     resourcesBefore,
                     resourcesBefore,
                     "INSUFFICIENT_RESOURCES",
+                    new string[0],
+                    new RecruitCard[0]);
+            }
+
+            if (IsRefreshBlockedByHeroComponents)
+            {
+                return Publish(
+                    RecruitmentStatus.PendingHeroComponents,
+                    cost,
+                    null,
+                    false,
+                    resourcesBefore,
+                    resourcesBefore,
+                    "DEPLOY_HERO_COMPONENTS",
                     new string[0],
                     new RecruitCard[0]);
             }

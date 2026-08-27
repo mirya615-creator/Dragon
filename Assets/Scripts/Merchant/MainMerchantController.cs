@@ -20,6 +20,9 @@ public sealed class MainMerchantController : MonoBehaviour
     private const string OwnedItemPrefabPath = "prefabs/Item";
     private const string MerchantAdPlacement = "merchant_rewarded_item";
     private const string MerchantLotteryAdPlacement = "merchant_lottery";
+    private const int ActiveItemLimit = 2;
+    private const int PassiveItemLimit = 6;
+    private const string ItemLimitMessage = "Limite";
 
     private readonly List<Button> buyButtons = new List<Button>();
     private readonly List<TMP_Text> buyButtonTexts = new List<TMP_Text>();
@@ -108,13 +111,13 @@ public sealed class MainMerchantController : MonoBehaviour
             activeItemColumn == null || passiveItemColumn == null ||
             activeItemColumn == passiveItemColumn || offerItemPrefab == null ||
             ownedItemPrefab == null || cancelItemPanel == null || cancelItemButton == null ||
-            confirmItemButton == null)
+            confirmItemButton == null || tipText == null)
         {
             Debug.LogError(
                 "MainMerchantController requires MerchantPanel/Bg with ChantBtn, LotteryBtn, " +
                 "ChatItemCon and LotteryContainer containing LotteryBtn and 8 LotteryItems, " +
                 "Bg/ItemContainer with ActiveColumn and PassiveColumn, Bg/CancleItemPanel " +
-                "with CancleBtn and ConfirmBtn, and Resources/prefabs/ItemBg and Item.");
+                "with CancleBtn and ConfirmBtn, Bg/TipText, and Resources/prefabs/ItemBg and Item.");
             enabled = false;
             return;
         }
@@ -418,6 +421,12 @@ public sealed class MainMerchantController : MonoBehaviour
     {
         if (purchaseInProgress || lotteryDrawInProgress ||
             (currentOffer != null && currentOffer.Purchased)) return;
+        if (IsOwnedItemLimitReached(product))
+        {
+            ShowTip(ItemLimitMessage);
+            return;
+        }
+
         purchaseInProgress = true;
         ShowTip(string.Empty);
         RefreshAcquisitionState();
@@ -601,6 +610,46 @@ public sealed class MainMerchantController : MonoBehaviour
         MerchantProduct capturedProduct = product;
         deleteButton.interactable = true;
         deleteButton.onClick.AddListener(() => OnDeleteItemClicked(capturedProduct));
+    }
+
+    private bool IsOwnedItemLimitReached(MerchantProduct product)
+    {
+        if (product == null)
+        {
+            return false;
+        }
+
+        if (string.Equals(product.ItemType, "Active", StringComparison.OrdinalIgnoreCase))
+        {
+            return CountOwnedItemViews(activeItemColumn) >= ActiveItemLimit;
+        }
+
+        if (string.Equals(product.ItemType, "Passive", StringComparison.OrdinalIgnoreCase))
+        {
+            return CountOwnedItemViews(passiveItemColumn) >= PassiveItemLimit;
+        }
+
+        return false;
+    }
+
+    private static int CountOwnedItemViews(Transform column)
+    {
+        if (column == null)
+        {
+            return 0;
+        }
+
+        int count = 0;
+        for (int index = 0; index < column.childCount; index++)
+        {
+            GameObject item = column.GetChild(index).gameObject;
+            if (item.activeSelf && item.name.StartsWith("Item_", StringComparison.Ordinal))
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private static void ClearOwnedItemColumn(Transform column)

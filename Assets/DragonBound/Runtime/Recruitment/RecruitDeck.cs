@@ -454,11 +454,10 @@ namespace DragonBound.Recruitment
                     string.Empty));
             }
 
-            var basicRandom = CreateFiniteBatchRandom("basic-unit", recruitmentNumber);
-            while (cards.Count < RecruitBatch.CardsPerRecruitment)
-            {
-                cards.Add(DrawBasicUnit(recruitmentNumber, cards.Count, basicRandom));
-            }
+            AddBasicUnitsWithoutReplacement(
+                cards,
+                recruitmentNumber,
+                CreateFiniteBatchRandom("basic-unit", recruitmentNumber));
 
             Shuffle(cards, CreateFiniteBatchRandom("slot-order", recruitmentNumber), "RecruitSlotOrder.v1");
             if (consume)
@@ -498,7 +497,6 @@ namespace DragonBound.Recruitment
             var componentCount = Math.Min(
                 plannedComponentCount,
                 Math.Min(DynamicComponentCatchupV3Config.MaxComponentsPerRecruit, finiteComponentBag.RemainingCount));
-
             var cards = new List<RecruitCard>(RecruitBatch.CardsPerRecruitment);
             var componentInstances = componentCount > 0
                 ? consume
@@ -530,11 +528,10 @@ namespace DragonBound.Recruitment
                     string.Empty));
             }
 
-            var basicRandom = CreateFiniteBatchRandom("basic-unit", recruitmentNumber);
-            while (cards.Count < RecruitBatch.CardsPerRecruitment)
-            {
-                cards.Add(DrawBasicUnit(recruitmentNumber, cards.Count, basicRandom));
-            }
+            AddBasicUnitsWithoutReplacement(
+                cards,
+                recruitmentNumber,
+                CreateFiniteBatchRandom("basic-unit", recruitmentNumber));
 
             if (CountCards(cards, RecruitItemKind.BasicUnit) < FiniteComponentRecruitmentConfig.MinBasicUnitsPerBatch)
             {
@@ -812,6 +809,32 @@ namespace DragonBound.Recruitment
         {
             var index = sourceRandom.NextInt("recruit.basic.config", 0, catalog.BasicUnitIds.Count);
             return CreateCard(recruitmentNumber, slot, RecruitItemKind.BasicUnit, catalog.BasicUnitIds[index], string.Empty);
+        }
+
+        private void AddBasicUnitsWithoutReplacement(
+            List<RecruitCard> cards,
+            int recruitmentNumber,
+            IRunRandom sourceRandom)
+        {
+            var cycle = 0;
+            while (cards.Count < RecruitBatch.CardsPerRecruitment)
+            {
+                var remaining = new List<string>(catalog.BasicUnitIds);
+                Shuffle(remaining, sourceRandom, $"RecruitBasicBag.v1.{cycle++}");
+                foreach (var configId in remaining)
+                {
+                    cards.Add(CreateCard(
+                        recruitmentNumber,
+                        cards.Count,
+                        RecruitItemKind.BasicUnit,
+                        configId,
+                        string.Empty));
+                    if (cards.Count == RecruitBatch.CardsPerRecruitment)
+                    {
+                        break;
+                    }
+                }
+            }
         }
 
         private RecruitCard CreateCard(

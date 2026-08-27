@@ -12,4 +12,5 @@ public interface IClientServices
     IRuneProfileGateway Runes { get; }
     IRewardedAdService RewardedAds { get; }
     IShareService Share { get; }
+    DragonBound.Services.IGameplayRunGateway Gameplay { get; }
 }

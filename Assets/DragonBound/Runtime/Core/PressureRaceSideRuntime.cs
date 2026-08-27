@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DragonBound.Combat;
 using DragonBound.Bosses.Runtime;
 using DragonBound.Grid;
+using DragonBound.Items;
 using DragonBound.Recruitment;
 
 namespace DragonBound.Core
@@ -41,7 +42,7 @@ namespace DragonBound.Core
     /// Shared per-side pressure-race combat runtime. Three-wave and twenty-wave scheduling both
     /// feed it spawn plans, so movement, targeting, rewards, experience, and leaks stay unified.
     /// </summary>
-    public sealed class PressureRaceSideRuntime
+    public sealed class PressureRaceSideRuntime : IItemEnemyDamagePort
     {
         private const float EnemyTravelSeconds = 12f;
 
@@ -59,6 +60,8 @@ namespace DragonBound.Core
             new Queue<PressureRaceEnemySpawn>();
         private readonly Dictionary<string, int> spawnWaveByEnemyId =
             new Dictionary<string, int>(StringComparer.Ordinal);
+        private readonly HashSet<string> approachingGoalNotified =
+            new HashSet<string>(StringComparer.Ordinal);
         private IBloodcrownBasicPolicyPort bloodcrownBasicPolicy;
         private static readonly BloodcrownBasicModifierPipeline BloodcrownModifiers =
             new BloodcrownBasicModifierPipeline();
@@ -114,6 +117,51 @@ namespace DragonBound.Core
         public int TotalResidual { get; private set; }
         public int LastRecordedResidual { get; private set; }
         public event Action<EnemyLifecycleEvent> EnemyLifecycleEmitted;
+        public event Action<string> EnemyApproachingGoal;
+
+        public ItemEnemyDamageResult ApplyItemDamage(
+            string itemId,
+            string enemyRuntimeId,
+            float damage)
+        {
+            if (string.IsNullOrWhiteSpace(itemId) || damage <= 0f ||
+                !Registry.TryGet(enemyRuntimeId ?? string.Empty, out var enemy) ||
+                !enemy.IsAlive)
+            {
+                return ItemEnemyDamageResult.Rejected;
+            }
+
+            enemy.RecordDamageOwner(new CombatDamageOwner(
+                CombatDamageOwnerKind.Item,
+                side,
+                itemId));
+            var damageResult = enemy.ApplyDamage(damage);
+            TotalAttacks++;
+            int heroXpAwarded = damageResult.Killed ? ResolveKill(enemy) : 0;
+            emit(
+                $"ItemCombatAttack Team={side} Item={itemId} Target={enemy.RuntimeId} " +
+                $"Damage={damage:0.00} HP={enemy.HitPoints:0.00} Killed={damageResult.Killed}");
+            emitCombat(new CombatEvent(
+                side,
+                AttackKind.Item,
+                itemId,
+                enemy.RuntimeId,
+                damage,
+                damageResult.Killed,
+                false,
+                team.Resources,
+                damageOwnerKind: CombatDamageOwnerKind.Item,
+                damageOwnerRuntimeId: itemId,
+                experienceReward: enemy.ExperienceReward,
+                heroXpAwarded: heroXpAwarded,
+                shieldDamage: damageResult.ShieldDamage,
+                healthDamage: damageResult.HealthDamage));
+            return new ItemEnemyDamageResult(
+                true,
+                damageResult.Killed,
+                damageResult.ShieldDamage,
+                damageResult.HealthDamage);
+        }
 
         public void SetBloodcrownBasicPolicy(IBloodcrownBasicPolicyPort policy)
         {
@@ -185,7 +233,8 @@ namespace DragonBound.Core
                 maxHitPoints,
                 EnemyArchetype.Boss,
                 enemyNumber,
-                bossId);
+                bossId,
+                waveNumber);
             var speedMultiplier = moveSpeedCellsPerSecond * EnemyTravelSeconds / Path.TotalDistance;
             boss.SetBaseMovementSpeedMultiplier(speedMultiplier);
             Path.PlaceAtSpawn(boss);
@@ -213,7 +262,8 @@ namespace DragonBound.Core
             string summonId,
             int count,
             float maxHitPoints,
-            float moveSpeedCellsPerSecond)
+            float moveSpeedCellsPerSecond,
+            EnemyArchetype archetype = EnemyArchetype.Swarm)
         {
             if (waveNumber < 1 || string.IsNullOrWhiteSpace(ownerBossId) || string.IsNullOrWhiteSpace(summonId) ||
                 count <= 0 || maxHitPoints <= 0f || moveSpeedCellsPerSecond <= 0f)
@@ -230,9 +280,10 @@ namespace DragonBound.Core
                     runtimeId,
                     side,
                     maxHitPoints,
-                    EnemyArchetype.Swarm,
+                    archetype,
                     enemyNumber,
-                    summonId);
+                    summonId,
+                    waveNumber);
                 summon.SetBaseMovementSpeedMultiplier(moveSpeedCellsPerSecond * EnemyTravelSeconds / Path.TotalDistance);
                 Path.PlaceAtSpawn(summon);
                 Registry.Register(summon);
@@ -282,6 +333,7 @@ namespace DragonBound.Core
             TotalResidual = 0;
             LastRecordedResidual = 0;
             spawnWaveByEnemyId.Clear();
+            approachingGoalNotified.Clear();
             team.SetRemainingEnemyCount(0);
         }
 
@@ -327,7 +379,8 @@ namespace DragonBound.Core
                     side,
                     spawn.MaxHitPoints,
                     spawn.Archetype,
-                    enemyNumber);
+                    enemyNumber,
+                    spawnWaveIndex: waveNumber);
                 var speedMultiplier = spawn.MoveSpeedCellsPerSecond > 0f
                     ? spawn.MoveSpeedCellsPerSecond * EnemyTravelSeconds / Path.TotalDistance
                     : spawn.MoveSpeedMultiplier;
@@ -367,6 +420,11 @@ namespace DragonBound.Core
                         EnemyTravelSeconds))
                 {
                     ResolveLeak(enemy);
+                }
+                else if (enemy.PathProgress >= 0.80f &&
+                         approachingGoalNotified.Add(enemy.RuntimeId))
+                {
+                    EnemyApproachingGoal?.Invoke(enemy.RuntimeId);
                 }
             }
         }
@@ -504,7 +562,8 @@ namespace DragonBound.Core
                         $"Target={result.Target.RuntimeId} Damage={result.Damage:0.00} " +
                         $"HP={result.Target.HitPoints:0.00} Killed={result.Killed}");
                     var heroXpAwarded = result.Killed ? ResolveKill(result.Target) : 0;
-                    if (result.Killed && result.Target.Archetype != EnemyArchetype.Swarm)
+                    if (result.Killed && result.Target.Archetype != EnemyArchetype.Swarm &&
+                        !IsRewardlessBossSummon(result.Target))
                     {
                         results.AddRange(combat.NotifyHeroKill(result.Target, Registry, result.IsRuneDerived));
                     }
@@ -593,13 +652,22 @@ namespace DragonBound.Core
             Registry.Remove(enemy.RuntimeId, out _);
             EmitEnemyLifecycle(EnemyLifecycleEventKind.Killed, enemy);
             TotalKills++;
-            if (enemy.Archetype != EnemyArchetype.Swarm)
+            if (enemy.Archetype != EnemyArchetype.Swarm && !IsRewardlessBossSummon(enemy))
             {
                 team.AddResources(1);
             }
             var heroXpAwarded = AwardHeroExperience(enemy);
             emit($"EnemyKilled RuntimeId={enemy.RuntimeId} Team={enemy.Team} ResourcesAfter={team.Resources} RegistryCount={Registry.Count}");
             return heroXpAwarded;
+        }
+
+        private static bool IsRewardlessBossSummon(EnemyRuntime enemy)
+        {
+            return enemy != null &&
+                   string.Equals(
+                       enemy.BossId,
+                       WorldeaterWyrmConfiguration.SubBossId,
+                       StringComparison.Ordinal);
         }
 
         private int AwardHeroExperience(EnemyRuntime enemy)

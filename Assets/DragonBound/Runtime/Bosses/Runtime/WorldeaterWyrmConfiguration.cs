@@ -8,7 +8,9 @@ namespace DragonBound.Bosses.Runtime
         public const string BossId = FixedBossIds.W20WorldeaterWyrmValue;
         public const string SkillId = "WORLDEATER_DEVOUR";
         public const string SummonSkillId = "WORLDEATER_MINION_SUMMON";
+        public const string SubBossSummonSkillId = "WORLDEATER_SUB_BOSS_SUMMON";
         public const string MinionId = "WORLDEATER_MINION";
+        public const string SubBossId = "WORLDEATER_SUB_BOSS";
         public const float GreyboxMaxHitPoints = 5000f;
         public const float BossMoveSpeedCellsPerSecond = 0.20f;
         public const float FirstDevourDelaySeconds = 10f;
@@ -20,6 +22,9 @@ namespace DragonBound.Bosses.Runtime
         public const int SummonCount = 4;
         public const float MinionMaxHitPoints = 330f;
         public const float MinionMoveSpeedCellsPerSecond = 0.75f;
+        // Test-stage values; the server configuration may replace them later.
+        public const float SubBossMaxHitPoints = 900f;
+        public const float SubBossMoveSpeedCellsPerSecond = 0.45f;
         public const float BasicGrowthFraction = 0.05f;
         public const float MinionGrowthFraction = 0.03f;
         public const float SubBossGrowthFraction = 0.10f;
@@ -46,6 +51,25 @@ namespace DragonBound.Bosses.Runtime
                 SummonCount,
                 MinionMaxHitPoints,
                 MinionMoveSpeedCellsPerSecond,
+                BossGoalEffect.InstantDefeat,
+                new BossSummonPolicy(
+                    BossSummonSpawnSource.BossSkill,
+                    0,
+                    0,
+                    false,
+                    false,
+                    true));
+        }
+
+        public static BossSummonDefinition CreateSubBossDefinition()
+        {
+            return new BossSummonDefinition(
+                FixedBossIds.W20WorldeaterWyrm,
+                SubBossId,
+                DragonBound.Core.EnemyArchetype.Boss,
+                1,
+                SubBossMaxHitPoints,
+                SubBossMoveSpeedCellsPerSecond,
                 BossGoalEffect.InstantDefeat,
                 new BossSummonPolicy(
                     BossSummonSpawnSource.BossSkill,

@@ -10,6 +10,15 @@ namespace DragonBound.Tests.EditMode
     public sealed class ItemGameplayIntegrationTests
     {
         [Test]
+        public void RenamedActiveItemsExposeCurrentEnglishDisplayNames()
+        {
+            Assert.AreEqual("Winterveil Scroll", ItemCatalog.GetEnglishDisplayName(ItemIds.WinterveilRune));
+            Assert.AreEqual("Arcane Thunderburst", ItemCatalog.GetEnglishDisplayName(ItemIds.RuneburstMine));
+            Assert.AreEqual("Berserker War Drum", ItemCatalog.GetEnglishDisplayName(ItemIds.FrenzyRune));
+            Assert.AreEqual("Tempering Hammer", ItemCatalog.GetEnglishDisplayName(ItemIds.RuneOfTempering));
+        }
+
+        [Test]
         public void TwentyWaveRun_LocksIndependentSnapshotsAndAppliesDrakeheartOnlyOnce()
         {
             var playerSnapshot = CreateSnapshot(ItemIds.WinterveilRune, ItemIds.DrakeheartRelic);
@@ -65,6 +74,45 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void RuneburstMine_KillUsesFormalEnemySettlement()
+        {
+            var snapshot = CreateSnapshot(ItemIds.RuneburstMine, null);
+            var match = new MatchController(816);
+            var runtime = new TwentyWavePressureRuntime(
+                match,
+                null,
+                null,
+                816,
+                itemSnapshotProvider: new FixedSnapshots(snapshot, ItemRunSnapshot.Empty));
+            CombatEvent itemCombat = default;
+            bool itemCombatSeen = false;
+            runtime.CombatEmitted += value =>
+            {
+                if (value.DamageOwnerKind != CombatDamageOwnerKind.Item) return;
+                itemCombat = value;
+                itemCombatSeen = true;
+            };
+
+            Assert.IsTrue(runtime.StartRun());
+            runtime.Tick(TwentyWavePressureConfiguration.StartPreparationSeconds);
+            Assert.AreEqual(1, runtime.PlayerAliveEnemyCount);
+            int resourcesBefore = match.Player.Resources;
+
+            Assert.IsTrue(runtime.TryUseItem(
+                TeamSide.Player,
+                ItemIds.RuneburstMine,
+                out var reason), reason);
+
+            Assert.AreEqual(0, runtime.PlayerAliveEnemyCount);
+            Assert.AreEqual(1, runtime.PlayerTotalKilled);
+            Assert.AreEqual(resourcesBefore + 1, match.Player.Resources);
+            Assert.IsTrue(itemCombatSeen);
+            Assert.IsTrue(itemCombat.Killed);
+            Assert.AreEqual(CombatDamageOwnerKind.Item, itemCombat.DamageOwnerKind);
+            Assert.AreEqual(ItemIds.RuneburstMine, itemCombat.DamageOwnerRuntimeId);
+        }
+
+        [Test]
         public void Hud_BindsTwoSlotsAndClicksFormalPlayerItemCommand()
         {
             var snapshot = CreateSnapshot(ItemIds.WinterveilRune, null);
@@ -86,11 +134,16 @@ namespace DragonBound.Tests.EditMode
             hud.Initialize(match, match.Player);
             hud.BindItemRuntime(runtime);
 
-            StringAssert.Contains(ItemIds.WinterveilRune, firstLabel.text);
-            Assert.AreEqual("EMPTY", secondLabel.text);
+            Assert.AreEqual(string.Empty, firstLabel.text);
+            Assert.AreEqual(string.Empty, secondLabel.text);
+            Assert.IsTrue(first.gameObject.activeSelf);
+            Assert.IsFalse(second.gameObject.activeSelf);
             first.onClick.Invoke();
             Assert.Greater(runtime.PlayerItems.GetCooldownRemainingSeconds(ItemIds.WinterveilRune), 29.9f);
-            StringAssert.Contains("CD 30s", firstLabel.text);
+            Assert.AreEqual(string.Empty, firstLabel.text);
+            var cooldownMask = first.transform.Find("CooldownMask").GetComponent<Image>();
+            Assert.IsTrue(cooldownMask.gameObject.activeSelf);
+            Assert.Greater(cooldownMask.fillAmount, 0.99f);
             Object.DestroyImmediate(root);
         }
 

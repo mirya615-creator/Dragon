@@ -551,7 +551,7 @@ public sealed class LocalMerchantGateway : IMerchantGateway
     {
         if (candidates == null || candidates.Count == 0) return null;
 
-        string[] rarities = { "稀有", "卓越", "史诗", "传说" };
+        string[] rarities = { "Rare", "Excellent", "Epic", "Legendary" };
         int[] weights = { 10, 20, 30, 40 };
         int availableWeight = 0;
         for (int rarityIndex = 0; rarityIndex < rarities.Length; rarityIndex++)

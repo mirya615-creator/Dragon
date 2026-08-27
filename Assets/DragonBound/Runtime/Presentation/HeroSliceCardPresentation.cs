@@ -7,9 +7,22 @@ namespace DragonBound.Presentation
     {
         public static string GetLabel(RecruitCard card, RecruitmentService recruitment = null)
         {
+            return GetLabel(card, recruitment, true);
+        }
+
+        public static string GetEnglishLabel(RecruitCard card, RecruitmentService recruitment = null)
+        {
+            return GetLabel(card, recruitment, true);
+        }
+
+        private static string GetLabel(
+            RecruitCard card,
+            RecruitmentService recruitment,
+            bool useEnglish)
+        {
             if (card.Kind == RecruitItemKind.BasicUnit)
             {
-                return $"{BasicUnitCatalog.GetDisplayName(card.ConfigId)} {card.Level}";
+                return BasicUnitCatalog.GetDisplayName(card.ConfigId);
             }
 
             if (card.Kind == RecruitItemKind.Shovel)
@@ -17,19 +30,9 @@ namespace DragonBound.Presentation
                 return "SHOVEL";
             }
 
-            var name = HeroSliceCatalog.GetComponentDisplayName(card.ConfigId);
-            if (HeroSliceCatalog.IsUniqueComponent(card.ConfigId) || card.IsUnique)
-            {
-                return $"{name}\n唯一";
-            }
-
-            if (string.Equals(card.ConfigId, HeroSliceCatalog.DragonSigilComponentId) &&
-                recruitment != null &&
-                recruitment.HeroSliceMode)
-            {
-                return $"{name}\n剩余 {recruitment.GetRemainingHeroComponentCount(card.ConfigId)}";
-            }
-
+            var name = useEnglish
+                ? HeroSliceCatalog.GetComponentDisplayNameEn(card.ConfigId)
+                : HeroSliceCatalog.GetComponentDisplayName(card.ConfigId);
             return name;
         }
     }
