@@ -71,11 +71,10 @@ namespace DragonBound.Core
     /// </summary>
     public sealed class TwentyWavePressureConfiguration
     {
-        // Temporary accelerated Boss schedule used to exercise all four Boss systems early.
-        public const int SoulChainBossWave = 3;
-        public const int StormcallerBossWave = 4;
-        public const int BloodcrownBossWave = 5;
-        public const int WorldeaterBossWave = 6;
+        public const int SoulChainBossWave = 6;
+        public const int StormcallerBossWave = 12;
+        public const int BloodcrownBossWave = 16;
+        public const int WorldeaterBossWave = 20;
 
         public const string ConfigurationId = "PressureRaceGreyboxV2";
         public const int WaveCount = BattleSettlementDefinition.MaxScheduledWave;

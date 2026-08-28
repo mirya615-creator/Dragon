@@ -644,12 +644,19 @@ namespace DragonBound.Recruitment
 
         internal bool TryIncreaseLevel()
         {
-            if (Kind != RecruitItemKind.BasicUnit || Level >= BasicUnitCatalog.MaxLevel)
+            return TryAdjustLevel(1);
+        }
+
+        internal bool TryAdjustLevel(int delta)
+        {
+            if (Kind != RecruitItemKind.BasicUnit)
             {
                 return false;
             }
 
-            Level++;
+            Level = Math.Max(
+                BasicUnitCatalog.MinLevel,
+                Math.Min(BasicUnitCatalog.MaxLevel, Level + delta));
             return true;
         }
     }

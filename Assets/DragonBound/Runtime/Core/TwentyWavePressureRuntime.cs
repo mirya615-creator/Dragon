@@ -458,6 +458,23 @@ namespace DragonBound.Core
             return runtime.TryUse(itemId, out reason);
         }
 
+        /// <summary>Formal targeted Active Item command used by drag-to-unit items.</summary>
+        public bool TryUseItemOnUnit(
+            TeamSide side,
+            string itemId,
+            string targetRuntimeId,
+            out string reason)
+        {
+            var runtime = side == TeamSide.Player ? playerItems : aiItems;
+            if (runtime == null)
+            {
+                reason = "RunNotStarted";
+                return false;
+            }
+
+            return runtime.TryUse(itemId, targetRuntimeId, out reason);
+        }
+
         /// <summary>Formal positioned Active Item command used by drag-to-place items.</summary>
         public bool TryUseItemAtPoint(
             TeamSide side,
@@ -557,6 +574,7 @@ namespace DragonBound.Core
                 playerSnapshot,
                 match.Player,
                 player.Registry,
+                player.ItemUnits,
                 runSeed: runSeed,
                 opposingTeam: match.AI,
                 opposingRouteEnemies: ai.Registry,
@@ -565,6 +583,7 @@ namespace DragonBound.Core
                 aiSnapshot,
                 match.AI,
                 ai.Registry,
+                ai.ItemUnits,
                 runSeed: runSeed,
                 opposingTeam: match.Player,
                 opposingRouteEnemies: player.Registry,
@@ -718,9 +737,9 @@ namespace DragonBound.Core
                     bossDefinition.MaxHitPoints,
                     bossDefinition.MoveSpeed);
                 playerW20Policy = new WorldeaterIntegrationAdapter(
-                    playerBoss, player, player.Destination, TeamSide.Player, playerSpellbreakerResolver);
+                    playerBoss, player, player.Destination, TeamSide.Player, wave, playerSpellbreakerResolver);
                 aiW20Policy = new WorldeaterIntegrationAdapter(
-                    aiBoss, ai, ai.Destination, TeamSide.AI, aiSpellbreakerResolver);
+                    aiBoss, ai, ai.Destination, TeamSide.AI, wave, aiSpellbreakerResolver);
                 playerW20Boss = new WorldeaterWyrmRuntime(
                     bossDefinition, playerW20Policy, playerW20Policy, playerW20Policy, playerW20Policy);
                 aiW20Boss = new WorldeaterWyrmRuntime(

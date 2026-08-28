@@ -101,12 +101,15 @@ namespace DragonBound.Core
             var lane = layout.GetLane(side);
             Path = new EnemyPath(lane.NodeNames, lane.CombatPoints);
             PathDisplacement = new PathDisplacementSystem(Path);
+            ItemUnits = new ItemCombatUnitRegistry(new BoardItemUnitProgressionPort(destination));
+            SynchronizeItemUnits();
         }
 
         public EnemyRegistry Registry { get; } = new EnemyRegistry();
         public EnemyPath Path { get; }
         public PathDisplacementSystem PathDisplacement { get; }
         public BoardRecruitDestination Destination => destination;
+        public ItemCombatUnitRegistry ItemUnits { get; }
         public int Remaining => pendingSpawns.Count + Registry.Count;
         public int SpawnedThisWave { get; private set; }
         public int AliveEnemyCount => Registry.Count;
@@ -339,6 +342,7 @@ namespace DragonBound.Core
 
         public void Tick(float deltaSeconds, int waveNumber)
         {
+            SynchronizeItemUnits();
             destination?.TickPairLinks(deltaSeconds);
             SpawnPending(deltaSeconds, waveNumber);
             MoveEnemies(deltaSeconds);
@@ -363,6 +367,64 @@ namespace DragonBound.Core
         private void HandleCombatRegistrationChanged(CombatRegistrationChangedEvent changed)
         {
             attackElapsedByUnit.Remove(changed.UnitId);
+            SynchronizeItemUnits();
+        }
+
+        private void SynchronizeItemUnits()
+        {
+            foreach (var unit in ItemUnits.Units)
+            {
+                unit.IsAlive = false;
+            }
+
+            if (destination == null)
+            {
+                return;
+            }
+
+            foreach (var deployed in destination.GetDeployedUnits())
+            {
+                var card = deployed.Card;
+                if (!ItemUnits.TryGet(card.RuntimeId, out var unit))
+                {
+                    unit = new ItemCombatUnitState(
+                        card.RuntimeId,
+                        ItemCombatUnitKind.Basic,
+                        card.Level,
+                        BasicUnitCatalog.MaxLevel,
+                        isBasicArcher: BasicUnitCatalog.GetArchetype(card.ConfigId) == BasicUnitArchetype.Bow);
+                    ItemUnits.Register(unit);
+                }
+
+                unit.Level = card.Level;
+                unit.IsAlive = !deployed.IsCombatSuspended;
+            }
+
+            foreach (var activePair in destination.GetActiveHeroPairs())
+            {
+                var pair = activePair.PairLink;
+                var combat = pair.CombatProxy;
+                var definition = combat.Definition;
+                var nextExperience = combat.Level < definition.MaxLevel
+                    ? definition.GetLevelStats(combat.Level + 1).RequiredExperience
+                    : combat.Experience;
+                if (!ItemUnits.TryGet(pair.PairLinkId, out var unit))
+                {
+                    unit = new ItemCombatUnitState(
+                        pair.PairLinkId,
+                        ItemCombatUnitKind.Hero,
+                        combat.Level,
+                        definition.MaxLevel,
+                        nextExperience,
+                        pair.HeroId);
+                    ItemUnits.Register(unit);
+                }
+
+                unit.Level = combat.Level;
+                unit.Experience = combat.Experience;
+                unit.NextLevelExperience = nextExperience;
+                unit.IsAlive = combat.IsFormationComplete && !combat.IsCombatSuspended;
+            }
         }
 
         private void SpawnPending(float deltaSeconds, int waveNumber)
@@ -462,6 +524,16 @@ namespace DragonBound.Core
                         projected.Attack,
                         projected.AttackSpeed,
                         projected.Range,
+                        stats.AttackKind);
+                }
+                if (ItemUnits.TryGet(attacker.RuntimeId, out var itemUnit))
+                {
+                    stats = new BasicUnitStats(
+                        stats.Archetype,
+                        stats.Level,
+                        stats.Attack,
+                        stats.AttackSpeed * itemUnit.AttackSpeedMultiplier,
+                        stats.RangeCells * itemUnit.RangeMultiplier,
                         stats.AttackKind);
                 }
                 attackElapsedByUnit.TryGetValue(attacker.RuntimeId, out var attackElapsed);
@@ -759,6 +831,64 @@ namespace DragonBound.Core
                 enemy.Archetype,
                 enemy.MaxHitPoints,
                 enemy.PathProgress));
+        }
+
+        private sealed class BoardItemUnitProgressionPort : IItemUnitProgressionPort
+        {
+            private readonly BoardRecruitDestination destination;
+
+            public BoardItemUnitProgressionPort(BoardRecruitDestination destination)
+            {
+                this.destination = destination;
+            }
+
+            public bool TryAdjustLevel(ItemCombatUnitState unit, int delta, out string reason)
+            {
+                reason = ItemOperationFailure.None;
+                if (unit == null || unit.Kind != ItemCombatUnitKind.Basic || destination == null ||
+                    !destination.TryAdjustBasicUnitLevel(unit.RuntimeId, delta, out var resultingLevel))
+                {
+                    reason = "UnitProgressionUnavailable";
+                    return false;
+                }
+
+                unit.Level = resultingLevel;
+                return true;
+            }
+
+            public bool TryCompleteNextHeroLevel(ItemCombatUnitState unit, out string reason)
+            {
+                reason = ItemOperationFailure.None;
+                if (unit == null || unit.Kind != ItemCombatUnitKind.Hero || destination == null ||
+                    !destination.TryGetPairLink(unit.RuntimeId, out var pair))
+                {
+                    reason = "HeroProgressionUnavailable";
+                    return false;
+                }
+
+                var combat = pair.CombatProxy;
+                if (combat.Level >= combat.Definition.MaxLevel)
+                {
+                    reason = "MaxLevelReached";
+                    return false;
+                }
+
+                var nextExperience = combat.Definition
+                    .GetLevelStats(combat.Level + 1)
+                    .RequiredExperience;
+                var previousLevel = combat.Level;
+                combat.AddExperience(Math.Max(0, nextExperience - combat.Experience));
+                if (combat.Level != previousLevel)
+                {
+                    combat.NotifyHeroLevelUp();
+                }
+                unit.Level = combat.Level;
+                unit.Experience = combat.Experience;
+                unit.NextLevelExperience = combat.Level < combat.Definition.MaxLevel
+                    ? combat.Definition.GetLevelStats(combat.Level + 1).RequiredExperience
+                    : combat.Experience;
+                return true;
+            }
         }
     }
 }

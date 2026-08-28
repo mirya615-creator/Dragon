@@ -212,7 +212,7 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void AcceleratedW3UsesSoulchainBinderGreyboxSlotAndDoesNotIncreaseNormalCount()
+        public void W6BossUsesSoulchainBinderGreyboxSlotAndDoesNotIncreaseNormalCount()
         {
             var configuration = TwentyWavePressureConfiguration.CreateCoreLoopV2();
             var match = new MatchController(709);
@@ -226,7 +226,7 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(600f, runtime.PlayerW6Boss.MaxHitPoints, 0.0001f);
             Assert.AreEqual(1, runtime.PlayerSpawnedThisWave);
             Assert.IsTrue(runtime.PlayerEnemyRegistry.Count >= 2);
-            Assert.AreEqual(12, configuration.GetWave(3).EnemyCountPerSide);
+            Assert.AreEqual(16, configuration.GetWave(6).EnemyCountPerSide);
         }
 
         [Test]

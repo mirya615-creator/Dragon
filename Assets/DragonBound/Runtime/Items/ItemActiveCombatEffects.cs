@@ -61,9 +61,15 @@ namespace DragonBound.Items
     {
         private readonly Dictionary<string, ItemCombatUnitState> units =
             new Dictionary<string, ItemCombatUnitState>(StringComparer.Ordinal);
+        private readonly IItemUnitProgressionPort progression;
+
+        public ItemCombatUnitRegistry(IItemUnitProgressionPort progression = null)
+        {
+            this.progression = progression;
+        }
 
         public IReadOnlyCollection<ItemCombatUnitState> Units => units.Values;
-        public IItemUnitProgressionPort Progression => this;
+        public IItemUnitProgressionPort Progression => progression ?? this;
 
         public bool Register(ItemCombatUnitState unit)
         {
@@ -185,12 +191,6 @@ namespace DragonBound.Items
             {
                 return selected;
             }
-
-            foreach (var unit in context.UnitRegistry.Units)
-            {
-                if (unit.IsAlive) return unit;
-            }
-
             return null;
         }
 

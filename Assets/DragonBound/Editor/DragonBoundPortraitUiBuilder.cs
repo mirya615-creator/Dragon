@@ -262,8 +262,15 @@ namespace DragonBound.Editor
                 TextAnchor.MiddleCenter);
             heroName.raycastTarget = false;
 
+            var runeImage = CreateImage("RuneImg", root.transform, Color.white);
+            SetCentered(runeImage.rectTransform, Vector2.one, new Vector2(50f, 50f));
+            runeImage.rectTransform.anchoredPosition = new Vector2(-25f, -25f);
+            runeImage.preserveAspect = true;
+            runeImage.raycastTarget = false;
+            runeImage.gameObject.SetActive(false);
+
             var view = root.AddComponent<HeroFormationView>();
-            view.Configure(group, connector, primaryFlash, secondaryFlash, border, heroName);
+            view.Configure(group, connector, primaryFlash, secondaryFlash, border, heroName, runeImage);
             return SavePrefab(root, HeroFormationPrefabPath);
         }
 

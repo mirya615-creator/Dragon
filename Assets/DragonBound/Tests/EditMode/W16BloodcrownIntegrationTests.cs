@@ -9,7 +9,7 @@ namespace DragonBound.Tests.EditMode
     public sealed class W16BloodcrownIntegrationTests
     {
         [Test]
-        public void AcceleratedW5CreatesIndependentBloodcrownBossesWithoutIncreasingRegularWaveCount()
+        public void ProductionW16CreatesIndependentBossesWithoutIncreasingRegularWaveCount()
         {
             var configuration = TwentyWavePressureConfiguration.CreateCoreLoopV2();
             var runtime = new TwentyWavePressureRuntime(new MatchController(1601), null, null, 1601, configuration);
@@ -26,9 +26,9 @@ namespace DragonBound.Tests.EditMode
                 runtime.PlayerW16Boss.BaseMovementSpeedMultiplier * runtime.PlayerPath.TotalDistance / 12f,
                 0.0001f);
             Assert.AreEqual(1, runtime.PlayerSpawnedThisWave,
-                "W5 Normal #1 is spawned by the shared queue before the independent Boss slot.");
+                "W16 Normal #1 is spawned by the shared queue before the independent Boss slot.");
             Assert.LessOrEqual(runtime.PlayerSpawnedThisWave,
-                runtime.Configuration.GetWave(5).EnemyCountPerSide);
+                runtime.Configuration.GetWave(16).EnemyCountPerSide);
         }
 
         [Test]
@@ -62,7 +62,7 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void AcceleratedSoulChainAndStormcallerEntrypointsUseW3AndW4()
+        public void ExistingW6AndW12BossEntrypointsRemainUnchanged()
         {
             var runtime = new TwentyWavePressureRuntime(new MatchController(1603), null, null, 1603);
             Assert.IsTrue(runtime.StartRun());

@@ -8,7 +8,7 @@ namespace DragonBound.Tests.EditMode
     public sealed class W20WorldeaterIntegrationTests
     {
         [Test]
-        public void AcceleratedW6CreatesBothWorldeaterBossSlotsWithoutIncreasingRegularCount()
+        public void ProductionW20CreatesBothBossSlotsWithoutIncreasingRegularCount()
         {
             var configuration = TwentyWavePressureConfiguration.CreateCoreLoopV2();
             var runtime = new TwentyWavePressureRuntime(new MatchController(2001), null, null, 2001, configuration);
@@ -21,7 +21,7 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(5000f, runtime.PlayerW20Boss.MaxHitPoints, 0.0001f);
             Assert.AreEqual(0.20f, runtime.PlayerW20Boss.BaseMovementSpeedMultiplier * runtime.PlayerPath.TotalDistance / 12f, 0.0001f);
             Assert.AreEqual(1, runtime.PlayerSpawnedThisWave);
-            Assert.AreEqual(16, configuration.GetWave(6).EnemyCountPerSide);
+            Assert.AreEqual(43, configuration.GetWave(20).EnemyCountPerSide);
         }
 
         [Test]

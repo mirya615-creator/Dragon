@@ -155,6 +155,40 @@ namespace DragonBound.Presentation
             return false;
         }
 
+        public bool TryGetBasicBattleUnitAtScreenPoint(
+            Vector2 screenPosition,
+            out string runtimeId,
+            out RectTransform unitRect)
+        {
+            runtimeId = null;
+            unitRect = null;
+            var rootCanvas = canvas != null ? canvas.rootCanvas : GetComponentInParent<Canvas>()?.rootCanvas;
+            var eventCamera = rootCanvas == null || rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null
+                : rootCanvas.worldCamera;
+
+            foreach (var pair in unitViews)
+            {
+                var view = pair.Value;
+                if (view == null || !view.gameObject.activeInHierarchy ||
+                    unitDestination == null ||
+                    !unitDestination.TryGetCard(pair.Key, out var card) ||
+                    card.Kind != RecruitItemKind.BasicUnit ||
+                    board == null || !board.TryGetPosition(pair.Key, out var position) ||
+                    !cells.TryGetValue(position, out var cell) || cell.CellType != CellType.Battle ||
+                    !RectTransformUtility.RectangleContainsScreenPoint(view.RectTransform, screenPosition, eventCamera))
+                {
+                    continue;
+                }
+
+                runtimeId = pair.Key;
+                unitRect = view.RectTransform;
+                return true;
+            }
+
+            return false;
+        }
+
         public void Configure(
             Canvas targetCanvas,
             GridCellView[] views,
@@ -260,6 +294,7 @@ namespace DragonBound.Presentation
             {
                 unitDestination.HeroPairLinked += HandleHeroPairLinked;
                 unitDestination.HeroPairUnlinked += HandleHeroPairUnlinked;
+                unitDestination.BasicUnitLevelChanged += HandleBasicUnitLevelChanged;
             }
 
             if (canvas == null || unitLayer == null || unitPrefab == null ||
@@ -302,6 +337,7 @@ namespace DragonBound.Presentation
             {
                 unitDestination.HeroPairLinked -= HandleHeroPairLinked;
                 unitDestination.HeroPairUnlinked -= HandleHeroPairUnlinked;
+                unitDestination.BasicUnitLevelChanged -= HandleBasicUnitLevelChanged;
             }
 
             if (shovelUnlockService != null)
@@ -809,6 +845,11 @@ namespace DragonBound.Presentation
             RefreshUnits();
         }
 
+        private void HandleBasicUnitLevelChanged(string runtimeId)
+        {
+            RefreshUnits();
+        }
+
         private void HandleHeroPairUnlinked(HeroPairUnlinkedEvent unlinked)
         {
             RemovePairPresentation(unlinked.PairLink.PairLinkId);
@@ -899,6 +940,7 @@ namespace DragonBound.Presentation
                 layout.CellSize,
                 GetHeroRarityColor(definition.Rarity),
                 definition.Rarity);
+            pairView.SetRune(combat.RuneId);
             pairView.SetProgress(combat.FormationProgress);
         }
 

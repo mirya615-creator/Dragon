@@ -183,6 +183,7 @@ namespace DragonBound.Recruitment
         public event Action<HeroPairUnlinkedEvent> HeroPairUnlinked;
         public event Action<CombatRegistrationChangedEvent> CombatRegistrationChanged;
         public event Action<BasicUnitMergedEvent> BasicUnitMerged;
+        public event Action<string> BasicUnitLevelChanged;
         public event Action BasicMergeBlocked;
 
         /// <summary>Integration hook for boss policies that temporarily forbid all Basic merges.</summary>
@@ -576,6 +577,23 @@ namespace DragonBound.Recruitment
         public bool TryGetPairLink(string pairLinkId, out HeroPairLink pairLink)
         {
             return pairLinksById.TryGetValue(pairLinkId, out pairLink);
+        }
+
+        public bool TryAdjustBasicUnitLevel(string runtimeId, int delta, out int resultingLevel)
+        {
+            resultingLevel = 0;
+            if (string.IsNullOrWhiteSpace(runtimeId) ||
+                !cardsByRuntimeId.TryGetValue(runtimeId, out var card) ||
+                card.Kind != RecruitItemKind.BasicUnit ||
+                !card.TryAdjustLevel(delta))
+            {
+                return false;
+            }
+
+            resultingLevel = card.Level;
+            stateVersion++;
+            BasicUnitLevelChanged?.Invoke(runtimeId);
+            return true;
         }
 
         public bool TryGetPairLinkForComponent(string componentId, out HeroPairLink pairLink)

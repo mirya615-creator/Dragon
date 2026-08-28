@@ -91,6 +91,7 @@ namespace DragonBound.Tests.EditMode
             units.Register(unit);
             var effect = new FrenzyRuneEffect();
             var context = new ItemRunContext(team, new EnemyRegistry(), units);
+            context.SetActivationTarget(unit.RuntimeId);
 
             Assert.IsTrue(effect.TryActivate(context, out var reason), reason);
             effect.Tick(context, 60f);
@@ -102,6 +103,22 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void UnitTargetedActiveItem_DoesNotFallBackToAnAutomaticTarget()
+        {
+            var team = new TeamState(TeamSide.Player);
+            var units = new ItemCombatUnitRegistry();
+            var unit = new ItemCombatUnitState("basic-1", ItemCombatUnitKind.Basic);
+            units.Register(unit);
+            var effect = new FrenzyRuneEffect();
+            var context = new ItemRunContext(team, new EnemyRegistry(), units);
+
+            Assert.IsFalse(effect.TryActivate(context, out var reason));
+            Assert.AreEqual("NoAliveTargets", reason);
+            Assert.AreEqual(1f, unit.AttackSpeedMultiplier, 0.001f);
+            Assert.AreEqual(0f, effect.CooldownRemainingSeconds, 0.001f);
+        }
+
+        [Test]
         public void RuneOfTempering_ClampsAtLevelBoundariesAndUsesTypedProgression()
         {
             var team = new TeamState(TeamSide.Player);
@@ -110,6 +127,7 @@ namespace DragonBound.Tests.EditMode
             units.Register(unit);
             var effect = new RuneOfTemperingEffect();
             var context = new ItemRunContext(team, new EnemyRegistry(), units, 123);
+            context.SetActivationTarget(unit.RuntimeId);
 
             Assert.IsTrue(effect.TryActivate(context, out var reason), reason);
             Assert.That(effect.LastLevelDelta, Is.EqualTo(1).Or.EqualTo(-1));
@@ -125,6 +143,7 @@ namespace DragonBound.Tests.EditMode
             units.Register(hero);
             var effect = new WarforgeSigilEffect();
             var context = new ItemRunContext(team, new EnemyRegistry(), units);
+            context.SetActivationTarget(hero.RuntimeId);
 
             Assert.IsTrue(effect.TryActivate(context, out var reason), reason);
             Assert.IsTrue(effect.LastUsedHeroProgression);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
+using DragonBound.Presentation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,26 +13,7 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
 {
     private const string WeaponPrefabPath = "prefabs/Weapon";
     private const string Weapon0PrefabPath = "prefabs/Weapon0";
-    private const string RuneUiPathPrefix = "RuneUI/";
     private const int FallbackPageSize = 25;
-    private static readonly Dictionary<string, int> RuneUiNumbers =
-        new Dictionary<string, int>(StringComparer.Ordinal)
-        {
-            { "RUNE_MIGHT", 1 },
-            { "RUNE_FARREACH", 2 },
-            { "RUNE_POWER", 3 },
-            { "RUNE_LONGSHOT", 4 },
-            { "RUNE_FROSTBITE", 5 },
-            { "RUNE_RICOCHET", 6 },
-            { "RUNE_VOLLEY", 7 },
-            { "RUNE_BLADE_TEMPEST", 8 },
-            { "RUNE_AMBUSH", 9 },
-            { "RUNE_WINDHAWK", 10 },
-            { "RUNE_SKYBREAKER", 11 },
-            { "RUNE_WYRMGUARD", 12 },
-            { "RUNE_DRAGONBLOOM", 13 },
-            { "RUNE_WARCRY", 14 }
-        };
     private static readonly Color32 CommonNameColor = new Color32(80, 200, 120, 255);
     private static readonly Color32 ExcellentNameColor = new Color32(77, 163, 255, 255);
     private static readonly Color32 EpicNameColor = new Color32(181, 108, 255, 255);
@@ -54,8 +36,6 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     private Coroutine pendingInventoryChange;
     private bool runeOperationInProgress;
     private readonly List<InventoryDisplayEntry> displayEntries = new List<InventoryDisplayEntry>();
-    private readonly Dictionary<string, Sprite> runeUiSprites =
-        new Dictionary<string, Sprite>(StringComparer.Ordinal);
     private int currentPageIndex;
 
     private sealed class InventoryDisplayEntry
@@ -83,7 +63,6 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         pageText = GetText(transform.Find("page"));
         weaponPrefab = Resources.Load<GameObject>(WeaponPrefabPath);
         weapon0Prefab = Resources.Load<GameObject>(Weapon0PrefabPath);
-        LoadRuneUiSprites();
 
         if (weaponContainer == null || heroContainer == null ||
             weaponPrefab == null || weapon0Prefab == null ||
@@ -247,32 +226,16 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         dragItem.Initialize(entry.Definition.RuneId, entry.AvailableCompleteRunes);
     }
 
-    private void LoadRuneUiSprites()
-    {
-        runeUiSprites.Clear();
-        foreach (KeyValuePair<string, int> mapping in RuneUiNumbers)
-        {
-            Sprite sprite = Resources.Load<Sprite>($"{RuneUiPathPrefix}{mapping.Value}");
-            if (sprite == null)
-            {
-                Debug.LogWarning(
-                    $"Rune UI sprite '{RuneUiPathPrefix}{mapping.Value}' is missing for " +
-                    $"rune '{mapping.Key}'.",
-                    this);
-                continue;
-            }
-
-            runeUiSprites[mapping.Key] = sprite;
-        }
-    }
-
     private void ApplyRuneUi(GameObject instance, RuneDefinition definition)
     {
-        if (instance == null || definition == null ||
-            !runeUiSprites.TryGetValue(definition.RuneId, out Sprite sprite))
+        if (instance == null || definition == null)
         {
             return;
         }
+
+        string runtimeRuneId = RuneGameplayLoadoutAdapter.ResolveRuntimeRuneId(definition.RuneId);
+        Sprite sprite = RuneUiSpriteCatalog.Load(runtimeRuneId);
+        if (sprite == null) return;
 
         Transform background = instance.transform.Find("BG");
         Image runeImage = background != null ? background.GetComponent<Image>() : null;

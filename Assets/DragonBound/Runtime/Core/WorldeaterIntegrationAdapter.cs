@@ -16,6 +16,7 @@ namespace DragonBound.Core
         private readonly PressureRaceSideRuntime sideRuntime;
         private readonly BoardRecruitDestination destination;
         private readonly TeamSide side;
+        private readonly int spawnWave;
         private readonly ISoulChainSpellbreakerResolver spellbreaker;
         private readonly float initialMaxHitPoints;
 
@@ -24,12 +25,14 @@ namespace DragonBound.Core
             PressureRaceSideRuntime sideRuntime,
             BoardRecruitDestination destination,
             TeamSide side,
+            int spawnWave,
             ISoulChainSpellbreakerResolver spellbreaker)
         {
             this.boss = boss ?? throw new ArgumentNullException(nameof(boss));
             this.sideRuntime = sideRuntime ?? throw new ArgumentNullException(nameof(sideRuntime));
             this.destination = destination;
             this.side = side;
+            this.spawnWave = spawnWave;
             this.spellbreaker = spellbreaker;
             initialMaxHitPoints = boss.MaxHitPoints;
         }
@@ -128,7 +131,7 @@ namespace DragonBound.Core
         public void SpawnMinions(int count, float maxHitPoints, float moveSpeedCellsPerSecond)
         {
             sideRuntime.SpawnBossSummons(
-                20,
+                spawnWave,
                 WorldeaterWyrmConfiguration.BossId,
                 WorldeaterWyrmConfiguration.MinionId,
                 count,
@@ -153,7 +156,7 @@ namespace DragonBound.Core
         public void SpawnSubBoss(float maxHitPoints, float moveSpeedCellsPerSecond)
         {
             sideRuntime.SpawnBossSummons(
-                20,
+                spawnWave,
                 WorldeaterWyrmConfiguration.BossId,
                 WorldeaterWyrmConfiguration.SubBossId,
                 1,

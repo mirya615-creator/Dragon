@@ -21,6 +21,8 @@ namespace DragonBound.Presentation
         private const int PausePanelSortingOrder = 120;
         private const int BossWarningSortingOrder = 125;
         private const int SettlementPanelSortingOrder = 130;
+        private const int RuntimeCircleTextureSize = 64;
+        private static Sprite runtimeCircleSprite;
 
         [SerializeField] private Button pauseButton;
         [SerializeField] private Text pauseLabel;
@@ -73,6 +75,7 @@ namespace DragonBound.Presentation
         private bool activeItemDropIsOnPath;
         private bool activeItemDropIsValid;
         private CombatPoint activeItemDropPoint;
+        private string activeItemDropTargetId;
         private int suppressedClickSlot = -1;
         private Coroutine clearClickSuppressionCoroutine;
         private readonly Dictionary<Button, List<EventTrigger.Entry>> activeItemDragEntries =
@@ -775,9 +778,15 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            if (snapshot.ActiveItems[slot] == ItemIds.RuneburstMine)
+            if (IsPathPositionedItem(snapshot.ActiveItems[slot]))
             {
                 ShowTip("Drag onto enemy path");
+                return;
+            }
+
+            if (IsUnitTargetedItem(snapshot.ActiveItems[slot]))
+            {
+                ShowTip("Drag onto a basic unit");
                 return;
             }
 
@@ -801,7 +810,7 @@ namespace DragonBound.Presentation
         {
             CancelActiveItemDrag();
             var slot = ResolveActiveItemSlot(eventData);
-            if (!CanBeginPositionedItemDrag(slot, out var itemId))
+            if (!CanBeginActiveItemDrag(slot, out var itemId))
             {
                 return;
             }
@@ -833,30 +842,41 @@ namespace DragonBound.Presentation
             var releasedOnPath = activeItemDropIsOnPath;
             var validDrop = activeItemDropIsValid;
             var dropPoint = activeItemDropPoint;
+            var targetRuntimeId = activeItemDropTargetId;
+            var isUnitTargeted = IsUnitTargetedItem(releasedItemId);
             CancelActiveItemDrag();
             SuppressClickAfterDrag(releasedSlot);
 
             if (!validDrop)
             {
-                ShowTip(releasedOnPath ? "No enemies" : "Invalid placement");
+                ShowTip(isUnitTargeted
+                    ? "Drag onto a basic unit"
+                    : releasedOnPath ? "No enemies" : "Invalid placement");
                 return;
             }
 
-            if (!itemRuntime.TryUseItemAtPoint(
+            var used = isUnitTargeted
+                ? itemRuntime.TryUseItemOnUnit(
+                    TeamSide.Player,
+                    releasedItemId,
+                    targetRuntimeId,
+                    out var reason)
+                : itemRuntime.TryUseItemAtPoint(
                     TeamSide.Player,
                     releasedItemId,
                     dropPoint,
-                    out var reason))
+                    out reason);
+            if (!used)
             {
-                ShowTip(reason == "NoAliveTargets" ? "No enemies" : "Invalid placement");
+                ShowTip(FormatActiveItemFailure(reason, isUnitTargeted));
                 Debug.LogWarning(
-                    $"Positioned active item rejected: Item={releasedItemId} Reason={reason}",
+                    $"Dragged active item rejected: Item={releasedItemId} Target={targetRuntimeId} Reason={reason}",
                     this);
             }
             Refresh();
         }
 
-        private bool CanBeginPositionedItemDrag(int slot, out string itemId)
+        private bool CanBeginActiveItemDrag(int slot, out string itemId)
         {
             itemId = null;
             var snapshot = itemRuntime?.PlayerItems?.Snapshot;
@@ -868,7 +888,7 @@ namespace DragonBound.Presentation
             }
 
             itemId = snapshot.ActiveItems[slot];
-            if (itemId != ItemIds.RuneburstMine ||
+            if ((!IsPathPositionedItem(itemId) && !IsUnitTargetedItem(itemId)) ||
                 itemRuntime.PlayerItems.GetCooldownRemainingSeconds(itemId) > 0.0001f)
             {
                 return false;
@@ -876,6 +896,27 @@ namespace DragonBound.Presentation
 
             var button = slot == 0 ? activeItemSlotOne : activeItemSlotTwo;
             return button != null && button.interactable;
+        }
+
+        private static bool IsPathPositionedItem(string itemId)
+        {
+            return itemId == ItemIds.RuneburstMine;
+        }
+
+        private static bool IsUnitTargetedItem(string itemId)
+        {
+            return itemId == ItemIds.FrenzyRune ||
+                   itemId == ItemIds.RuneOfTempering ||
+                   itemId == ItemIds.WarforgeSigil;
+        }
+
+        private static string FormatActiveItemFailure(string reason, bool unitTargeted)
+        {
+            if (reason == "Cooldown") return "On cooldown";
+            if (reason == "MaxActivationsPerUnit") return "Maximum stacks reached";
+            if (reason == "MaxLevel") return "Maximum level reached";
+            if (reason == "NoAliveTargets") return unitTargeted ? "Invalid unit" : "No enemies";
+            return unitTargeted ? "Invalid unit" : "Invalid placement";
         }
 
         private int ResolveActiveItemSlot(PointerEventData eventData)
@@ -934,7 +975,7 @@ namespace DragonBound.Presentation
             var previewObject = new GameObject("AoEPreview", typeof(RectTransform), typeof(Image));
             previewObject.transform.SetParent(activeItemDragRoot, false);
             activeItemAreaPreview = previewObject.GetComponent<Image>();
-            activeItemAreaPreview.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+            activeItemAreaPreview.sprite = GetRuntimeCircleSprite();
             activeItemAreaPreview.preserveAspect = true;
             activeItemAreaPreview.raycastTarget = false;
             activeItemAreaPreview.color = new Color(0.95f, 0.25f, 0.18f, 0.24f);
@@ -965,6 +1006,34 @@ namespace DragonBound.Presentation
             }
 
             SetDragVisualScreenPosition(activeItemDragGhost, screenPosition);
+            activeItemDropTargetId = null;
+            if (IsUnitTargetedItem(activeDragItemId))
+            {
+                activeItemDropIsOnPath = false;
+                activeItemDropIsValid = TryResolveBasicUnitDrop(
+                    screenPosition,
+                    out activeItemDropTargetId,
+                    out var targetCenter,
+                    out var targetSize);
+                if (activeItemAreaPreview != null)
+                {
+                    SetDragVisualScreenPosition(
+                        activeItemAreaPreview.rectTransform,
+                        activeItemDropIsValid ? targetCenter : screenPosition);
+                    var canvas = activeItemDragRoot.GetComponentInParent<Canvas>()?.rootCanvas;
+                    var scaleFactor = canvas != null ? Mathf.Max(0.0001f, canvas.scaleFactor) : 1f;
+                    activeItemAreaPreview.preserveAspect = false;
+                    activeItemAreaPreview.rectTransform.sizeDelta = activeItemDropIsValid
+                        ? targetSize / scaleFactor
+                        : Vector2.one * 80f;
+                    activeItemAreaPreview.color = activeItemDropIsValid
+                        ? new Color(0.30f, 0.95f, 0.42f, 0.32f)
+                        : new Color(0.95f, 0.25f, 0.18f, 0.24f);
+                    activeItemAreaPreview.gameObject.SetActive(true);
+                }
+                return;
+            }
+
             activeItemDropIsOnPath = TryResolvePositionedItemDrop(
                 screenPosition,
                 out activeItemDropPoint,
@@ -985,6 +1054,41 @@ namespace DragonBound.Presentation
                     : new Color(0.95f, 0.25f, 0.18f, 0.24f);
                 activeItemAreaPreview.gameObject.SetActive(pixelsPerCell > 0f);
             }
+        }
+
+        private bool TryResolveBasicUnitDrop(
+            Vector2 screenPosition,
+            out string runtimeId,
+            out Vector2 targetCenter,
+            out Vector2 targetSize)
+        {
+            runtimeId = null;
+            targetCenter = screenPosition;
+            targetSize = Vector2.zero;
+            var boardView = GetComponentInParent<DragonBoundScreenView>()?.PlayerBoardView;
+            if (boardView == null ||
+                !boardView.TryGetBasicBattleUnitAtScreenPoint(screenPosition, out runtimeId, out var unitRect) ||
+                itemRuntime?.PlayerItems?.UnitRegistry == null ||
+                !itemRuntime.PlayerItems.UnitRegistry.TryGet(runtimeId, out var unit) ||
+                unit.Kind != ItemCombatUnitKind.Basic || !unit.IsAlive)
+            {
+                runtimeId = null;
+                return false;
+            }
+
+            var canvas = activeItemDragRoot.GetComponentInParent<Canvas>()?.rootCanvas;
+            var eventCamera = canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null
+                : canvas.worldCamera;
+            var corners = new Vector3[4];
+            unitRect.GetWorldCorners(corners);
+            var bottomLeft = RectTransformUtility.WorldToScreenPoint(eventCamera, corners[0]);
+            var topRight = RectTransformUtility.WorldToScreenPoint(eventCamera, corners[2]);
+            targetCenter = (bottomLeft + topRight) * 0.5f;
+            targetSize = new Vector2(
+                Mathf.Abs(topRight.x - bottomLeft.x),
+                Mathf.Abs(topRight.y - bottomLeft.y));
+            return true;
         }
 
         private bool TryResolvePositionedItemDrop(
@@ -1098,6 +1202,7 @@ namespace DragonBound.Presentation
             activeDragItemId = null;
             activeItemDropIsOnPath = false;
             activeItemDropIsValid = false;
+            activeItemDropTargetId = null;
             if (activeItemDragRoot != null)
             {
                 Destroy(activeItemDragRoot.gameObject);
@@ -1306,7 +1411,7 @@ namespace DragonBound.Presentation
             {
                 Transform slot = passiveContainer.Find("Passtive" + index) ??
                                  passiveContainer.Find("Passive" + index);
-                passiveItemCooldownMasks[index] = slot?.Find("CooldownMask")?.GetComponent<Image>();
+                passiveItemCooldownMasks[index] = EnsureCooldownMask(slot);
                 passiveItemSlots[index] = slot;
             }
         }
@@ -1339,17 +1444,20 @@ namespace DragonBound.Presentation
         {
             if (slot == null) return null;
             var existing = slot.Find("CooldownMask")?.GetComponent<Image>();
-            if (existing != null) return existing;
-
-            var maskObject = new GameObject("CooldownMask", typeof(RectTransform), typeof(Image));
-            maskObject.transform.SetParent(slot, false);
+            var maskObject = existing != null
+                ? existing.gameObject
+                : new GameObject("CooldownMask", typeof(RectTransform), typeof(Image));
+            if (existing == null)
+            {
+                maskObject.transform.SetParent(slot, false);
+            }
             var rect = maskObject.GetComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
             var image = maskObject.GetComponent<Image>();
-            image.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+            image.sprite = GetRuntimeCircleSprite();
             image.type = Image.Type.Filled;
             image.fillMethod = Image.FillMethod.Radial360;
             image.fillOrigin = (int)Image.Origin360.Top;
@@ -1358,8 +1466,55 @@ namespace DragonBound.Presentation
             image.preserveAspect = true;
             image.color = new Color(0f, 0f, 0f, 0.58f);
             image.raycastTarget = false;
-            maskObject.SetActive(false);
+            image.transform.SetAsLastSibling();
+            if (existing == null)
+            {
+                maskObject.SetActive(false);
+            }
             return image;
+        }
+
+        private static Sprite GetRuntimeCircleSprite()
+        {
+            if (runtimeCircleSprite != null)
+            {
+                return runtimeCircleSprite;
+            }
+
+            var size = RuntimeCircleTextureSize;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                name = "DragonBound_RuntimeCircleTexture",
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            var pixels = new Color32[size * size];
+            var center = (size - 1) * 0.5f;
+            var radius = center - 0.5f;
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var distance = Mathf.Sqrt(
+                        (x - center) * (x - center) +
+                        (y - center) * (y - center));
+                    var alpha = (byte)Mathf.RoundToInt(
+                        Mathf.Clamp01(radius - distance + 1f) * 255f);
+                    pixels[y * size + x] = new Color32(255, 255, 255, alpha);
+                }
+            }
+            texture.SetPixels32(pixels);
+            texture.Apply(false, true);
+
+            runtimeCircleSprite = Sprite.Create(
+                texture,
+                new Rect(0f, 0f, size, size),
+                new Vector2(0.5f, 0.5f),
+                size);
+            runtimeCircleSprite.name = "DragonBound_RuntimeCircleSprite";
+            runtimeCircleSprite.hideFlags = HideFlags.HideAndDontSave;
+            return runtimeCircleSprite;
         }
 
         private static void SetCooldownMask(Image mask, float fillAmount, bool visible)

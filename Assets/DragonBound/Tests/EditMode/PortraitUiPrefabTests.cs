@@ -156,7 +156,13 @@ namespace DragonBound.Tests.EditMode
 
             var cardView = unitCard.GetComponent<DraggableUnitView>();
             Assert.IsNotNull(cardView.HeroLevelLabel);
-            Assert.IsNotNull(formation.GetComponent<HeroFormationView>());
+            var formationView = formation.GetComponent<HeroFormationView>();
+            Assert.IsNotNull(formationView);
+            Assert.IsNotNull(formationView.RuneImage);
+            Assert.AreEqual("RuneImg", formationView.RuneImage.name);
+            Assert.IsFalse(formationView.RuneImage.raycastTarget);
+            Assert.IsTrue(formationView.RuneImage.preserveAspect);
+            Assert.IsFalse(formationView.RuneImage.gameObject.activeSelf);
 
             var screen = AssetDatabase.LoadAssetAtPath<GameObject>(ScreenPath);
             var screenView = screen.GetComponent<DragonBoundScreenView>();
@@ -164,6 +170,47 @@ namespace DragonBound.Tests.EditMode
             {
                 Assert.IsNotNull(board.HeroPrefab);
                 Assert.IsNotNull(board.HeroFormationEffectPrefab);
+            }
+        }
+
+        [TestCase("Might", 1)]
+        [TestCase("Farreach", 2)]
+        [TestCase("Power", 3)]
+        [TestCase("Longshot", 4)]
+        [TestCase("Frostbite", 5)]
+        [TestCase("Ricochet", 6)]
+        [TestCase("Volley", 7)]
+        [TestCase("BladeTempest", 8)]
+        [TestCase("Ambush", 9)]
+        [TestCase("Windhawk", 10)]
+        [TestCase("Skybreaker", 11)]
+        [TestCase("Wyrmguard", 12)]
+        [TestCase("Dragonbloom", 13)]
+        [TestCase("Warcry", 14)]
+        public void RuntimeRuneResolvesToExpectedUiResourcePath(string runtimeRuneId, int resourceNumber)
+        {
+            Assert.AreEqual($"RuneUI/{resourceNumber}", RuneUiSpriteCatalog.GetResourcePath(runtimeRuneId));
+        }
+
+        [Test]
+        public void FormationShowsEquippedRuneAndHidesEmptyRune()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HeroFormationPath);
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var view = instance.GetComponent<HeroFormationView>();
+                view.SetRune("Ricochet");
+                Assert.IsTrue(view.RuneImage.gameObject.activeSelf);
+                Assert.AreEqual(RuneUiSpriteCatalog.Load("Ricochet"), view.RuneImage.sprite);
+
+                view.SetRune(string.Empty);
+                Assert.IsFalse(view.RuneImage.gameObject.activeSelf);
+                Assert.IsNull(view.RuneImage.sprite);
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
             }
         }
 

@@ -1,7 +1,10 @@
 using System.Linq;
+using DragonBound.Combat;
 using DragonBound.Core;
+using DragonBound.Grid;
 using DragonBound.Items;
 using DragonBound.Presentation;
+using DragonBound.Recruitment;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
@@ -75,6 +78,48 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void BerserkerWarDrum_TargetsTheDeployedBasicUnitRegistryUsedByCombat()
+        {
+            var destination = CreateDestinationWithDeployedBasic(out var basic);
+            var snapshot = CreateSnapshot(ItemIds.FrenzyRune, null);
+            var runtime = new TwentyWavePressureRuntime(
+                new MatchController(817), destination, null, 817,
+                itemSnapshotProvider: new FixedSnapshots(snapshot, ItemRunSnapshot.Empty));
+
+            Assert.IsTrue(runtime.StartRun());
+            Assert.IsTrue(runtime.TryUseItemOnUnit(
+                TeamSide.Player,
+                ItemIds.FrenzyRune,
+                basic.RuntimeId,
+                out var reason), reason);
+            Assert.IsTrue(runtime.PlayerItems.UnitRegistry.TryGet(basic.RuntimeId, out var itemUnit));
+            Assert.AreEqual(FrenzyRuneEffect.AttackSpeedMultiplier, itemUnit.AttackSpeedMultiplier, 0.001f);
+            Assert.Greater(runtime.PlayerItems.GetCooldownRemainingSeconds(ItemIds.FrenzyRune), 59.9f);
+        }
+
+        [Test]
+        public void WarforgeSigil_UpdatesTheRealRecruitCardLevel()
+        {
+            var destination = CreateDestinationWithDeployedBasic(out var basic);
+            var snapshot = CreateSnapshot(ItemIds.WarforgeSigil, null);
+            var runtime = new TwentyWavePressureRuntime(
+                new MatchController(818), destination, null, 818,
+                itemSnapshotProvider: new FixedSnapshots(snapshot, ItemRunSnapshot.Empty));
+
+            Assert.AreEqual(1, basic.Level);
+            Assert.IsTrue(runtime.StartRun());
+            Assert.IsTrue(runtime.TryUseItemOnUnit(
+                TeamSide.Player,
+                ItemIds.WarforgeSigil,
+                basic.RuntimeId,
+                out var reason), reason);
+            Assert.AreEqual(2, basic.Level);
+            Assert.IsTrue(runtime.PlayerItems.UnitRegistry.TryGet(basic.RuntimeId, out var itemUnit));
+            Assert.AreEqual(2, itemUnit.Level);
+            Assert.Greater(runtime.PlayerItems.GetCooldownRemainingSeconds(ItemIds.WarforgeSigil), 89.9f);
+        }
+
+        [Test]
         public void RuneburstMine_KillUsesFormalEnemySettlement()
         {
             var snapshot = CreateSnapshot(ItemIds.RuneburstMine, null);
@@ -129,6 +174,8 @@ namespace DragonBound.Tests.EditMode
             var pause = CreateButton(root.transform, "Pause");
             var first = CreateButton(root.transform, "Item1");
             var second = CreateButton(root.transform, "Item2");
+            var authoredMask = new GameObject("CooldownMask", typeof(RectTransform), typeof(Image));
+            authoredMask.transform.SetParent(first.transform, false);
             var firstLabel = first.GetComponentInChildren<Text>();
             var secondLabel = second.GetComponentInChildren<Text>();
             hud.Configure(pause, pause.GetComponentInChildren<Text>(), firstLabel, firstLabel);
@@ -146,6 +193,9 @@ namespace DragonBound.Tests.EditMode
             var cooldownMask = first.transform.Find("CooldownMask").GetComponent<Image>();
             Assert.IsTrue(cooldownMask.gameObject.activeSelf);
             Assert.Greater(cooldownMask.fillAmount, 0.99f);
+            Assert.IsNotNull(cooldownMask.sprite);
+            Assert.AreEqual(Image.Type.Filled, cooldownMask.type);
+            Assert.AreEqual(first.transform.childCount - 1, cooldownMask.transform.GetSiblingIndex());
             Object.DestroyImmediate(root);
         }
 
@@ -188,6 +238,24 @@ namespace DragonBound.Tests.EditMode
                 Assert.IsTrue(profile.Loadout.TryEquip(passive, profile.Inventory, out _));
             }
             return profile;
+        }
+
+        private static BoardRecruitDestination CreateDestinationWithDeployedBasic(out RecruitCard basic)
+        {
+            var board = DragonBoundBoardLayout.Create(
+                BattlefieldLayoutDefinitions.Compact4x4,
+                TeamSide.Player);
+            var destination = new BoardRecruitDestination(board);
+            var batch = DragonRouteHeroDevelopmentFactory.CreateBatch(
+                HeroSliceCatalog.WindclawRangerHeroId,
+                "item.integration");
+            destination.Commit(destination.Plan(RecruitBatch.CardsPerRecruitment), batch);
+            basic = batch.Cards.First(card => card.Kind == RecruitItemKind.BasicUnit);
+            Assert.IsTrue(board.TryGetPosition(basic.RuntimeId, out var source));
+            var target = board.GetPositions(CellType.Battle)
+                .First(position => !board.TryGetOccupant(position, out _));
+            Assert.IsTrue(board.TryMove(source, target));
+            return destination;
         }
 
         private static Button CreateButton(Transform parent, string name)

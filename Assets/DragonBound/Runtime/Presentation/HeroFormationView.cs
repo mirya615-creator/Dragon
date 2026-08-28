@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using DragonBound.Recruitment;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,6 +15,7 @@ namespace DragonBound.Presentation
         [SerializeField] private Image secondaryFlash;
         [SerializeField] private Image doubleCellBorder;
         [SerializeField] private Text heroNameLabel;
+        [SerializeField] private Image runeImage;
 
         private Vector3 connectorScale = Vector3.one;
         private bool connectorScaleCaptured;
@@ -21,6 +24,7 @@ namespace DragonBound.Presentation
         private static bool rarityFramesLoaded;
 
         public RectTransform RectTransform => (RectTransform)transform;
+        public Image RuneImage => runeImage;
 
         public void Configure(
             CanvasGroup group,
@@ -28,7 +32,8 @@ namespace DragonBound.Presentation
             Image firstFlash,
             Image secondFlash,
             Image border,
-            Text nameLabel)
+            Text nameLabel,
+            Image equippedRuneImage = null)
         {
             canvasGroup = group;
             connectorLine = line;
@@ -36,6 +41,7 @@ namespace DragonBound.Presentation
             secondaryFlash = secondFlash;
             doubleCellBorder = border;
             heroNameLabel = nameLabel;
+            runeImage = equippedRuneImage;
         }
 
         public void Initialize(
@@ -99,6 +105,23 @@ namespace DragonBound.Presentation
             }
 
             SetProgress(0f);
+        }
+
+        public void SetRune(string runtimeRuneId)
+        {
+            SetRuneSprite(RuneUiSpriteCatalog.Load(runtimeRuneId));
+        }
+
+        public void SetRuneSprite(Sprite sprite)
+        {
+            if (runeImage == null)
+            {
+                return;
+            }
+
+            runeImage.sprite = sprite;
+            runeImage.raycastTarget = false;
+            runeImage.gameObject.SetActive(sprite != null);
         }
 
         public void SetProgress(float progress)
@@ -198,6 +221,78 @@ namespace DragonBound.Presentation
             var color = graphic.color;
             color.a = Mathf.Clamp01(alpha);
             graphic.color = color;
+        }
+    }
+
+    /// <summary>
+    /// Single presentation mapping shared by Main's WeaponPanel and in-run hero formations.
+    /// Gameplay uses canonical runtime rune ids; the actual art remains replaceable under Resources/RuneUI.
+    /// </summary>
+    public static class RuneUiSpriteCatalog
+    {
+        private const string ResourcePrefix = "RuneUI/";
+
+        private static readonly IReadOnlyDictionary<string, int> ResourceNumbers =
+            new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                ["Might"] = 1,
+                ["Farreach"] = 2,
+                ["Power"] = 3,
+                ["Longshot"] = 4,
+                ["Frostbite"] = 5,
+                ["Ricochet"] = 6,
+                ["Volley"] = 7,
+                ["BladeTempest"] = 8,
+                ["Ambush"] = 9,
+                ["Windhawk"] = 10,
+                ["Skybreaker"] = 11,
+                ["Wyrmguard"] = 12,
+                ["Dragonbloom"] = 13,
+                ["Warcry"] = 14
+            };
+
+        private static readonly Dictionary<string, Sprite> SpriteCache =
+            new Dictionary<string, Sprite>(StringComparer.Ordinal);
+        private static readonly HashSet<string> MissingSpriteWarnings =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        public static string GetResourcePath(string runtimeRuneId)
+        {
+            if (string.IsNullOrWhiteSpace(runtimeRuneId) ||
+                !ResourceNumbers.TryGetValue(runtimeRuneId.Trim(), out var resourceNumber))
+            {
+                return string.Empty;
+            }
+
+            return ResourcePrefix + resourceNumber;
+        }
+
+        public static Sprite Load(string runtimeRuneId)
+        {
+            var resourcePath = GetResourcePath(runtimeRuneId);
+            if (string.IsNullOrEmpty(resourcePath))
+            {
+                return null;
+            }
+
+            if (SpriteCache.TryGetValue(resourcePath, out var cached))
+            {
+                return cached;
+            }
+
+            var sprite = Resources.Load<Sprite>(resourcePath);
+            if (sprite != null)
+            {
+                SpriteCache[resourcePath] = sprite;
+                return sprite;
+            }
+
+            if (MissingSpriteWarnings.Add(resourcePath))
+            {
+                Debug.LogWarning($"Rune UI sprite '{resourcePath}' is missing for rune '{runtimeRuneId}'.");
+            }
+
+            return null;
         }
     }
 }
