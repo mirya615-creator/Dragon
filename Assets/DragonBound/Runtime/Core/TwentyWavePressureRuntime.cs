@@ -404,10 +404,10 @@ namespace DragonBound.Core
 
             waveElapsedTime += deltaSeconds;
             elapsedRunTime += deltaSeconds;
-            player.Tick(deltaSeconds, currentWaveIndex);
-            ai.Tick(deltaSeconds, currentWaveIndex);
             playerItems?.Tick(deltaSeconds);
             aiItems?.Tick(deltaSeconds);
+            player.Tick(deltaSeconds, currentWaveIndex);
+            ai.Tick(deltaSeconds, currentWaveIndex);
             playerW6Boss?.Tick(deltaSeconds);
             aiW6Boss?.Tick(deltaSeconds);
             playerW12Boss?.Tick(deltaSeconds);
@@ -578,7 +578,8 @@ namespace DragonBound.Core
                 runSeed: runSeed,
                 opposingTeam: match.AI,
                 opposingRouteEnemies: ai.Registry,
-                itemEnemyDamage: player);
+                itemEnemyDamage: player,
+                initialCooldownSeconds: configuration.GetWave(1).FirstSpawnDelaySeconds);
             aiItems = new ItemRunRuntime(
                 aiSnapshot,
                 match.AI,
@@ -587,7 +588,8 @@ namespace DragonBound.Core
                 runSeed: runSeed,
                 opposingTeam: match.Player,
                 opposingRouteEnemies: player.Registry,
-                itemEnemyDamage: ai);
+                itemEnemyDamage: ai,
+                initialCooldownSeconds: configuration.GetWave(1).FirstSpawnDelaySeconds);
             if (!playerItems.StartRun(out reason) || !aiItems.StartRun(out reason))
             {
                 Emit("TwentyWave ItemRuntimeStartRejected Reason=" + (reason ?? "Unknown"));

@@ -17,7 +17,12 @@ namespace DragonBound.Analytics
             string configVersion,
             string buildVersion,
             string rankTier,
-            string aiDifficulty)
+            string aiDifficulty,
+            string aiProfile = "",
+            string aiAlgorithmVersion = "",
+            int aiDecisionSeed = 0,
+            bool aiRecoveryMatch = false,
+            int playerRankLevel = 0)
         {
             RunId = runId ?? string.Empty;
             RunSeed = runSeed;
@@ -26,6 +31,11 @@ namespace DragonBound.Analytics
             BuildVersion = buildVersion ?? string.Empty;
             RankTier = rankTier ?? string.Empty;
             AiDifficulty = aiDifficulty ?? string.Empty;
+            AiProfile = aiProfile ?? string.Empty;
+            AiAlgorithmVersion = aiAlgorithmVersion ?? string.Empty;
+            AiDecisionSeed = aiDecisionSeed;
+            AiRecoveryMatch = aiRecoveryMatch;
+            PlayerRankLevel = playerRankLevel;
         }
 
         public string RunId { get; }
@@ -35,6 +45,11 @@ namespace DragonBound.Analytics
         public string BuildVersion { get; }
         public string RankTier { get; }
         public string AiDifficulty { get; }
+        public string AiProfile { get; }
+        public string AiAlgorithmVersion { get; }
+        public int AiDecisionSeed { get; }
+        public bool AiRecoveryMatch { get; }
+        public int PlayerRankLevel { get; }
     }
 
     /// <summary>
@@ -445,6 +460,11 @@ namespace DragonBound.Analytics
                 context.ConfigVersion,
                 context.BuildVersion,
                 utcNow());
+            value.ai_profile = context.AiProfile;
+            value.ai_algorithm_version = context.AiAlgorithmVersion;
+            value.ai_decision_seed = context.AiDecisionSeed;
+            value.ai_recovery_match = context.AiRecoveryMatch;
+            value.player_rank_level = context.PlayerRankLevel;
             configure?.Invoke(value);
             var result = recorder.Record(value, out var error);
             LastError = error;

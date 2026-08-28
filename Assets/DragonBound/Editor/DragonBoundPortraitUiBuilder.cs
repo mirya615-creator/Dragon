@@ -244,6 +244,8 @@ namespace DragonBound.Editor
             var connector = CreateImage("ART_ComponentConnector", root.transform, Color.white);
             SetCentered(connector.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(100f, 7f));
             connector.raycastTarget = false;
+            var heroAttackAnimator = connector.gameObject.AddComponent<Animator>();
+            heroAttackAnimator.speed = 0f;
 
             var primaryFlash = CreateCircleImage("ART_PrimaryFlash", root.transform, new Color(1f, 1f, 1f, 0f));
             SetCentered(primaryFlash.rectTransform, new Vector2(0.25f, 0.5f), new Vector2(100f, 100f));
@@ -270,7 +272,15 @@ namespace DragonBound.Editor
             runeImage.gameObject.SetActive(false);
 
             var view = root.AddComponent<HeroFormationView>();
-            view.Configure(group, connector, primaryFlash, secondaryFlash, border, heroName, runeImage);
+            view.Configure(
+                group,
+                connector,
+                primaryFlash,
+                secondaryFlash,
+                border,
+                heroName,
+                runeImage,
+                heroAttackAnimator);
             return SavePrefab(root, HeroFormationPrefabPath);
         }
 

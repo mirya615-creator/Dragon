@@ -16,15 +16,20 @@ namespace DragonBound.Presentation
         [SerializeField] private Image doubleCellBorder;
         [SerializeField] private Text heroNameLabel;
         [SerializeField] private Image runeImage;
+        [SerializeField] private Animator heroAttackAnimator;
 
         private Vector3 connectorScale = Vector3.one;
         private bool connectorScaleCaptured;
+        private string configuredAnimationHeroId = string.Empty;
+        private int observedAttackSequence;
+        private bool attackSequenceObserved;
         private static Sprite purpleFrameSprite;
         private static Sprite goldFrameSprite;
         private static bool rarityFramesLoaded;
 
         public RectTransform RectTransform => (RectTransform)transform;
         public Image RuneImage => runeImage;
+        public Animator HeroAttackAnimator => heroAttackAnimator;
 
         public void Configure(
             CanvasGroup group,
@@ -33,7 +38,8 @@ namespace DragonBound.Presentation
             Image secondFlash,
             Image border,
             Text nameLabel,
-            Image equippedRuneImage = null)
+            Image equippedRuneImage = null,
+            Animator attackAnimator = null)
         {
             canvasGroup = group;
             connectorLine = line;
@@ -42,6 +48,7 @@ namespace DragonBound.Presentation
             doubleCellBorder = border;
             heroNameLabel = nameLabel;
             runeImage = equippedRuneImage;
+            heroAttackAnimator = attackAnimator;
         }
 
         public void Initialize(
@@ -122,6 +129,59 @@ namespace DragonBound.Presentation
             runeImage.sprite = sprite;
             runeImage.raycastTarget = false;
             runeImage.gameObject.SetActive(sprite != null);
+        }
+
+        public void SetHeroAnimation(string heroId)
+        {
+            if (heroAttackAnimator == null ||
+                string.Equals(configuredAnimationHeroId, heroId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            configuredAnimationHeroId = heroId ?? string.Empty;
+            attackSequenceObserved = false;
+            observedAttackSequence = 0;
+            heroAttackAnimator.runtimeAnimatorController = HeroAnimationControllerCatalog.Load(heroId);
+            if (heroAttackAnimator.runtimeAnimatorController == null)
+            {
+                heroAttackAnimator.enabled = false;
+                return;
+            }
+
+            // Keep the authored first frame visible without autoplaying when the formation is created.
+            heroAttackAnimator.enabled = true;
+            heroAttackAnimator.Rebind();
+            heroAttackAnimator.Update(0f);
+            heroAttackAnimator.speed = 0f;
+        }
+
+        public void ObserveAttackSequence(int attackSequence)
+        {
+            attackSequence = Mathf.Max(0, attackSequence);
+            if (!attackSequenceObserved || attackSequence < observedAttackSequence)
+            {
+                observedAttackSequence = attackSequence;
+                attackSequenceObserved = true;
+                return;
+            }
+
+            if (attackSequence == observedAttackSequence)
+            {
+                return;
+            }
+
+            observedAttackSequence = attackSequence;
+            if (heroAttackAnimator == null || heroAttackAnimator.runtimeAnimatorController == null)
+            {
+                return;
+            }
+
+            heroAttackAnimator.enabled = true;
+            heroAttackAnimator.speed = 1f;
+            // State hash 0 restarts the current/default state at the authored first frame.
+            heroAttackAnimator.Play(0, 0, 0f);
+            heroAttackAnimator.Update(0f);
         }
 
         public void SetProgress(float progress)
@@ -290,6 +350,73 @@ namespace DragonBound.Presentation
             if (MissingSpriteWarnings.Add(resourcePath))
             {
                 Debug.LogWarning($"Rune UI sprite '{resourcePath}' is missing for rune '{runtimeRuneId}'.");
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Maps formal hero ids to the authored, non-looping UI animation controllers under Resources/Animation.
+    /// </summary>
+    public static class HeroAnimationControllerCatalog
+    {
+        private static readonly IReadOnlyDictionary<string, string> ResourcePaths =
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [DragonBoundHeroIds.WindclawRanger] = "Animation/Windclaw Ranger",
+                [DragonBoundHeroIds.EmberShaman] = "Animation/Ember Shaman",
+                [DragonBoundHeroIds.RuneboltMage] = "Animation/Runebolt Mage",
+                [DragonBoundHeroIds.Stonebinder] = "Animation/Stonebound Warlock",
+                [DragonBoundHeroIds.CrownSwordLeader] = "Animation/Oathcrown Blademaster",
+                [DragonBoundHeroIds.CrownHunterLeader] = "Animation/Frostcrown Hunter",
+                [DragonBoundHeroIds.DragonRider] = "Animation/Flame Drake Rider ",
+                [DragonBoundHeroIds.StarfallArchmage] = "Animation/Starfall Archmage",
+                [DragonBoundHeroIds.ThunderJarl] = "Animation/Thunderlord",
+                [DragonBoundHeroIds.NightfangAssassin] = "Animation/Nightfang Assassin",
+                [DragonBoundHeroIds.LeviathanHunter] = "Animation/Abyssal Harpooner",
+                [DragonBoundHeroIds.SkyhunterValkyrie] = "Animation/Skyborne Valkyrie"
+            };
+
+        private static readonly Dictionary<string, RuntimeAnimatorController> ControllerCache =
+            new Dictionary<string, RuntimeAnimatorController>(StringComparer.Ordinal);
+        private static readonly HashSet<string> MissingControllerWarnings =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        public static string GetResourcePath(string heroId)
+        {
+            if (string.IsNullOrWhiteSpace(heroId) ||
+                !ResourcePaths.TryGetValue(heroId.Trim(), out var resourcePath))
+            {
+                return string.Empty;
+            }
+
+            return resourcePath;
+        }
+
+        public static RuntimeAnimatorController Load(string heroId)
+        {
+            var resourcePath = GetResourcePath(heroId);
+            if (string.IsNullOrEmpty(resourcePath))
+            {
+                return null;
+            }
+
+            if (ControllerCache.TryGetValue(resourcePath, out var cached))
+            {
+                return cached;
+            }
+
+            var controller = Resources.Load<RuntimeAnimatorController>(resourcePath);
+            if (controller != null)
+            {
+                ControllerCache[resourcePath] = controller;
+                return controller;
+            }
+
+            if (MissingControllerWarnings.Add(resourcePath))
+            {
+                Debug.LogWarning($"Hero animation controller '{resourcePath}' is missing for hero '{heroId}'.");
             }
 
             return null;

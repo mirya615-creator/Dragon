@@ -940,6 +940,8 @@ namespace DragonBound.Presentation
                 layout.CellSize,
                 GetHeroRarityColor(definition.Rarity),
                 definition.Rarity);
+            pairView.SetHeroAnimation(pairLink.HeroId);
+            pairView.ObserveAttackSequence(combat.SuccessfulAttackSequence);
             pairView.SetRune(combat.RuneId);
             pairView.SetProgress(combat.FormationProgress);
         }

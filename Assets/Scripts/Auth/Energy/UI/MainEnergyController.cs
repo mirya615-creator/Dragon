@@ -32,6 +32,7 @@ public sealed class MainEnergyController : MonoBehaviour
     private TMP_Text tipText;
     private TMP_Text rewardAmountText;
     private IPlayerEnergyGateway energyGateway;
+    private IPlayerRankGateway rankGateway;
     private IAuthSessionStore authSessionStore;
     private IRewardedAdService rewardedAdService;
     private IShareService shareService;
@@ -55,6 +56,7 @@ public sealed class MainEnergyController : MonoBehaviour
     {
         IClientServices services = ClientCompositionRoot.Current;
         energyGateway = services.Energy;
+        rankGateway = services.Rank;
         authSessionStore = services.AuthSession;
         rewardedAdService = services.RewardedAds;
         shareService = services.Share;
@@ -178,7 +180,11 @@ public sealed class MainEnergyController : MonoBehaviour
 
         try
         {
-            string launchNonce = GameplayLaunchContext.GetOrCreateNonce(playerId);
+            PlayerRankState rank = await rankGateway.GetRankAsync(
+                playerId,
+                lifetimeCancellation.Token);
+            int rankLevel = rank != null ? rank.Level : 1;
+            string launchNonce = GameplayLaunchContext.GetOrCreateNonce(playerId, rankLevel);
             EnergyConsumeResult result = await energyGateway.ConsumeEnergyAsync(
                 playerId,
                 LocalPlayerEnergyGateway.GameStartCost,

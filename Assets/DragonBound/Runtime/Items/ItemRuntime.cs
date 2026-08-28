@@ -451,6 +451,7 @@ namespace DragonBound.Items
         private readonly Dictionary<string, IItemEffectRuntime> effects =
             new Dictionary<string, IItemEffectRuntime>(StringComparer.Ordinal);
         private readonly ItemRunContext context;
+        private bool effectsActivated;
 
         public ItemRunRuntime(
             ItemRunSnapshot snapshot,
@@ -466,9 +467,16 @@ namespace DragonBound.Items
             IItemRunResourcePort runResource = null,
             IItemFreeRecruitPort freeRecruit = null,
             IItemForgePickPort forgePick = null,
-            IItemEnemyDamagePort itemEnemyDamage = null)
+            IItemEnemyDamagePort itemEnemyDamage = null,
+            float initialCooldownSeconds = 0f)
         {
+            if (initialCooldownSeconds < 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(initialCooldownSeconds));
+            }
             Snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
+            InitialCooldownDurationSeconds = initialCooldownSeconds;
+            InitialCooldownRemainingSeconds = initialCooldownSeconds;
             context = new ItemRunContext(
                 ownTeam,
                 ownRouteEnemies,
@@ -488,6 +496,10 @@ namespace DragonBound.Items
 
         public ItemRunSnapshot Snapshot { get; }
         public bool IsStarted { get; private set; }
+        public float InitialCooldownDurationSeconds { get; }
+        public float InitialCooldownRemainingSeconds { get; private set; }
+        public bool IsInitialCooldownActive => IsStarted && InitialCooldownRemainingSeconds > 0.0001f;
+        public bool AreEffectsActivated => effectsActivated;
         public float ElapsedSeconds => context.ElapsedSeconds;
         public ItemRunContext Context => context;
         public ItemCombatUnitRegistry UnitRegistry => context.UnitRegistry;
@@ -501,12 +513,11 @@ namespace DragonBound.Items
                 return true;
             }
 
-            foreach (var effect in effects.Values)
-            {
-                effect.OnRunStart(context);
-            }
-
             IsStarted = true;
+            if (InitialCooldownRemainingSeconds <= 0.0001f)
+            {
+                ActivateEffects();
+            }
             return true;
         }
 
@@ -518,6 +529,29 @@ namespace DragonBound.Items
             }
 
             context.ElapsedSeconds += deltaSeconds;
+            if (InitialCooldownRemainingSeconds > 0.0001f)
+            {
+                var cooldownSlice = Math.Min(deltaSeconds, InitialCooldownRemainingSeconds);
+                InitialCooldownRemainingSeconds = Math.Max(
+                    0f,
+                    InitialCooldownRemainingSeconds - deltaSeconds);
+                deltaSeconds -= cooldownSlice;
+                if (InitialCooldownRemainingSeconds > 0.0001f)
+                {
+                    return;
+                }
+
+                ActivateEffects();
+            }
+
+            if (!effectsActivated)
+            {
+                ActivateEffects();
+            }
+            if (deltaSeconds <= 0f)
+            {
+                return;
+            }
             foreach (var effect in effects.Values)
             {
                 effect.Tick(context, deltaSeconds);
@@ -550,6 +584,12 @@ namespace DragonBound.Items
             if (!IsStarted)
             {
                 reason = "RunNotStarted";
+                return false;
+            }
+
+            if (IsInitialCooldownActive)
+            {
+                reason = "InitialCooldown";
                 return false;
             }
 
@@ -614,7 +654,7 @@ namespace DragonBound.Items
 
         public void HandleCombatEvent(ItemCombatEvent combatEvent)
         {
-            if (!IsStarted)
+            if (!IsStarted || !effectsActivated)
             {
                 return;
             }
@@ -640,6 +680,12 @@ namespace DragonBound.Items
                 return false;
             }
 
+            if (IsInitialCooldownActive || !effectsActivated)
+            {
+                reason = "InitialCooldown";
+                return false;
+            }
+
             if (!effects.TryGetValue(ItemIds.SpellbreakerSeal, out var effect) ||
                 !(effect is SpellbreakerSealEffect spellbreaker))
             {
@@ -655,6 +701,20 @@ namespace DragonBound.Items
         {
             AddEffects(Snapshot.ActiveItems);
             AddEffects(Snapshot.PassiveItems);
+        }
+
+        private void ActivateEffects()
+        {
+            if (effectsActivated)
+            {
+                return;
+            }
+
+            foreach (var effect in effects.Values)
+            {
+                effect.OnRunStart(context);
+            }
+            effectsActivated = true;
         }
 
         private void AddEffects(IReadOnlyList<string> itemIds)

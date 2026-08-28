@@ -60,6 +60,71 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(90, first.ReconnectGraceSeconds);
         }
 
+        [TestCase(1, "Beginner")]
+        [TestCase(3, "Veteran")]
+        [TestCase(6, "Elite")]
+        [TestCase(9, "Master")]
+        public void LocalRunMapsRankToFourTierProfile(int rankLevel, string expectedProfile)
+        {
+            var gateway = new LocalGameplayRunGateway();
+            var result = gateway.StartRunAsync(
+                new StartGameplayRunRequest
+                {
+                    PlayerId = System.Guid.NewGuid().ToString("N"),
+                    PlayerRankLevel = rankLevel,
+                    UseDiagnosticSeed = true,
+                    DiagnosticSeed = 7401
+                },
+                CancellationToken.None).GetAwaiter().GetResult();
+
+            Assert.AreEqual(rankLevel, result.PlayerRankLevel);
+            Assert.AreEqual(expectedProfile, result.AiProfile);
+            Assert.AreNotEqual(0, result.AiDecisionSeed);
+            Assert.AreEqual(LocalGameplayRunGateway.LocalAiAlgorithmVersion, result.AiAlgorithmVersion);
+            Assert.IsFalse(result.IsRecoveryMatch);
+        }
+
+        [Test]
+        public void TwoNormalDefeatsCreateExactlyOneEasierRecoveryRun()
+        {
+            string playerId = System.Guid.NewGuid().ToString("N");
+            var gateway = new LocalGameplayRunGateway();
+            for (int index = 0; index < 2; index++)
+            {
+                gateway.FinishRunAsync(
+                    new FinishGameplayRunRequest
+                    {
+                        PlayerId = playerId,
+                        RunId = System.Guid.NewGuid().ToString("N"),
+                        IdempotencyKey = System.Guid.NewGuid().ToString("N"),
+                        ProposedResult = ServerMatchResult.Defeat,
+                        TerminationReason = GameplayTerminationReason.Natural,
+                        FaultAttribution = GameplayFaultAttribution.None
+                    },
+                    CancellationToken.None).GetAwaiter().GetResult();
+            }
+
+            var recovery = gateway.StartRunAsync(
+                new StartGameplayRunRequest
+                {
+                    PlayerId = playerId,
+                    PlayerRankLevel = 9
+                },
+                CancellationToken.None).GetAwaiter().GetResult();
+            var following = gateway.StartRunAsync(
+                new StartGameplayRunRequest
+                {
+                    PlayerId = playerId,
+                    PlayerRankLevel = 9
+                },
+                CancellationToken.None).GetAwaiter().GetResult();
+
+            Assert.IsTrue(recovery.IsRecoveryMatch);
+            Assert.AreEqual("Elite", recovery.AiProfile);
+            Assert.IsFalse(following.IsRecoveryMatch);
+            Assert.AreEqual("Master", following.AiProfile);
+        }
+
         [TestCase(GameplayFaultAttribution.Player, ServerMatchResult.Defeat, true)]
         [TestCase(GameplayFaultAttribution.Server, ServerMatchResult.NoContest, false)]
         [TestCase(GameplayFaultAttribution.Unknown, ServerMatchResult.Pending, false)]

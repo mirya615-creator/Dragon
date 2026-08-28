@@ -65,8 +65,6 @@ namespace DragonBound.Presentation
         private readonly Image[] passiveItemCooldownMasks = new Image[6];
         private readonly Transform[] passiveItemSlots = new Transform[6];
         private Coroutine tipHideCoroutine;
-        private float initialItemCooldownDuration;
-        private float initialItemCooldownRemaining;
         private int activeDragSlot = -1;
         private string activeDragItemId;
         private RectTransform activeItemDragRoot;
@@ -190,10 +188,6 @@ namespace DragonBound.Presentation
                 itemRuntime.BloodcrownLifecycleEmitted += HandleBloodcrownLifecycle;
                 itemRuntime.WorldeaterCastEmitted += HandleWorldeaterCast;
             }
-            initialItemCooldownDuration = runtime != null && runtime.Configuration != null
-                ? runtime.Configuration.GetWave(1).FirstSpawnDelaySeconds
-                : 0f;
-            initialItemCooldownRemaining = initialItemCooldownDuration;
             EnsureActiveItemSlots();
             Refresh();
         }
@@ -222,13 +216,6 @@ namespace DragonBound.Presentation
 
         protected virtual void LateUpdate()
         {
-            if (initialItemCooldownRemaining > 0f &&
-                match != null && match.State == MatchState.Running)
-            {
-                initialItemCooldownRemaining = Mathf.Max(
-                    0f,
-                    initialItemCooldownRemaining - Time.deltaTime);
-            }
             Refresh();
         }
 
@@ -882,7 +869,7 @@ namespace DragonBound.Presentation
             var snapshot = itemRuntime?.PlayerItems?.Snapshot;
             if (snapshot == null || slot < 0 || slot >= snapshot.ActiveItems.Count ||
                 match == null || match.State != MatchState.Running ||
-                initialItemCooldownRemaining > 0.0001f)
+                itemRuntime.PlayerItems.IsInitialCooldownActive)
             {
                 return false;
             }
@@ -1231,7 +1218,10 @@ namespace DragonBound.Presentation
 
         private void RefreshActiveItemSlots()
         {
-            bool initialCooldownVisible = initialItemCooldownRemaining > 0.0001f &&
+            var playerItems = itemRuntime?.PlayerItems;
+            var initialItemCooldownDuration = playerItems?.InitialCooldownDurationSeconds ?? 0f;
+            var initialItemCooldownRemaining = playerItems?.InitialCooldownRemainingSeconds ?? 0f;
+            bool initialCooldownVisible = playerItems != null && playerItems.IsInitialCooldownActive &&
                                           initialItemCooldownDuration > 0.0001f;
             float initialFill = initialCooldownVisible
                 ? Mathf.Clamp01(initialItemCooldownRemaining / initialItemCooldownDuration)
@@ -1270,7 +1260,9 @@ namespace DragonBound.Presentation
             var itemId = snapshot.ActiveItems[slot];
             var cooldown = itemRuntime.PlayerItems.GetCooldownRemainingSeconds(itemId);
             var cooldownDuration = itemRuntime.PlayerItems.GetCooldownDurationSeconds(itemId);
-            bool initialCooldownVisible = initialItemCooldownRemaining > 0.0001f &&
+            var initialItemCooldownDuration = itemRuntime.PlayerItems.InitialCooldownDurationSeconds;
+            var initialItemCooldownRemaining = itemRuntime.PlayerItems.InitialCooldownRemainingSeconds;
+            bool initialCooldownVisible = itemRuntime.PlayerItems.IsInitialCooldownActive &&
                                           initialItemCooldownDuration > 0.0001f;
             button.interactable = !initialCooldownVisible &&
                                   cooldown <= 0.0001f &&
@@ -1419,11 +1411,12 @@ namespace DragonBound.Presentation
         private void SetPassiveInitialCooldownVisual(float fillAmount, bool visible)
         {
             fillAmount = Mathf.Clamp01(fillAmount);
+            var equippedCount = itemRuntime?.PlayerItems?.Snapshot?.PassiveItems.Count ?? 0;
             for (int index = 0; index < passiveItemCooldownMasks.Length; index++)
             {
                 Image mask = passiveItemCooldownMasks[index];
                 if (mask == null) continue;
-                bool hasItem = passiveItemSlots[index] != null &&
+                bool hasItem = index < equippedCount && passiveItemSlots[index] != null &&
                                passiveItemSlots[index].gameObject.activeSelf;
                 bool show = visible && hasItem;
                 mask.fillAmount = show ? fillAmount : 0f;

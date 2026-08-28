@@ -347,6 +347,7 @@ MonoBehaviour:
   doubleCellBorder: {fileID: 8186112428889423640}
   heroNameLabel: {fileID: 5570613375878482228}
   runeImage: {fileID: 2651064605284809560}
+  heroAttackAnimator: {fileID: 900100000000000001}
 --- !u!1 &3108638570483148040
 GameObject:
   m_ObjectHideFlags: 0
@@ -449,6 +450,7 @@ GameObject:
   - component: {fileID: 3235904320553850123}
   - component: {fileID: 1373819219524316663}
   - component: {fileID: 5202354782752527836}
+  - component: {fileID: 900100000000000001}
   m_Layer: 0
   m_Name: ART_ComponentConnector
   m_TagString: Untagged
@@ -472,8 +474,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 110, y: 110}
+  m_AnchoredPosition: {x: -13, y: 15}
+  m_SizeDelta: {x: 145, y: 145}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1373819219524316663
 CanvasRenderer:
@@ -513,6 +515,27 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!95 &900100000000000001
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3633311688594768145}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &5403806011956238180
 GameObject:
   m_ObjectHideFlags: 0

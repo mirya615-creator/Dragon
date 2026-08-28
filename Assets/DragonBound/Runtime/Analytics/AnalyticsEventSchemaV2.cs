@@ -670,6 +670,13 @@ namespace DragonBound.Analytics
         public int wave;
         public string rank_tier;
         public string ai_difficulty;
+        /// <summary>Four-tier strategy identifier; does not reinterpret legacy ai_difficulty.</summary>
+        public string ai_profile;
+        public string ai_algorithm_version;
+        public int ai_decision_seed;
+        public int ai_decision_count;
+        public bool ai_recovery_match;
+        public int player_rank_level;
         public long sequence;
 
         public string result;

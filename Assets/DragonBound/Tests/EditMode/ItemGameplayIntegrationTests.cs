@@ -32,6 +32,10 @@ namespace DragonBound.Tests.EditMode
                 match, null, null, 812, itemSnapshotProvider: new FixedSnapshots(playerSnapshot, aiSnapshot));
 
             Assert.IsTrue(runtime.StartRun());
+            Assert.IsTrue(runtime.PlayerItems.IsInitialCooldownActive);
+            Assert.IsFalse(runtime.PlayerItems.AreEffectsActivated);
+            Assert.AreEqual(3, match.Player.HatchlingMaxHealth);
+            runtime.Tick(runtime.PlayerItems.InitialCooldownDurationSeconds);
             Assert.AreEqual(6, match.Player.HatchlingMaxHealth);
             Assert.AreEqual(6, match.AI.HatchlingMaxHealth);
             Assert.AreSame(playerSnapshot, runtime.PlayerItems.Snapshot);
@@ -54,7 +58,7 @@ namespace DragonBound.Tests.EditMode
 
             Assert.IsTrue(runtime.StartRun());
             Assert.IsFalse(runtime.TryUseItem(TeamSide.Player, ItemIds.WinterveilRune, out var reason));
-            Assert.AreEqual("NoAliveTargets", reason);
+            Assert.AreEqual("InitialCooldown", reason);
             Assert.AreEqual(0f, runtime.PlayerItems.GetCooldownRemainingSeconds(ItemIds.WinterveilRune));
 
             runtime.Tick(4f);
@@ -87,6 +91,7 @@ namespace DragonBound.Tests.EditMode
                 itemSnapshotProvider: new FixedSnapshots(snapshot, ItemRunSnapshot.Empty));
 
             Assert.IsTrue(runtime.StartRun());
+            runtime.Tick(runtime.PlayerItems.InitialCooldownDurationSeconds);
             Assert.IsTrue(runtime.TryUseItemOnUnit(
                 TeamSide.Player,
                 ItemIds.FrenzyRune,
@@ -108,6 +113,7 @@ namespace DragonBound.Tests.EditMode
 
             Assert.AreEqual(1, basic.Level);
             Assert.IsTrue(runtime.StartRun());
+            runtime.Tick(runtime.PlayerItems.InitialCooldownDurationSeconds);
             Assert.IsTrue(runtime.TryUseItemOnUnit(
                 TeamSide.Player,
                 ItemIds.WarforgeSigil,

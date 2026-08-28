@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using DragonBound.AI;
 using UnityEngine;
 
 namespace DragonBound.Services
@@ -17,6 +18,8 @@ namespace DragonBound.Services
         public string ContentVersion;
         public bool UseDiagnosticSeed;
         public int DiagnosticSeed;
+        /// <summary>Rank level 1-10 supplied by the account/matchmaking boundary.</summary>
+        public int PlayerRankLevel = 1;
     }
 
     [Serializable]
@@ -31,6 +34,11 @@ namespace DragonBound.Services
         public int StartingResources;
         public int ReconnectGraceSeconds;
         public int AfkTimeoutSeconds;
+        public int PlayerRankLevel;
+        public string AiProfile;
+        public int AiDecisionSeed;
+        public bool IsRecoveryMatch;
+        public string AiAlgorithmVersion;
     }
 
     public enum ServerMatchResult
@@ -178,17 +186,29 @@ namespace DragonBound.Services
     {
         private const string PlayerKey = "dragonbound.gameplay-launch.player";
         private const string NonceKey = "dragonbound.gameplay-launch.nonce";
+        private const string RankLevelKey = "dragonbound.gameplay-launch.rank-level";
 
         public static string GetOrCreateNonce(string playerId)
+        {
+            return GetOrCreateNonce(playerId, 1);
+        }
+
+        public static string GetOrCreateNonce(string playerId, int playerRankLevel)
         {
             if (string.IsNullOrWhiteSpace(playerId))
                 throw new ArgumentException("Player ID is required.", nameof(playerId));
             string storedPlayer = PlayerPrefs.GetString(PlayerKey, string.Empty);
             string nonce = PlayerPrefs.GetString(NonceKey, string.Empty);
-            if (storedPlayer == playerId && !string.IsNullOrWhiteSpace(nonce)) return nonce;
+            if (storedPlayer == playerId && !string.IsNullOrWhiteSpace(nonce))
+            {
+                PlayerPrefs.SetInt(RankLevelKey, Math.Max(1, Math.Min(10, playerRankLevel)));
+                PlayerPrefs.Save();
+                return nonce;
+            }
             nonce = Guid.NewGuid().ToString("N");
             PlayerPrefs.SetString(PlayerKey, playerId);
             PlayerPrefs.SetString(NonceKey, nonce);
+            PlayerPrefs.SetInt(RankLevelKey, Math.Max(1, Math.Min(10, playerRankLevel)));
             PlayerPrefs.Save();
             return nonce;
         }
@@ -200,12 +220,20 @@ namespace DragonBound.Services
             return !string.IsNullOrWhiteSpace(playerId) && !string.IsNullOrWhiteSpace(nonce);
         }
 
+        public static bool TryGet(out string playerId, out string nonce, out int playerRankLevel)
+        {
+            bool found = TryGet(out playerId, out nonce);
+            playerRankLevel = Math.Max(1, Math.Min(10, PlayerPrefs.GetInt(RankLevelKey, 1)));
+            return found;
+        }
+
         public static void Complete(string nonce)
         {
             if (string.IsNullOrWhiteSpace(nonce) ||
                 PlayerPrefs.GetString(NonceKey, string.Empty) != nonce) return;
             PlayerPrefs.DeleteKey(PlayerKey);
             PlayerPrefs.DeleteKey(NonceKey);
+            PlayerPrefs.DeleteKey(RankLevelKey);
             PlayerPrefs.Save();
         }
     }
@@ -213,7 +241,9 @@ namespace DragonBound.Services
     public sealed class LocalGameplayRunGateway : IGameplayRunGateway
     {
         public const string LocalRulesVersion = "DragonBound.Gameplay.v1";
+        public const string LocalAiAlgorithmVersion = "ai.strategy.v1";
         private const string StartKeyPrefix = "dragonbound.gameplay-start.";
+        private const string RecoveryDefeatKeyPrefix = "dragonbound.ai-recovery.defeats.";
 
         public Task<StartGameplayRunResult> StartRunAsync(
             StartGameplayRunRequest request,
@@ -237,6 +267,13 @@ namespace DragonBound.Services
             var runId = request.UseDiagnosticSeed
                 ? $"diagnostic.{runSeed}"
                 : Guid.NewGuid().ToString("N");
+            int playerRankLevel = Math.Max(1, Math.Min(10, request.PlayerRankLevel));
+            int normalDefeats = LoadNormalDefeatStreak(request.PlayerId);
+            bool recoveryMatch = AiRecoveryPolicy.ShouldStartRecovery(playerRankLevel, normalDefeats);
+            AiStrategyProfileId normalProfile = AiRankProfileMapping.FromRankLevel(playerRankLevel);
+            AiStrategyProfileId effectiveProfile = AiRecoveryPolicy.ResolveEffectiveProfile(
+                normalProfile,
+                recoveryMatch);
             var result = new StartGameplayRunResult
             {
                 RunId = runId,
@@ -247,8 +284,18 @@ namespace DragonBound.Services
                 RulesVersion = LocalRulesVersion,
                 StartingResources = 20,
                 ReconnectGraceSeconds = 90,
-                AfkTimeoutSeconds = 180
+                AfkTimeoutSeconds = 180,
+                PlayerRankLevel = playerRankLevel,
+                AiProfile = effectiveProfile.ToString(),
+                AiDecisionSeed = DeriveSeed(runSeed, "ai.decision"),
+                IsRecoveryMatch = recoveryMatch,
+                AiAlgorithmVersion = LocalAiAlgorithmVersion
             };
+            if (recoveryMatch)
+            {
+                // A recovery ticket is consumed by exactly one successfully-created Run.
+                SaveNormalDefeatStreak(request.PlayerId, 0);
+            }
             if (!string.IsNullOrEmpty(startKey))
             {
                 PlayerPrefs.SetString(startKey, JsonUtility.ToJson(result));
@@ -295,6 +342,15 @@ namespace DragonBound.Services
             ServerMatchResult result = ResolveLocalResult(request);
             bool normalResult = result == ServerMatchResult.Victory ||
                                 result == ServerMatchResult.Defeat;
+            if (!string.IsNullOrWhiteSpace(request.PlayerId))
+            {
+                int currentStreak = LoadNormalDefeatStreak(request.PlayerId);
+                int updatedStreak = AiRecoveryPolicy.UpdateDefeatStreak(
+                    currentStreak,
+                    normalResult,
+                    result == ServerMatchResult.Victory);
+                SaveNormalDefeatStreak(request.PlayerId, updatedStreak);
+            }
             return Task.FromResult(new FinishGameplayRunResult
             {
                 Accepted = true,
@@ -351,6 +407,23 @@ namespace DragonBound.Services
                 hash *= 16777619u;
                 return (int)hash;
             }
+        }
+
+        private static int LoadNormalDefeatStreak(string playerId)
+        {
+            if (string.IsNullOrWhiteSpace(playerId)) return 0;
+            return Math.Max(0, PlayerPrefs.GetInt(
+                RecoveryDefeatKeyPrefix + HashKey(playerId),
+                0));
+        }
+
+        private static void SaveNormalDefeatStreak(string playerId, int value)
+        {
+            if (string.IsNullOrWhiteSpace(playerId)) return;
+            PlayerPrefs.SetInt(
+                RecoveryDefeatKeyPrefix + HashKey(playerId),
+                Math.Max(0, value));
+            PlayerPrefs.Save();
         }
 
         private static string HashKey(string value)

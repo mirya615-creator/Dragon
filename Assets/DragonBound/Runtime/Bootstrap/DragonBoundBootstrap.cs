@@ -32,6 +32,7 @@ namespace DragonBound.Bootstrap
         [SerializeField] private bool useTwentyWavePressureRuntime = false;
         [SerializeField] private bool enablePressureRunDiagnostics = false;
         [SerializeField] private bool enableAiSurvivalController = true;
+        [SerializeField, Range(1, 10)] private int localPlayerRankLevel = 1;
         [SerializeField] private RecruitComponentPolicy recruitComponentPolicy = RecruitComponentPolicy.V3;
         [SerializeField, Min(20)] private int heroSliceStartingResources = 500;
         [SerializeField] private DragonBoundScreenView screenView;
@@ -69,6 +70,11 @@ namespace DragonBound.Bootstrap
         public TwentyWavePressureRuntime TwentyWave { get; private set; }
         public PressureRunDiagnostics PressureDiagnostics { get; private set; }
         public BasicUnitAiController AiController { get; private set; }
+        public AiStrategyProfileId AiProfileId { get; private set; } = AiStrategyProfileId.Beginner;
+        public AiStrategyProfile AiProfile { get; private set; }
+        public AiDecisionScheduler AiDecisionScheduler { get; private set; }
+        public bool IsAiRecoveryMatch { get; private set; }
+        public string AiAlgorithmVersion { get; private set; }
         /// <summary>Meta-owned data. The current greybox creates an empty local profile;
         /// save/backend loading can replace it before the next Run starts.</summary>
         public RuneSaveData RuneSaveData { get; private set; }
@@ -98,6 +104,7 @@ namespace DragonBound.Bootstrap
         private int playerRecruitSeed;
         private int aiRecruitSeed;
         private int combatSeed;
+        private int aiDecisionSeed;
 
         // Test-only injection keeps persistence tests away from a developer's real local profile.
         public static IRuneProfileRepository RuneProfileRepositoryOverrideForTests { get; set; }
@@ -557,6 +564,9 @@ namespace DragonBound.Bootstrap
                 AiRecruitment,
                 AiShovelUnlocks,
                 Match.AI);
+            AiProfile = AiStrategyProfile.Get(AiProfileId);
+            AiDecisionScheduler = new AiDecisionScheduler(AiProfile, aiDecisionSeed);
+            AiController.ConfigureStrategy(AiProfile, aiDecisionSeed);
             PlayerLayoutStatistics = new GreyboxRunStatistics(
                 BattlefieldLayout.LayoutId,
                 PlayerBoard,
@@ -634,11 +644,9 @@ namespace DragonBound.Bootstrap
                 }
             }
 
-            if (useTwentyWavePressureRuntime && enableAiSurvivalController)
-            {
-                AiController.Tick();
-            }
-            else
+            // Twenty-wave AI must not mutate the board during initialization/Ready. Its first
+            // decision is released by the scheduler only after MatchState.Running.
+            if (!useTwentyWavePressureRuntime)
             {
                 var aiRecruitments = heroSliceMode ? 3 : 1;
                 for (var index = 0; index < aiRecruitments; index++)
@@ -691,11 +699,13 @@ namespace DragonBound.Bootstrap
         {
             bool hasLaunchContext = GameplayLaunchContext.TryGet(
                 out string launchPlayerId,
-                out string launchNonce);
+                out string launchNonce,
+                out int launchPlayerRankLevel);
             if (!hasLaunchContext)
             {
                 launchPlayerId = string.Empty;
                 launchNonce = System.Guid.NewGuid().ToString("N");
+                launchPlayerRankLevel = Mathf.Clamp(localPlayerRankLevel, 1, 10);
             }
             var request = new StartGameplayRunRequest
             {
@@ -703,7 +713,8 @@ namespace DragonBound.Bootstrap
                 GameMode = useTwentyWavePressureRuntime ? "TwentyWave" : "Greybox",
                 ClientRunNonce = launchNonce,
                 UseDiagnosticSeed = useFixedSeedForDiagnostics,
-                DiagnosticSeed = runSeed
+                DiagnosticSeed = runSeed,
+                PlayerRankLevel = launchPlayerRankLevel
             };
             var result = GameplayRunGatewayRegistry.Current
                 .StartRunAsync(request, CancellationToken.None)
@@ -719,6 +730,19 @@ namespace DragonBound.Bootstrap
             playerRecruitSeed = result.PlayerRecruitSeed;
             aiRecruitSeed = result.AiRecruitSeed;
             combatSeed = result.CombatSeed;
+            int resolvedRankLevel = result.PlayerRankLevel > 0
+                ? Mathf.Clamp(result.PlayerRankLevel, 1, 10)
+                : Mathf.Clamp(localPlayerRankLevel, 1, 10);
+            AiProfileId = AiRankProfileMapping.TryParseWireValue(result.AiProfile, out var profile)
+                ? profile
+                : AiRankProfileMapping.FromRankLevel(resolvedRankLevel);
+            aiDecisionSeed = result.AiDecisionSeed != 0
+                ? result.AiDecisionSeed
+                : LocalGameplayRunGateway.DeriveSeed(runSeed, "ai.decision");
+            IsAiRecoveryMatch = result.IsRecoveryMatch;
+            AiAlgorithmVersion = string.IsNullOrWhiteSpace(result.AiAlgorithmVersion)
+                ? LocalGameplayRunGateway.LocalAiAlgorithmVersion
+                : result.AiAlgorithmVersion;
             ReconnectGraceSeconds = result.ReconnectGraceSeconds > 0
                 ? result.ReconnectGraceSeconds
                 : 90;
@@ -728,7 +752,9 @@ namespace DragonBound.Bootstrap
             if (hasLaunchContext) GameplayLaunchContext.Complete(launchNonce);
             Debug.Log(
                 $"GameplayRunStarted RunId={GameplayRunId} Rules={result.RulesVersion} " +
-                $"DiagnosticSeed={useFixedSeedForDiagnostics}");
+                $"DiagnosticSeed={useFixedSeedForDiagnostics} Rank={resolvedRankLevel} " +
+                $"AIProfile={AiProfileId} Recovery={IsAiRecoveryMatch} " +
+                $"AIAlgorithm={AiAlgorithmVersion}");
         }
 
         private void Update()
@@ -776,10 +802,15 @@ namespace DragonBound.Bootstrap
 
                 if (enableAiSurvivalController && Match.State == MatchState.Running)
                 {
-                    AiController.Tick();
-                    if (AiController.LastCycleChanged)
+                    bool canDecide = AiDecisionScheduler != null &&
+                                     AiDecisionScheduler.Tick(Time.deltaTime, true);
+                    if (canDecide)
                     {
-                        AiBoardView.RefreshUnits();
+                        AiController.Tick(TwentyWave.CurrentWaveIndex);
+                        if (AiController.LastCycleChanged)
+                        {
+                            AiBoardView.RefreshUnits();
+                        }
                     }
                 }
 

@@ -342,6 +342,22 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void SuccessfulAttackSequenceAdvancesOncePerAttackInsteadOfPerDamageTarget()
+        {
+            var state = CreateState(HeroSliceCatalog.EmberShamanHeroId, TeamSide.Player);
+            var registry = new EnemyRegistry();
+
+            state.TickCombat(1f / state.AttackSpeed, new CombatPoint(0f, 0f), registry);
+            Assert.AreEqual(0, state.SuccessfulAttackSequence);
+
+            registry.Register(Enemy("center", TeamSide.Player, new CombatPoint(1f, 0f), 0.8f));
+            registry.Register(Enemy("splash", TeamSide.Player, new CombatPoint(1.5f, 0f), 0.7f));
+            state.TickCombat(1f / state.AttackSpeed, new CombatPoint(0f, 0f), registry);
+
+            Assert.AreEqual(1, state.SuccessfulAttackSequence);
+        }
+
+        [Test]
         public void EmberShamanTargetsFrontmostAndRespectsMaximumFiveTargets()
         {
             var state = CreateState(HeroSliceCatalog.EmberShamanHeroId, TeamSide.Player);

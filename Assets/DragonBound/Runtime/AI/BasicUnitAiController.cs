@@ -4,6 +4,7 @@ using DragonBound.Combat;
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Recruitment;
+using GameShared.Random;
 using UnityEngine;
 
 namespace DragonBound.AI
@@ -17,6 +18,7 @@ namespace DragonBound.AI
         CampPolicyBlocked,
         BenchPolicyBlocked,
         BoardPolicyBlocked,
+        StrategyDeferred,
         Other
     }
 
@@ -126,6 +128,9 @@ namespace DragonBound.AI
             new Dictionary<AiRecipeBlockedReason, int>();
         private AiRecruitBlockedReason activeStallReason;
         private int lastRecipeStateVersion = -1;
+        private AiStrategyProfile strategyProfile = AiStrategyProfile.Get(AiStrategyProfileId.Beginner);
+        private IRunRandom strategyRandom = new RunRandom(0);
+        private int strategyDecisionOrdinal;
 
         public BasicUnitAiController(
             BoardGrid board,
@@ -185,6 +190,15 @@ namespace DragonBound.AI
         /// </summary>
         public int LegacyCampPolicyBlockCount { get; private set; }
         public IReadOnlyDictionary<AiRecruitBlockedReason, int> RecruitStallCounts => recruitStallCounts;
+        public AiStrategyProfile StrategyProfile => strategyProfile;
+        public float LastRecruitActionScore { get; private set; }
+
+        public void ConfigureStrategy(AiStrategyProfile profile, int decisionSeed)
+        {
+            strategyProfile = profile ?? throw new ArgumentNullException(nameof(profile));
+            strategyRandom = new RunRandom(decisionSeed);
+            strategyDecisionOrdinal = 0;
+        }
 
         public RecruitmentAttempt RecruitOrRefresh()
         {
@@ -226,6 +240,7 @@ namespace DragonBound.AI
             var succeededRecruit = false;
             var blockedReason = AiRecruitBlockedReason.None;
             var legacyCampPolicyWouldBlock = CanRecruitWithoutDiscardingComponents() == false;
+            var strategyAllowsRecruit = ShouldRecruitThisCycle();
             if (!wantedToRecruit)
             {
                 blockedReason = AiRecruitBlockedReason.RunEnded;
@@ -233,6 +248,10 @@ namespace DragonBound.AI
             else if (!recruitment.CanAffordNext)
             {
                 blockedReason = AiRecruitBlockedReason.InsufficientResources;
+            }
+            else if (!strategyAllowsRecruit)
+            {
+                blockedReason = AiRecruitBlockedReason.StrategyDeferred;
             }
             else
             {
@@ -274,6 +293,36 @@ namespace DragonBound.AI
                                linksBefore != destination.ActivePairLinkCount ||
                                openCellsBefore != board.UnlockedBattleCellCount ||
                                (team != null && resourcesBefore != team.Resources);
+        }
+
+        private bool ShouldRecruitThisCycle()
+        {
+            // Every profile obeys the same economy. Lower profiles merely make noisier choices;
+            // higher profiles preserve a little board/resource headroom before refreshing.
+            if (recruitment.CompletedRecruitments == 0)
+            {
+                LastRecruitActionScore = 1f;
+                return true;
+            }
+
+            float score = 1f;
+            if (board.FreeBattleCellCount <= strategyProfile.SpaceReserve)
+            {
+                score -= 0.25f;
+            }
+
+            int resourcesAfterRecruit = team == null ? int.MaxValue : team.Resources - recruitment.NextCost;
+            if (resourcesAfterRecruit < strategyProfile.ResourceReserve * 2)
+            {
+                score -= 0.15f;
+            }
+
+            LastRecruitActionScore = AiActionScoring.ApplyProfileError(
+                new AiActionCandidate(AiActionKind.Recruit, "next", score),
+                strategyProfile,
+                strategyRandom,
+                strategyDecisionOrdinal++);
+            return LastRecruitActionScore >= 0.9f;
         }
 
         public void RecordWaveEnd(int wave, int kills, int leaks)

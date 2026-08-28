@@ -4,6 +4,7 @@ using DragonBound.Bootstrap;
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Presentation;
+using DragonBound.Recruitment;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -163,6 +164,9 @@ namespace DragonBound.Tests.EditMode
             Assert.IsFalse(formationView.RuneImage.raycastTarget);
             Assert.IsTrue(formationView.RuneImage.preserveAspect);
             Assert.IsFalse(formationView.RuneImage.gameObject.activeSelf);
+            Assert.IsNotNull(formationView.HeroAttackAnimator);
+            Assert.AreEqual("ART_ComponentConnector", formationView.HeroAttackAnimator.name);
+            Assert.AreEqual(0f, formationView.HeroAttackAnimator.speed, 0.0001f);
 
             var screen = AssetDatabase.LoadAssetAtPath<GameObject>(ScreenPath);
             var screenView = screen.GetComponent<DragonBoundScreenView>();
@@ -207,6 +211,49 @@ namespace DragonBound.Tests.EditMode
                 view.SetRune(string.Empty);
                 Assert.IsFalse(view.RuneImage.gameObject.activeSelf);
                 Assert.IsNull(view.RuneImage.sprite);
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
+
+        [TestCase(DragonBoundHeroIds.WindclawRanger, "Animation/Windclaw Ranger")]
+        [TestCase(DragonBoundHeroIds.EmberShaman, "Animation/Ember Shaman")]
+        [TestCase(DragonBoundHeroIds.RuneboltMage, "Animation/Runebolt Mage")]
+        [TestCase(DragonBoundHeroIds.Stonebinder, "Animation/Stonebound Warlock")]
+        [TestCase(DragonBoundHeroIds.CrownSwordLeader, "Animation/Oathcrown Blademaster")]
+        [TestCase(DragonBoundHeroIds.CrownHunterLeader, "Animation/Frostcrown Hunter")]
+        [TestCase(DragonBoundHeroIds.DragonRider, "Animation/Flame Drake Rider ")]
+        [TestCase(DragonBoundHeroIds.StarfallArchmage, "Animation/Starfall Archmage")]
+        [TestCase(DragonBoundHeroIds.ThunderJarl, "Animation/Thunderlord")]
+        [TestCase(DragonBoundHeroIds.NightfangAssassin, "Animation/Nightfang Assassin")]
+        [TestCase(DragonBoundHeroIds.LeviathanHunter, "Animation/Abyssal Harpooner")]
+        [TestCase(DragonBoundHeroIds.SkyhunterValkyrie, "Animation/Skyborne Valkyrie")]
+        public void HeroAnimationControllerIsAuthoredAndNonLooping(string heroId, string resourcePath)
+        {
+            Assert.AreEqual(resourcePath, HeroAnimationControllerCatalog.GetResourcePath(heroId));
+            var controller = HeroAnimationControllerCatalog.Load(heroId);
+            Assert.IsNotNull(controller, resourcePath);
+            Assert.IsNotEmpty(controller.animationClips, resourcePath);
+            Assert.IsTrue(controller.animationClips.All(clip => !clip.isLooping), resourcePath);
+        }
+
+        [Test]
+        public void FormationAnimationWaitsForAnAttackAndThenRestarts()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HeroFormationPath);
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var view = instance.GetComponent<HeroFormationView>();
+                view.SetHeroAnimation(DragonBoundHeroIds.RuneboltMage);
+                view.ObserveAttackSequence(0);
+                Assert.IsNotNull(view.HeroAttackAnimator.runtimeAnimatorController);
+                Assert.AreEqual(0f, view.HeroAttackAnimator.speed, 0.0001f);
+
+                view.ObserveAttackSequence(1);
+                Assert.AreEqual(1f, view.HeroAttackAnimator.speed, 0.0001f);
             }
             finally
             {

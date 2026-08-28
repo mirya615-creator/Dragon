@@ -113,6 +113,7 @@ namespace DragonBound.Combat
         private float attackElapsed;
         private float skillElapsed;
         private int attackNumber;
+        private int successfulAttackSequence;
         private int stoneBindAttackCount;
         private string duelMomentumTargetRuntimeId;
         private int duelMomentumStacks;
@@ -198,6 +199,7 @@ namespace DragonBound.Combat
         public int Experience => progression.Experience;
         public int Level => progression.Level;
         public int AttackNumber => attackNumber;
+        public int SuccessfulAttackSequence => successfulAttackSequence;
         public int StoneBindAttackCount => stoneBindAttackCount;
         public int DuelMomentumStacks => duelMomentumStacks;
         public string HuntMarkTargetRuntimeId => huntMarkTargetRuntimeId;
@@ -331,6 +333,7 @@ namespace DragonBound.Combat
             attackElapsed = 0f;
             skillElapsed = 0f;
             attackNumber = 0;
+            successfulAttackSequence = 0;
             stoneBindAttackCount = 0;
             duelMomentumTargetRuntimeId = null;
             duelMomentumStacks = 0;
@@ -449,6 +452,7 @@ namespace DragonBound.Combat
                     break;
                 }
 
+                successfulAttackSequence++;
                 attackElapsed -= interval;
                 if (!string.IsNullOrEmpty(CurrentTargetRuntimeId) &&
                     registry.TryGet(CurrentTargetRuntimeId, out var successfulTarget))
@@ -2039,6 +2043,7 @@ namespace DragonBound.Combat
         public int Experience => state.Experience;
         public int Level => state.Level;
         public int AttackNumber => state.AttackNumber;
+        public int SuccessfulAttackSequence => state.SuccessfulAttackSequence;
         public int DuelMomentumStacks => state.DuelMomentumStacks;
         public string HuntMarkTargetRuntimeId => state.HuntMarkTargetRuntimeId;
         public int SkyHuntStacks => state.SkyHuntStacks;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DragonBound.AI;
 using DragonBound.Bootstrap;
 using DragonBound.Core;
 using DragonBound.Grid;
@@ -99,6 +100,17 @@ namespace DragonBound.Tests.PlayMode
             {
                 Assert.AreEqual(0, bootstrap.Match.Player.RemainingEnemyCount);
                 Assert.AreEqual(0, bootstrap.Match.AI.RemainingEnemyCount);
+                Assert.AreEqual(0, bootstrap.AiRecruitment.CompletedRecruitments,
+                    "AI must not recruit during initialization/Ready.");
+                Assert.AreEqual(0, bootstrap.AiRecruitDestination.TotalObjectCount,
+                    "AI board must remain unchanged until the Run is active.");
+                yield return null;
+            }
+
+            float aiDecisionDeadline = Time.realtimeSinceStartup + 3f;
+            while (bootstrap.AiRecruitment.CompletedRecruitments == 0 &&
+                   Time.realtimeSinceStartup < aiDecisionDeadline)
+            {
                 yield return null;
             }
             Assert.AreEqual(20260801, bootstrap.Seed.Value);
@@ -114,6 +126,8 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsNull(bootstrap.ThreeWave);
             Assert.IsFalse(bootstrap.Recruitment.HasLastAttempt);
             Assert.AreEqual(1, bootstrap.AiRecruitment.CompletedRecruitments);
+            Assert.AreEqual(AiStrategyProfileId.Beginner, bootstrap.AiProfileId);
+            Assert.IsNotNull(bootstrap.AiDecisionScheduler);
             Assert.AreEqual(
                 bootstrap.AiRecruitDestination.TotalObjectCount,
                 bootstrap.AiRecruitDestination.CampCount + bootstrap.AiRecruitDestination.DeployedCount);
