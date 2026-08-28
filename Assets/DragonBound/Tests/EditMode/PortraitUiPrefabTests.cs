@@ -130,7 +130,7 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void UnitCardRootUsesFixedAnchorsAndSubtlePlaceholderBorder()
+        public void UnitCardRootUsesFixedAnchors()
         {
             var unitCard = AssetDatabase.LoadAssetAtPath<GameObject>(UnitCardPath);
             Assert.IsNotNull(unitCard);
@@ -139,9 +139,11 @@ namespace DragonBound.Tests.EditMode
             Assert.Greater(rect.sizeDelta.x, 0f);
             Assert.Greater(rect.sizeDelta.y, 0f);
 
-            var border = unitCard.transform.Find("ART_UnitBorder")?.GetComponent<Image>();
-            Assert.IsNotNull(border);
-            Assert.Less(border.color.a, 0.5f);
+            var soulChainOverlay = unitCard.transform.Find("ART_SoulChainOverlay")?.GetComponent<Image>();
+            Assert.IsNotNull(soulChainOverlay);
+            Assert.IsFalse(soulChainOverlay.raycastTarget);
+            Assert.AreEqual(0f, soulChainOverlay.color.a, 0.0001f);
+
         }
 
         [Test]
@@ -153,10 +155,7 @@ namespace DragonBound.Tests.EditMode
             Assert.IsNotNull(formation);
 
             var cardView = unitCard.GetComponent<DraggableUnitView>();
-            Assert.IsNotNull(cardView.RarityBorder);
             Assert.IsNotNull(cardView.HeroLevelLabel);
-            Assert.IsNotNull(cardView.HeroExperienceLabel);
-            Assert.IsNotNull(cardView.HeroExperienceFill);
             Assert.IsNotNull(formation.GetComponent<HeroFormationView>());
 
             var screen = AssetDatabase.LoadAssetAtPath<GameObject>(ScreenPath);

@@ -8,20 +8,20 @@ namespace DragonBound.Tests.EditMode
     public sealed class W20WorldeaterIntegrationTests
     {
         [Test]
-        public void ProductionW20CreatesBothBossSlotsWithoutIncreasingRegularCount()
+        public void AcceleratedW6CreatesBothWorldeaterBossSlotsWithoutIncreasingRegularCount()
         {
             var configuration = TwentyWavePressureConfiguration.CreateCoreLoopV2();
             var runtime = new TwentyWavePressureRuntime(new MatchController(2001), null, null, 2001, configuration);
 
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(20));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.WorldeaterBossWave));
             Assert.IsNotNull(runtime.PlayerW20Boss);
             Assert.IsNotNull(runtime.AiW20Boss);
             Assert.AreEqual(WorldeaterWyrmConfiguration.BossId, runtime.PlayerW20Boss.BossId);
             Assert.AreEqual(5000f, runtime.PlayerW20Boss.MaxHitPoints, 0.0001f);
             Assert.AreEqual(0.20f, runtime.PlayerW20Boss.BaseMovementSpeedMultiplier * runtime.PlayerPath.TotalDistance / 12f, 0.0001f);
             Assert.AreEqual(1, runtime.PlayerSpawnedThisWave);
-            Assert.AreEqual(43, configuration.GetWave(20).EnemyCountPerSide);
+            Assert.AreEqual(16, configuration.GetWave(6).EnemyCountPerSide);
         }
 
         [Test]
@@ -30,7 +30,7 @@ namespace DragonBound.Tests.EditMode
             var match = new MatchController(2002);
             var runtime = new TwentyWavePressureRuntime(match, null, null, 2002);
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(20));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.WorldeaterBossWave));
 
             runtime.Tick(12.75f);
             Assert.AreEqual(1, CountWorldeaterSubBosses(runtime.PlayerEnemyRegistry));
@@ -47,7 +47,7 @@ namespace DragonBound.Tests.EditMode
             var match = new MatchController(2003, 1000);
             var runtime = new TwentyWavePressureRuntime(match, null, null, 2003);
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(20));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.WorldeaterBossWave));
             runtime.Tick(12.75f);
             runtime.Tick(20.1f);
 

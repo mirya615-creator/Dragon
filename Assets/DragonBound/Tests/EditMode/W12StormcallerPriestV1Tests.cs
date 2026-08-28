@@ -8,20 +8,20 @@ namespace DragonBound.Tests.EditMode
     public sealed class W12StormcallerPriestV1Tests
     {
         [Test]
-        public void W12ProductionSpawnsFixedStormcallerWithoutIncreasingNormalCount()
+        public void AcceleratedW4SpawnsFixedStormcallerWithoutIncreasingNormalCount()
         {
             var configuration = TwentyWavePressureConfiguration.CreateCoreLoopV2();
             var runtime = new TwentyWavePressureRuntime(
                 new MatchController(1201), null, null, 1201, configuration);
 
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(12));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.StormcallerBossWave));
             Assert.IsNotNull(runtime.PlayerW12Boss);
             Assert.AreEqual(StormcallerPriestConfiguration.BossId, runtime.PlayerW12Boss.BossId);
             Assert.AreEqual(StormcallerPriestConfiguration.GreyboxMaxHitPoints, runtime.PlayerW12Boss.MaxHitPoints, 0.0001f);
             Assert.AreEqual(EnemyArchetype.Boss, runtime.PlayerW12Boss.Archetype);
-            Assert.AreEqual(27, configuration.GetWave(12).EnemyCountPerSide);
-            Assert.IsTrue(configuration.GetWave(12).HasBossSlot);
+            Assert.AreEqual(13, configuration.GetWave(4).EnemyCountPerSide);
+            Assert.IsTrue(configuration.GetWave(4).HasBossSlot);
             Assert.IsTrue(runtime.PlayerEnemyRegistry.Count >= 2);
         }
 

@@ -38,6 +38,9 @@ namespace DragonBound.Presentation
         private bool isDying;
         private Animator waveAnimator;
         private Image waveAnimationImage;
+        private RectTransform waveAnimationRoot;
+        private Vector3 authoredWaveAnimationScale = Vector3.one;
+        private bool waveAnimationScaleCaptured;
         private int boundWaveAnimationIndex = -1;
         private Color normalColor;
         private Color authoredBodyColor;
@@ -158,6 +161,23 @@ namespace DragonBound.Presentation
             targetHealthRatio = 0f;
         }
 
+        public void SetWaveAnimationMirrored(bool mirrored)
+        {
+            if (waveAnimationRoot == null)
+            {
+                ResolveWaveAnimationView();
+            }
+
+            if (waveAnimationRoot == null)
+            {
+                return;
+            }
+
+            var scale = authoredWaveAnimationScale;
+            scale.x = mirrored ? -scale.x : scale.x;
+            waveAnimationRoot.localScale = scale;
+        }
+
         private void Update()
         {
             UpdateHealthBar();
@@ -252,6 +272,13 @@ namespace DragonBound.Presentation
             if (animationRoot == null)
             {
                 return;
+            }
+
+            waveAnimationRoot = animationRoot as RectTransform;
+            if (waveAnimationRoot != null && !waveAnimationScaleCaptured)
+            {
+                authoredWaveAnimationScale = waveAnimationRoot.localScale;
+                waveAnimationScaleCaptured = true;
             }
 
             var healthTrack = transform.Find("ART_EnemyHpTrack");

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DragonBound.Combat;
 using DragonBound.Core;
 using DragonBound.Grid;
+using DragonBound.Recruitment;
 using NUnit.Framework;
 
 namespace DragonBound.Tests.EditMode
@@ -16,6 +17,14 @@ namespace DragonBound.Tests.EditMode
             var secondProvider = new TestTargetProvider();
             var first = CreateController(firstProvider, 701);
             var second = CreateController(secondProvider, 701);
+            SoulChainCastEvent applied = default;
+            first.CastEvent += value =>
+            {
+                if (value.Kind == SoulChainCastEventKind.EffectApplied)
+                {
+                    applied = value;
+                }
+            };
 
             first.Tick(8f);
             second.Tick(8f);
@@ -26,6 +35,47 @@ namespace DragonBound.Tests.EditMode
             Assert.LessOrEqual(first.LastAffectedCount, SoulchainBinderConfiguration.MaxAffectedBasic);
             Assert.AreEqual(first.LastAffectedCount, second.LastAffectedCount);
             Assert.AreEqual(firstProvider.DisabledCount, secondProvider.DisabledCount);
+            Assert.AreEqual(firstProvider.DisabledCount, applied.ControlledRuntimeIds.Count);
+            for (var index = 0; index < applied.ControlledRuntimeIds.Count; index++)
+            {
+                Assert.IsTrue(firstProvider.IsDisabled(applied.ControlledRuntimeIds[index]));
+            }
+        }
+
+        [Test]
+        public void DragCompletionDoesNotClearSoulChainSuspension()
+        {
+            var board = DragonBoundBoardLayout.CreateInitial();
+            var destination = new BoardRecruitDestination(board);
+            var runtimeId = "fixture.basic.soulchain-drag";
+            destination.Commit(
+                RecruitDestinationPlan.AddToEmptySlots,
+                new RecruitBatch(
+                    1,
+                    new[]
+                    {
+                        new RecruitCard(
+                            runtimeId,
+                            RecruitItemKind.BasicUnit,
+                            "basic.axe_raider",
+                            string.Empty)
+                    }));
+            var bench = board.GetPositions(CellType.Bench)[0];
+            var battle = board.GetPositions(CellType.Battle)[0];
+            Assert.IsTrue(board.TryMove(bench, battle));
+            Assert.IsTrue(destination.SetSoulChainCombatSuspended(runtimeId, true));
+
+            destination.OnDragStarted(runtimeId, battle);
+            destination.OnDragCompleted(new DragCompletion(
+                1,
+                runtimeId,
+                battle,
+                battle,
+                DragDropStatus.Cancelled));
+
+            Assert.IsTrue(destination.IsCombatSuspended(runtimeId));
+            Assert.IsTrue(destination.SetSoulChainCombatSuspended(runtimeId, false));
+            Assert.IsFalse(destination.IsCombatSuspended(runtimeId));
         }
 
         [Test]
@@ -162,13 +212,13 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void W6BossUsesSoulchainBinderGreyboxSlotAndDoesNotIncreaseNormalCount()
+        public void AcceleratedW3UsesSoulchainBinderGreyboxSlotAndDoesNotIncreaseNormalCount()
         {
             var configuration = TwentyWavePressureConfiguration.CreateCoreLoopV2();
             var match = new MatchController(709);
             var runtime = new TwentyWavePressureRuntime(match, null, null, 709, configuration);
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(6));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.SoulChainBossWave));
 
             Assert.IsNotNull(runtime.PlayerW6Boss);
             StringAssert.Contains(SoulchainBinderConfiguration.BossId.ToLowerInvariant(), runtime.PlayerW6Boss.RuntimeId);
@@ -176,7 +226,7 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(600f, runtime.PlayerW6Boss.MaxHitPoints, 0.0001f);
             Assert.AreEqual(1, runtime.PlayerSpawnedThisWave);
             Assert.IsTrue(runtime.PlayerEnemyRegistry.Count >= 2);
-            Assert.AreEqual(16, configuration.GetWave(6).EnemyCountPerSide);
+            Assert.AreEqual(12, configuration.GetWave(3).EnemyCountPerSide);
         }
 
         [Test]

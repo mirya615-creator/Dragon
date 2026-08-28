@@ -1,3 +1,4 @@
+using System.Linq;
 using DragonBound.Core;
 using DragonBound.Items;
 using DragonBound.Presentation;
@@ -54,7 +55,7 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(0f, runtime.PlayerItems.GetCooldownRemainingSeconds(ItemIds.WinterveilRune));
 
             runtime.Tick(4f);
-            Assert.IsTrue(runtime.JumpToWave(6));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.SoulChainBossWave));
             var playerBoss = runtime.PlayerW6Boss;
             var aiBoss = runtime.AiW6Boss;
             Assert.IsNotNull(playerBoss);
@@ -98,9 +99,10 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(1, runtime.PlayerAliveEnemyCount);
             int resourcesBefore = match.Player.Resources;
 
-            Assert.IsTrue(runtime.TryUseItem(
+            Assert.IsTrue(runtime.TryUseItemAtPoint(
                 TeamSide.Player,
                 ItemIds.RuneburstMine,
+                runtime.PlayerEnemyRegistry.Enemies.First().CombatPosition,
                 out var reason), reason);
 
             Assert.AreEqual(0, runtime.PlayerAliveEnemyCount);

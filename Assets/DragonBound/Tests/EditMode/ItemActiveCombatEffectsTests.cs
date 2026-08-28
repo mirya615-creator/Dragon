@@ -55,12 +55,31 @@ namespace DragonBound.Tests.EditMode
             registry.Register(second);
             registry.Register(boss);
             var context = new ItemRunContext(team, registry);
+            context.SetActivationPoint(new CombatPoint(0f, 0f));
             var effect = new RuneburstMineEffect();
 
             Assert.IsTrue(effect.TryActivate(context, out var reason), reason);
             Assert.AreEqual(3, effect.LastAffectedEnemyCount);
             Assert.AreEqual(240f, effect.LastTotalDamage, 0.001f);
             Assert.AreEqual(4920f, boss.HitPoints, 0.001f);
+        }
+
+        [Test]
+        public void RuneburstMine_EmptyPlacementDoesNotStartCooldown()
+        {
+            var team = new TeamState(TeamSide.Player);
+            var registry = new EnemyRegistry();
+            var enemy = new EnemyRuntime("enemy", TeamSide.Player, 100f, EnemyArchetype.Normal);
+            enemy.SetCombatPosition(new CombatPoint(5f, 0f));
+            registry.Register(enemy);
+            var context = new ItemRunContext(team, registry);
+            context.SetActivationPoint(new CombatPoint(0f, 0f));
+            var effect = new RuneburstMineEffect();
+
+            Assert.IsFalse(effect.TryActivate(context, out var reason));
+            Assert.AreEqual("NoAliveTargets", reason);
+            Assert.AreEqual(0f, effect.CooldownRemainingSeconds, 0.001f);
+            Assert.AreEqual(100f, enemy.HitPoints, 0.001f);
         }
 
         [Test]

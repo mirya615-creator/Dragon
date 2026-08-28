@@ -304,7 +304,7 @@ namespace DragonBound.Core
 
         private static bool IsBossWave(int wave)
         {
-            return wave == 6 || wave == 12 || wave == 16 || wave == 20;
+            return TwentyWavePressureConfiguration.IsBossWave(wave);
         }
     }
 

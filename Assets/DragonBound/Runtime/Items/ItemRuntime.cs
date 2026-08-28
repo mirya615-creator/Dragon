@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DragonBound.Combat;
 using DragonBound.Core;
 
 namespace DragonBound.Items
@@ -288,11 +289,19 @@ namespace DragonBound.Items
         public IItemEnemyDamagePort ItemEnemyDamage { get; }
         public float ElapsedSeconds { get; internal set; }
         public string ActivationTargetId { get; internal set; }
+        public bool HasActivationPoint { get; internal set; }
+        public CombatPoint ActivationPoint { get; internal set; }
         public int NextActivationOrdinal { get; internal set; }
 
         public void SetActivationTarget(string targetId)
         {
             ActivationTargetId = targetId;
+        }
+
+        public void SetActivationPoint(CombatPoint point)
+        {
+            ActivationPoint = point;
+            HasActivationPoint = true;
         }
     }
 
@@ -522,6 +531,21 @@ namespace DragonBound.Items
 
         public bool TryUse(string itemId, string targetId, out string reason)
         {
+            return TryUseInternal(itemId, targetId, false, default(CombatPoint), out reason);
+        }
+
+        public bool TryUseAtPoint(string itemId, CombatPoint activationPoint, out string reason)
+        {
+            return TryUseInternal(itemId, null, true, activationPoint, out reason);
+        }
+
+        private bool TryUseInternal(
+            string itemId,
+            string targetId,
+            bool hasActivationPoint,
+            CombatPoint activationPoint,
+            out string reason)
+        {
             reason = ItemOperationFailure.None;
             if (!IsStarted)
             {
@@ -543,10 +567,19 @@ namespace DragonBound.Items
             }
 
             context.ActivationTargetId = targetId;
+            context.HasActivationPoint = hasActivationPoint;
+            context.ActivationPoint = activationPoint;
             context.NextActivationOrdinal++;
-            var result = effect.TryActivate(context, out reason);
-            context.ActivationTargetId = null;
-            return result;
+            try
+            {
+                return effect.TryActivate(context, out reason);
+            }
+            finally
+            {
+                context.ActivationTargetId = null;
+                context.HasActivationPoint = false;
+                context.ActivationPoint = default(CombatPoint);
+            }
         }
 
         public float GetCooldownRemainingSeconds(string itemId)

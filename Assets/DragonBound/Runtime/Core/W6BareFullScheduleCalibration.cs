@@ -119,7 +119,8 @@ namespace DragonBound.Core
             float elapsedTime,
             BoardRecruitDestination destination)
         {
-            if (value.Archetype != EnemyArchetype.Boss || value.SpawnWave != 6)
+            if (value.Archetype != EnemyArchetype.Boss ||
+                value.SpawnWave != TwentyWavePressureConfiguration.SoulChainBossWave)
             {
                 return;
             }

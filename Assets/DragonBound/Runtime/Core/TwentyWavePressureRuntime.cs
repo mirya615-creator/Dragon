@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DragonBound.Bosses.Contracts;
 using DragonBound.Bosses.Runtime;
+using DragonBound.Combat;
 using DragonBound.Foundation.Contracts;
 using DragonBound.Items;
 using DragonBound.Recruitment;
@@ -457,6 +458,23 @@ namespace DragonBound.Core
             return runtime.TryUse(itemId, out reason);
         }
 
+        /// <summary>Formal positioned Active Item command used by drag-to-place items.</summary>
+        public bool TryUseItemAtPoint(
+            TeamSide side,
+            string itemId,
+            CombatPoint activationPoint,
+            out string reason)
+        {
+            var runtime = side == TeamSide.Player ? playerItems : aiItems;
+            if (runtime == null)
+            {
+                reason = "RunNotStarted";
+                return false;
+            }
+
+            return runtime.TryUseAtPoint(itemId, activationPoint, out reason);
+        }
+
         /// <summary>
         /// Produces one side's deterministic type plan. Player and AI use separate random
         /// objects and stream labels, deliberately initialized from the same canonical seed so
@@ -578,7 +596,8 @@ namespace DragonBound.Core
                 GetWaveSpawnPlan(wave, TeamSide.AI),
                 definition.SpawnIntervalSeconds,
                 definition.FirstSpawnDelaySeconds);
-            if (wave == 6 && playerW6Boss == null && aiW6Boss == null)
+            if (wave == TwentyWavePressureConfiguration.SoulChainBossWave &&
+                playerW6Boss == null && aiW6Boss == null)
             {
                 var playerBoss = player.SpawnBoss(
                     wave,
@@ -612,7 +631,8 @@ namespace DragonBound.Core
                     $"MoveSpeed={SoulchainBinderConfiguration.BossMoveSpeedCellsPerSecond:0.00} " +
                     $"SoulChainEnabled={soulChainEnabled}");
             }
-            else if (wave == 12 && playerW12Boss == null && aiW12Boss == null)
+            else if (wave == TwentyWavePressureConfiguration.StormcallerBossWave &&
+                     playerW12Boss == null && aiW12Boss == null)
             {
                 var playerBoss = player.SpawnBoss(
                     wave,
@@ -641,7 +661,8 @@ namespace DragonBound.Core
                     $"BossHP={stormcallerBossMaxHitPoints:0.00} " +
                     $"MoveSpeed={StormcallerPriestConfiguration.BossMoveSpeedCellsPerSecond:0.00}");
             }
-            else if (wave == 16 && playerW16Boss == null && aiW16Boss == null)
+            else if (wave == TwentyWavePressureConfiguration.BloodcrownBossWave &&
+                     playerW16Boss == null && aiW16Boss == null)
             {
                 var bossDefinition = new BossDefinition(
                     FixedBossIds.W16BloodcrownTyrant,
@@ -676,7 +697,8 @@ namespace DragonBound.Core
                     $"TwentyWave Wave={wave} Event=BossSpawned BossId={bossDefinition.BossId.Value} " +
                     $"BossHP={bossDefinition.MaxHitPoints:0.00} MoveSpeed={bossDefinition.MoveSpeed:0.00} GreyboxHP=true");
             }
-            else if (wave == 20 && playerW20Boss == null && aiW20Boss == null)
+            else if (wave == TwentyWavePressureConfiguration.WorldeaterBossWave &&
+                     playerW20Boss == null && aiW20Boss == null)
             {
                 var bossDefinition = new BossDefinition(
                     FixedBossIds.W20WorldeaterWyrm,
@@ -715,7 +737,7 @@ namespace DragonBound.Core
                 $"DurationSeconds={definition.WaveDurationSeconds:0.00} BossSlot={definition.HasBossSlot}");
             if (definition.HasBossSlot)
             {
-                Emit($"TwentyWave Wave={wave} Event=BossSlotReserved BossSpawned={wave == 6 || wave == 12 || wave == 16 || wave == 20}");
+                Emit($"TwentyWave Wave={wave} Event=BossSlotReserved BossSpawned={TwentyWavePressureConfiguration.IsBossWave(wave)}");
             }
         }
 

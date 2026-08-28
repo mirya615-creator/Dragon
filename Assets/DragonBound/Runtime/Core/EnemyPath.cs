@@ -71,6 +71,16 @@ namespace DragonBound.Core
         public IReadOnlyList<string> Nodes => nodes;
         public float TotalDistance => totalDistance;
 
+        public CombatPoint GetNodeCombatPosition(int index)
+        {
+            if (index < 0 || index >= combatPositions.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+
+            return combatPositions[index];
+        }
+
         public void PlaceAtSpawn(EnemyRuntime enemy)
         {
             if (enemy == null)

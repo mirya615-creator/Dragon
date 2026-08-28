@@ -59,5 +59,34 @@ namespace DragonBound.Tests.EditMode
                 Object.DestroyImmediate(root);
             }
         }
+
+        [Test]
+        public void DisablingBeachItemDoesNotCreateSoulChainOverlayDuringLifecycleChange()
+        {
+            var root = new GameObject(
+                "BeachItem",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image),
+                typeof(CanvasGroup),
+                typeof(DraggableUnitView));
+            try
+            {
+                var view = root.GetComponent<DraggableUnitView>();
+                view.ConfigureBeach(
+                    root.GetComponent<Image>(),
+                    null,
+                    null,
+                    root.GetComponent<CanvasGroup>());
+
+                root.SetActive(false);
+
+                Assert.IsNull(root.transform.Find("ART_SoulChainOverlay"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
     }
 }

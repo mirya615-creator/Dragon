@@ -9,13 +9,13 @@ namespace DragonBound.Tests.EditMode
     public sealed class W16BloodcrownIntegrationTests
     {
         [Test]
-        public void ProductionW16CreatesIndependentBossesWithoutIncreasingRegularWaveCount()
+        public void AcceleratedW5CreatesIndependentBloodcrownBossesWithoutIncreasingRegularWaveCount()
         {
             var configuration = TwentyWavePressureConfiguration.CreateCoreLoopV2();
             var runtime = new TwentyWavePressureRuntime(new MatchController(1601), null, null, 1601, configuration);
 
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(16));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.BloodcrownBossWave));
 
             Assert.IsNotNull(runtime.PlayerW16Boss);
             Assert.IsNotNull(runtime.AiW16Boss);
@@ -26,9 +26,9 @@ namespace DragonBound.Tests.EditMode
                 runtime.PlayerW16Boss.BaseMovementSpeedMultiplier * runtime.PlayerPath.TotalDistance / 12f,
                 0.0001f);
             Assert.AreEqual(1, runtime.PlayerSpawnedThisWave,
-                "W16 Normal #1 is spawned by the shared queue before the independent Boss slot.");
+                "W5 Normal #1 is spawned by the shared queue before the independent Boss slot.");
             Assert.LessOrEqual(runtime.PlayerSpawnedThisWave,
-                runtime.Configuration.GetWave(16).EnemyCountPerSide);
+                runtime.Configuration.GetWave(5).EnemyCountPerSide);
         }
 
         [Test]
@@ -36,7 +36,7 @@ namespace DragonBound.Tests.EditMode
         {
             var runtime = new TwentyWavePressureRuntime(new MatchController(1602), null, null, 1602);
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(16));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.BloodcrownBossWave));
 
             runtime.Tick(9f);
             Assert.IsTrue(runtime.PlayerW16BossRuntime.IsDecreeApplied);
@@ -53,7 +53,7 @@ namespace DragonBound.Tests.EditMode
             var runtime = new TwentyWavePressureRuntime(new MatchController(1604), null, null, 1604);
             runtime.SetSpellbreakerResolver(TeamSide.Player, new BlockingSpellbreaker());
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(16));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.BloodcrownBossWave));
 
             runtime.Tick(9f);
             Assert.AreEqual(2160f, runtime.PlayerW16Boss.HitPoints, 0.0001f);
@@ -62,13 +62,13 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void ExistingW6AndW12BossEntrypointsRemainUnchanged()
+        public void AcceleratedSoulChainAndStormcallerEntrypointsUseW3AndW4()
         {
             var runtime = new TwentyWavePressureRuntime(new MatchController(1603), null, null, 1603);
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(6));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.SoulChainBossWave));
             Assert.AreEqual(SoulchainBinderConfiguration.BossId, runtime.PlayerW6Boss.BossId);
-            Assert.IsTrue(runtime.JumpToWave(12));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.StormcallerBossWave));
             Assert.AreEqual(StormcallerPriestConfiguration.BossId, runtime.PlayerW12Boss.BossId);
             Assert.AreEqual(600f, runtime.PlayerW6Boss.MaxHitPoints, 0.0001f);
         }

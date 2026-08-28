@@ -25,6 +25,25 @@ namespace DragonBound.Recruitment
         public const string ValkyrieAcolyte = "CMP_VALKYRIE_ACOLYTE";
         public const string DragonboneLongbow = "CMP_DRAGONBONE_LONGBOW";
 
+        // Current design names. Values intentionally retain the stable ids used
+        // by saves, analytics and the future server contract.
+        public const string BabyDragon = ContractHatchling;
+        public const string RangerHood = SkyRanger;
+        public const string EmberMask = FlameShaman;
+        public const string StormHat = RuneApprentice;
+        public const string StoneheartHat = StoneScholar;
+        public const string RoyalCrown = AncestralWarCrown;
+        public const string Oathblade = WanderingSwordsman;
+        public const string FrostHorn = NorthlandScout;
+        public const string DrakeRiderHelm = DragonKnight;
+        public const string MeteorHat = AstralMage;
+        public const string ThunderHammer = StormWarrior;
+        public const string ShadowHood = ShadowWalker;
+        public const string ShadowDagger = RuneDagger;
+        public const string DeepseaMask = DeepseaHarpooner;
+        public const string AbyssalHarpoon = AncientHarpoon;
+        public const string CelestialBow = DragonboneLongbow;
+
         // Source compatibility only. New data and runtime matching must use canonical names above.
         public const string DragonSigil = ContractHatchling;
         public const string RuneGrimoire = RuneStaff;
@@ -53,6 +72,14 @@ namespace DragonBound.Recruitment
         public const string NightfangAssassin = "HERO_NIGHTFANG_ASSASSIN";
         public const string LeviathanHunter = "HERO_LEVIATHAN_HUNTER";
         public const string SkyhunterValkyrie = "HERO_SKYHUNTER_VALKYRIE";
+
+        // Current design names mapped to the stable runtime identities.
+        public const string FlameDrakeRider = DragonRider;
+        public const string StoneboundWarlock = Stonebinder;
+        public const string OathcrownBlademaster = CrownSwordLeader;
+        public const string Thunderlord = ThunderJarl;
+        public const string AbyssalHarpooner = LeviathanHunter;
+        public const string SkyborneValkyrie = SkyhunterValkyrie;
 
         // Legacy source symbols resolve to the neutral frozen hero identities.
         public const string HornbladeDuelist = CrownSwordLeader;
@@ -349,41 +376,41 @@ namespace DragonBound.Recruitment
         {
             return Array.AsReadOnly(new[]
             {
-                Component(DragonBoundComponentIds.DragonSigil, "Contract Dragonling", "Contract Dragonling", HeroComponentCategory.PublicCore, 3,
+                Component(DragonBoundComponentIds.BabyDragon, "幼龙", "Baby Dragon", HeroComponentCategory.PublicCore, 3,
                     DragonBoundHeroIds.WindclawRanger, DragonBoundHeroIds.EmberShaman, DragonBoundHeroIds.DragonRider),
-                Component(DragonBoundComponentIds.RuneGrimoire, "Rune Staff", "Rune Staff", HeroComponentCategory.PublicCore, 3,
+                Component(DragonBoundComponentIds.RuneStaff, "符文法杖", "Rune Staff", HeroComponentCategory.PublicCore, 3,
                     DragonBoundHeroIds.RuneboltMage, DragonBoundHeroIds.Stonebinder, DragonBoundHeroIds.StarfallArchmage),
-                Component(DragonBoundComponentIds.WarHorn, "Ancestral War Crown", "Ancestral War Crown", HeroComponentCategory.PublicCore, 3,
+                Component(DragonBoundComponentIds.RoyalCrown, "皇家王冠", "Royal Crown", HeroComponentCategory.PublicCore, 3,
                     DragonBoundHeroIds.HornbladeDuelist, DragonBoundHeroIds.NorthwatchHunter, DragonBoundHeroIds.ThunderJarl),
-                Component(DragonBoundComponentIds.SkyRanger, "Sky Ranger", "Sky Ranger", HeroComponentCategory.PurplePartner, 1,
+                Component(DragonBoundComponentIds.RangerHood, "游侠兜帽", "Ranger Hood", HeroComponentCategory.PurplePartner, 1,
                     DragonBoundHeroIds.WindclawRanger),
-                Component(DragonBoundComponentIds.FlameShaman, "Flame Shaman", "Flame Shaman", HeroComponentCategory.PurplePartner, 1,
+                Component(DragonBoundComponentIds.EmberMask, "余烬面具", "Ember Mask", HeroComponentCategory.PurplePartner, 1,
                     DragonBoundHeroIds.EmberShaman),
-                Component(DragonBoundComponentIds.RuneApprentice, "Rune Apprentice", "Rune Apprentice", HeroComponentCategory.PurplePartner, 1,
+                Component(DragonBoundComponentIds.StormHat, "雷鸣法帽", "Storm Hat", HeroComponentCategory.PurplePartner, 1,
                     DragonBoundHeroIds.RuneboltMage),
-                Component(DragonBoundComponentIds.StoneScholar, "Stone Scholar", "Stone Scholar", HeroComponentCategory.PurplePartner, 1,
+                Component(DragonBoundComponentIds.StoneheartHat, "岩心法帽", "Stoneheart Hat", HeroComponentCategory.PurplePartner, 1,
                     DragonBoundHeroIds.Stonebinder),
-                Component(DragonBoundComponentIds.WanderingSword, "Wandering Sword", "Wandering Sword", HeroComponentCategory.PurplePartner, 1,
+                Component(DragonBoundComponentIds.Oathblade, "誓约长剑", "Oathblade", HeroComponentCategory.PurplePartner, 1,
                     DragonBoundHeroIds.HornbladeDuelist),
-                Component(DragonBoundComponentIds.NorthwatchScout, "Northwatch Scout", "Northwatch Scout", HeroComponentCategory.PurplePartner, 1,
+                Component(DragonBoundComponentIds.FrostHorn, "寒霜号角", "Frost Horn", HeroComponentCategory.PurplePartner, 1,
                     DragonBoundHeroIds.NorthwatchHunter),
-                Component(DragonBoundComponentIds.DragonKnight, "Dragon Knight", "Dragon Knight", HeroComponentCategory.SharedRouteGoldPartner, 1,
+                Component(DragonBoundComponentIds.DrakeRiderHelm, "龙骑战盔", "Drake Rider Helm", HeroComponentCategory.SharedRouteGoldPartner, 1,
                     DragonBoundHeroIds.DragonRider),
-                Component(DragonBoundComponentIds.MeteorCore, "Astral Arcanist", "Astral Arcanist", HeroComponentCategory.SharedRouteGoldPartner, 1,
+                Component(DragonBoundComponentIds.MeteorHat, "流星法帽", "Meteor Hat", HeroComponentCategory.SharedRouteGoldPartner, 1,
                     DragonBoundHeroIds.StarfallArchmage),
-                Component(DragonBoundComponentIds.StormCrown, "Storm Warrior", "Storm Warrior", HeroComponentCategory.SharedRouteGoldPartner, 1,
+                Component(DragonBoundComponentIds.ThunderHammer, "雷霆战锤", "Thunder Hammer", HeroComponentCategory.SharedRouteGoldPartner, 1,
                     DragonBoundHeroIds.ThunderJarl),
-                Component(DragonBoundComponentIds.ShadowCloak, "Shadow Walker", "Shadow Walker", HeroComponentCategory.DedicatedGold, 1,
+                Component(DragonBoundComponentIds.ShadowHood, "暗影兜帽", "Shadow Hood", HeroComponentCategory.DedicatedGold, 1,
                     DragonBoundHeroIds.NightfangAssassin),
-                Component(DragonBoundComponentIds.RuneDagger, "Rune Dagger", "Rune Dagger", HeroComponentCategory.DedicatedGold, 1,
+                Component(DragonBoundComponentIds.ShadowDagger, "暗影匕首", "Shadow Dagger", HeroComponentCategory.DedicatedGold, 1,
                     DragonBoundHeroIds.NightfangAssassin),
-                Component(DragonBoundComponentIds.LeviathanEye, "Deepsea Harpooner", "Deepsea Harpooner", HeroComponentCategory.DedicatedGold, 1,
+                Component(DragonBoundComponentIds.DeepseaMask, "深海面罩", "Deepsea Mask", HeroComponentCategory.DedicatedGold, 1,
                     DragonBoundHeroIds.LeviathanHunter),
-                Component(DragonBoundComponentIds.AncientHarpoon, "Ancient Harpoon", "Ancient Harpoon", HeroComponentCategory.DedicatedGold, 1,
+                Component(DragonBoundComponentIds.AbyssalHarpoon, "深渊鱼叉", "Abyssal Harpoon", HeroComponentCategory.DedicatedGold, 1,
                     DragonBoundHeroIds.LeviathanHunter),
-                Component(DragonBoundComponentIds.ValkyrieWings, "Valkyrie Attendant", "Valkyrie Attendant", HeroComponentCategory.DedicatedGold, 1,
+                Component(DragonBoundComponentIds.ValkyrieWings, "女武神之翼", "Valkyrie Wings", HeroComponentCategory.DedicatedGold, 1,
                     DragonBoundHeroIds.SkyhunterValkyrie),
-                Component(DragonBoundComponentIds.DragonboneBow, "Dragonbone Bow", "Dragonbone Bow", HeroComponentCategory.DedicatedGold, 1,
+                Component(DragonBoundComponentIds.CelestialBow, "天穹之弓", "Celestial Bow", HeroComponentCategory.DedicatedGold, 1,
                     DragonBoundHeroIds.SkyhunterValkyrie)
             });
         }
@@ -393,40 +420,40 @@ namespace DragonBound.Recruitment
             return Array.AsReadOnly(new[]
             {
                 Recipe(DragonBoundRecipeIds.WindclawRanger, DragonBoundHeroIds.WindclawRanger, HeroRecipeRarity.Purple,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.SkyRanger, DragonBoundComponentIds.DragonSigil,
-                    null, null, "FORM_WINDCLAW_RANGER", DragonBoundComponentIds.SkyRanger),
+                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.RangerHood, DragonBoundComponentIds.BabyDragon,
+                    null, null, "FORM_WINDCLAW_RANGER", DragonBoundComponentIds.RangerHood),
                 Recipe(DragonBoundRecipeIds.EmberShaman, DragonBoundHeroIds.EmberShaman, HeroRecipeRarity.Purple,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.FlameShaman, DragonBoundComponentIds.DragonSigil,
-                    null, null, "FORM_EMBER_SHAMAN", DragonBoundComponentIds.FlameShaman),
+                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.EmberMask, DragonBoundComponentIds.BabyDragon,
+                    null, null, "FORM_EMBER_SHAMAN", DragonBoundComponentIds.EmberMask),
                 Recipe(DragonBoundRecipeIds.DragonRider, DragonBoundHeroIds.DragonRider, HeroRecipeRarity.Gold,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.DragonKnight, DragonBoundComponentIds.DragonSigil,
-                    null, null, "FORM_DRAGON_RIDER", DragonBoundComponentIds.DragonKnight),
+                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.DrakeRiderHelm, DragonBoundComponentIds.BabyDragon,
+                    null, null, "FORM_DRAGON_RIDER", DragonBoundComponentIds.DrakeRiderHelm),
                 Recipe(DragonBoundRecipeIds.CrownSwordLeader, DragonBoundHeroIds.CrownSwordLeader, HeroRecipeRarity.Purple,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.WarHorn, DragonBoundComponentIds.WanderingSword,
-                    null, null, "FORM_HORNBLADE_DUELIST", DragonBoundComponentIds.WanderingSword),
+                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.Oathblade,
+                    null, null, "FORM_HORNBLADE_DUELIST", DragonBoundComponentIds.Oathblade),
                 Recipe(DragonBoundRecipeIds.CrownHunterLeader, DragonBoundHeroIds.CrownHunterLeader, HeroRecipeRarity.Purple,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.WarHorn, DragonBoundComponentIds.NorthwatchScout,
-                    null, null, "FORM_NORTHWATCH_HUNTER", DragonBoundComponentIds.NorthwatchScout),
+                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.FrostHorn,
+                    null, null, "FORM_NORTHWATCH_HUNTER", DragonBoundComponentIds.FrostHorn),
                 Recipe(DragonBoundRecipeIds.ThunderJarl, DragonBoundHeroIds.ThunderJarl, HeroRecipeRarity.Gold,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.WarHorn, DragonBoundComponentIds.StormCrown,
-                    null, null, "FORM_THUNDER_JARL", DragonBoundComponentIds.StormCrown),
+                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.ThunderHammer,
+                    null, null, "FORM_THUNDER_JARL", DragonBoundComponentIds.ThunderHammer),
                 Recipe(DragonBoundRecipeIds.RuneboltMage, DragonBoundHeroIds.RuneboltMage, HeroRecipeRarity.Purple,
-                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.RuneGrimoire, DragonBoundComponentIds.RuneApprentice,
-                    "FORM_RUNEBOLT_MAGE", DragonBoundComponentIds.RuneApprentice),
+                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.StormHat,
+                    "FORM_RUNEBOLT_MAGE", DragonBoundComponentIds.StormHat),
                 Recipe(DragonBoundRecipeIds.Stonebinder, DragonBoundHeroIds.Stonebinder, HeroRecipeRarity.Purple,
-                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.RuneGrimoire, DragonBoundComponentIds.StoneScholar,
-                    "FORM_STONEBINDER", DragonBoundComponentIds.StoneScholar),
+                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.StoneheartHat,
+                    "FORM_STONEBINDER", DragonBoundComponentIds.StoneheartHat),
                 Recipe(DragonBoundRecipeIds.StarfallArchmage, DragonBoundHeroIds.StarfallArchmage, HeroRecipeRarity.Gold,
-                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.RuneGrimoire, DragonBoundComponentIds.MeteorCore,
-                    "FORM_STARFALL_ARCHMAGE", DragonBoundComponentIds.MeteorCore),
+                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.MeteorHat,
+                    "FORM_STARFALL_ARCHMAGE", DragonBoundComponentIds.MeteorHat),
                 Recipe(DragonBoundRecipeIds.NightfangAssassin, DragonBoundHeroIds.NightfangAssassin, HeroRecipeRarity.Gold,
-                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.RuneDagger, DragonBoundComponentIds.ShadowCloak,
-                    "FORM_NIGHTFANG_ASSASSIN", DragonBoundComponentIds.ShadowCloak),
+                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.ShadowDagger, DragonBoundComponentIds.ShadowHood,
+                    "FORM_NIGHTFANG_ASSASSIN", DragonBoundComponentIds.ShadowHood),
                 Recipe(DragonBoundRecipeIds.LeviathanHunter, DragonBoundHeroIds.LeviathanHunter, HeroRecipeRarity.Gold,
-                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.AncientHarpoon, DragonBoundComponentIds.LeviathanEye,
-                    "FORM_LEVIATHAN_HUNTER", DragonBoundComponentIds.LeviathanEye),
+                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.AbyssalHarpoon, DragonBoundComponentIds.DeepseaMask,
+                    "FORM_LEVIATHAN_HUNTER", DragonBoundComponentIds.DeepseaMask),
                 Recipe(DragonBoundRecipeIds.SkyhunterValkyrie, DragonBoundHeroIds.SkyhunterValkyrie, HeroRecipeRarity.Gold,
-                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.DragonboneBow, DragonBoundComponentIds.ValkyrieWings,
+                    HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.CelestialBow, DragonBoundComponentIds.ValkyrieWings,
                     "FORM_SKYHUNTER_VALKYRIE", DragonBoundComponentIds.ValkyrieWings)
             });
         }
@@ -566,61 +593,61 @@ namespace DragonBound.Recruitment
         {
             return Array.AsReadOnly(new[]
             {
-                Hero(DragonBoundHeroIds.WindclawRanger, "Windclaw Ranger", "Windclaw Ranger", HeroRecipeRarity.Purple,
-                    DragonBoundComponentIds.DragonSigil, DragonBoundComponentIds.SkyRanger, 14f, 1.80f, 3.25f,
+                Hero(DragonBoundHeroIds.WindclawRanger, "风爪游侠", "Windclaw Ranger", HeroRecipeRarity.Purple,
+                    DragonBoundComponentIds.RangerHood, DragonBoundComponentIds.BabyDragon, 14f, 1.80f, 3.25f,
                     HeroAttackType.RangedSingleTarget, PurpleLevels(), DragonBoundSkillIds.PowerShot,
                     Targets(HeroTargetPriority.EliteFirst, HeroTargetPriority.Frontmost)),
-                Hero(DragonBoundHeroIds.EmberShaman, "Ember Shaman", "Ember Shaman", HeroRecipeRarity.Purple,
-                    DragonBoundComponentIds.DragonSigil, DragonBoundComponentIds.FlameShaman, 8f, 1.70f, 3.00f,
+                Hero(DragonBoundHeroIds.EmberShaman, "余烬萨满", "Ember Shaman", HeroRecipeRarity.Purple,
+                    DragonBoundComponentIds.EmberMask, DragonBoundComponentIds.BabyDragon, 8f, 1.70f, 3.00f,
                     HeroAttackType.Area, PurpleLevels(), DragonBoundSkillIds.ExplosiveFireball,
                     Targets(HeroTargetPriority.Frontmost),
                     new Dictionary<string, float> { { "AttackRadius", 0.90f }, { "AttackMaxTargets", 5f } }),
-                Hero(DragonBoundHeroIds.RuneboltMage, "Runebolt Mage", "Runebolt Mage", HeroRecipeRarity.Purple,
-                    DragonBoundComponentIds.RuneGrimoire, DragonBoundComponentIds.RuneApprentice, 8f, 1.75f, 3.00f,
+                Hero(DragonBoundHeroIds.RuneboltMage, "符文雷矢法师", "Runebolt Mage", HeroRecipeRarity.Purple,
+                    DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.StormHat, 8f, 1.75f, 3.00f,
                     HeroAttackType.PiercingLine, PurpleLevels(), DragonBoundSkillIds.RuneboltMage,
                     Targets(HeroTargetPriority.Frontmost),
                     new Dictionary<string, float> { { "PierceLength", 5f }, { "PierceWidth", 0.35f } },
                     new Dictionary<string, float[]> { { "MaxTargetsByLevel", new[] { 4f, 5f, 6f } } }),
-                Hero(DragonBoundHeroIds.Stonebinder, "Stonebinder", "Stonebinder", HeroRecipeRarity.Purple,
-                    DragonBoundComponentIds.RuneGrimoire, DragonBoundComponentIds.StoneScholar, 10f, 1.45f, 2.75f,
+                Hero(DragonBoundHeroIds.Stonebinder, "石缚术士", "Stonebound Warlock", HeroRecipeRarity.Purple,
+                    DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.StoneheartHat, 10f, 1.45f, 2.75f,
                     HeroAttackType.SingleTargetStun, PurpleLevels(), DragonBoundSkillIds.StoneBind,
                     Targets(HeroTargetPriority.Frontmost)),
-                Hero(DragonBoundHeroIds.CrownSwordLeader, "Oathcrown Swordsman", "Oathcrown Swordsman", HeroRecipeRarity.Purple,
-                    DragonBoundComponentIds.WarHorn, DragonBoundComponentIds.WanderingSword, 18f, 1.50f, 1.75f,
+                Hero(DragonBoundHeroIds.CrownSwordLeader, "誓冠剑士", "Oathcrown Blademaster", HeroRecipeRarity.Purple,
+                    DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.Oathblade, 18f, 1.50f, 1.75f,
                     HeroAttackType.LockedSingleTargetRamp, PurpleLevels(), DragonBoundSkillIds.DuelMomentum,
                     Targets(HeroTargetPriority.Frontmost)),
-                Hero(DragonBoundHeroIds.CrownHunterLeader, "Frostcrown Hunter", "Frostcrown Hunter", HeroRecipeRarity.Purple,
-                    DragonBoundComponentIds.WarHorn, DragonBoundComponentIds.NorthwatchScout, 16f, 1.45f, 3.25f,
+                Hero(DragonBoundHeroIds.CrownHunterLeader, "霜冠猎手", "Frostcrown Hunter", HeroRecipeRarity.Purple,
+                    DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.FrostHorn, 16f, 1.45f, 3.25f,
                     HeroAttackType.MarkedSingleTarget, PurpleLevels(), DragonBoundSkillIds.HuntMark,
                     Targets(HeroTargetPriority.HighestHealth, HeroTargetPriority.Frontmost)),
-                Hero(DragonBoundHeroIds.DragonRider, "Dragon Rider", "Dragon Rider", HeroRecipeRarity.Gold,
-                    DragonBoundComponentIds.DragonSigil, DragonBoundComponentIds.DragonKnight, 13f, 1.70f, 3.00f,
+                Hero(DragonBoundHeroIds.DragonRider, "烈焰龙骑", "Flame Drake Rider", HeroRecipeRarity.Gold,
+                    DragonBoundComponentIds.DrakeRiderHelm, DragonBoundComponentIds.BabyDragon, 13f, 1.70f, 3.00f,
                     HeroAttackType.Area, GoldLevels(), DragonBoundSkillIds.FlameDive,
                     Targets(HeroTargetPriority.Frontmost),
                     new Dictionary<string, float> { { "AttackRadius", 0.65f }, { "AttackMaxTargets", 4f } }),
-                Hero(DragonBoundHeroIds.StarfallArchmage, "Starfall Archmage", "Starfall Archmage", HeroRecipeRarity.Gold,
-                    DragonBoundComponentIds.RuneGrimoire, DragonBoundComponentIds.MeteorCore, 12f, 1.75f, 3.25f,
+                Hero(DragonBoundHeroIds.StarfallArchmage, "星落大法师", "Starfall Archmage", HeroRecipeRarity.Gold,
+                    DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.MeteorHat, 12f, 1.75f, 3.25f,
                     HeroAttackType.LargeArea, GoldLevels(), DragonBoundSkillIds.Starfall,
                     Targets(HeroTargetPriority.HighestDensity, HeroTargetPriority.Frontmost),
                     new Dictionary<string, float> { { "AttackRadius", 0.80f }, { "AttackMaxTargets", 5f } }),
-                Hero(DragonBoundHeroIds.ThunderJarl, "Thunder Jarl", "Thunder Jarl", HeroRecipeRarity.Gold,
-                    DragonBoundComponentIds.WarHorn, DragonBoundComponentIds.StormCrown, 11f, 1.55f, 3.00f,
+                Hero(DragonBoundHeroIds.ThunderJarl, "雷霆领主", "Thunderlord", HeroRecipeRarity.Gold,
+                    DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.ThunderHammer, 11f, 1.55f, 3.00f,
                     HeroAttackType.Chain, GoldLevels(), DragonBoundSkillIds.ThunderDominion,
                     Targets(HeroTargetPriority.Frontmost),
                     new Dictionary<string, float> { { "AttackMaxTargets", 3f }, { "ChainJumpRange", 1f } },
                     new Dictionary<string, float[]> { { "ChainDamageMultipliers", new[] { 1f, 0.75f, 0.55f } } }),
-                Hero(DragonBoundHeroIds.NightfangAssassin, "Nightfang Assassin", "Nightfang Assassin", HeroRecipeRarity.Gold,
-                    DragonBoundComponentIds.ShadowCloak, DragonBoundComponentIds.RuneDagger, 30f, 1.50f, 2.25f,
+                Hero(DragonBoundHeroIds.NightfangAssassin, "夜牙刺客", "Nightfang Assassin", HeroRecipeRarity.Gold,
+                    DragonBoundComponentIds.ShadowDagger, DragonBoundComponentIds.ShadowHood, 30f, 1.50f, 2.25f,
                     HeroAttackType.ExecuteSingleTarget, GoldLevels(), DragonBoundSkillIds.NightfangExecution,
                     Targets(HeroTargetPriority.BossFirst, HeroTargetPriority.EliteFirst, HeroTargetPriority.Frontmost)),
-                Hero(DragonBoundHeroIds.LeviathanHunter, "Leviathan Hunter", "Leviathan Hunter", HeroRecipeRarity.Gold,
-                    DragonBoundComponentIds.LeviathanEye, DragonBoundComponentIds.AncientHarpoon, 15f, 1.85f, 3.50f,
+                Hero(DragonBoundHeroIds.LeviathanHunter, "深渊鱼叉手", "Abyssal Harpooner", HeroRecipeRarity.Gold,
+                    DragonBoundComponentIds.AbyssalHarpoon, DragonBoundComponentIds.DeepseaMask, 15f, 1.85f, 3.50f,
                     HeroAttackType.PiercingFalloff, GoldLevels(), DragonBoundSkillIds.AbyssHarpoon,
                     Targets(HeroTargetPriority.Frontmost),
                     new Dictionary<string, float> { { "PierceLength", 6f }, { "PierceWidth", 0.40f }, { "AttackMaxTargets", 6f } },
                     new Dictionary<string, float[]> { { "DamageMultiplierByHit", new[] { 1f, 0.92f, 0.84f, 0.76f, 0.68f, 0.60f } } }),
-                Hero(DragonBoundHeroIds.SkyhunterValkyrie, "Skyhunter Valkyrie", "Skyhunter Valkyrie", HeroRecipeRarity.Gold,
-                    DragonBoundComponentIds.ValkyrieWings, DragonBoundComponentIds.DragonboneBow, 24f, 1.80f, 3.50f,
+                Hero(DragonBoundHeroIds.SkyhunterValkyrie, "天穹女武神", "Skyborne Valkyrie", HeroRecipeRarity.Gold,
+                    DragonBoundComponentIds.CelestialBow, DragonBoundComponentIds.ValkyrieWings, 24f, 1.80f, 3.50f,
                     HeroAttackType.LockedAttackSpeedRamp, GoldLevels(), DragonBoundSkillIds.SkyHunt,
                     Targets(HeroTargetPriority.Frontmost))
             });

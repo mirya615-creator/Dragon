@@ -262,17 +262,17 @@ namespace DragonBound.Items
             LastAffectedEnemyCount = 0;
             LastTotalDamage = 0f;
             if (!BeginActivation(out reason)) return false;
-            var target = ItemCombatEffectTargeting.SelectEnemy(context, context.ActivationTargetId);
-            if (target == null)
+            if (!context.HasActivationPoint)
             {
-                reason = "NoAliveTargets";
+                reason = "InvalidPlacement";
                 return false;
             }
 
+            var center = context.ActivationPoint;
             foreach (var enemy in context.OwnRouteEnemies.Snapshot())
             {
                 if (enemy.Team != context.OwnTeam.Side || !enemy.IsAlive ||
-                    enemy.CombatPosition.DistanceSquared(target.CombatPosition) > AreaRadius * AreaRadius + 0.0001f)
+                    enemy.CombatPosition.DistanceSquared(center) > AreaRadius * AreaRadius + 0.0001f)
                 {
                     continue;
                 }
@@ -287,6 +287,12 @@ namespace DragonBound.Items
                 }
                 LastAffectedEnemyCount++;
                 LastTotalDamage += damage;
+            }
+
+            if (LastAffectedEnemyCount == 0)
+            {
+                reason = "NoAliveTargets";
+                return false;
             }
 
             CompleteActivation();

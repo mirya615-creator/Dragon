@@ -24,6 +24,7 @@ namespace DragonBound.Presentation
         [SerializeField] private BoardBackgroundClickReceiver rangeDismissSurface;
 
         private TwentyWavePressureRuntime runeTipRuntime;
+        private TwentyWavePressureRuntime soulChainVisualRuntime;
         private TMP_Text runeTipText;
         private Coroutine runeTipHideCoroutine;
         private int runeTipVersion;
@@ -142,7 +143,25 @@ namespace DragonBound.Presentation
 
             ResolveOverlayController();
             overlayController.BindItemRuntime(runtime);
+            BindSoulChainVisuals(runtime);
             BindRuneDropTip(runtime);
+        }
+
+        private void BindSoulChainVisuals(TwentyWavePressureRuntime runtime)
+        {
+            if (soulChainVisualRuntime != null)
+            {
+                soulChainVisualRuntime.SoulChainCastEmitted -= HandleSoulChainVisual;
+            }
+
+            soulChainVisualRuntime = runtime;
+            soulChainVisualRuntime.SoulChainCastEmitted += HandleSoulChainVisual;
+        }
+
+        private void HandleSoulChainVisual(TeamSide side, SoulChainCastEvent value)
+        {
+            var boardView = side == TeamSide.Player ? PlayerBoardView : AiBoardView;
+            boardView?.SetSoulChainControlledUnits(value.ControlledRuntimeIds);
         }
 
         private void BindRuneDropTip(TwentyWavePressureRuntime runtime)
@@ -316,6 +335,11 @@ namespace DragonBound.Presentation
             if (runeTipRuntime != null)
             {
                 runeTipRuntime.PlayerRuneRewardGranted -= HandleRuneRewardGranted;
+            }
+
+            if (soulChainVisualRuntime != null)
+            {
+                soulChainVisualRuntime.SoulChainCastEmitted -= HandleSoulChainVisual;
             }
 
             if (runeTipHideCoroutine != null)

@@ -157,7 +157,8 @@ namespace DragonBound.Tests.EditMode
                 HeroDefinitionCatalog.Get("HERO_NORTHWATCH_HUNTER").Id);
 
             Assert.IsTrue(HeroComponentCatalog.Definitions.All(component =>
-                component.DisplayNameZh == component.DisplayNameEn));
+                !string.IsNullOrWhiteSpace(component.DisplayNameZh) &&
+                !string.IsNullOrWhiteSpace(component.DisplayNameEn)));
         }
 
         [Test]
@@ -170,9 +171,9 @@ namespace DragonBound.Tests.EditMode
                 HeroNameFreezeState.Frozen,
                 HeroDefinitionCatalog.GetMetadata(DragonBoundHeroIds.CrownHunterLeader).NameFreezeState);
             var sword = HeroDefinitionCatalog.Get(DragonBoundHeroIds.CrownSwordLeader);
-            Assert.AreEqual("Oathcrown Swordsman", sword.DisplayNameZh);
-            Assert.AreEqual("Oathcrown Swordsman", sword.DisplayNameEn);
-            Assert.AreEqual("Frostcrown Hunter", HeroDefinitionCatalog.Get(DragonBoundHeroIds.CrownHunterLeader).DisplayNameZh);
+            Assert.AreEqual("誓冠剑士", sword.DisplayNameZh);
+            Assert.AreEqual("Oathcrown Blademaster", sword.DisplayNameEn);
+            Assert.AreEqual("霜冠猎手", HeroDefinitionCatalog.Get(DragonBoundHeroIds.CrownHunterLeader).DisplayNameZh);
             Assert.AreEqual("Frostcrown Hunter", HeroDefinitionCatalog.Get(DragonBoundHeroIds.CrownHunterLeader).DisplayNameEn);
             Assert.AreEqual(DragonBoundHeroIds.CrownSwordLeader, HeroRecipeCatalog.Get(DragonBoundRecipeIds.CrownSwordLeader).HeroId);
             Assert.AreEqual(DragonBoundHeroIds.CrownHunterLeader, HeroRecipeCatalog.Get(DragonBoundRecipeIds.CrownHunterLeader).HeroId);

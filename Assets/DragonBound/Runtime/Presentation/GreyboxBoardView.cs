@@ -49,6 +49,8 @@ namespace DragonBound.Presentation
             new Dictionary<string, bool>(StringComparer.Ordinal);
         private readonly Dictionary<string, HeroFormationView> pairPresentations =
             new Dictionary<string, HeroFormationView>(StringComparer.Ordinal);
+        private readonly HashSet<string> soulChainControlledUnitIds =
+            new HashSet<string>(StringComparer.Ordinal);
         private BoardGrid board;
         private BoardRecruitDestination unitDestination;
         private RecruitmentService recruitment;
@@ -78,6 +80,28 @@ namespace DragonBound.Presentation
         public Color HeroComponentColor => heroComponentColor;
         public Color PurpleHeroColor => purpleHeroColor;
         public Color GoldHeroColor => goldHeroColor;
+
+        public void SetSoulChainControlledUnits(IReadOnlyList<string> controlledRuntimeIds)
+        {
+            soulChainControlledUnitIds.Clear();
+            if (controlledRuntimeIds != null)
+            {
+                for (var index = 0; index < controlledRuntimeIds.Count; index++)
+                {
+                    var runtimeId = controlledRuntimeIds[index];
+                    if (!string.IsNullOrWhiteSpace(runtimeId))
+                    {
+                        soulChainControlledUnitIds.Add(runtimeId);
+                    }
+                }
+            }
+
+            foreach (var entry in unitViews)
+            {
+                entry.Value?.SetSoulChainControlled(
+                    soulChainControlledUnitIds.Contains(entry.Key));
+            }
+        }
 
         public void ConfigureRecruitItemColors(
             Color basic,
@@ -392,8 +416,9 @@ namespace DragonBound.Presentation
                 unitViews.Add(occupant.UnitId, unitView);
                 usedViews.Add(unitView);
 
+                RecruitCard currentCard = null;
                 if (unitDestination != null &&
-                    unitDestination.TryGetCard(occupant.UnitId, out var currentCard))
+                    unitDestination.TryGetCard(occupant.UnitId, out currentCard))
                 {
                     unitView.SetStandardPresentation();
                     ApplyCardPresentation(currentCard, unitView);
@@ -401,10 +426,14 @@ namespace DragonBound.Presentation
 
                 if (unitLabels.TryGetValue(occupant.UnitId, out var label))
                 {
-                    unitView.SetLabel(label);
+                    var hideComponentName = currentCard != null &&
+                                            currentCard.Kind == RecruitItemKind.HeroComponent;
+                    unitView.SetLabel(hideComponentName ? string.Empty : label);
                 }
 
                 unitView.SetPairedPresentation(false);
+                unitView.SetSoulChainControlled(
+                    soulChainControlledUnitIds.Contains(occupant.UnitId));
                 SnapUnit(occupant.UnitId);
             }
 
@@ -464,7 +493,11 @@ namespace DragonBound.Presentation
             unitShowsRange[unitId] = showRange;
             if (unitViews.TryGetValue(unitId, out var unitView))
             {
-                unitView.SetLabel(label);
+                var hideComponentName = unitDestination != null &&
+                                        unitDestination.TryGetCard(unitId, out var card) &&
+                                        card.Kind == RecruitItemKind.HeroComponent;
+                unitView.SetUnitLabelVisibility(!hideComponentName);
+                unitView.SetLabel(hideComponentName ? string.Empty : label);
             }
         }
 
@@ -689,6 +722,8 @@ namespace DragonBound.Presentation
         {
             if (card.Kind == RecruitItemKind.BasicUnit)
             {
+                unitView?.SetUnitLabelVisibility(true);
+                unitView?.SetBeachTextVisibility(true, true);
                 unitView?.SetCardColor(GetRecruitItemColor(card.Kind));
                 var stats = BasicUnitCatalog.GetStats(card.ConfigId, card.Level);
                 unitLabels[card.RuntimeId] = BasicUnitCatalog.GetDisplayName(card.ConfigId);
@@ -698,7 +733,23 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            unitView?.SetCardColor(GetRecruitItemColor(card.Kind));
+            var isHeroComponent = card.Kind == RecruitItemKind.HeroComponent;
+            unitView?.SetUnitLabelVisibility(!isHeroComponent);
+            unitView?.SetBeachTextVisibility(card.Kind == RecruitItemKind.Shovel, false);
+
+            if (isHeroComponent &&
+                unitView != null &&
+                ResourcesCampComponentArtProvider.Shared.TryGetHeroComponentSprite(
+                    card.ConfigId,
+                    out var componentSprite))
+            {
+                unitView.SetCardSprite(componentSprite);
+                unitView.SetCardColor(Color.white);
+            }
+            else
+            {
+                unitView?.SetCardColor(GetRecruitItemColor(card.Kind));
+            }
 
             unitLabels[card.RuntimeId] = allowInteraction
                 ? HeroSliceCardPresentation.GetLabel(card, recruitment)
@@ -1118,7 +1169,7 @@ namespace DragonBound.Presentation
                     canvasGroup = beachItem.gameObject.AddComponent<CanvasGroup>();
                 }
 
-                var nameTransform = beachItem.Find("Name");
+                var nameTransform = beachItem.Find("Text (TMP)");
                 var levelTransform = beachItem.Find("Text");
                 itemView.ConfigureBeach(
                     beachItem.GetComponent<Image>(),

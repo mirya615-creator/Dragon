@@ -134,6 +134,10 @@ namespace DragonBound.Recruitment
             new Dictionary<string, RecruitCard>(StringComparer.Ordinal);
         private readonly HashSet<string> combatSuspendedUnitIds =
             new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> dragSuspendedUnitIds =
+            new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> soulChainSuspendedUnitIds =
+            new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> combatRegisteredUnitIds =
             new HashSet<string>(StringComparer.Ordinal);
         private readonly Dictionary<string, ComponentRuntime> componentsById =
@@ -294,7 +298,7 @@ namespace DragonBound.Recruitment
                         card,
                         position,
                         board.GetCombatPosition(position),
-                        combatSuspendedUnitIds.Contains(runtimeId)));
+                        IsCombatSuspended(runtimeId)));
                 }
             }
 
@@ -406,7 +410,7 @@ namespace DragonBound.Recruitment
                     }
                     cardsByRuntimeId.Remove(oldRuntimeId);
                     componentsById.Remove(oldRuntimeId);
-                    combatSuspendedUnitIds.Remove(oldRuntimeId);
+                    ClearCombatSuspensions(oldRuntimeId);
                     if (!board.TryRemoveAt(position))
                     {
                         throw new InvalidOperationException($"Failed to clear bench position {position}.");
@@ -472,7 +476,7 @@ namespace DragonBound.Recruitment
             BreakPairForComponent(runtimeId, "WorldeaterDevour");
             RemoveProgressionForOwner(runtimeId);
             componentsById.Remove(runtimeId);
-            combatSuspendedUnitIds.Remove(runtimeId);
+            ClearCombatSuspensions(runtimeId);
             cardsByRuntimeId.Remove(runtimeId);
             if (!board.TryRemoveAt(position))
             {
@@ -621,16 +625,35 @@ namespace DragonBound.Recruitment
 
         public bool SetCombatSuspended(string runtimeId, bool suspended)
         {
-            if (string.IsNullOrWhiteSpace(runtimeId) ||
-                !cardsByRuntimeId.TryGetValue(runtimeId, out var card) ||
-                card.Kind != RecruitItemKind.BasicUnit)
+            return SetCombatSuspension(combatSuspendedUnitIds, runtimeId, suspended);
+        }
+
+        public bool SetSoulChainCombatSuspended(string runtimeId, bool suspended)
+        {
+            return SetCombatSuspension(soulChainSuspendedUnitIds, runtimeId, suspended);
+        }
+
+        private bool SetDragCombatSuspended(string runtimeId, bool suspended)
+        {
+            return SetCombatSuspension(dragSuspendedUnitIds, runtimeId, suspended);
+        }
+
+        private bool SetCombatSuspension(HashSet<string> suspensionSet, string runtimeId, bool suspended)
+        {
+            if (string.IsNullOrWhiteSpace(runtimeId))
             {
                 return false;
             }
 
             if (!suspended)
             {
-                return combatSuspendedUnitIds.Remove(runtimeId);
+                return suspensionSet.Remove(runtimeId);
+            }
+
+            if (!cardsByRuntimeId.TryGetValue(runtimeId, out var card) ||
+                card.Kind != RecruitItemKind.BasicUnit)
+            {
+                return false;
             }
 
             if (!board.TryGetPosition(runtimeId, out var position) ||
@@ -640,13 +663,22 @@ namespace DragonBound.Recruitment
                 return false;
             }
 
-            return combatSuspendedUnitIds.Add(runtimeId);
+            return suspensionSet.Add(runtimeId);
         }
 
         public bool IsCombatSuspended(string runtimeId)
         {
             return !string.IsNullOrWhiteSpace(runtimeId) &&
-                   combatSuspendedUnitIds.Contains(runtimeId);
+                   (combatSuspendedUnitIds.Contains(runtimeId) ||
+                    dragSuspendedUnitIds.Contains(runtimeId) ||
+                    soulChainSuspendedUnitIds.Contains(runtimeId));
+        }
+
+        private void ClearCombatSuspensions(string runtimeId)
+        {
+            combatSuspendedUnitIds.Remove(runtimeId);
+            dragSuspendedUnitIds.Remove(runtimeId);
+            soulChainSuspendedUnitIds.Remove(runtimeId);
         }
 
         public bool CanResolveOccupiedDrop(
@@ -710,7 +742,7 @@ namespace DragonBound.Recruitment
                     RemoveProgressionForOwner(sourceUnitId);
                     componentsById.Remove(sourceUnitId);
                 }
-                combatSuspendedUnitIds.Remove(sourceUnitId);
+                ClearCombatSuspensions(sourceUnitId);
                 if (!board.TryRemoveAt(source))
                 {
                     throw new InvalidOperationException("A validated merge source could not be removed.");
@@ -746,7 +778,7 @@ namespace DragonBound.Recruitment
             }
 
             BreakPairForComponent(unitId, "DragStarted");
-            SetCombatSuspended(unitId, true);
+            SetDragCombatSuspended(unitId, true);
         }
 
         public void OnDragCompleted(DragCompletion completion)
@@ -764,7 +796,7 @@ namespace DragonBound.Recruitment
                 component.CurrentCell = position;
             }
 
-            SetCombatSuspended(completion.UnitId, false);
+            SetDragCombatSuspended(completion.UnitId, false);
             ReconcileCombatRegistrations();
             ResolveAllAvailableLinks();
         }
@@ -1096,6 +1128,7 @@ namespace DragonBound.Recruitment
             {
                 combatRegisteredUnitIds.Remove(runtimeId);
                 combatSuspendedUnitIds.Remove(runtimeId);
+                dragSuspendedUnitIds.Remove(runtimeId);
                 CombatRegistrationChanged?.Invoke(new CombatRegistrationChangedEvent(runtimeId, false));
             }
 

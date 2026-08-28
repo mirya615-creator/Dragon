@@ -194,10 +194,6 @@ namespace DragonBound.Editor
             SetStretch(art.rectTransform);
             art.raycastTarget = true;
 
-            var border = CreateImage("ART_UnitBorder", root.transform, new Color(1f, 1f, 1f, 0.22f));
-            SetStretch(border.rectTransform, new Vector2(-4f, -4f), new Vector2(4f, 4f));
-            border.raycastTarget = false;
-
             var label = CreateText(
                 "UnitLabel",
                 root.transform,
@@ -207,14 +203,6 @@ namespace DragonBound.Editor
                 28,
                 TextAnchor.MiddleCenter);
             label.raycastTarget = false;
-
-            var heroBorder = CreateImage("ART_HeroRarityBorder", root.transform, new Color(1f, 1f, 1f, 0.04f));
-            SetStretch(heroBorder.rectTransform, new Vector2(-5f, -5f), new Vector2(5f, 5f));
-            heroBorder.raycastTarget = false;
-            var heroOutline = heroBorder.gameObject.AddComponent<Outline>();
-            heroOutline.effectDistance = new Vector2(4f, -4f);
-            heroOutline.effectColor = new Color(0.67f, 0.35f, 1f, 0.92f);
-            heroOutline.useGraphicAlpha = false;
 
             var heroLevel = CreateText(
                 "HeroLevelLabel",
@@ -226,34 +214,18 @@ namespace DragonBound.Editor
                 TextAnchor.UpperLeft);
             heroLevel.raycastTarget = false;
 
-            var heroExperienceFill = CreateImage(
-                "ART_HeroExperienceFill",
+            var soulChainOverlay = CreateImage(
+                "ART_SoulChainOverlay",
                 root.transform,
-                new Color(0.45f, 0.92f, 0.88f, 0.88f));
-            SetAnchors(heroExperienceFill.rectTransform, new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.12f));
-            heroExperienceFill.type = Image.Type.Filled;
-            heroExperienceFill.fillMethod = Image.FillMethod.Horizontal;
-            heroExperienceFill.fillOrigin = 0;
-            heroExperienceFill.fillAmount = 0f;
-            heroExperienceFill.raycastTarget = false;
-
-            var heroExperience = CreateText(
-                "HeroExperienceLabel",
-                root.transform,
-                "XP 0/20",
-                new Vector2(0.24f, 0.02f),
-                new Vector2(0.96f, 0.22f),
-                15,
-                TextAnchor.LowerRight);
-            heroExperience.raycastTarget = false;
+                new Color(0.14f, 0.08f, 0.18f, 0f));
+            SetStretch(soulChainOverlay.rectTransform);
+            soulChainOverlay.raycastTarget = false;
 
             var view = root.AddComponent<DraggableUnitView>();
             view.Configure(art, label, group);
-            view.ConfigureHeroPresentation(heroBorder, heroLevel, heroExperience, heroExperienceFill);
-            heroBorder.gameObject.SetActive(false);
+            view.ConfigureLevelPresentation(heroLevel);
+            view.ConfigureSoulChainPresentation(soulChainOverlay);
             heroLevel.gameObject.SetActive(false);
-            heroExperience.gameObject.SetActive(false);
-            heroExperienceFill.gameObject.SetActive(false);
             return SavePrefab(root, UnitCardPrefabPath);
         }
 

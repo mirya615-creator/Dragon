@@ -22,7 +22,7 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(600f, defaultRuntime.SoulChainBossMaxHitPoints, 0.0001f);
             Assert.AreEqual(420f, calibratedRuntime.SoulChainBossMaxHitPoints, 0.0001f);
             Assert.IsTrue(calibratedRuntime.StartRun());
-            Assert.IsTrue(calibratedRuntime.JumpToWave(6));
+            Assert.IsTrue(calibratedRuntime.JumpToWave(TwentyWavePressureConfiguration.SoulChainBossWave));
             Assert.AreEqual(420f, calibratedRuntime.PlayerW6Boss.MaxHitPoints, 0.0001f);
             Assert.AreEqual(600f, SoulchainBinderConfiguration.GreyboxMaxHitPoints, 0.0001f);
         }

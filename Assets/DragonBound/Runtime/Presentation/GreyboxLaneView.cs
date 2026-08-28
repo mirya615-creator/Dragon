@@ -377,6 +377,7 @@ namespace DragonBound.Presentation
                 }
 
                 view.Bind(enemy);
+                view.SetWaveAnimationMirrored(side == TeamSide.AI);
                 var position = GetEnemyPosition(enemy);
                 view.RectTransform.position = position;
                 lastKnownEnemyPositions[enemy.RuntimeId] = position;

@@ -1,17 +1,20 @@
 using DragonBound.Core;
+using DragonBound.Combat;
 using DragonBound.Bosses.Contracts;
 using DragonBound.Bosses.Runtime;
 using DragonBound.Items;
 using DragonBound.Recruitment;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace DragonBound.Presentation
 {
-    public class GreyboxHudView : MonoBehaviour
+    public class GreyboxHudView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         private const int ActiveItemSortingOrder = 105;
         private const int PauseButtonSortingOrder = 110;
@@ -62,6 +65,20 @@ namespace DragonBound.Presentation
         private Coroutine tipHideCoroutine;
         private float initialItemCooldownDuration;
         private float initialItemCooldownRemaining;
+        private int activeDragSlot = -1;
+        private string activeDragItemId;
+        private RectTransform activeItemDragRoot;
+        private RectTransform activeItemDragGhost;
+        private Image activeItemAreaPreview;
+        private bool activeItemDropIsOnPath;
+        private bool activeItemDropIsValid;
+        private CombatPoint activeItemDropPoint;
+        private int suppressedClickSlot = -1;
+        private Coroutine clearClickSuppressionCoroutine;
+        private readonly Dictionary<Button, List<EventTrigger.Entry>> activeItemDragEntries =
+            new Dictionary<Button, List<EventTrigger.Entry>>();
+
+        public bool HasActiveItemDragVisual => activeItemDragRoot != null;
 
         public event System.Action PauseExitRequested;
 
@@ -251,6 +268,7 @@ namespace DragonBound.Presentation
             ReleaseBossWarningPause();
 
             RemoveActiveItemListeners();
+            CancelActiveItemDrag();
         }
 
         private void PauseGameFromButton()
@@ -280,7 +298,42 @@ namespace DragonBound.Presentation
             tipText = screen.transform.Find("TipText")?.GetComponent<TMP_Text>();
             ResolvePassiveItemCooldownMasks(screen.transform);
 
-            activeItemContainer = background.Find("ActiveItemContainer") as RectTransform;
+            var authoredItemContainer = screen.transform.Find("ItemContainer");
+            if (authoredItemContainer == null)
+            {
+                foreach (var candidate in screen.GetComponentsInChildren<Transform>(true))
+                {
+                    if (candidate.name == "ItemContainer")
+                    {
+                        authoredItemContainer = candidate;
+                        break;
+                    }
+                }
+            }
+            var authoredActiveContainer = authoredItemContainer?.Find("Active");
+            if (authoredActiveContainer != null)
+            {
+                activeItemSlotOne =
+                    authoredActiveContainer.Find("Active")?.GetComponent<Button>() ??
+                    authoredActiveContainer.Find("Active0")?.GetComponent<Button>();
+                activeItemSlotTwo =
+                    authoredActiveContainer.Find("Active1")?.GetComponent<Button>();
+                var activeButtons = authoredActiveContainer.GetComponentsInChildren<Button>(true);
+                if (activeItemSlotOne == null && activeButtons.Length > 0)
+                {
+                    activeItemSlotOne = activeButtons[0];
+                }
+                if (activeItemSlotTwo == null && activeButtons.Length > 1)
+                {
+                    activeItemSlotTwo = activeButtons[1];
+                }
+                activeItemContainer = authoredActiveContainer as RectTransform;
+            }
+
+            if (activeItemContainer == null)
+            {
+                activeItemContainer = background.Find("ActiveItemContainer") as RectTransform;
+            }
             if (activeItemContainer == null)
             {
                 activeItemContainer = background as RectTransform;
@@ -638,12 +691,71 @@ namespace DragonBound.Presentation
                 activeItemSlotTwo.onClick.RemoveListener(UseSecondActiveItem);
                 activeItemSlotTwo.onClick.AddListener(UseSecondActiveItem);
             }
+            AddActiveItemDragTriggers(activeItemSlotOne);
+            AddActiveItemDragTriggers(activeItemSlotTwo);
         }
 
         private void RemoveActiveItemListeners()
         {
             activeItemSlotOne?.onClick.RemoveListener(UseFirstActiveItem);
             activeItemSlotTwo?.onClick.RemoveListener(UseSecondActiveItem);
+            RemoveActiveItemDragTriggers();
+        }
+
+        private void AddActiveItemDragTriggers(Button button)
+        {
+            if (button == null || activeItemDragEntries.ContainsKey(button))
+            {
+                return;
+            }
+
+            var trigger = button.GetComponent<EventTrigger>();
+            if (trigger == null)
+            {
+                trigger = button.gameObject.AddComponent<EventTrigger>();
+            }
+            if (trigger.triggers == null)
+            {
+                trigger.triggers = new List<EventTrigger.Entry>();
+            }
+
+            var entries = new List<EventTrigger.Entry>
+            {
+                CreateDragTrigger(EventTriggerType.BeginDrag, data => OnBeginDrag((PointerEventData)data)),
+                CreateDragTrigger(EventTriggerType.Drag, data => OnDrag((PointerEventData)data)),
+                CreateDragTrigger(EventTriggerType.EndDrag, data => OnEndDrag((PointerEventData)data))
+            };
+            for (var index = 0; index < entries.Count; index++)
+            {
+                trigger.triggers.Add(entries[index]);
+            }
+            activeItemDragEntries.Add(button, entries);
+        }
+
+        private static EventTrigger.Entry CreateDragTrigger(
+            EventTriggerType eventType,
+            UnityEngine.Events.UnityAction<BaseEventData> callback)
+        {
+            var entry = new EventTrigger.Entry { eventID = eventType };
+            entry.callback.AddListener(callback);
+            return entry;
+        }
+
+        private void RemoveActiveItemDragTriggers()
+        {
+            foreach (var pair in activeItemDragEntries)
+            {
+                var trigger = pair.Key != null ? pair.Key.GetComponent<EventTrigger>() : null;
+                if (trigger == null || trigger.triggers == null)
+                {
+                    continue;
+                }
+                for (var index = 0; index < pair.Value.Count; index++)
+                {
+                    trigger.triggers.Remove(pair.Value[index]);
+                }
+            }
+            activeItemDragEntries.Clear();
         }
 
         private void UseFirstActiveItem() { TryUseActiveItem(0); }
@@ -651,9 +763,21 @@ namespace DragonBound.Presentation
 
         private void TryUseActiveItem(int slot)
         {
+            if (suppressedClickSlot == slot)
+            {
+                suppressedClickSlot = -1;
+                return;
+            }
+
             var snapshot = itemRuntime?.PlayerItems?.Snapshot;
             if (snapshot == null || slot < 0 || slot >= snapshot.ActiveItems.Count)
             {
+                return;
+            }
+
+            if (snapshot.ActiveItems[slot] == ItemIds.RuneburstMine)
+            {
+                ShowTip("Drag onto enemy path");
                 return;
             }
 
@@ -671,6 +795,333 @@ namespace DragonBound.Presentation
                     this);
             }
             Refresh();
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            CancelActiveItemDrag();
+            var slot = ResolveActiveItemSlot(eventData);
+            if (!CanBeginPositionedItemDrag(slot, out var itemId))
+            {
+                return;
+            }
+
+            activeDragSlot = slot;
+            activeDragItemId = itemId;
+            CreateActiveItemDragVisual(slot);
+            UpdateActiveItemDrag(eventData.position);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (activeDragSlot >= 0)
+            {
+                UpdateActiveItemDrag(eventData.position);
+            }
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (activeDragSlot < 0)
+            {
+                return;
+            }
+
+            UpdateActiveItemDrag(eventData.position);
+            var releasedSlot = activeDragSlot;
+            var releasedItemId = activeDragItemId;
+            var releasedOnPath = activeItemDropIsOnPath;
+            var validDrop = activeItemDropIsValid;
+            var dropPoint = activeItemDropPoint;
+            CancelActiveItemDrag();
+            SuppressClickAfterDrag(releasedSlot);
+
+            if (!validDrop)
+            {
+                ShowTip(releasedOnPath ? "No enemies" : "Invalid placement");
+                return;
+            }
+
+            if (!itemRuntime.TryUseItemAtPoint(
+                    TeamSide.Player,
+                    releasedItemId,
+                    dropPoint,
+                    out var reason))
+            {
+                ShowTip(reason == "NoAliveTargets" ? "No enemies" : "Invalid placement");
+                Debug.LogWarning(
+                    $"Positioned active item rejected: Item={releasedItemId} Reason={reason}",
+                    this);
+            }
+            Refresh();
+        }
+
+        private bool CanBeginPositionedItemDrag(int slot, out string itemId)
+        {
+            itemId = null;
+            var snapshot = itemRuntime?.PlayerItems?.Snapshot;
+            if (snapshot == null || slot < 0 || slot >= snapshot.ActiveItems.Count ||
+                match == null || match.State != MatchState.Running ||
+                initialItemCooldownRemaining > 0.0001f)
+            {
+                return false;
+            }
+
+            itemId = snapshot.ActiveItems[slot];
+            if (itemId != ItemIds.RuneburstMine ||
+                itemRuntime.PlayerItems.GetCooldownRemainingSeconds(itemId) > 0.0001f)
+            {
+                return false;
+            }
+
+            var button = slot == 0 ? activeItemSlotOne : activeItemSlotTwo;
+            return button != null && button.interactable;
+        }
+
+        private int ResolveActiveItemSlot(PointerEventData eventData)
+        {
+            var source = eventData.pointerPressRaycast.gameObject != null
+                ? eventData.pointerPressRaycast.gameObject.transform
+                : eventData.pointerPress != null
+                    ? eventData.pointerPress.transform
+                    : null;
+            if (source == null)
+            {
+                return -1;
+            }
+
+            if (activeItemSlotOne != null &&
+                (source == activeItemSlotOne.transform || source.IsChildOf(activeItemSlotOne.transform)))
+            {
+                return 0;
+            }
+
+            if (activeItemSlotTwo != null &&
+                (source == activeItemSlotTwo.transform || source.IsChildOf(activeItemSlotTwo.transform)))
+            {
+                return 1;
+            }
+
+            return -1;
+        }
+
+        private void CreateActiveItemDragVisual(int slot)
+        {
+            var canvas = GetComponentInParent<Canvas>()?.rootCanvas;
+            if (canvas == null)
+            {
+                return;
+            }
+
+            var rootObject = new GameObject(
+                "ActiveItemDragVisual",
+                typeof(RectTransform),
+                typeof(Canvas),
+                typeof(CanvasGroup));
+            activeItemDragRoot = rootObject.GetComponent<RectTransform>();
+            activeItemDragRoot.SetParent(canvas.transform, false);
+            activeItemDragRoot.anchorMin = Vector2.zero;
+            activeItemDragRoot.anchorMax = Vector2.one;
+            activeItemDragRoot.offsetMin = Vector2.zero;
+            activeItemDragRoot.offsetMax = Vector2.zero;
+            var overlayCanvas = rootObject.GetComponent<Canvas>();
+            overlayCanvas.overrideSorting = true;
+            overlayCanvas.sortingOrder = SettlementPanelSortingOrder + 10;
+            var group = rootObject.GetComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+            group.interactable = false;
+
+            var previewObject = new GameObject("AoEPreview", typeof(RectTransform), typeof(Image));
+            previewObject.transform.SetParent(activeItemDragRoot, false);
+            activeItemAreaPreview = previewObject.GetComponent<Image>();
+            activeItemAreaPreview.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Knob.psd");
+            activeItemAreaPreview.preserveAspect = true;
+            activeItemAreaPreview.raycastTarget = false;
+            activeItemAreaPreview.color = new Color(0.95f, 0.25f, 0.18f, 0.24f);
+
+            var sourceButton = slot == 0 ? activeItemSlotOne : activeItemSlotTwo;
+            var sourceImage = sourceButton != null ? sourceButton.targetGraphic as Image : null;
+            var ghostObject = new GameObject("ItemGhost", typeof(RectTransform), typeof(Image));
+            ghostObject.transform.SetParent(activeItemDragRoot, false);
+            activeItemDragGhost = ghostObject.GetComponent<RectTransform>();
+            var ghostImage = ghostObject.GetComponent<Image>();
+            ghostImage.sprite = sourceImage != null ? sourceImage.sprite : null;
+            ghostImage.color = new Color(1f, 1f, 1f, 0.78f);
+            ghostImage.preserveAspect = true;
+            ghostImage.raycastTarget = false;
+            var sourceRect = sourceButton != null ? sourceButton.transform as RectTransform : null;
+            activeItemDragGhost.sizeDelta = sourceRect != null
+                ? sourceRect.rect.size
+                : new Vector2(96f, 96f);
+            activeItemDragGhost.SetAsLastSibling();
+        }
+
+        private void UpdateActiveItemDrag(Vector2 screenPosition)
+        {
+            if (activeItemDragRoot == null)
+            {
+                activeItemDropIsValid = false;
+                return;
+            }
+
+            SetDragVisualScreenPosition(activeItemDragGhost, screenPosition);
+            activeItemDropIsOnPath = TryResolvePositionedItemDrop(
+                screenPosition,
+                out activeItemDropPoint,
+                out var snappedScreenPosition,
+                out var pixelsPerCell,
+                out var containsEnemy);
+            activeItemDropIsValid = activeItemDropIsOnPath && containsEnemy;
+
+            if (activeItemAreaPreview != null)
+            {
+                SetDragVisualScreenPosition(activeItemAreaPreview.rectTransform, snappedScreenPosition);
+                var canvas = activeItemDragRoot.GetComponentInParent<Canvas>()?.rootCanvas;
+                var scaleFactor = canvas != null ? Mathf.Max(0.0001f, canvas.scaleFactor) : 1f;
+                activeItemAreaPreview.rectTransform.sizeDelta = Vector2.one *
+                    (RuneburstMineEffect.AreaRadius * 2f * pixelsPerCell / scaleFactor);
+                activeItemAreaPreview.color = activeItemDropIsValid
+                    ? new Color(0.30f, 0.95f, 0.42f, 0.28f)
+                    : new Color(0.95f, 0.25f, 0.18f, 0.24f);
+                activeItemAreaPreview.gameObject.SetActive(pixelsPerCell > 0f);
+            }
+        }
+
+        private bool TryResolvePositionedItemDrop(
+            Vector2 screenPosition,
+            out CombatPoint combatPoint,
+            out Vector2 snappedScreenPosition,
+            out float pixelsPerCell,
+            out bool containsEnemy)
+        {
+            combatPoint = default(CombatPoint);
+            snappedScreenPosition = screenPosition;
+            pixelsPerCell = 0f;
+            containsEnemy = false;
+            var screen = GetComponentInParent<DragonBoundScreenView>();
+            var lane = screen?.PlayerBattlefieldView?.LaneView;
+            var path = itemRuntime?.PlayerPath;
+            var waypoints = lane?.Waypoints;
+            if (path == null || waypoints == null || waypoints.Count < 2 ||
+                path.NodeCount != waypoints.Count)
+            {
+                return false;
+            }
+
+            var canvas = GetComponentInParent<Canvas>()?.rootCanvas;
+            var eventCamera = canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null
+                : canvas.worldCamera;
+            var bestDistanceSquared = float.MaxValue;
+            for (var index = 0; index < waypoints.Count - 1; index++)
+            {
+                if (waypoints[index] == null || waypoints[index + 1] == null)
+                {
+                    continue;
+                }
+
+                var fromScreen = RectTransformUtility.WorldToScreenPoint(eventCamera, waypoints[index].position);
+                var toScreen = RectTransformUtility.WorldToScreenPoint(eventCamera, waypoints[index + 1].position);
+                var screenDelta = toScreen - fromScreen;
+                var screenLengthSquared = screenDelta.sqrMagnitude;
+                if (screenLengthSquared <= 0.0001f)
+                {
+                    continue;
+                }
+
+                var t = Mathf.Clamp01(Vector2.Dot(screenPosition - fromScreen, screenDelta) / screenLengthSquared);
+                var candidateScreen = fromScreen + screenDelta * t;
+                var distanceSquared = (screenPosition - candidateScreen).sqrMagnitude;
+                if (distanceSquared >= bestDistanceSquared)
+                {
+                    continue;
+                }
+
+                var fromCombat = path.GetNodeCombatPosition(index);
+                var toCombat = path.GetNodeCombatPosition(index + 1);
+                var combatLength = Mathf.Sqrt(fromCombat.DistanceSquared(toCombat));
+                if (combatLength <= 0.0001f)
+                {
+                    continue;
+                }
+
+                bestDistanceSquared = distanceSquared;
+                snappedScreenPosition = candidateScreen;
+                pixelsPerCell = Mathf.Sqrt(screenLengthSquared) / combatLength;
+                combatPoint = CombatPoint.Lerp(fromCombat, toCombat, t);
+            }
+
+            if (pixelsPerCell <= 0f ||
+                bestDistanceSquared > Mathf.Pow(Mathf.Max(24f, pixelsPerCell * 0.55f), 2f))
+            {
+                return false;
+            }
+
+            foreach (var enemy in itemRuntime.PlayerEnemyRegistry.Enemies)
+            {
+                if (enemy.Team == TeamSide.Player && enemy.IsAlive &&
+                    enemy.CombatPosition.DistanceSquared(combatPoint) <=
+                    RuneburstMineEffect.AreaRadius * RuneburstMineEffect.AreaRadius + 0.0001f)
+                {
+                    containsEnemy = true;
+                    break;
+                }
+            }
+
+            return true;
+        }
+
+        private void SetDragVisualScreenPosition(RectTransform target, Vector2 screenPosition)
+        {
+            if (target == null || activeItemDragRoot == null)
+            {
+                return;
+            }
+
+            var canvas = activeItemDragRoot.GetComponentInParent<Canvas>()?.rootCanvas;
+            var eventCamera = canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null
+                : canvas.worldCamera;
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    activeItemDragRoot,
+                    screenPosition,
+                    eventCamera,
+                    out var localPoint))
+            {
+                target.anchoredPosition = localPoint;
+            }
+        }
+
+        private void CancelActiveItemDrag()
+        {
+            activeDragSlot = -1;
+            activeDragItemId = null;
+            activeItemDropIsOnPath = false;
+            activeItemDropIsValid = false;
+            if (activeItemDragRoot != null)
+            {
+                Destroy(activeItemDragRoot.gameObject);
+            }
+            activeItemDragRoot = null;
+            activeItemDragGhost = null;
+            activeItemAreaPreview = null;
+        }
+
+        private void SuppressClickAfterDrag(int slot)
+        {
+            suppressedClickSlot = slot;
+            if (clearClickSuppressionCoroutine != null)
+            {
+                StopCoroutine(clearClickSuppressionCoroutine);
+            }
+            clearClickSuppressionCoroutine = StartCoroutine(ClearClickSuppressionAfterFrame());
+        }
+
+        private IEnumerator ClearClickSuppressionAfterFrame()
+        {
+            yield return null;
+            suppressedClickSlot = -1;
+            clearClickSuppressionCoroutine = null;
         }
 
         private void RefreshActiveItemSlots()
@@ -752,9 +1203,14 @@ namespace DragonBound.Presentation
             tipHideCoroutine = StartCoroutine(HideTipAfterDelay());
         }
 
+        private void ShowBossTip(string message)
+        {
+            ShowTip($"Boss : {message}");
+        }
+
         private void HandleBasicMergeBlocked()
         {
-            ShowTip("Merge blocked by Boss");
+            ShowBossTip("Merge blocked");
         }
 
         private void HandleSoulChainCast(TeamSide side, SoulChainCastEvent value)
@@ -762,17 +1218,17 @@ namespace DragonBound.Presentation
             if (side != TeamSide.Player) return;
             if (value.Kind == SoulChainCastEventKind.CastStarted)
             {
-                ShowTip("Soul Chain incoming");
+                ShowBossTip("Soul Chain incoming");
             }
             else if (value.Kind == SoulChainCastEventKind.EffectApplied)
             {
-                ShowTip(value.AffectedCount > 0
-                    ? $"Boss：Soul Chain locked {value.AffectedCount} unit(s)"
-                    : "Boss：Soul Chain found no target");
+                ShowBossTip(value.AffectedCount > 0
+                    ? $"Soul Chain locked {value.AffectedCount} unit(s)"
+                    : "Soul Chain found no target");
             }
             else if (value.Kind == SoulChainCastEventKind.CastFailed)
             {
-                ShowTip("Soul Chain interrupted");
+                ShowBossTip("Soul Chain interrupted");
             }
         }
 
@@ -781,15 +1237,15 @@ namespace DragonBound.Presentation
             if (side != TeamSide.Player) return;
             if (value.Kind == StormcallerCastEventKind.CastStarted)
             {
-                ShowTip("Storm Call incoming");
+                ShowBossTip("Storm Call incoming");
             }
             else if (value.Kind == StormcallerCastEventKind.EffectApplied)
             {
-                ShowTip($"Boss：Storm Call shielded and hastened {value.AffectedCount} enemy unit(s)");
+                ShowBossTip($"Storm Call shielded and hastened {value.AffectedCount} enemy unit(s)");
             }
             else if (value.Kind == StormcallerCastEventKind.CastFailed)
             {
-                ShowTip("Storm Call interrupted");
+                ShowBossTip("Storm Call interrupted");
             }
         }
 
@@ -798,15 +1254,15 @@ namespace DragonBound.Presentation
             if (side != TeamSide.Player) return;
             if (value.Lifecycle == BossSkillLifecycle.Start)
             {
-                ShowTip("Bloodcrown Decree incoming");
+                ShowBossTip("Bloodcrown Decree incoming");
             }
             else if (value.Lifecycle == BossSkillLifecycle.Resolve)
             {
-                ShowTip("Boss：All Basic units are treated as Lv1 and cannot merge");
+                ShowBossTip("All Basic units are treated as Lv1 and cannot merge");
             }
             else if (value.Lifecycle == BossSkillLifecycle.Blocked)
             {
-                ShowTip("Bloodcrown Decree interrupted");
+                ShowBossTip("Bloodcrown Decree interrupted");
             }
         }
 
@@ -815,21 +1271,21 @@ namespace DragonBound.Presentation
             if (side != TeamSide.Player) return;
             if (value.Outcome == WorldeaterCastOutcome.Started)
             {
-                ShowTip(value.Kind == WorldeaterCastKind.Devour
+                ShowBossTip(value.Kind == WorldeaterCastKind.Devour
                     ? "Worldeater is targeting Devour"
                     : "Worldeater is summoning");
             }
             else if (value.Outcome == WorldeaterCastOutcome.Blocked)
             {
-                ShowTip("Worldeater skill interrupted");
+                ShowBossTip("Worldeater skill interrupted");
             }
             else if (value.Outcome == WorldeaterCastOutcome.Resolved)
             {
-                ShowTip(value.Kind == WorldeaterCastKind.Devour
-                    ? "Boss：Devoured a target and increased HP"
+                ShowBossTip(value.Kind == WorldeaterCastKind.Devour
+                    ? "Devoured a target and increased HP"
                     : value.Kind == WorldeaterCastKind.SummonSubBoss
-                        ? "Boss：Summoned a SubBoss"
-                        : $"Boss：Summoned {value.AffectedCount} minions");
+                        ? "Summoned a SubBoss"
+                        : $"Summoned {value.AffectedCount} minions");
             }
         }
 

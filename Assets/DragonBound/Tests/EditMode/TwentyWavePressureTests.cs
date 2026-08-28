@@ -17,11 +17,11 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(43, configuration.GetWave(20).EnemyCountPerSide);
             Assert.AreEqual(303, configuration.GetCumulativeEnemyCountPerSide(15));
             Assert.AreEqual(498, configuration.GetCumulativeEnemyCountPerSide(20));
+            Assert.IsTrue(configuration.GetWave(3).HasBossSlot);
+            Assert.IsTrue(configuration.GetWave(4).HasBossSlot);
+            Assert.IsTrue(configuration.GetWave(5).HasBossSlot);
             Assert.IsTrue(configuration.GetWave(6).HasBossSlot);
-            Assert.IsTrue(configuration.GetWave(12).HasBossSlot);
-            Assert.IsTrue(configuration.GetWave(16).HasBossSlot);
-            Assert.IsTrue(configuration.GetWave(20).HasBossSlot);
-            Assert.IsFalse(configuration.GetWave(5).HasBossSlot);
+            Assert.IsFalse(configuration.GetWave(7).HasBossSlot);
         }
 
         [Test]
@@ -150,7 +150,7 @@ namespace DragonBound.Tests.EditMode
             var configuration = TwentyWavePressureConfiguration.CreateCoreLoopV2();
             for (var wave = 1; wave <= TwentyWavePressureConfiguration.WaveCount; wave++)
             {
-                var expectedBossSlot = wave == 6 || wave == 12 || wave == 16 || wave == 20;
+                var expectedBossSlot = TwentyWavePressureConfiguration.IsBossWave(wave);
                 Assert.AreEqual(expectedBossSlot, configuration.GetWave(wave).HasBossSlot, "W" + wave);
             }
 
@@ -243,12 +243,12 @@ namespace DragonBound.Tests.EditMode
             runtime.BossWarningRequested += wave => requestedWave = wave;
 
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(6));
+            Assert.IsTrue(runtime.JumpToWave(3));
 
-            Assert.AreEqual(6, requestedWave);
+            Assert.AreEqual(3, requestedWave);
             Assert.AreEqual(MatchState.BossPrompt, match.State);
             Assert.IsTrue(runtime.IsBossWarningPending);
-            Assert.AreEqual(6, runtime.PendingBossWave);
+            Assert.AreEqual(3, runtime.PendingBossWave);
             Assert.AreEqual(1, runtime.CurrentWaveIndex);
             Assert.IsNull(runtime.PlayerW6Boss);
             Assert.IsNull(runtime.AiW6Boss);
@@ -257,7 +257,7 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(0f, runtime.WaveElapsedTime, 0.0001f);
             Assert.IsTrue(runtime.ConfirmBossWarning());
             Assert.AreEqual(MatchState.Running, match.State);
-            Assert.AreEqual(6, runtime.CurrentWaveIndex);
+            Assert.AreEqual(3, runtime.CurrentWaveIndex);
             Assert.IsNotNull(runtime.PlayerW6Boss);
             Assert.IsNotNull(runtime.AiW6Boss);
             Assert.IsFalse(runtime.IsBossWarningPending);
@@ -270,9 +270,9 @@ namespace DragonBound.Tests.EditMode
             var runtime = CreateRuntime(613);
 
             Assert.IsTrue(runtime.StartRun());
-            Assert.IsTrue(runtime.JumpToWave(6));
+            Assert.IsTrue(runtime.JumpToWave(3));
 
-            Assert.AreEqual(6, runtime.CurrentWaveIndex);
+            Assert.AreEqual(3, runtime.CurrentWaveIndex);
             Assert.IsNotNull(runtime.PlayerW6Boss);
             Assert.IsFalse(runtime.IsBossWarningPending);
         }

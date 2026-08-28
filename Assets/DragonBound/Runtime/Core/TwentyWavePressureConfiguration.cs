@@ -71,6 +71,12 @@ namespace DragonBound.Core
     /// </summary>
     public sealed class TwentyWavePressureConfiguration
     {
+        // Temporary accelerated Boss schedule used to exercise all four Boss systems early.
+        public const int SoulChainBossWave = 3;
+        public const int StormcallerBossWave = 4;
+        public const int BloodcrownBossWave = 5;
+        public const int WorldeaterBossWave = 6;
+
         public const string ConfigurationId = "PressureRaceGreyboxV2";
         public const int WaveCount = BattleSettlementDefinition.MaxScheduledWave;
 
@@ -184,13 +190,21 @@ namespace DragonBound.Core
                     eliteWeight,
                     ProductionMaxHitPoints[index] / EnemyRuntime.DefaultMaxHitPoints,
                     moveSpeedMultiplier: 1f,
-                    hasBossSlot: wave == 6 || wave == 12 || wave == 16 || wave == 20,
+                    hasBossSlot: IsBossWave(wave),
                     spawnIntervalSeconds: RegularSpawnIntervalSeconds,
                     firstSpawnDelaySeconds: firstSpawnDelay,
                     interWaveSpawnGapSeconds: InterWaveSpawnGapSeconds);
             }
 
             return new TwentyWavePressureConfiguration(definitions);
+        }
+
+        public static bool IsBossWave(int wave)
+        {
+            return wave == SoulChainBossWave ||
+                   wave == StormcallerBossWave ||
+                   wave == BloodcrownBossWave ||
+                   wave == WorldeaterBossWave;
         }
 
         public float GetMoveSpeedCellsPerSecond(EnemyArchetype archetype)

@@ -69,7 +69,7 @@ namespace DragonBound.Core
 
         public bool SetAttackDisabled(string runtimeId, bool disabled)
         {
-            return destination.SetCombatSuspended(runtimeId, disabled);
+            return destination.SetSoulChainCombatSuspended(runtimeId, disabled);
         }
 
         /// <summary>
@@ -178,7 +178,8 @@ namespace DragonBound.Core
         EffectEnded,
         CastFailed,
         CooldownStarted,
-        BossDeathCleared
+        BossDeathCleared,
+        ControlChanged
     }
 
     public readonly struct SoulChainCastEvent
@@ -190,7 +191,8 @@ namespace DragonBound.Core
             int affectedCount,
             float controlUnitSeconds,
             GridPosition regionAnchor,
-            float reflectionDamage)
+            float reflectionDamage,
+            IReadOnlyList<string> controlledRuntimeIds = null)
         {
             Kind = kind;
             CastNumber = castNumber;
@@ -199,6 +201,20 @@ namespace DragonBound.Core
             ControlUnitSeconds = controlUnitSeconds;
             RegionAnchor = regionAnchor;
             ReflectionDamage = reflectionDamage;
+            if (controlledRuntimeIds == null || controlledRuntimeIds.Count == 0)
+            {
+                ControlledRuntimeIds = Array.Empty<string>();
+            }
+            else
+            {
+                var snapshot = new string[controlledRuntimeIds.Count];
+                for (var index = 0; index < controlledRuntimeIds.Count; index++)
+                {
+                    snapshot[index] = controlledRuntimeIds[index];
+                }
+
+                ControlledRuntimeIds = snapshot;
+            }
         }
 
         public SoulChainCastEventKind Kind { get; }
@@ -208,6 +224,7 @@ namespace DragonBound.Core
         public float ControlUnitSeconds { get; }
         public GridPosition RegionAnchor { get; }
         public float ReflectionDamage { get; }
+        public IReadOnlyList<string> ControlledRuntimeIds { get; }
     }
 
     public sealed class SoulChainController
@@ -339,6 +356,7 @@ namespace DragonBound.Core
             var inherited = Math.Max(sourceRemaining, targetRemaining);
             activeRemaining[targetRuntimeId] = inherited;
             targets.SetAttackDisabled(targetRuntimeId, true);
+            Emit(SoulChainCastEventKind.ControlChanged, 0f);
         }
 
         public void NotifyBossDeath()
@@ -562,6 +580,11 @@ namespace DragonBound.Core
                 targets.SetAttackDisabled(expired[index], false);
                 activeRemaining.Remove(expired[index]);
             }
+
+            if (expired.Count > 0)
+            {
+                Emit(SoulChainCastEventKind.ControlChanged, 0f);
+            }
         }
 
         private void ClearExpiredControl()
@@ -583,7 +606,20 @@ namespace DragonBound.Core
                 LastAffectedCount,
                 LastControlUnitSeconds,
                 selectedRegionAnchor,
-                reflectionDamage));
+                reflectionDamage,
+                CreateControlledRuntimeIdSnapshot()));
+        }
+
+        private IReadOnlyList<string> CreateControlledRuntimeIdSnapshot()
+        {
+            if (activeRemaining.Count == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var snapshot = new List<string>(activeRemaining.Keys);
+            snapshot.Sort(StringComparer.Ordinal);
+            return snapshot;
         }
 
         private static bool Contains(List<GridPosition> positions, GridPosition candidate)

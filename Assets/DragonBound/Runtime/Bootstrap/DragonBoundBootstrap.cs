@@ -160,7 +160,7 @@ namespace DragonBound.Bootstrap
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.EmberShaman);
         }
 
-        [ContextMenu("DEV/Spawn Player Dragon Rider")]
+        [ContextMenu("DEV/Spawn Player Flame Drake Rider")]
         private void SpawnPlayerDragonRider()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.DragonRider);
@@ -172,7 +172,7 @@ namespace DragonBound.Bootstrap
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.RuneboltMage);
         }
 
-        [ContextMenu("DEV/Spawn Player Stonebinder")]
+        [ContextMenu("DEV/Spawn Player Stonebound Warlock")]
         private void SpawnPlayerStonebinder()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.Stonebinder);
@@ -184,19 +184,19 @@ namespace DragonBound.Bootstrap
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.StarfallArchmage);
         }
 
-        [ContextMenu("DEV/Spawn Player Crown Sword Leader")]
+        [ContextMenu("DEV/Spawn Player Oathcrown Blademaster")]
         private void SpawnPlayerCrownSwordLeader()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.CrownSwordLeader);
         }
 
-        [ContextMenu("DEV/Spawn Player Crown Hunter Leader")]
+        [ContextMenu("DEV/Spawn Player Frostcrown Hunter")]
         private void SpawnPlayerCrownHunterLeader()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.CrownHunterLeader);
         }
 
-        [ContextMenu("DEV/Spawn Player Thunder Jarl")]
+        [ContextMenu("DEV/Spawn Player Thunderlord")]
         private void SpawnPlayerThunderJarl()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.ThunderJarl);
@@ -208,13 +208,13 @@ namespace DragonBound.Bootstrap
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.NightfangAssassin);
         }
 
-        [ContextMenu("DEV/Spawn Player Leviathan Hunter")]
+        [ContextMenu("DEV/Spawn Player Abyssal Harpooner")]
         private void SpawnPlayerLeviathanHunter()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.LeviathanHunter);
         }
 
-        [ContextMenu("DEV/Spawn Player Skyhunter Valkyrie")]
+        [ContextMenu("DEV/Spawn Player Skyborne Valkyrie")]
         private void SpawnPlayerSkyhunterValkyrie()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.Player, DragonBoundHeroIds.SkyhunterValkyrie);
@@ -232,7 +232,7 @@ namespace DragonBound.Bootstrap
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.EmberShaman);
         }
 
-        [ContextMenu("DEV/Spawn AI Dragon Rider")]
+        [ContextMenu("DEV/Spawn AI Flame Drake Rider")]
         private void SpawnAiDragonRider()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.DragonRider);
@@ -244,7 +244,7 @@ namespace DragonBound.Bootstrap
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.RuneboltMage);
         }
 
-        [ContextMenu("DEV/Spawn AI Stonebinder")]
+        [ContextMenu("DEV/Spawn AI Stonebound Warlock")]
         private void SpawnAiStonebinder()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.Stonebinder);
@@ -256,19 +256,19 @@ namespace DragonBound.Bootstrap
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.StarfallArchmage);
         }
 
-        [ContextMenu("DEV/Spawn AI Crown Sword Leader")]
+        [ContextMenu("DEV/Spawn AI Oathcrown Blademaster")]
         private void SpawnAiCrownSwordLeader()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.CrownSwordLeader);
         }
 
-        [ContextMenu("DEV/Spawn AI Crown Hunter Leader")]
+        [ContextMenu("DEV/Spawn AI Frostcrown Hunter")]
         private void SpawnAiCrownHunterLeader()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.CrownHunterLeader);
         }
 
-        [ContextMenu("DEV/Spawn AI Thunder Jarl")]
+        [ContextMenu("DEV/Spawn AI Thunderlord")]
         private void SpawnAiThunderJarl()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.ThunderJarl);
@@ -280,13 +280,13 @@ namespace DragonBound.Bootstrap
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.NightfangAssassin);
         }
 
-        [ContextMenu("DEV/Spawn AI Leviathan Hunter")]
+        [ContextMenu("DEV/Spawn AI Abyssal Harpooner")]
         private void SpawnAiLeviathanHunter()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.LeviathanHunter);
         }
 
-        [ContextMenu("DEV/Spawn AI Skyhunter Valkyrie")]
+        [ContextMenu("DEV/Spawn AI Skyborne Valkyrie")]
         private void SpawnAiSkyhunterValkyrie()
         {
             TryDebugSpawnDragonRouteHero(TeamSide.AI, DragonBoundHeroIds.SkyhunterValkyrie);

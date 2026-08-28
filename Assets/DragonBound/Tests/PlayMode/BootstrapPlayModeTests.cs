@@ -32,12 +32,12 @@ namespace DragonBound.Tests.PlayMode
             var recipe = HeroRecipeCatalog.Get(DragonBoundHeroIds.RuneboltMage);
 
             Assert.AreEqual(
-                "Left: Rune Staff  Right: Rune Apprentice\n" +
+                "Left: Rune Staff  Right: Storm Hat\n" +
                 "A rune mage whose attacks pierce through enemies in a straight line.",
                 CampPanelView.BuildHeroSummary(
                     recipe,
                     "Rune Staff",
-                    "Rune Apprentice",
+                    "Storm Hat",
                     "A rune mage whose attacks pierce through enemies in a straight line."));
         }
 
