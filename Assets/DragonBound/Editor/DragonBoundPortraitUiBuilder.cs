@@ -193,6 +193,7 @@ namespace DragonBound.Editor
             var art = CreateImage("ART_UnitPortrait", root.transform, CellColor);
             SetStretch(art.rectTransform);
             art.raycastTarget = true;
+            art.gameObject.AddComponent<Animator>();
 
             var label = CreateText(
                 "UnitLabel",
@@ -242,17 +243,11 @@ namespace DragonBound.Editor
             border.raycastTarget = false;
 
             var connector = CreateImage("ART_ComponentConnector", root.transform, Color.white);
-            SetCentered(connector.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(100f, 7f));
+            SetCentered(connector.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(110f, 110f));
+            connector.preserveAspect = true;
             connector.raycastTarget = false;
             var heroAttackAnimator = connector.gameObject.AddComponent<Animator>();
             heroAttackAnimator.speed = 0f;
-
-            var primaryFlash = CreateCircleImage("ART_PrimaryFlash", root.transform, new Color(1f, 1f, 1f, 0f));
-            SetCentered(primaryFlash.rectTransform, new Vector2(0.25f, 0.5f), new Vector2(100f, 100f));
-            primaryFlash.raycastTarget = false;
-            var secondaryFlash = CreateCircleImage("ART_SecondaryFlash", root.transform, new Color(1f, 1f, 1f, 0f));
-            SetCentered(secondaryFlash.rectTransform, new Vector2(0.75f, 0.5f), new Vector2(100f, 100f));
-            secondaryFlash.raycastTarget = false;
 
             var heroName = CreateText(
                 "HeroNameLabel",
@@ -275,8 +270,6 @@ namespace DragonBound.Editor
             view.Configure(
                 group,
                 connector,
-                primaryFlash,
-                secondaryFlash,
                 border,
                 heroName,
                 runeImage,

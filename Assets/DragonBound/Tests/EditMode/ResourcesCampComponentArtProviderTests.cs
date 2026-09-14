@@ -27,14 +27,32 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void ComponentProviderLeavesUnitAndHeroArtForFutureProviders()
+        public void ResourceProviderLoadsAllBasicUnitAndHeroSprites()
         {
             var provider = new ResourcesCampComponentArtProvider();
+            var unitSprites = new HashSet<Sprite>();
 
-            Assert.IsFalse(provider.TryGetBasicUnitSprite("basic.axe_raider", out var unitSprite));
-            Assert.IsNull(unitSprite);
-            Assert.IsFalse(provider.TryGetHeroSprite(DragonBoundHeroIds.WindclawRanger, out var heroSprite));
-            Assert.IsNull(heroSprite);
+            foreach (var unitId in new[]
+                     {
+                         "basic.axe_raider",
+                         "basic.twinaxe_berserker",
+                         "basic.longbow_hunter",
+                         "basic.spear_raider"
+                     })
+            {
+                Assert.IsTrue(provider.TryGetBasicUnitSprite(unitId, out var unitSprite), unitId);
+                Assert.IsNotNull(unitSprite, unitId);
+                Assert.IsTrue(unitSprites.Add(unitSprite), unitId + " reused another unit sprite.");
+            }
+
+            var heroSprites = new HashSet<Sprite>();
+            Assert.AreEqual(HeroDefinitionCatalog.Definitions.Count, provider.HeroMappingCount);
+            foreach (var hero in HeroDefinitionCatalog.Definitions)
+            {
+                Assert.IsTrue(provider.TryGetHeroSprite(hero.Id, out var heroSprite), hero.Id);
+                Assert.IsNotNull(heroSprite, hero.Id);
+                Assert.IsTrue(heroSprites.Add(heroSprite), hero.Id + " reused another hero sprite.");
+            }
         }
     }
 }

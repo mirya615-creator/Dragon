@@ -33,10 +33,11 @@ namespace DragonBound.Items
     }
 
     /// <summary>First-formation trigger. Integration supplies the real free Recruit transaction.</summary>
-    public sealed class BattlefieldCommandEffect : IItemEffectRuntime
+    public sealed class BattlefieldCommandEffect : IItemEffectRuntime, IOneShotItemEffectState
     {
         public string ItemId => Items.ItemIds.BattlefieldCommand;
         public bool Consumed { get; private set; }
+        public bool IsConsumed => Consumed;
         public int AttemptCount { get; private set; }
 
         public void OnRunStart(ItemRunContext context) { }
@@ -60,43 +61,68 @@ namespace DragonBound.Items
         }
     }
 
-    /// <summary>Ad-gated Forge Pick schedule. The provider decides authority and locked-cell state.</summary>
+    /// <summary>Ad-gated Shovel schedule. Cooldown restarts after each player decision.</summary>
     public sealed class ForgekeepersGiftEffect : IItemEffectRuntime
     {
         public const float FirstForgePickSeconds = 90f;
         public const float RepeatForgePickSeconds = 90f;
 
-        private float nextDueSeconds = FirstForgePickSeconds;
-        private bool stoppedForNoLockedCell;
+        private float cooldownRemainingSeconds = FirstForgePickSeconds;
+        private bool awaitingDecision;
 
         public string ItemId => Items.ItemIds.ForgekeepersGift;
         public int AttemptCount { get; private set; }
         public int GrantedCount { get; private set; }
-        public bool StoppedForNoLockedCell => stoppedForNoLockedCell;
+        public float CooldownRemainingSeconds => cooldownRemainingSeconds;
+        public bool AwaitingDecision => awaitingDecision;
+
+        public void SynchronizeCooldown(float remainingSeconds)
+        {
+            if (float.IsNaN(remainingSeconds) || float.IsInfinity(remainingSeconds)) return;
+            cooldownRemainingSeconds = Math.Max(0f, remainingSeconds);
+        }
 
         public void OnRunStart(ItemRunContext context)
         {
-            nextDueSeconds = FirstForgePickSeconds;
-            stoppedForNoLockedCell = false;
+            cooldownRemainingSeconds = FirstForgePickSeconds;
+            awaitingDecision = false;
         }
 
         public void Tick(ItemRunContext context, float deltaSeconds)
         {
-            if (stoppedForNoLockedCell || context.ForgePick == null || deltaSeconds <= 0f) return;
-            var target = context.ElapsedSeconds;
-            while (target + 0.0001f >= nextDueSeconds)
+            if (awaitingDecision || context.ForgePick == null || deltaSeconds <= 0f)
+            {
+                return;
+            }
+
+            cooldownRemainingSeconds = Math.Max(0f, cooldownRemainingSeconds - deltaSeconds);
+            if (cooldownRemainingSeconds > 0.0001f)
+            {
+                return;
+            }
+
+            awaitingDecision = true;
+            var result = context.ForgePick.TryBeginForgePickClaim(HandleClaimResolved);
+            if (result.Kind != ItemForgePickRequestKind.PromptOpened)
+            {
+                awaitingDecision = false;
+            }
+            if (result.Kind == ItemForgePickRequestKind.PromptOpened)
             {
                 AttemptCount++;
-                var result = context.ForgePick.TryGrantForgePick(requiresAdvertisement: true);
-                if (result.Granted) GrantedCount++;
-                if (result.Kind == ItemForgePickResultKind.NoLockedCell)
-                {
-                    stoppedForNoLockedCell = true;
-                    break;
-                }
-
-                nextDueSeconds += RepeatForgePickSeconds;
             }
+        }
+
+        private void HandleClaimResolved(ItemForgePickClaimResult result)
+        {
+            if (!awaitingDecision)
+            {
+                return;
+            }
+
+            awaitingDecision = false;
+            if (result.Granted) GrantedCount++;
+            cooldownRemainingSeconds = RepeatForgePickSeconds;
         }
 
         public bool TryActivate(ItemRunContext context, out string reason)

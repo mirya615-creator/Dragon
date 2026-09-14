@@ -19,7 +19,8 @@ namespace DragonBound.Combat
             float effectRadius = 0f,
             bool isRuneDerived = false,
             float shieldDamage = 0f,
-            float healthDamage = 0f)
+            float healthDamage = 0f,
+            float pathDisplacementDistance = 0f)
         {
             Kind = kind;
             Target = target;
@@ -30,6 +31,7 @@ namespace DragonBound.Combat
             IsRuneDerived = isRuneDerived;
             ShieldDamage = shieldDamage;
             HealthDamage = healthDamage;
+            PathDisplacementDistance = pathDisplacementDistance;
         }
 
         public AttackKind Kind { get; }
@@ -42,6 +44,7 @@ namespace DragonBound.Combat
         public bool IsRuneDerived { get; }
         public float ShieldDamage { get; }
         public float HealthDamage { get; }
+        public float PathDisplacementDistance { get; }
     }
 
     internal readonly struct AbyssHarpoonDirectionSelection
@@ -100,6 +103,12 @@ namespace DragonBound.Combat
     public sealed class HeroCombatState
     {
         public const float FormationDurationSeconds = 0.6f;
+        private const float BasicAttackActionSeconds = 0.43f;
+        private const float SkillAttackActionSeconds = 0.55f;
+        // The authored cast releases on frame 14 at 60 FPS, followed by roughly 0.27 seconds
+        // of projectile travel. Gameplay control uses the same deterministic impact timing;
+        // it must not depend on a Unity AnimationEvent that may be absent off-screen.
+        private const float StoneboundWarlockImpactDelaySeconds = 0.50f;
 
         private readonly HeroDefinition definition;
         private readonly SkillDefinition skill;
@@ -112,6 +121,7 @@ namespace DragonBound.Combat
         private float formationElapsed;
         private float attackElapsed;
         private float skillElapsed;
+        private float attackActionLockRemaining;
         private int attackNumber;
         private int successfulAttackSequence;
         private int stoneBindAttackCount;
@@ -139,6 +149,7 @@ namespace DragonBound.Combat
         private float temporaryRuneAttackSpeedMultiplier = 1f;
         private float temporaryRuneAttackSpeedRemaining;
         private readonly List<EnemyRuntime> basicAttackSucceededTargets = new List<EnemyRuntime>();
+        private readonly List<PendingStoneBind> pendingStoneBinds = new List<PendingStoneBind>();
 
         public HeroCombatState(string heroId, bool formationComplete = false)
             : this(
@@ -332,6 +343,7 @@ namespace DragonBound.Combat
             formationElapsed = 0f;
             attackElapsed = 0f;
             skillElapsed = 0f;
+            attackActionLockRemaining = 0f;
             attackNumber = 0;
             successfulAttackSequence = 0;
             stoneBindAttackCount = 0;
@@ -356,6 +368,7 @@ namespace DragonBound.Combat
             temporaryRuneAttackSpeedMultiplier = 1f;
             temporaryRuneAttackSpeedRemaining = 0f;
             basicAttackSucceededTargets.Clear();
+            pendingStoneBinds.Clear();
             groundHazards.Clear();
         }
 
@@ -406,22 +419,51 @@ namespace DragonBound.Combat
                 temporaryRuneAttackSpeedMultiplier = 1f;
             }
 
-            var blocksNormalAttacks = false;
+            TickPendingStoneBinds(deltaSeconds);
+
             if (definition.Id == HeroSliceCatalog.DragonRiderHeroId)
             {
                 results.AddRange(groundHazards.Tick(deltaSeconds, registry, AttackKind.DragonRiderFlame));
+            }
+
+            // Basic and skill animations share one hero art Animator. Consume the outstanding
+            // action window before another gameplay action may start, while allowing skill
+            // cooldown time to continue advancing during the occupied portion.
+            if (attackActionLockRemaining > 0f)
+            {
+                var occupiedSeconds = Math.Min(deltaSeconds, attackActionLockRemaining);
+                attackActionLockRemaining = Math.Max(0f, attackActionLockRemaining - occupiedSeconds);
+                if (skill.Cooldown > 0f)
+                {
+                    skillElapsed += occupiedSeconds;
+                }
+
+                deltaSeconds -= occupiedSeconds;
+                if (deltaSeconds <= 0.0001f)
+                {
+                    return results;
+                }
+            }
+
+            var blocksNormalAttacks = false;
+            var skillResultStart = results.Count;
+            if (definition.Id == HeroSliceCatalog.DragonRiderHeroId)
+            {
                 skillElapsed += deltaSeconds;
                 ResolveReadyDives(origin, registry, results);
+                blocksNormalAttacks = HasNewSkillAction(results, skillResultStart);
             }
             else if (definition.Id == HeroSliceCatalog.StarfallArchmageHeroId)
             {
                 skillElapsed += deltaSeconds;
                 ResolveReadyStarfall(origin, registry, results, deltaSeconds);
+                blocksNormalAttacks = starfallTelegraphActive || HasNewSkillAction(results, skillResultStart);
             }
             else if (definition.Id == HeroSliceCatalog.ThunderJarlHeroId)
             {
                 skillElapsed += deltaSeconds;
                 ResolveReadyThunderDominion(origin, registry, results);
+                blocksNormalAttacks = HasNewSkillAction(results, skillResultStart);
             }
             else if (definition.Id == HeroSliceCatalog.NightfangAssassinHeroId)
             {
@@ -438,22 +480,33 @@ namespace DragonBound.Combat
 
             if (blocksNormalAttacks)
             {
+                if (HasNewVisualSkillAction(results, skillResultStart))
+                {
+                    attackElapsed = 0f;
+                    attackActionLockRemaining = Math.Max(
+                        attackActionLockRemaining,
+                        SkillAttackActionSeconds);
+                }
                 return results;
             }
 
             attackElapsed += deltaSeconds;
             var interval = 1f / AttackSpeed;
-            while (attackElapsed + 0.0001f >= interval)
+            if (attackElapsed + 0.0001f >= interval)
             {
                 if (!ResolveNormalAttack(origin, registry, results, pathDisplacement))
                 {
                     // Keep a ready attack ready; it will resolve as soon as a target enters range.
                     attackElapsed = Math.Min(attackElapsed, interval);
-                    break;
+                    return results;
                 }
 
                 successfulAttackSequence++;
                 attackElapsed -= interval;
+                attackElapsed = Math.Min(attackElapsed, interval);
+                attackActionLockRemaining = Math.Max(
+                    attackActionLockRemaining,
+                    BasicAttackActionSeconds);
                 if (!string.IsNullOrEmpty(CurrentTargetRuntimeId) &&
                     registry.TryGet(CurrentTargetRuntimeId, out var successfulTarget))
                 {
@@ -462,6 +515,39 @@ namespace DragonBound.Combat
             }
 
             return results;
+        }
+
+        private static bool HasNewSkillAction(IReadOnlyList<HeroDamageResult> results, int startIndex)
+        {
+            for (var index = Math.Max(0, startIndex); index < results.Count; index++)
+            {
+                switch (results[index].Kind)
+                {
+                    case AttackKind.DragonRiderDive:
+                    case AttackKind.StarfallTelegraph:
+                    case AttackKind.StarfallImpact:
+                    case AttackKind.ThunderDominion:
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool HasNewVisualSkillAction(IReadOnlyList<HeroDamageResult> results, int startIndex)
+        {
+            for (var index = Math.Max(0, startIndex); index < results.Count; index++)
+            {
+                switch (results[index].Kind)
+                {
+                    case AttackKind.DragonRiderDive:
+                    case AttackKind.StarfallImpact:
+                    case AttackKind.ThunderDominion:
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         private bool ResolveNormalAttack(
@@ -581,7 +667,9 @@ namespace DragonBound.Combat
 
             CurrentTargetRuntimeId = center.RuntimeId;
             var radius = skill.Radius > 0f ? skill.Radius : 0.90f;
-            var maximumTargets = Math.Max(1, skill.MaxTargets > 0 ? skill.MaxTargets : 5);
+            var maximumTargets = Math.Min(
+                5,
+                Math.Max(1, skill.MaxTargets > 0 ? skill.MaxTargets : 5));
             ApplyDamage(
                 center,
                 Attack * GetScalar(skill, "PrimaryDamageMultiplier", 1f),
@@ -700,8 +788,16 @@ namespace DragonBound.Combat
             var immunity = target.Archetype == EnemyArchetype.Boss
                 ? FrozenHeroConfigurationCatalog.Configuration.ControlRules.BossPostStunImmunitySeconds
                 : 0f;
-            if (target.ApplyStun(duration, immunity))
+            // Emit the skill marker now so presentation can upgrade the queued normal rock to
+            // its skill variant in this frame. Apply the authoritative stun only when that rock
+            // is expected to reach the enemy, otherwise movement stops before the cast appears.
+            if (CanScheduleStoneBind(target, duration))
             {
+                pendingStoneBinds.Add(new PendingStoneBind(
+                    target,
+                    duration,
+                    immunity,
+                    StoneboundWarlockImpactDelaySeconds));
                 results.Add(new HeroDamageResult(
                     AttackKind.StoneBind,
                     target,
@@ -711,6 +807,33 @@ namespace DragonBound.Combat
             }
 
             return true;
+        }
+
+        private static bool CanScheduleStoneBind(EnemyRuntime target, float durationSeconds)
+        {
+            return target != null &&
+                   target.IsAlive &&
+                   durationSeconds > 0f &&
+                   target.StunImmunityRemainingSeconds <= 0.0001f;
+        }
+
+        private void TickPendingStoneBinds(float deltaSeconds)
+        {
+            for (var index = pendingStoneBinds.Count - 1; index >= 0; index--)
+            {
+                var pending = pendingStoneBinds[index];
+                pending.RemainingDelaySeconds -= deltaSeconds;
+                if (pending.RemainingDelaySeconds > 0.0001f)
+                {
+                    pendingStoneBinds[index] = pending;
+                    continue;
+                }
+
+                pendingStoneBinds.RemoveAt(index);
+                pending.Target.ApplyStun(
+                    pending.DurationSeconds,
+                    pending.PostStunImmunitySeconds);
+            }
         }
 
         private bool ResolveStarfallAttack(
@@ -1179,13 +1302,16 @@ namespace DragonBound.Combat
                 for (var index = 0; index < targets.Count; index++)
                 {
                     var target = targets[index];
+                    var pullDistance = ApplyAbyssHarpoonDisplacement(
+                        target,
+                        pathDisplacement);
                     ApplyDamage(
                         target,
                         Attack * GetSkillSeriesParameter("DamageMultiplierByHit", index, 1f) *
                         definition.GetLevelStats(Level).SkillMultiplier,
                         AttackKind.AbyssHarpoonStrike,
-                        results);
-                    ApplyAbyssHarpoonDisplacement(target, pathDisplacement);
+                        results,
+                        pathDisplacementDistance: pullDistance);
                 }
 
                 abyssHarpoonAnchorRuntimeId = null;
@@ -1220,13 +1346,13 @@ namespace DragonBound.Combat
             return true;
         }
 
-        private void ApplyAbyssHarpoonDisplacement(
+        private float ApplyAbyssHarpoonDisplacement(
             EnemyRuntime target,
             PathDisplacementSystem pathDisplacement)
         {
-            if (target == null || !target.IsAlive || pathDisplacement == null)
+            if (target == null || !target.IsAttackable || pathDisplacement == null)
             {
-                return;
+                return 0f;
             }
 
             if (pathDisplacement.IsDisplacementImmune(target))
@@ -1235,13 +1361,15 @@ namespace DragonBound.Combat
                     target,
                     GetScalar(skill, "BossSlowFraction", 0.25f),
                     GetScalar(skill, "BossSlowDurationSeconds", 1.50f));
-                return;
+                return 0f;
             }
 
             var distance = target.Archetype == EnemyArchetype.Elite
                 ? GetScalar(skill, "ElitePullDistance", 0.50f)
                 : GetScalar(skill, "NormalPullDistance", 1f);
-            pathDisplacement.MoveBackwardByPathDistance(target, distance);
+            return pathDisplacement.MoveBackwardByPathDistance(target, distance)
+                ? distance
+                : 0f;
         }
 
         private void ResolveSkyhunterRadiance(
@@ -1391,7 +1519,7 @@ namespace DragonBound.Combat
             var width = skill.Width;
             foreach (var target in registry.Snapshot())
             {
-                if (target == null || target.Team != side || !target.IsAlive ||
+                if (target == null || target.Team != side || !target.IsAttackable ||
                     !IsInsideLine(origin, direction, length, width, target.CombatPosition))
                 {
                     continue;
@@ -1548,7 +1676,7 @@ namespace DragonBound.Combat
             var candidates = new List<EnemyRuntime>();
             foreach (var enemy in registry.Snapshot())
             {
-                if (enemy == null || enemy.Team != side || !enemy.IsAlive || selected.Contains(enemy) ||
+                if (enemy == null || enemy.Team != side || !enemy.IsAttackable || selected.Contains(enemy) ||
                     !targeting.IsWithinRange(previous.CombatPosition, enemy, jumpRange))
                 {
                     continue;
@@ -1570,7 +1698,7 @@ namespace DragonBound.Combat
             var values = new List<EnemyRuntime>();
             foreach (var enemy in enemies)
             {
-                if (enemy != null && enemy.Team == side && enemy.IsAlive &&
+                if (enemy != null && enemy.Team == side && enemy.IsAttackable &&
                     center.DistanceSquared(enemy.CombatPosition) <= (radius * radius) + 0.0001f)
                 {
                     values.Add(enemy);
@@ -1601,7 +1729,7 @@ namespace DragonBound.Combat
             var radiusSquared = radius * radius;
             foreach (var enemy in enemies)
             {
-                if (enemy == null || enemy == center || enemy.Team != side || !enemy.IsAlive ||
+                if (enemy == null || enemy == center || enemy.Team != side || !enemy.IsAttackable ||
                     center.CombatPosition.DistanceSquared(enemy.CombatPosition) > radiusSquared + 0.0001f)
                 {
                     continue;
@@ -1639,7 +1767,7 @@ namespace DragonBound.Combat
 
             foreach (var enemy in registry.Snapshot())
             {
-                if (enemy == null || enemy == primary || enemy.Team != side || !enemy.IsAlive ||
+                if (enemy == null || enemy == primary || enemy.Team != side || !enemy.IsAttackable ||
                     !targeting.IsWithinRange(
                         origin,
                         enemy,
@@ -1682,7 +1810,7 @@ namespace DragonBound.Combat
             var width = skill.Width > 0f ? skill.Width : 0.40f;
             foreach (var enemy in registry.Snapshot())
             {
-                if (enemy != null && enemy.Team == side && enemy.IsAlive &&
+                if (enemy != null && enemy.Team == side && enemy.IsAttackable &&
                     targeting.IsWithinRange(origin, enemy, targetRange))
                 {
                     candidates.Add(enemy);
@@ -1759,7 +1887,7 @@ namespace DragonBound.Combat
             var values = new List<EnemyRuntime>();
             foreach (var enemy in enemies)
             {
-                if (enemy != null && enemy.Team == side && enemy.IsAlive &&
+                if (enemy != null && enemy.Team == side && enemy.IsAttackable &&
                     IsInsideLine(origin, direction, length, width, enemy.CombatPosition))
                 {
                     values.Add(enemy);
@@ -1786,7 +1914,7 @@ namespace DragonBound.Combat
             var values = new List<EnemyRuntime>();
             foreach (var enemy in enemies)
             {
-                if (enemy != null && enemy.Team == side && enemy.IsAlive &&
+                if (enemy != null && enemy.Team == side && enemy.IsAttackable &&
                     IsInsideLine(origin, direction, length, width, enemy.CombatPosition))
                 {
                     values.Add(enemy);
@@ -1817,7 +1945,7 @@ namespace DragonBound.Combat
             var candidates = new List<EnemyRuntime>();
             foreach (var enemy in registry.Snapshot())
             {
-                if (enemy != null && enemy.Team == side && enemy.IsAlive &&
+                if (enemy != null && enemy.Team == side && enemy.IsAttackable &&
                     targeting.IsWithinRange(origin, enemy, range))
                 {
                     candidates.Add(enemy);
@@ -1842,7 +1970,7 @@ namespace DragonBound.Combat
             var count = 0;
             foreach (var enemy in enemies)
             {
-                if (enemy != null && enemy.Team == side && enemy.IsAlive &&
+                if (enemy != null && enemy.Team == side && enemy.IsAttackable &&
                     center.DistanceSquared(enemy.CombatPosition) <= (radius * radius) + 0.0001f)
                 {
                     count++;
@@ -1911,7 +2039,7 @@ namespace DragonBound.Combat
         private static EnemyRuntime FindAliveEnemy(EnemyRegistry registry, string runtimeId)
         {
             if (registry == null || string.IsNullOrWhiteSpace(runtimeId) ||
-                !registry.TryGet(runtimeId, out var enemy) || enemy == null || !enemy.IsAlive)
+                !registry.TryGet(runtimeId, out var enemy) || enemy == null || !enemy.IsAttackable)
             {
                 return null;
             }
@@ -1944,9 +2072,10 @@ namespace DragonBound.Combat
             AttackKind kind,
             ICollection<HeroDamageResult> results,
             float effectDuration = 0f,
-            float effectRadius = 0f)
+            float effectRadius = 0f,
+            float pathDisplacementDistance = 0f)
         {
-            if (target == null || !target.IsAlive || damage < 0f)
+            if (target == null || !target.IsAttackable || damage < 0f)
             {
                 return;
             }
@@ -1961,7 +2090,8 @@ namespace DragonBound.Combat
                 effectRadius,
                 false,
                 application.ShieldDamage,
-                application.HealthDamage));
+                application.HealthDamage,
+                pathDisplacementDistance));
         }
 
         private static int CompareFrontmost(EnemyRuntime first, EnemyRuntime second)
@@ -2004,6 +2134,26 @@ namespace DragonBound.Combat
             return magnitude <= 0.0001f
                 ? new CombatPoint(1f, 0f)
                 : new CombatPoint(x / magnitude, y / magnitude);
+        }
+
+        private sealed class PendingStoneBind
+        {
+            public PendingStoneBind(
+                EnemyRuntime target,
+                float durationSeconds,
+                float postStunImmunitySeconds,
+                float remainingDelaySeconds)
+            {
+                Target = target;
+                DurationSeconds = durationSeconds;
+                PostStunImmunitySeconds = postStunImmunitySeconds;
+                RemainingDelaySeconds = remainingDelaySeconds;
+            }
+
+            public EnemyRuntime Target { get; }
+            public float DurationSeconds { get; }
+            public float PostStunImmunitySeconds { get; }
+            public float RemainingDelaySeconds { get; set; }
         }
     }
 

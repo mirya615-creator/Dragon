@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using DragonBound.Core;
 using DragonBound.Grid;
+using DragonBound.Items;
 using DragonBound.Recruitment;
 using GameShared.Random;
 using NUnit.Framework;
@@ -13,6 +14,31 @@ namespace DragonBound.Tests.EditMode
 {
     public sealed class RecruitmentServiceTests
     {
+        [Test]
+        public void GrantedFreeRecruit_BypassesCostOnceAndIsConsumedOnlyOnSuccess()
+        {
+            var team = new TeamState(TeamSide.Player);
+            var board = DragonBoundBoardLayout.CreateInitial();
+            var deck = new RecruitDeck(GreyboxRecruitmentCatalog.Create(), new RunSeed(731).Random, "player");
+            var service = new RecruitmentService(team, deck, new BoardRecruitDestination(board));
+
+            Assert.IsTrue(service.TryGrantFreeRecruit(out var reason), reason);
+            Assert.IsTrue(service.HasFreeRecruit);
+            Assert.AreEqual(0, service.EffectiveNextCost);
+            Assert.IsTrue(service.CanRecruitNext);
+            Assert.IsFalse(service.TryGrantFreeRecruit(out _), "A pending free charge must not stack.");
+
+            var freeAttempt = service.TryRecruit();
+
+            Assert.AreEqual(RecruitmentStatus.Success, freeAttempt.Status);
+            Assert.AreEqual(0, freeAttempt.Cost);
+            Assert.AreEqual(0, freeAttempt.ResourcesBefore);
+            Assert.AreEqual(0, freeAttempt.ResourcesAfter);
+            Assert.IsFalse(service.HasFreeRecruit);
+            Assert.AreEqual(12, service.EffectiveNextCost);
+            Assert.IsFalse(service.CanRecruitNext);
+        }
+
         [Test]
         public void RecruitRefresh_RemovesOnlyBenchUnits()
         {

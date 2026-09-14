@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 public enum MerchantPaymentType
 {
@@ -62,6 +63,7 @@ public sealed class MerchantPurchaseResult
 public sealed class MerchantInventory
 {
     public List<MerchantProduct> Products = new List<MerchantProduct>();
+    public List<MerchantProduct> LoadoutProducts = new List<MerchantProduct>();
 }
 
 [Serializable]
@@ -105,16 +107,66 @@ public sealed class MerchantDayKey
 
 public static class MerchantPresentationStore
 {
+    private const string PendingEventKeyPrefix = "dragonbound.merchant.pending-event.v1.";
+    private const string PresentedEventKeyPrefix = "dragonbound.merchant.presented-event.v1.";
     private static readonly HashSet<string> PendingPlayers = new HashSet<string>();
 
     public static void MarkPending(string playerId)
     {
-        if (!string.IsNullOrWhiteSpace(playerId)) PendingPlayers.Add(playerId);
+        MarkPending(playerId, string.Empty);
+    }
+
+    public static void MarkPending(string playerId, string eventId)
+    {
+        if (string.IsNullOrWhiteSpace(playerId)) return;
+        PendingPlayers.Add(playerId);
+        PlayerPrefs.SetString(PendingKey(playerId), eventId ?? string.Empty);
+        PlayerPrefs.Save();
+    }
+
+    public static bool HasPending(string playerId)
+    {
+        return !string.IsNullOrWhiteSpace(playerId) &&
+               (PendingPlayers.Contains(playerId) || PlayerPrefs.HasKey(PendingKey(playerId)));
+    }
+
+    public static bool ShouldPresent(string playerId, string eventId)
+    {
+        if (string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(eventId))
+            return false;
+        if (HasPending(playerId)) return true;
+        return !string.Equals(
+            PlayerPrefs.GetString(PresentedKey(playerId), string.Empty),
+            eventId,
+            StringComparison.Ordinal);
+    }
+
+    public static void MarkPresented(string playerId, string eventId)
+    {
+        if (string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(eventId)) return;
+        PendingPlayers.Remove(playerId);
+        PlayerPrefs.DeleteKey(PendingKey(playerId));
+        PlayerPrefs.SetString(PresentedKey(playerId), eventId);
+        PlayerPrefs.Save();
     }
 
     public static bool TryConsumePending(string playerId)
     {
-        return !string.IsNullOrWhiteSpace(playerId) && PendingPlayers.Remove(playerId);
+        if (!HasPending(playerId)) return false;
+        PendingPlayers.Remove(playerId);
+        PlayerPrefs.DeleteKey(PendingKey(playerId));
+        PlayerPrefs.Save();
+        return true;
+    }
+
+    private static string PendingKey(string playerId)
+    {
+        return PendingEventKeyPrefix + playerId;
+    }
+
+    private static string PresentedKey(string playerId)
+    {
+        return PresentedEventKeyPrefix + playerId;
     }
 }
 
@@ -138,6 +190,12 @@ public interface IMerchantGateway
 
     Task<MerchantInventory> GetInventoryAsync(
         string playerId,
+        CancellationToken cancellationToken);
+
+    Task<MerchantInventory> SetItemLoadoutAsync(
+        string playerId,
+        IReadOnlyList<string> activeItemIds,
+        IReadOnlyList<string> passiveItemIds,
         CancellationToken cancellationToken);
 
     Task<MerchantLotteryOffer> GetLotteryOfferAsync(

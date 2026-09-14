@@ -166,23 +166,11 @@ namespace DragonBound.Items
         public static EnemyRuntime SelectEnemy(ItemRunContext context, string targetId)
         {
             if (!string.IsNullOrWhiteSpace(targetId) && context.OwnRouteEnemies.TryGet(targetId, out var selected) &&
-                selected.Team == context.OwnTeam.Side && selected.IsAlive)
+                selected.Team == context.OwnTeam.Side && selected.IsAttackable)
             {
                 return selected;
             }
-
-            EnemyRuntime result = null;
-            foreach (var enemy in context.OwnRouteEnemies.Enemies)
-            {
-                if (enemy.Team != context.OwnTeam.Side || !enemy.IsAlive) continue;
-                if (result == null || enemy.PathProgress > result.PathProgress ||
-                    (Math.Abs(enemy.PathProgress - result.PathProgress) < 0.0001f && enemy.SpawnSequence < result.SpawnSequence))
-                {
-                    result = enemy;
-                }
-            }
-
-            return result;
+            return null;
         }
 
         public static ItemCombatUnitState SelectUnit(ItemRunContext context, string targetId)
@@ -271,7 +259,7 @@ namespace DragonBound.Items
             var center = context.ActivationPoint;
             foreach (var enemy in context.OwnRouteEnemies.Snapshot())
             {
-                if (enemy.Team != context.OwnTeam.Side || !enemy.IsAlive ||
+                if (enemy.Team != context.OwnTeam.Side || !enemy.IsAttackable ||
                     enemy.CombatPosition.DistanceSquared(center) > AreaRadius * AreaRadius + 0.0001f)
                 {
                     continue;
@@ -396,7 +384,7 @@ namespace DragonBound.Items
         }
     }
 
-    public sealed class DragonfallJudgmentEffect : IItemEffectRuntime
+    public sealed class DragonfallJudgmentEffect : IItemEffectRuntime, IOneShotItemEffectState
     {
         public const float NormalMaxHealthFraction = 0.80f;
         public const float BossMaxHealthFraction = 0.08f;
@@ -404,6 +392,7 @@ namespace DragonBound.Items
 
         public string ItemId => Items.ItemIds.DragonfallJudgment;
         public bool Used { get; private set; }
+        public bool IsConsumed => Used;
         public bool WorldeaterMinionInteractionPending { get; private set; }
         public float LastDamage { get; private set; }
 

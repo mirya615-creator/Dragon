@@ -88,7 +88,7 @@ namespace DragonBound.Core
                 throw new ArgumentNullException(nameof(enemy));
             }
 
-            enemy.PathIndex = 0;
+            enemy.BeginSpawnProtection();
             enemy.SetPathState(0, 0f, 0f, GoalIndex, combatPositions[0]);
         }
 

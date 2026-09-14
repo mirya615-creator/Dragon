@@ -1,3 +1,4 @@
+using System;
 using DragonBound.Core;
 using DragonBound.Items;
 using NUnit.Framework;
@@ -46,6 +47,7 @@ namespace DragonBound.Tests.EditMode
             effect.HandleCombatEvent(context, new ItemCombatEvent(ItemCombatEventKind.HeroFormed, TeamSide.Player, "hero-2"));
 
             Assert.IsTrue(effect.Consumed);
+            Assert.IsTrue(((IOneShotItemEffectState)effect).IsConsumed);
             Assert.AreEqual(1, effect.AttemptCount);
             Assert.AreEqual(1, freeRecruit.GrantCount);
         }
@@ -63,7 +65,7 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void ForgekeepersGift_RequestsAtNinetySecondIntervalsAndStopsOnNoLockedCell()
+        public void ForgekeepersGift_RestartsNinetySecondCooldownAfterEveryDecision()
         {
             var forgePick = new ForgePickPort();
             var runtime = new ItemRunRuntime(
@@ -72,16 +74,27 @@ namespace DragonBound.Tests.EditMode
                 forgePick: forgePick);
 
             Assert.IsTrue(runtime.StartRun(out var reason), reason);
+            Assert.AreEqual(90f, runtime.GetCooldownDurationSeconds(ItemIds.ForgekeepersGift));
+            Assert.AreEqual(90f, runtime.GetCooldownRemainingSeconds(ItemIds.ForgekeepersGift));
             runtime.Tick(89.9f);
+            Assert.AreEqual(0.1f, runtime.GetCooldownRemainingSeconds(ItemIds.ForgekeepersGift), 0.001f);
             Assert.AreEqual(0, forgePick.RequestCount);
             runtime.Tick(0.1f);
+            Assert.AreEqual(0f, runtime.GetCooldownRemainingSeconds(ItemIds.ForgekeepersGift));
             Assert.AreEqual(1, forgePick.RequestCount);
+            runtime.Tick(90f);
+            Assert.AreEqual(1, forgePick.RequestCount, "A pending claim must suspend the cooldown.");
+            forgePick.CompleteGrantedClaim();
+            Assert.AreEqual(90f, runtime.GetCooldownRemainingSeconds(ItemIds.ForgekeepersGift));
             Assert.AreEqual(1, forgePick.GrantedCount);
             runtime.Tick(90f);
             Assert.AreEqual(2, forgePick.RequestCount);
-            Assert.IsTrue(forgePick.NoLockedCellReturned);
+            forgePick.CompleteDeclinedClaim();
+            Assert.AreEqual(90f, runtime.GetCooldownRemainingSeconds(ItemIds.ForgekeepersGift));
             runtime.Tick(90f);
-            Assert.AreEqual(2, forgePick.RequestCount);
+            Assert.AreEqual(3, forgePick.RequestCount);
+            forgePick.CompleteFailedClaim();
+            Assert.AreEqual(90f, runtime.GetCooldownRemainingSeconds(ItemIds.ForgekeepersGift));
         }
 
         private static ItemRunSnapshot CreateForgekeepersSnapshot()
@@ -110,19 +123,36 @@ namespace DragonBound.Tests.EditMode
         {
             public int RequestCount { get; private set; }
             public int GrantedCount { get; private set; }
-            public bool NoLockedCellReturned { get; private set; }
+            private Action<ItemForgePickClaimResult> pendingCompletion;
 
-            public ItemForgePickResult TryGrantForgePick(bool requiresAdvertisement)
+            public ItemForgePickRequestResult TryBeginForgePickClaim(
+                Action<ItemForgePickClaimResult> completed)
             {
                 RequestCount++;
-                if (RequestCount == 1)
-                {
-                    GrantedCount++;
-                    return new ItemForgePickResult(ItemForgePickResultKind.Granted);
-                }
+                pendingCompletion = completed;
+                return new ItemForgePickRequestResult(ItemForgePickRequestKind.PromptOpened);
+            }
 
-                NoLockedCellReturned = true;
-                return new ItemForgePickResult(ItemForgePickResultKind.NoLockedCell);
+            public void CompleteGrantedClaim()
+            {
+                GrantedCount++;
+                Action<ItemForgePickClaimResult> completion = pendingCompletion;
+                pendingCompletion = null;
+                completion?.Invoke(new ItemForgePickClaimResult(ItemForgePickClaimKind.Granted));
+            }
+
+            public void CompleteDeclinedClaim()
+            {
+                Action<ItemForgePickClaimResult> completion = pendingCompletion;
+                pendingCompletion = null;
+                completion?.Invoke(new ItemForgePickClaimResult(ItemForgePickClaimKind.Declined));
+            }
+
+            public void CompleteFailedClaim()
+            {
+                Action<ItemForgePickClaimResult> completion = pendingCompletion;
+                pendingCompletion = null;
+                completion?.Invoke(new ItemForgePickClaimResult(ItemForgePickClaimKind.Failed));
             }
         }
 

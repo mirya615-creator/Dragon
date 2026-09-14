@@ -12,13 +12,18 @@ public sealed class PlayerRankState
     public int RequiredStars;
     public long TotalRankStars;
     public long ReachedStateAtUnixMilliseconds;
+    public long Version;
 }
 
+[Serializable]
 public sealed class RankProgressResult
 {
     public PlayerRankState State;
     public PlayerRankState PromotionFromState;
     public bool Promoted;
+    public bool Demoted;
+    public int StarDelta;
+    public bool Replayed;
 }
 
 /// <summary>

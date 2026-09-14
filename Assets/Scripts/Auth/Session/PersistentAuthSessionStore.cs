@@ -65,7 +65,11 @@ public sealed class PersistentAuthSessionStore : IAuthSessionStore
         }
 
         long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        return session.ExpiresAtUnixTime <= 0 || now < session.ExpiresAtUnixTime;
+        if (session.ExpiresAtUnixTime <= 0 || now < session.ExpiresAtUnixTime) return true;
+
+        // An expired online access token remains a recoverable session while a refresh
+        // token exists. RefreshingUnaryTransport rotates it on the next API request.
+        return !session.IsOffline && !string.IsNullOrWhiteSpace(session.RefreshToken);
     }
 
     public void Set(AuthSession session)

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 public sealed class RuneEquippedDragItem : MonoBehaviour,
@@ -30,8 +31,10 @@ public sealed class RuneEquippedDragItem : MonoBehaviour,
         if (string.IsNullOrEmpty(RuneId) || controller == null) return;
 
         consumed = false;
-        proxy = controller.SpawnUnequipProxy(RuneId);
-        if (dropZone != null) dropZone.SetRuneName(string.Empty);
+        proxy = controller.SpawnUnequipProxy(RuneId, GetComponent<Image>());
+        // Keep the weapon object active for the duration of the drag so Unity can
+        // continue delivering drag/end-drag events. Only hide its renderer.
+        if (dropZone != null) dropZone.SetRuneImageVisible(false);
         if (proxy != null) proxy.position = eventData.position;
     }
 

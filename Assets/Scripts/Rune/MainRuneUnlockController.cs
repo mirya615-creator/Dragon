@@ -1,8 +1,8 @@
 using System;
-using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
-using TMPro;
+using DragonBound.Runes;
+using DragonBound.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -10,32 +10,42 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class MainRuneUnlockController : MonoBehaviour
 {
-    private const int UnlockAccountDay = 3;
-    private const float TipDurationSeconds = 1.5f;
-    private const string LockedTip = "Unlocks on Day 3";
+    private const string BagButtonPath = "ButtonNavigation/BagBtn";
+    private const float TipDurationSeconds = 3f;
+    private static readonly string LockedTip =
+        $"Unlocks on Day {RuneFeatureGate.UnlockAccountDay}";
 
     private Button bagButton;
     private CanvasGroup bagCanvasGroup;
-    private TMP_Text tipText;
     private GameObject weaponPanel;
+    private GameObject leaderPanel;
     private IAuthSessionStore authSessionStore;
     private IRuneProfileGateway runeGateway;
     private CancellationTokenSource lifetimeCancellation;
-    private Coroutine tipCoroutine;
     private bool profileLoaded;
     private bool isUnlocked;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void InstallForMainScene()
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void RegisterSceneLoadedHandler()
     {
-        Scene scene = SceneManager.GetActiveScene();
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+    }
+
+    private static void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        InstallForMainScene(scene);
+    }
+
+    private static void InstallForMainScene(Scene scene)
+    {
         if (!string.Equals(scene.name, "Main", StringComparison.Ordinal)) return;
 
         GameObject[] roots = scene.GetRootGameObjects();
         for (int index = 0; index < roots.Length; index++)
         {
             Transform mainPanel = FindDescendant(roots[index].transform, "MainPanel");
-            if (mainPanel == null || mainPanel.Find("BagBtn") == null) continue;
+            if (mainPanel == null || mainPanel.Find(BagButtonPath) == null) continue;
             if (mainPanel.GetComponent<MainRuneUnlockController>() == null)
             {
                 mainPanel.gameObject.AddComponent<MainRuneUnlockController>();
@@ -46,15 +56,15 @@ public sealed class MainRuneUnlockController : MonoBehaviour
 
     private void Awake()
     {
-        bagButton = transform.Find("BagBtn")?.GetComponent<Button>();
-        tipText = transform.Find("TipText")?.GetComponent<TMP_Text>();
-        weaponPanel = FindSceneObject("WeaponPanel")?.gameObject;
+        bagButton = transform.Find(BagButtonPath)?.GetComponent<Button>();
+        weaponPanel = FindSceneObject(gameObject.scene, "WeaponPanel")?.gameObject;
+        leaderPanel = FindSceneObject(gameObject.scene, "LeaderPanel")?.gameObject;
 
-        if (bagButton == null || tipText == null || weaponPanel == null)
+        if (bagButton == null || weaponPanel == null || leaderPanel == null)
         {
             Debug.LogError(
-                "MainRuneUnlockController requires MainPanel/BagBtn, MainPanel/TipText, " +
-                "and WeaponPanel.",
+                "MainRuneUnlockController requires MainPanel/ButtonNavigation/BagBtn, " +
+                "WeaponPanel and LeaderPanel.",
                 this);
             enabled = false;
             return;
@@ -77,13 +87,19 @@ public sealed class MainRuneUnlockController : MonoBehaviour
 
     private void OnEnable()
     {
+        LocalRuneProgressionSettings.AccountDayChanged += HandleAccountDayChanged;
         if (enabled) _ = RefreshGateAsync();
+    }
+
+    private void OnDisable()
+    {
+        LocalRuneProgressionSettings.AccountDayChanged -= HandleAccountDayChanged;
     }
 
     private void OnDestroy()
     {
         if (bagButton != null) bagButton.onClick.RemoveListener(HandleBagClicked);
-        if (tipCoroutine != null) StopCoroutine(tipCoroutine);
+        TipTextService.Hide();
         lifetimeCancellation?.Cancel();
         lifetimeCancellation?.Dispose();
         lifetimeCancellation = null;
@@ -112,7 +128,8 @@ public sealed class MainRuneUnlockController : MonoBehaviour
             if (lifetimeCancellation == null || lifetimeCancellation.IsCancellationRequested) return;
 
             profileLoaded = profile != null;
-            isUnlocked = profileLoaded && profile.AccountDay >= UnlockAccountDay;
+            isUnlocked = profileLoaded &&
+                         profile.AccountDay >= RuneFeatureGate.UnlockAccountDay;
             ApplyGateVisual();
         }
         catch (OperationCanceledException)
@@ -124,12 +141,29 @@ public sealed class MainRuneUnlockController : MonoBehaviour
         }
     }
 
+    private void HandleAccountDayChanged()
+    {
+        if (isActiveAndEnabled) _ = RefreshGateAsync();
+    }
+
     private void HandleBagClicked()
     {
+        // Toggle: clicking BagBtn while the bag panel is open closes it.
+        if (weaponPanel.activeSelf)
+        {
+            weaponPanel.SetActive(false);
+            return;
+        }
+
         if (!profileLoaded || !isUnlocked)
         {
             ShowTip(LockedTip);
             return;
+        }
+
+        if (leaderPanel.activeSelf)
+        {
+            leaderPanel.SetActive(false);
         }
 
         weaponPanel.SetActive(true);
@@ -143,26 +177,12 @@ public sealed class MainRuneUnlockController : MonoBehaviour
 
     private void ShowTip(string message)
     {
-        if (tipCoroutine != null) StopCoroutine(tipCoroutine);
-        tipCoroutine = StartCoroutine(ShowTipRoutine(message));
+        TipTextService.Show(message, TipDurationSeconds);
     }
 
-    private IEnumerator ShowTipRoutine(string message)
+    private static Transform FindSceneObject(Scene scene, string objectName)
     {
-        tipText.text = message;
-        tipText.gameObject.SetActive(true);
-        yield return new WaitForSecondsRealtime(TipDurationSeconds);
-        if (tipText.text == message)
-        {
-            tipText.text = string.Empty;
-            tipText.gameObject.SetActive(false);
-        }
-        tipCoroutine = null;
-    }
-
-    private static Transform FindSceneObject(string objectName)
-    {
-        Scene scene = SceneManager.GetActiveScene();
+        if (!scene.IsValid() || !scene.isLoaded) return null;
         GameObject[] roots = scene.GetRootGameObjects();
         for (int index = 0; index < roots.Length; index++)
         {

@@ -31,7 +31,8 @@ namespace DragonBound.Bosses.Contracts
         Windup,
         Resolve,
         Blocked,
-        Cooldown
+        Cooldown,
+        EffectEnded
     }
 
     public enum BossCastOutcome

@@ -136,6 +136,8 @@ namespace DragonBound.Recruitment
             new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> dragSuspendedUnitIds =
             new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> deploymentAnimationSuspendedUnitIds =
+            new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> soulChainSuspendedUnitIds =
             new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> combatRegisteredUnitIds =
@@ -465,6 +467,111 @@ namespace DragonBound.Recruitment
             return cardsByRuntimeId.TryGetValue(runtimeId, out card);
         }
 
+        /// <summary>
+        /// Adds an externally rewarded Forge Pick to the first empty authored beach slot.
+        /// Unlike recruitment Commit, this never refreshes or replaces existing bench cards.
+        /// </summary>
+        public bool TryAddRewardShovelToFirstEmptyBench(string runtimeId)
+        {
+            if (string.IsNullOrWhiteSpace(runtimeId)) return false;
+            return TryAddRewardShovelToFirstEmptyBench(new RecruitCard(
+                runtimeId,
+                RecruitItemKind.Shovel,
+                ShovelRecruitmentConfig.ShovelConfigId,
+                string.Empty));
+        }
+
+        public bool TryAddRewardShovelToFirstEmptyBench(RecruitCard card)
+        {
+            if (card == null ||
+                card.Kind != RecruitItemKind.Shovel ||
+                cardsByRuntimeId.ContainsKey(card.RuntimeId))
+            {
+                return false;
+            }
+
+            foreach (var position in board.GetPositions(CellType.Bench))
+            {
+                if (board.IsOccupied(position) || !board.IsPlaceable(position))
+                {
+                    continue;
+                }
+
+                cardsByRuntimeId.Add(card.RuntimeId, card);
+                if (!board.TryPlace(card.RuntimeId, position))
+                {
+                    cardsByRuntimeId.Remove(card.RuntimeId);
+                    return false;
+                }
+
+                ReconcileCombatRegistrations();
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool HasEmptyBenchSlot()
+        {
+            foreach (var position in board.GetPositions(CellType.Bench))
+            {
+                if (!board.IsOccupied(position) && board.IsPlaceable(position)) return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Development-only direct placement used by the Greybox gameplay/animation console.
+        /// It bypasses the formal recruit deck without changing its contents.
+        /// </summary>
+        public bool TryDebugPlaceCard(RecruitCard card, GridPosition position)
+        {
+            if ((!Application.isEditor && !Debug.isDebugBuild) ||
+                card == null ||
+                cardsByRuntimeId.ContainsKey(card.RuntimeId) ||
+                !board.IsPlaceable(position))
+            {
+                return false;
+            }
+
+            try
+            {
+                if (card.Kind == RecruitItemKind.BasicUnit)
+                {
+                    DragonBound.Combat.BasicUnitCatalog.GetArchetype(card.ConfigId);
+                }
+
+                cardsByRuntimeId.Add(card.RuntimeId, card);
+                if (card.Kind == RecruitItemKind.HeroComponent)
+                {
+                    componentsById.Add(
+                        card.RuntimeId,
+                        new ComponentRuntime(
+                            card.RuntimeId,
+                            card.ConfigId,
+                            card.SourceInstanceId,
+                            position));
+                }
+
+                if (!board.TryPlace(card.RuntimeId, position))
+                {
+                    cardsByRuntimeId.Remove(card.RuntimeId);
+                    componentsById.Remove(card.RuntimeId);
+                    return false;
+                }
+
+                ReconcileCombatRegistrations();
+                return true;
+            }
+            catch (ArgumentException)
+            {
+                cardsByRuntimeId.Remove(card.RuntimeId);
+                componentsById.Remove(card.RuntimeId);
+                return false;
+            }
+        }
+
         public bool TryRemoveUnit(string runtimeId)
         {
             if (string.IsNullOrWhiteSpace(runtimeId) ||
@@ -485,6 +592,36 @@ namespace DragonBound.Recruitment
             }
 
             ReconcileCombatRegistrations();
+            return true;
+        }
+
+        /// <summary>
+        /// W20 consumes only a deployed Basic and permanently damages its occupied deployment
+        /// cell until a shovel redevelops it.
+        /// </summary>
+        public bool TryConsumeDeployedBasicAndLockCell(string runtimeId)
+        {
+            if (string.IsNullOrWhiteSpace(runtimeId) ||
+                !cardsByRuntimeId.TryGetValue(runtimeId, out var card) ||
+                card.Kind != RecruitItemKind.BasicUnit ||
+                !board.TryGetPosition(runtimeId, out var position) ||
+                !board.TryGetCellType(position, out var cellType) ||
+                cellType != CellType.Battle)
+            {
+                return false;
+            }
+
+            if (!TryRemoveUnit(runtimeId))
+            {
+                return false;
+            }
+
+            if (!board.TryLockEmptyBattleCell(position))
+            {
+                throw new InvalidOperationException(
+                    "A Worldeater-consumed Basic was removed but its deployment cell could not be locked.");
+            }
+
             return true;
         }
 
@@ -651,6 +788,11 @@ namespace DragonBound.Recruitment
             return SetCombatSuspension(soulChainSuspendedUnitIds, runtimeId, suspended);
         }
 
+        public bool SetDeploymentAnimationCombatSuspended(string runtimeId, bool suspended)
+        {
+            return SetCombatSuspension(deploymentAnimationSuspendedUnitIds, runtimeId, suspended);
+        }
+
         private bool SetDragCombatSuspended(string runtimeId, bool suspended)
         {
             return SetCombatSuspension(dragSuspendedUnitIds, runtimeId, suspended);
@@ -689,6 +831,7 @@ namespace DragonBound.Recruitment
             return !string.IsNullOrWhiteSpace(runtimeId) &&
                    (combatSuspendedUnitIds.Contains(runtimeId) ||
                     dragSuspendedUnitIds.Contains(runtimeId) ||
+                    deploymentAnimationSuspendedUnitIds.Contains(runtimeId) ||
                     soulChainSuspendedUnitIds.Contains(runtimeId));
         }
 
@@ -696,6 +839,7 @@ namespace DragonBound.Recruitment
         {
             combatSuspendedUnitIds.Remove(runtimeId);
             dragSuspendedUnitIds.Remove(runtimeId);
+            deploymentAnimationSuspendedUnitIds.Remove(runtimeId);
             soulChainSuspendedUnitIds.Remove(runtimeId);
         }
 

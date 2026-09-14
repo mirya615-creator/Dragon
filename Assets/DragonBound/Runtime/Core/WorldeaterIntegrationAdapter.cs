@@ -72,19 +72,6 @@ namespace DragonBound.Core
                 }
             }
 
-            foreach (var enemy in sideRuntime.Registry.Snapshot())
-            {
-                if (enemy.IsAlive && enemy.Archetype == EnemyArchetype.Swarm)
-                {
-                    result.Add(new WorldeaterTarget(enemy.RuntimeId, WorldeaterTargetClass.Minion, 0));
-                }
-                else if (enemy.IsAlive && enemy.Archetype == EnemyArchetype.Boss &&
-                         string.Equals(enemy.BossId, WorldeaterWyrmConfiguration.SubBossId, StringComparison.Ordinal))
-                {
-                    result.Add(new WorldeaterTarget(enemy.RuntimeId, WorldeaterTargetClass.SubBoss, 0));
-                }
-            }
-
             return result;
         }
 
@@ -114,18 +101,14 @@ namespace DragonBound.Core
                 return false;
             }
 
-            return sideRuntime.Registry.TryGet(target.RuntimeId, out var enemy) && enemy.IsAlive &&
-                   (target.TargetClass == WorldeaterTargetClass.Minion
-                       ? enemy.Archetype == EnemyArchetype.Swarm
-                       : enemy.Archetype == EnemyArchetype.Boss &&
-                         string.Equals(enemy.BossId, WorldeaterWyrmConfiguration.SubBossId, StringComparison.Ordinal));
+            return false;
         }
 
         public bool Consume(WorldeaterTarget target)
         {
-            return target.TargetClass == WorldeaterTargetClass.Basic
-                ? destination != null && destination.TryRemoveUnit(target.RuntimeId)
-                : sideRuntime.RemoveEnemyWithoutRewards(target.RuntimeId);
+            return target.TargetClass == WorldeaterTargetClass.Basic &&
+                   destination != null &&
+                   destination.TryConsumeDeployedBasicAndLockCell(target.RuntimeId);
         }
 
         public void SpawnMinions(int count, float maxHitPoints, float moveSpeedCellsPerSecond)

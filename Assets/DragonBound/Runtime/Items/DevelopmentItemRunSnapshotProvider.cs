@@ -75,6 +75,27 @@ namespace DragonBound.Items
             return true;
         }
 
+        public bool TryConfigureSides(
+            IEnumerable<string> playerItemIds,
+            IEnumerable<string> aiItemIds,
+            out string reason)
+        {
+            if (!TryCreateSnapshot(playerItemIds, out var nextPlayerSnapshot, out reason))
+            {
+                return false;
+            }
+
+            if (!TryCreateSnapshot(aiItemIds, out var nextAiSnapshot, out reason))
+            {
+                return false;
+            }
+
+            playerSnapshot = nextPlayerSnapshot;
+            aiSnapshot = nextAiSnapshot;
+            reason = ItemOperationFailure.None;
+            return true;
+        }
+
         public bool TryGetValidatedSnapshots(
             out ItemRunSnapshot player,
             out ItemRunSnapshot ai,

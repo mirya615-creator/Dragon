@@ -10,9 +10,13 @@ using UnityEngine.UI;
 public sealed class MainLeaderboardController : MonoBehaviour
 {
     private const string ItemResourcePath = "prefabs/LeaderItemBg";
+    private const string WeekSelectedSpritePath = "Main/Rank/图层 26";
+    private const string WeekUnselectedSpritePath = "Main/Rank/图层 27";
+    private const string FirstPlaceSpritePath = "Main/Rank/First";
+    private const string SecondPlaceSpritePath = "Main/Rank/Second";
+    private const string ThirdPlaceSpritePath = "Main/Rank/Third";
+    private const string OtherPlaceSpritePath = "Main/Rank/Other";
 
-    private readonly List<Sprite> generatedAvatarSprites = new List<Sprite>();
-    private readonly List<Texture2D> generatedAvatarTextures = new List<Texture2D>();
     private ILeaderboardGateway leaderboardGateway;
     private IAuthSessionStore authSessionStore;
     private CancellationTokenSource lifetimeCancellation;
@@ -30,6 +34,18 @@ public sealed class MainLeaderboardController : MonoBehaviour
     private LeaderboardPeriodType selectedPeriod;
     private int loadVersion;
     private bool viewReady;
+    private Image weekImage;
+    private Image monthImage;
+    private Image chantTabImage;
+    private Image lotteryTabImage;
+    private Sprite selectedTabSprite;
+    private Sprite unselectedTabSprite;
+    private Sprite weekSelectedSprite;
+    private Sprite weekUnselectedSprite;
+    private Sprite firstPlaceSprite;
+    private Sprite secondPlaceSprite;
+    private Sprite thirdPlaceSprite;
+    private Sprite otherPlaceSprite;
 
     private void Awake()
     {
@@ -49,16 +65,36 @@ public sealed class MainLeaderboardController : MonoBehaviour
         myTotalStarsText = myLeaderItem?.Find("RankText/StarAct")?.GetComponent<TMP_Text>();
         itemPrefab = Resources.Load<GameObject>(ItemResourcePath);
 
-        viewReady = weekButton != null && monthButton != null && container != null &&
-                    itemPrefab != null && myLeaderItem != null && myAvatarImage != null &&
-                    myLeaderboardPositionText != null && myRankText != null &&
-                    myTotalStarsText != null;
+        weekImage = weekButton.GetComponent<Image>();
+        monthImage = monthButton.GetComponent<Image>();
+        weekSelectedSprite = Resources.Load<Sprite>(WeekSelectedSpritePath);
+        weekUnselectedSprite = Resources.Load<Sprite>(WeekUnselectedSpritePath);
+        firstPlaceSprite = Resources.Load<Sprite>(FirstPlaceSpritePath);
+        secondPlaceSprite = Resources.Load<Sprite>(SecondPlaceSpritePath);
+        thirdPlaceSprite = Resources.Load<Sprite>(ThirdPlaceSpritePath);
+        otherPlaceSprite = Resources.Load<Sprite>(OtherPlaceSpritePath);
+
+
+        // 纯 sprite 驱动的 Tab 高亮：避免 ColorTint 给选中态叠一层透明色。
+        weekButton.transition = Selectable.Transition.None;
+        monthButton.transition = Selectable.Transition.None;
+
+
+        viewReady = weekButton != null && monthButton != null &&
+            weekImage != null && monthImage != null &&
+            weekSelectedSprite != null && weekUnselectedSprite != null &&
+            firstPlaceSprite != null && secondPlaceSprite != null &&
+            thirdPlaceSprite != null && otherPlaceSprite != null &&
+            container != null && itemPrefab != null && myLeaderItem != null &&
+            myAvatarImage != null && myLeaderboardPositionText != null &&
+            myRankText != null && myTotalStarsText != null;
         if (!viewReady)
         {
             Debug.LogError(
-                "MainLeaderboardController requires Bg/WeekBtn, Bg/MonthBtn, " +
-                "Bg/LeaderLimit/LeaderContainer and Bg/MyLeaderItemBg with " +
-                "LeaderImg/Text, AvatarImg and RankText/StarAct.",
+                "MainLeaderboardController requires Bg/WeekBtn+Image, Bg/MonthBtn+Image, " +
+                "Main/Rank/图层 26 & 27, First, Second, Third & Other, " +
+                "Bg/LeaderLimit/LeaderContainer and " +
+                "Bg/MyLeaderItemBg with LeaderImg/Text, AvatarImg and RankText/StarAct.",
                 this);
             return;
         }
@@ -84,7 +120,6 @@ public sealed class MainLeaderboardController : MonoBehaviour
             lifetimeCancellation.Dispose();
             lifetimeCancellation = null;
         }
-        ClearGeneratedAvatars();
     }
 
     private void ShowWeeklyLeaderboard()
@@ -102,8 +137,19 @@ public sealed class MainLeaderboardController : MonoBehaviour
         selectedPeriod = periodType;
         weekButton.interactable = selectedPeriod != LeaderboardPeriodType.Weekly;
         monthButton.interactable = selectedPeriod != LeaderboardPeriodType.Monthly;
+        ApplyTabVisual();
         int requestVersion = ++loadVersion;
         _ = LoadLeaderboardAsync(periodType, requestVersion);
+    }
+
+    private void ApplyTabVisual()
+    {
+        bool weekIsSelected = selectedPeriod == LeaderboardPeriodType.Weekly;
+        weekImage.sprite = weekIsSelected ? weekSelectedSprite : weekUnselectedSprite;
+        monthImage.sprite = weekIsSelected ? weekUnselectedSprite : weekSelectedSprite;
+        // 让两张图按按钮原大小显示，不被 Image 的 Preserve Aspect 拉伸
+        weekImage.preserveAspect = false;
+        monthImage.preserveAspect = false;
     }
 
     private async Task LoadLeaderboardAsync(
@@ -146,7 +192,6 @@ public sealed class MainLeaderboardController : MonoBehaviour
 
     private void Render(IReadOnlyList<LeaderboardPlayer> players)
     {
-        ClearGeneratedAvatars();
         for (int index = container.childCount - 1; index >= 0; index--)
         {
             GameObject previousItem = container.GetChild(index).gameObject;
@@ -159,13 +204,14 @@ public sealed class MainLeaderboardController : MonoBehaviour
             LeaderboardPlayer player = players[index];
             GameObject item = Instantiate(itemPrefab, container, false);
             item.name = $"LeaderItemBg_{index + 1}";
-            SetText(item.transform.Find("LeaderImg/Text"), (index + 1).ToString());
+            ApplyLeaderboardPositionVisual(item.transform, index + 1);
 
             Image avatar = item.transform.Find("AvatarImg")?.GetComponent<Image>();
             if (avatar != null)
             {
-                avatar.sprite = CreateAvatar(player.PlayerId);
-                avatar.preserveAspect = true;
+                PlayerAvatarPrefabPresenter.Mount(
+                    avatar.rectTransform,
+                    ResolveAvatarId(player));
             }
 
             PlayerRankState rank = RankProgressionRules.Calculate(player.TotalRankStars);
@@ -182,11 +228,47 @@ public sealed class MainLeaderboardController : MonoBehaviour
         scrollRect.verticalNormalizedPosition = 1f;
     }
 
+    private void ApplyLeaderboardPositionVisual(Transform item, int position)
+    {
+        Transform leaderImageTransform = item.Find("LeaderImg");
+        Image leaderImage = leaderImageTransform?.GetComponent<Image>();
+        Transform positionTextTransform = leaderImageTransform?.Find("Text");
+
+        if (leaderImage != null)
+        {
+            switch (position)
+            {
+                case 1:
+                    leaderImage.sprite = firstPlaceSprite;
+                    break;
+                case 2:
+                    leaderImage.sprite = secondPlaceSprite;
+                    break;
+                case 3:
+                    leaderImage.sprite = thirdPlaceSprite;
+                    break;
+                default:
+                    leaderImage.sprite = otherPlaceSprite;
+                    break;
+            }
+
+            leaderImage.preserveAspect = false;
+        }
+
+        if (positionTextTransform != null)
+        {
+            bool showPositionText = position <= 0 || position > 3;
+            positionTextTransform.gameObject.SetActive(showPositionText);
+            if (showPositionText)
+                SetText(positionTextTransform, position > 0 ? position.ToString() : "-");
+        }
+    }
+
     private void RenderLocalPlayer(string playerId, LeaderboardResult result)
     {
         LeaderboardPlayer player = result?.LocalPlayer;
         int position = result?.LocalPlayerPosition ?? 0;
-        myLeaderboardPositionText.text = position > 0 ? position.ToString() : "-";
+        ApplyLeaderboardPositionVisual(myLeaderItem, position);
 
         if (player == null)
         {
@@ -195,8 +277,9 @@ public sealed class MainLeaderboardController : MonoBehaviour
             return;
         }
 
-        myAvatarImage.sprite = CreateAvatar(playerId);
-        myAvatarImage.preserveAspect = true;
+        PlayerAvatarPrefabPresenter.Mount(
+            myAvatarImage.rectTransform,
+            PlayerAvatarProfile.GetOrCreateAvatarId(playerId));
         PlayerRankState rank = RankProgressionRules.Calculate(player.TotalRankStars);
         myRankText.text = player.RankLevel >= 10
             ? rank.RankName
@@ -225,16 +308,9 @@ public sealed class MainLeaderboardController : MonoBehaviour
             layout.childForceExpandHeight = false;
         }
 
-        ContentSizeFitter fitter = container.GetComponent<ContentSizeFitter>();
-        if (fitter == null) fitter = container.gameObject.AddComponent<ContentSizeFitter>();
-        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-        containerRect.anchorMin = new Vector2(0f, 1f);
-        containerRect.anchorMax = new Vector2(1f, 1f);
-        containerRect.pivot = new Vector2(0.5f, 1f);
-        containerRect.anchoredPosition = Vector2.zero;
-        containerRect.sizeDelta = new Vector2(0f, containerRect.sizeDelta.y);
+        // LeaderContainer placement is authored in the Main scene. Do not add a
+        // ContentSizeFitter or normalize its RectTransform here: both operations
+        // overwrite the manually tuned size and position when the panel opens.
 
         scrollRect = viewport.GetComponent<ScrollRect>();
         if (scrollRect == null) scrollRect = viewport.gameObject.AddComponent<ScrollRect>();
@@ -247,58 +323,15 @@ public sealed class MainLeaderboardController : MonoBehaviour
         scrollRect.scrollSensitivity = 45f;
     }
 
-    private Sprite CreateAvatar(string seed)
+    private string ResolveAvatarId(LeaderboardPlayer player)
     {
-        const int size = 32;
-        int hash = string.IsNullOrEmpty(seed) ? 0 : seed.GetHashCode();
-        float hue = Mathf.Abs(hash % 360) / 360f;
-        Color background = Color.HSVToRGB(hue, 0.55f, 0.85f);
-        Color foreground = Color.Lerp(background, Color.white, 0.65f);
-        var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+        AuthSession session = authSessionStore.Current;
+        if (session != null && player != null &&
+            string.Equals(player.PlayerId, session.PlayerId, StringComparison.Ordinal))
         {
-            name = "LeaderboardAvatar",
-            filterMode = FilterMode.Bilinear,
-            wrapMode = TextureWrapMode.Clamp
-        };
-
-        var pixels = new Color[size * size];
-        Vector2 headCenter = new Vector2(15.5f, 20f);
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                bool head = Vector2.Distance(new Vector2(x, y), headCenter) <= 6f;
-                float bodyX = (x - 15.5f) / 12f;
-                float bodyY = (y - 2f) / 12f;
-                bool body = y >= 2 && y <= 14 && bodyX * bodyX + bodyY * bodyY <= 1f;
-                pixels[y * size + x] = head || body ? foreground : background;
-            }
+            return PlayerAvatarProfile.GetOrCreateAvatarId(session.PlayerId);
         }
-
-        texture.SetPixels(pixels);
-        texture.Apply(false, true);
-        Sprite sprite = Sprite.Create(
-            texture,
-            new Rect(0, 0, size, size),
-            new Vector2(0.5f, 0.5f),
-            size);
-        generatedAvatarTextures.Add(texture);
-        generatedAvatarSprites.Add(sprite);
-        return sprite;
-    }
-
-    private void ClearGeneratedAvatars()
-    {
-        foreach (Sprite sprite in generatedAvatarSprites)
-        {
-            if (sprite != null) Destroy(sprite);
-        }
-        foreach (Texture2D texture in generatedAvatarTextures)
-        {
-            if (texture != null) Destroy(texture);
-        }
-        generatedAvatarSprites.Clear();
-        generatedAvatarTextures.Clear();
+        return PlayerAvatarProfile.ResolveAvatarId(player?.PlayerId, player?.AvatarId);
     }
 
     private static void SetText(Transform target, string value)

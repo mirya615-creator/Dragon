@@ -14,6 +14,54 @@ namespace DragonBound.Tests.EditMode
     public sealed class ItemGameplayIntegrationTests
     {
         [Test]
+        public void BattlefieldCommand_HeroFormationGrantsOneVisibleFreeRecruitCharge()
+        {
+            var match = new MatchController(829);
+            var board = DragonBoundBoardLayout.Create(
+                BattlefieldLayoutDefinitions.Legacy3x3,
+                TeamSide.Player);
+            var destination = new BoardRecruitDestination(board);
+            var recruitment = new RecruitmentService(
+                match.Player,
+                new RecruitDeck(GreyboxRecruitmentCatalog.Create(), new GameShared.Random.RunRandom(829), "player"),
+                destination);
+            var runtime = new TwentyWavePressureRuntime(
+                match,
+                destination,
+                null,
+                829,
+                itemSnapshotProvider: new FixedSnapshots(
+                    CreateSnapshot(null, ItemIds.BattlefieldCommand),
+                    ItemRunSnapshot.Empty),
+                playerFreeRecruit: recruitment);
+            var cards = new[]
+            {
+                new RecruitCard("command.sigil", RecruitItemKind.HeroComponent,
+                    HeroSliceCatalog.DragonSigilComponentId, "command.sigil.source", 1, false),
+                new RecruitCard("command.sky", RecruitItemKind.HeroComponent,
+                    HeroSliceCatalog.SkyRangerComponentId, "command.sky.source", 1, true),
+                new RecruitCard("command.basic.1", RecruitItemKind.BasicUnit, "basic.axe_raider", string.Empty),
+                new RecruitCard("command.basic.2", RecruitItemKind.BasicUnit, "basic.axe_raider", string.Empty),
+                new RecruitCard("command.basic.3", RecruitItemKind.BasicUnit, "basic.axe_raider", string.Empty)
+            };
+            destination.Commit(RecruitDestinationPlan.AddToEmptySlots, new RecruitBatch(1, cards));
+
+            Assert.IsTrue(runtime.StartRun());
+            Assert.IsTrue(board.TryGetPosition("command.sigil", out var sigilOrigin));
+            Assert.IsTrue(board.TryMove(sigilOrigin, new GridPosition(1, 1)));
+            destination.TryResolvePostDrop("command.sigil");
+            Assert.IsFalse(recruitment.HasFreeRecruit);
+            Assert.IsTrue(board.TryGetPosition("command.sky", out var skyOrigin));
+            Assert.IsTrue(board.TryMove(skyOrigin, new GridPosition(0, 1)));
+            destination.TryResolvePostDrop("command.sky");
+
+            Assert.AreEqual(1, destination.ActivePairLinkCount);
+            Assert.IsTrue(recruitment.HasFreeRecruit);
+            Assert.AreEqual(0, recruitment.EffectiveNextCost);
+            Assert.IsTrue(runtime.PlayerItems.IsItemConsumed(ItemIds.BattlefieldCommand));
+        }
+
+        [Test]
         public void RenamedActiveItemsExposeCurrentEnglishDisplayNames()
         {
             Assert.AreEqual("Winterveil Scroll", ItemCatalog.GetEnglishDisplayName(ItemIds.WinterveilRune));
@@ -33,9 +81,7 @@ namespace DragonBound.Tests.EditMode
 
             Assert.IsTrue(runtime.StartRun());
             Assert.IsTrue(runtime.PlayerItems.IsInitialCooldownActive);
-            Assert.IsFalse(runtime.PlayerItems.AreEffectsActivated);
-            Assert.AreEqual(3, match.Player.HatchlingMaxHealth);
-            runtime.Tick(runtime.PlayerItems.InitialCooldownDurationSeconds);
+            Assert.IsTrue(runtime.PlayerItems.AreEffectsActivated);
             Assert.AreEqual(6, match.Player.HatchlingMaxHealth);
             Assert.AreEqual(6, match.AI.HatchlingMaxHealth);
             Assert.AreSame(playerSnapshot, runtime.PlayerItems.Snapshot);
@@ -61,7 +107,8 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual("InitialCooldown", reason);
             Assert.AreEqual(0f, runtime.PlayerItems.GetCooldownRemainingSeconds(ItemIds.WinterveilRune));
 
-            runtime.Tick(4f);
+            runtime.PlayerItems.Tick(
+                runtime.PlayerItems.GetInitialCooldownDurationSeconds(ItemIds.WinterveilRune));
             Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.SoulChainBossWave));
             var playerBoss = runtime.PlayerW6Boss;
             var aiBoss = runtime.AiW6Boss;
@@ -82,6 +129,42 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void TwentyWaveItemsEmitLockedSnapshotsAndResolvedUseObservations()
+        {
+            var playerSnapshot = CreateSnapshot(ItemIds.WinterveilRune, null);
+            var runtime = new TwentyWavePressureRuntime(
+                new MatchController(820), null, null, 820,
+                itemSnapshotProvider: new FixedSnapshots(playerSnapshot, ItemRunSnapshot.Empty));
+            var snapshots = new System.Collections.Generic.List<TeamSide>();
+            var uses = new System.Collections.Generic.List<ItemUseResolvedEvent>();
+            runtime.ItemSnapshotLocked += (side, _) => snapshots.Add(side);
+            runtime.ItemUseResolved += (side, value) =>
+            {
+                if (side == TeamSide.Player) uses.Add(value);
+            };
+
+            Assert.IsTrue(runtime.StartRun());
+            CollectionAssert.AreEqual(new[] { TeamSide.Player, TeamSide.AI }, snapshots);
+            Assert.IsFalse(runtime.TryUseItem(TeamSide.Player, ItemIds.WinterveilRune, out var reason));
+            Assert.AreEqual("InitialCooldown", reason);
+            Assert.AreEqual(1, uses.Count);
+            Assert.AreEqual(1, uses[0].AttemptNumber);
+            Assert.AreEqual("activate", uses[0].Command);
+            Assert.IsFalse(uses[0].Accepted);
+            Assert.AreEqual("InitialCooldown", uses[0].Reason);
+
+            runtime.PlayerItems.Tick(
+                runtime.PlayerItems.GetInitialCooldownDurationSeconds(ItemIds.WinterveilRune));
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.SoulChainBossWave));
+            Assert.IsTrue(runtime.TryUseItem(TeamSide.Player, ItemIds.WinterveilRune, out reason), reason);
+            Assert.AreEqual(2, uses.Count);
+            Assert.AreEqual(2, uses[1].AttemptNumber);
+            Assert.IsTrue(uses[1].Accepted);
+            Assert.Greater(uses[1].CooldownRemainingSeconds, 29.9f);
+            Assert.AreEqual(30f, uses[1].CooldownDurationSeconds, 0.001f);
+        }
+
+        [Test]
         public void BerserkerWarDrum_TargetsTheDeployedBasicUnitRegistryUsedByCombat()
         {
             var destination = CreateDestinationWithDeployedBasic(out var basic);
@@ -91,7 +174,8 @@ namespace DragonBound.Tests.EditMode
                 itemSnapshotProvider: new FixedSnapshots(snapshot, ItemRunSnapshot.Empty));
 
             Assert.IsTrue(runtime.StartRun());
-            runtime.Tick(runtime.PlayerItems.InitialCooldownDurationSeconds);
+            runtime.PlayerItems.Tick(
+                runtime.PlayerItems.GetInitialCooldownDurationSeconds(ItemIds.FrenzyRune));
             Assert.IsTrue(runtime.TryUseItemOnUnit(
                 TeamSide.Player,
                 ItemIds.FrenzyRune,
@@ -113,7 +197,8 @@ namespace DragonBound.Tests.EditMode
 
             Assert.AreEqual(1, basic.Level);
             Assert.IsTrue(runtime.StartRun());
-            runtime.Tick(runtime.PlayerItems.InitialCooldownDurationSeconds);
+            runtime.PlayerItems.Tick(
+                runtime.PlayerItems.GetInitialCooldownDurationSeconds(ItemIds.WarforgeSigil));
             Assert.IsTrue(runtime.TryUseItemOnUnit(
                 TeamSide.Player,
                 ItemIds.WarforgeSigil,
@@ -146,6 +231,8 @@ namespace DragonBound.Tests.EditMode
             };
 
             Assert.IsTrue(runtime.StartRun());
+            runtime.PlayerItems.Tick(
+                runtime.PlayerItems.GetInitialCooldownDurationSeconds(ItemIds.RuneburstMine));
             runtime.Tick(TwentyWavePressureConfiguration.StartPreparationSeconds);
             Assert.AreEqual(1, runtime.PlayerAliveEnemyCount);
             int resourcesBefore = match.Player.Resources;
@@ -173,7 +260,8 @@ namespace DragonBound.Tests.EditMode
             var runtime = new TwentyWavePressureRuntime(
                 match, null, null, 814, itemSnapshotProvider: new FixedSnapshots(snapshot, ItemRunSnapshot.Empty));
             Assert.IsTrue(runtime.StartRun());
-            runtime.Tick(4f);
+            runtime.PlayerItems.Tick(
+                runtime.PlayerItems.GetInitialCooldownDurationSeconds(ItemIds.WinterveilRune));
 
             var root = new GameObject("ItemHudTest");
             var hud = root.AddComponent<GreyboxHudView>();
@@ -215,10 +303,36 @@ namespace DragonBound.Tests.EditMode
                 itemSnapshotProvider: new FixedSnapshots(snapshot, ItemRunSnapshot.Empty));
             Assert.IsTrue(runtime.StartRun());
             Assert.IsTrue(profile.Loadout.TryUnequip(ItemIds.WinterveilRune));
-            runtime.Tick(4f);
+            runtime.PlayerItems.Tick(
+                runtime.PlayerItems.GetInitialCooldownDurationSeconds(ItemIds.WinterveilRune));
 
             Assert.IsTrue(runtime.TryUseItem(TeamSide.Player, ItemIds.WinterveilRune, out _));
             Assert.IsTrue(runtime.PlayerItems.Snapshot.IsActive(ItemIds.WinterveilRune));
+        }
+
+        [Test]
+        public void OpeningCooldown_UsesEachActiveItemsOwnCooldownIndependently()
+        {
+            var profile = CreateProfile(ItemIds.WinterveilRune, null);
+            Assert.IsTrue(profile.Inventory.TryGrantOwned(ItemIds.WarforgeSigil));
+            Assert.IsTrue(profile.Loadout.TryEquip(ItemIds.WarforgeSigil, profile.Inventory, out _));
+            Assert.IsTrue(profile.TryCreateRunSnapshot(out var snapshot, out _));
+            var runtime = new TwentyWavePressureRuntime(
+                new MatchController(819), null, null, 819,
+                itemSnapshotProvider: new FixedSnapshots(snapshot, ItemRunSnapshot.Empty));
+
+            Assert.IsTrue(runtime.StartRun());
+            Assert.AreEqual(30f,
+                runtime.PlayerItems.GetInitialCooldownDurationSeconds(ItemIds.WinterveilRune), 0.001f);
+            Assert.AreEqual(90f,
+                runtime.PlayerItems.GetInitialCooldownDurationSeconds(ItemIds.WarforgeSigil), 0.001f);
+
+            runtime.PlayerItems.Tick(30f);
+
+            Assert.IsFalse(runtime.PlayerItems.IsInitialCooldownActiveFor(ItemIds.WinterveilRune));
+            Assert.IsTrue(runtime.PlayerItems.IsInitialCooldownActiveFor(ItemIds.WarforgeSigil));
+            Assert.AreEqual(60f,
+                runtime.PlayerItems.GetInitialCooldownRemainingSeconds(ItemIds.WarforgeSigil), 0.001f);
         }
 
         private static ItemRunSnapshot CreateSnapshot(string active, string passive)

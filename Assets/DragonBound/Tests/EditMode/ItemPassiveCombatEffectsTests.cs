@@ -74,6 +74,7 @@ namespace DragonBound.Tests.EditMode
             presence.OnRunStart(context);
 
             Assert.AreEqual(1, frost.LastAffectedEnemyCount);
+            Assert.IsTrue(enemy.IsFrostMireAffected);
             Assert.AreEqual(0.06f, presence.AppliedSlowFraction, 0.001f);
             Assert.AreEqual(0.9f, enemy.MovementSpeedMultiplier, 0.001f);
         }

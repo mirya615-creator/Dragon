@@ -177,7 +177,8 @@ namespace DragonBound.Core
             int heroXpAwarded = 0,
             int damageOwnerHeroLevel = 0,
             float shieldDamage = 0f,
-            float healthDamage = 0f)
+            float healthDamage = 0f,
+            float pathDisplacementDistance = 0f)
         {
             Team = team;
             Kind = kind;
@@ -197,6 +198,7 @@ namespace DragonBound.Core
             DamageOwnerHeroLevel = damageOwnerHeroLevel;
             ShieldDamage = shieldDamage;
             HealthDamage = healthDamage;
+            PathDisplacementDistance = pathDisplacementDistance;
         }
 
         public TeamSide Team { get; }
@@ -217,6 +219,7 @@ namespace DragonBound.Core
         public int DamageOwnerHeroLevel { get; }
         public float ShieldDamage { get; }
         public float HealthDamage { get; }
+        public float PathDisplacementDistance { get; }
     }
 
     public interface ICombatTarget

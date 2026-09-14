@@ -1,0 +1,1003 @@
+[
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CampPanelView.cs",
+  "line": 486,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "resourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 781,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "RuneboltMageBoltControllerPath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 1098,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "StoneboundWarlockSkillRockSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 1103,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "StoneboundWarlockNormalRockSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 1347,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "ThunderlordMainChainSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 1351,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "ThunderlordFirstChainSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 1355,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "ThunderlordSecondChainSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 2510,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "AbyssalHarpoonChainSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 2511,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "AbyssalHarpoonHookSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 2512,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "AbyssalHarpoonPortalSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 2519,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "AbyssalHarpoonChainSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 2520,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "AbyssalHarpoonHookSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 2521,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "AbyssalHarpoonPortalSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 2528,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "AbyssalHarpoonChainSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 2529,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "AbyssalHarpoonHookSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 2530,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "AbyssalHarpoonPortalSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 2624,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "EmberShamanFireballSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 3091,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "BowSwordProjectileSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 3107,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "WindclawImpactSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 3371,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "SkyborneValkyrieArrowSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 3743,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "FlameDrakeSkillFireballSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 3755,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "FlameDrakeNormalFireballSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 3771,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "FlameDrakeSkillExplosionControllerPath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 3783,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "FlameDrakeNormalExplosionControllerPath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 3797,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "FlameDrakeBurningGroundControllerPath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 4044,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "NightfangExplosionControllerPath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 4329,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "StarfallExplosionControllerPath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 4459,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "StarfallNormalSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/CombatFxView.cs",
+  "line": 4583,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "\"Animation/Flame Drake Rider S\""
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/DragArrowPreviewView.cs",
+  "line": 84,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "DragPathSpriteResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/DraggableUnitView.cs",
+  "line": 976,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "resourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+  "line": 195,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "FrostcrownMarkSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+  "line": 254,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "FrostMireMarkSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+  "line": 313,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "WinterveilMarkSpritePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+  "line": 463,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "BossHpResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+  "line": 712,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "DeathControllerResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+  "line": 868,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "StormShieldControllerResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+  "line": 869,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "StormShieldFirstFrameResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+  "line": 1160,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "\"Animation/\" + controllerName"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+  "line": 1404,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "InformPrefabResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+  "line": 2116,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "\"prefabs/BeachItem\""
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+  "line": 2182,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "ShovelSpriteResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+  "line": 2447,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "BoardSelectPrefabResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+  "line": 2463,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "BeachSelectSpriteResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+  "line": 2468,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "BoardSelectSpriteResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+  "line": 594,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "resourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+  "line": 1436,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "ArcaneThunderburstControllerPath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+  "line": 1760,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "definition.IconKey"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GridCellView.cs",
+  "line": 290,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "\"GameUI/Lock\""
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/GridCellView.cs",
+  "line": 300,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "\"GameUI/UnLock\""
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/HeroFormationView.cs",
+  "line": 774,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "LevelUpControllerResourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/HeroFormationView.cs",
+  "line": 817,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "controllerPath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/HeroFormationView.cs",
+  "line": 1229,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "\"GameUI/HeroPurple\""
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/HeroFormationView.cs",
+  "line": 1230,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "\"GameUI/HeroGold\""
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/HeroFormationView.cs",
+  "line": 1387,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "resourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/HeroFormationView.cs",
+  "line": 1467,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "resourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/HeroFormationView.cs",
+  "line": 1510,
+  "cat": "运行时",
+  "kind": "Animator",
+  "arg": "resourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/PauseRuneRewardPresenter.cs",
+  "line": 160,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "NoRewardPrefabPath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/PauseRuneRewardPresenter.cs",
+  "line": 166,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "FallbackRewardPrefabPath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/ResourcesCampComponentArtProvider.cs",
+  "line": 135,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "resourcePath"
+ },
+ {
+  "file": "Assets/DragonBound/Runtime/Presentation/TipTextService.cs",
+  "line": 44,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "PrefabPath"
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 233,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Unit/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 234,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/UnitAni/BOW\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 435,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Windclaw Ranger/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 449,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Ember Shaman/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 482,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Stonebound Warlock/rood\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 483,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Stonebound Warlock/roodS\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 499,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Thunderlord/road/Main\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 500,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Thunderlord/road/Froad\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 501,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Thunderlord/road/Sroad\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 535,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Abyssal Harpooner/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 536,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Abyssal Harpooner/boom\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 556,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Abyssal Harpooner/start\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 572,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/Flame Drake Rider S\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 581,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Flame Drake Rider/Sroad\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 582,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Flame Drake Rider/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 628,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/boomBoard\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+  "line": 636,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Skyborne Valkyrie/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 258,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/BeachSelect\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 266,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/BoardSelect\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 272,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/SlectRoad\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 422,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/CampUI/Deck\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 423,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/CampUI/DeckClick\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 424,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/CampUI/Collection\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 425,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/CampUI/CollectionClick\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 1007,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/BeachSelect\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 1023,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/BoardSelect\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 1038,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/BoardSelect\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+  "line": 1087,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"ComponentUI/shovel\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+  "line": 156,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/SettlementUI/Defeat\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+  "line": 180,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"GameUI/SettlementUI/Victory\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 109,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Frostcrown Hunter/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 144,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Item/微信图片_20260909164612_605_101\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 182,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Item/微信图片_20260909164615_606_101\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 542,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Flame Drake Rider/Sroad\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 561,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/FlameDrakeRiderBoomS\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 579,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/boomBoard\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 659,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Flame Drake Rider/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 753,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Ember Shaman/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 823,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/Runebolt MageBoom\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 918,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Unit/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 990,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Stonebound Warlock/rood\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1031,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Stonebound Warlock/roodS\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1108,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Thunderlord/road/Main\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1124,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Thunderlord/road/Froad\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1136,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Thunderlord/road/Sroad\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1207,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/ThunderlordBoom\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1281,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Abyssal Harpooner/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1288,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Abyssal Harpooner/boom\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1380,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Skyborne Valkyrie/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1503,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/StarfallArchmageBoom\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1563,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/NightfangAssassinBoom\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1621,
+  "cat": "测试",
+  "kind": "Sprite",
+  "arg": "\"VFX/Windclaw Ranger/road\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1747,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/ShieldShieldW\""
+ },
+ {
+  "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+  "line": 1790,
+  "cat": "测试",
+  "kind": "Animator",
+  "arg": "\"Animation/DieBoom\""
+ },
+ {
+  "file": "Assets/Editor/ClientServiceCompositionValidation.cs",
+  "line": 13,
+  "cat": "编辑器工具",
+  "kind": "其他",
+  "arg": "ConfigPath"
+ },
+ {
+  "file": "Assets/Editor/ProductionRunContractValidation.cs",
+  "line": 37,
+  "cat": "编辑器工具",
+  "kind": "其他",
+  "arg": "ClientConfigPath"
+ },
+ {
+  "file": "Assets/Editor/ProductionRunContractValidation.cs",
+  "line": 45,
+  "cat": "编辑器工具",
+  "kind": "其他",
+  "arg": "StageManifestPrefix + config.DefaultStageId"
+ },
+ {
+  "file": "Assets/Scripts/Auth/UI/LoginController.cs",
+  "line": 420,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "TipTextPrefabPath"
+ },
+ {
+  "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+  "line": 96,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "SelectedTabSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+  "line": 97,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "UnselectedTabSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+  "line": 116,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "OfferItemPrefabPath"
+ },
+ {
+  "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+  "line": 117,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "OwnedItemPrefabPath"
+ },
+ {
+  "file": "Assets/Scripts/Merchant/MerchantModels.cs",
+  "line": 250,
+  "cat": "运行时",
+  "kind": "其他",
+  "arg": "iconKey"
+ },
+ {
+  "file": "Assets/Scripts/Rank/UI/GreyboxSettlementRewardController.cs",
+  "line": 40,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "VictorySpritePath"
+ },
+ {
+  "file": "Assets/Scripts/Rank/UI/GreyboxSettlementRewardController.cs",
+  "line": 41,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "DefeatSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+  "line": 66,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "ItemResourcePath"
+ },
+ {
+  "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+  "line": 70,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "WeekSelectedSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+  "line": 71,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "WeekUnselectedSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+  "line": 72,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "FirstPlaceSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+  "line": 73,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "SecondPlaceSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+  "line": 74,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "ThirdPlaceSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+  "line": 75,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "OtherPlaceSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+  "line": 66,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "WeaponPrefabPath"
+ },
+ {
+  "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+  "line": 67,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "Weapon0PrefabPath"
+ },
+ {
+  "file": "Assets/Scripts/Services/Composition/ClientCompositionRoot.cs",
+  "line": 23,
+  "cat": "运行时",
+  "kind": "其他",
+  "arg": "ConfigResourcePath"
+ },
+ {
+  "file": "Assets/Scripts/SignIn/UI/MainSignInController.cs",
+  "line": 122,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "TodaySpritePath"
+ },
+ {
+  "file": "Assets/Scripts/SignIn/UI/MainSignInController.cs",
+  "line": 123,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "OtherSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/UI/MainNavTabController.cs",
+  "line": 80,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "SelectSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/UI/MainNavTabController.cs",
+  "line": 81,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "NoSelectSpritePath"
+ },
+ {
+  "file": "Assets/Scripts/UI/PlayerAvatarProfile.cs",
+  "line": 58,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "ResourceRoot + index"
+ },
+ {
+  "file": "Assets/Scripts/UI/PlayerAvatarProfile.cs",
+  "line": 61,
+  "cat": "运行时",
+  "kind": "Sprite",
+  "arg": "ResourceRoot + FirstAvatarIndex"
+ },
+ {
+  "file": "Assets/Scripts/UI/PlayerAvatarView.cs",
+  "line": 103,
+  "cat": "运行时",
+  "kind": "GameObject",
+  "arg": "PrefabResourcePath"
+ }
+]

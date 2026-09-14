@@ -9,6 +9,8 @@ using UnityEngine;
 public sealed class MainRankController : MonoBehaviour
 {
     private const int PromotionPreviewMilliseconds = 800;
+    private const int RankReadAttempts = 3;
+    private const int RankReadRetryMilliseconds = 300;
 
     private TMP_Text rankText;
     private Transform threeStar;
@@ -39,21 +41,31 @@ public sealed class MainRankController : MonoBehaviour
             return;
         }
 
+        RankProgressResult settlement = RankSettlementSnapshotStore.Peek(session.PlayerId);
+        RankProgressResult promotion = RankPromotionStore.Consume(session.PlayerId);
+        PlayerRankState expectedState = settlement?.State ?? promotion?.State;
         try
         {
-            PlayerRankState state = await rankGateway.GetRankAsync(
-                session.PlayerId,
-                lifetimeCancellation.Token);
-            RankProgressResult promotion = RankPromotionStore.Consume(session.PlayerId);
-
             if (promotion != null && promotion.PromotionFromState != null)
             {
                 Display(promotion.PromotionFromState);
                 await Task.Delay(PromotionPreviewMilliseconds, lifetimeCancellation.Token);
-                state = promotion.State;
+                Display(promotion.State);
+            }
+            else if (expectedState != null)
+            {
+                Display(expectedState);
             }
 
-            Display(state);
+            PlayerRankState state = await LoadReconciledRankAsync(
+                session.PlayerId,
+                expectedState,
+                lifetimeCancellation.Token);
+            if (state != null)
+            {
+                Display(state);
+                RankSettlementSnapshotStore.Clear(session.PlayerId);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -61,8 +73,75 @@ public sealed class MainRankController : MonoBehaviour
         }
         catch (Exception exception)
         {
-            Debug.LogError($"Unable to load player rank: {exception.Message}");
+            if (expectedState != null)
+            {
+                Debug.LogWarning(
+                    $"Unable to reconcile player rank; keeping the latest settlement snapshot: " +
+                    exception.Message);
+            }
+            else
+            {
+                Debug.LogError($"Unable to load player rank: {exception.Message}");
+            }
         }
+    }
+
+    private async Task<PlayerRankState> LoadReconciledRankAsync(
+        string playerId,
+        PlayerRankState expectedState,
+        CancellationToken cancellationToken)
+    {
+        Exception lastException = null;
+        for (int attempt = 0; attempt < RankReadAttempts; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                PlayerRankState fetched = await rankGateway.GetRankAsync(playerId, cancellationToken);
+                if (expectedState == null || IsSameOrNewer(fetched, expectedState)) return fetched;
+                lastException = new InvalidOperationException(
+                    "Rank query returned data older than the completed Run settlement.");
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                lastException = exception;
+            }
+
+            if (attempt + 1 < RankReadAttempts)
+            {
+                await Task.Delay(
+                    RankReadRetryMilliseconds * (attempt + 1),
+                    cancellationToken);
+            }
+        }
+
+        if (expectedState != null)
+        {
+            Debug.LogWarning(
+                "Rank reconciliation did not reach the completed Run version; " +
+                "the settlement snapshot remains visible.");
+            return null;
+        }
+
+        throw lastException ?? new InvalidOperationException("Rank query did not return a result.");
+    }
+
+    private static bool IsSameOrNewer(PlayerRankState fetched, PlayerRankState expected)
+    {
+        if (fetched == null || expected == null) return fetched != null;
+        if (fetched.Version > 0 && expected.Version > 0)
+        {
+            if (fetched.Version > expected.Version) return true;
+            if (fetched.Version < expected.Version) return false;
+        }
+
+        return fetched.Level == expected.Level &&
+               fetched.Division == expected.Division &&
+               fetched.CurrentStars == expected.CurrentStars;
     }
 
     private void OnDestroy()

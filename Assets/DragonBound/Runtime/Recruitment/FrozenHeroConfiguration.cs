@@ -420,23 +420,29 @@ namespace DragonBound.Recruitment
             return Array.AsReadOnly(new[]
             {
                 Recipe(DragonBoundRecipeIds.WindclawRanger, DragonBoundHeroIds.WindclawRanger, HeroRecipeRarity.Purple,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.RangerHood, DragonBoundComponentIds.BabyDragon,
-                    null, null, "FORM_WINDCLAW_RANGER", DragonBoundComponentIds.RangerHood),
+                    HeroFormationOrientation.Horizontal, null, null,
+                    DragonBoundComponentIds.RangerHood, DragonBoundComponentIds.BabyDragon,
+                    "FORM_WINDCLAW_RANGER", DragonBoundComponentIds.RangerHood),
                 Recipe(DragonBoundRecipeIds.EmberShaman, DragonBoundHeroIds.EmberShaman, HeroRecipeRarity.Purple,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.EmberMask, DragonBoundComponentIds.BabyDragon,
-                    null, null, "FORM_EMBER_SHAMAN", DragonBoundComponentIds.EmberMask),
+                    HeroFormationOrientation.Horizontal, null, null,
+                    DragonBoundComponentIds.EmberMask, DragonBoundComponentIds.BabyDragon,
+                    "FORM_EMBER_SHAMAN", DragonBoundComponentIds.EmberMask),
                 Recipe(DragonBoundRecipeIds.DragonRider, DragonBoundHeroIds.DragonRider, HeroRecipeRarity.Gold,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.DrakeRiderHelm, DragonBoundComponentIds.BabyDragon,
-                    null, null, "FORM_DRAGON_RIDER", DragonBoundComponentIds.DrakeRiderHelm),
+                    HeroFormationOrientation.Horizontal, null, null,
+                    DragonBoundComponentIds.DrakeRiderHelm, DragonBoundComponentIds.BabyDragon,
+                    "FORM_DRAGON_RIDER", DragonBoundComponentIds.DrakeRiderHelm),
                 Recipe(DragonBoundRecipeIds.CrownSwordLeader, DragonBoundHeroIds.CrownSwordLeader, HeroRecipeRarity.Purple,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.Oathblade,
-                    null, null, "FORM_HORNBLADE_DUELIST", DragonBoundComponentIds.Oathblade),
+                    HeroFormationOrientation.Horizontal, null, null,
+                    DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.Oathblade,
+                    "FORM_HORNBLADE_DUELIST", DragonBoundComponentIds.Oathblade),
                 Recipe(DragonBoundRecipeIds.CrownHunterLeader, DragonBoundHeroIds.CrownHunterLeader, HeroRecipeRarity.Purple,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.FrostHorn,
-                    null, null, "FORM_NORTHWATCH_HUNTER", DragonBoundComponentIds.FrostHorn),
+                    HeroFormationOrientation.Horizontal, null, null,
+                    DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.FrostHorn,
+                    "FORM_NORTHWATCH_HUNTER", DragonBoundComponentIds.FrostHorn),
                 Recipe(DragonBoundRecipeIds.ThunderJarl, DragonBoundHeroIds.ThunderJarl, HeroRecipeRarity.Gold,
-                    HeroFormationOrientation.Vertical, DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.ThunderHammer,
-                    null, null, "FORM_THUNDER_JARL", DragonBoundComponentIds.ThunderHammer),
+                    HeroFormationOrientation.Horizontal, null, null,
+                    DragonBoundComponentIds.RoyalCrown, DragonBoundComponentIds.ThunderHammer,
+                    "FORM_THUNDER_JARL", DragonBoundComponentIds.ThunderHammer),
                 Recipe(DragonBoundRecipeIds.RuneboltMage, DragonBoundHeroIds.RuneboltMage, HeroRecipeRarity.Purple,
                     HeroFormationOrientation.Horizontal, null, null, DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.StormHat,
                     "FORM_RUNEBOLT_MAGE", DragonBoundComponentIds.StormHat),
@@ -560,7 +566,7 @@ namespace DragonBound.Recruitment
                     }),
                 new SkillDefinition(
                     DragonBoundSkillIds.AbyssHarpoon, "Abyss Reeling Harpoon", "Abyss Reeling Harpoon", HeroSkillTriggerType.Cooldown,
-                    cooldown: 9f, duration: 0.45f, width: 0.40f, length: 6f, maxTargets: 6,
+                    cooldown: 9f, duration: 0.25f, width: 0.40f, length: 6f, maxTargets: 6,
                     scalarParameters: new Dictionary<string, float>
                     {
                         { "NormalPullDistance", 1f },
@@ -910,6 +916,10 @@ namespace DragonBound.Recruitment
 
             foreach (var recipe in configuration.Recipes)
             {
+                if (recipe.FormationOrientation != HeroFormationOrientation.Horizontal)
+                {
+                    Error(issues, "RecipeOrientation", $"{recipe.HeroId} must use a horizontal formation.");
+                }
                 if (string.IsNullOrWhiteSpace(recipe.RecipeId) || !recipeIds.Add(recipe.RecipeId))
                 {
                     Error(issues, "RecipeIdRequiredOrDuplicate", recipe.HeroId);

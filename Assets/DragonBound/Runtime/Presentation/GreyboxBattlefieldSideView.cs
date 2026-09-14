@@ -24,6 +24,7 @@ namespace DragonBound.Presentation
         public TeamSide Side => side;
         public GreyboxBoardView BoardView => boardView;
         public GreyboxLaneView LaneView => laneView;
+        public CombatFxView CombatFxView => combatFxView;
 
         public void ConfigureFixedBoardCanvas(FixedBoardCanvasView canvasView)
         {
@@ -104,6 +105,10 @@ namespace DragonBound.Presentation
                 throw new InvalidOperationException("The battlefield view is missing its lane view reference.");
             }
 
+            // Authored scene/prefab references do not pass through Configure(), so the AI
+            // CombatFxView would otherwise keep the enum default (Player) and filter every AI
+            // attack before it can trigger UnitCard animations or combat effects.
+            combatFxView?.Initialize(side);
             combatFxView?.BindPresentationSources(laneView, boardView);
             if (board.Layout != null)
             {

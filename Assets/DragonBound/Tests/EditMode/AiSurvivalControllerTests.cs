@@ -4,12 +4,82 @@ using DragonBound.Combat;
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Recruitment;
+using GameShared.Random;
 using NUnit.Framework;
 
 namespace DragonBound.Tests.EditMode
 {
     public sealed class AiSurvivalControllerTests
     {
+        [Test]
+        public void StepwiseCycle_RecruitsFirstThenCommitsAtMostOneDeploymentPerStep()
+        {
+            var board = DragonBoundBoardLayout.CreateDefault(TeamSide.AI);
+            var destination = new BoardRecruitDestination(board);
+            var team = new TeamState(TeamSide.AI);
+            team.AddResources(100);
+            var catalog = GreyboxRecruitmentCatalog.Create();
+            var deck = new RecruitDeck(catalog, new RunRandom(701), "ai.step", false, false);
+            var recruitment = new RecruitmentService(team, deck, destination);
+            var controller = new BasicUnitAiController(board, destination, recruitment);
+
+            Assert.IsTrue(controller.BeginStepwiseCycle(1));
+            Assert.IsTrue(controller.TryExecuteStepwiseCycleStep(out var recruitAction));
+            Assert.AreEqual(AiBoardActionType.Recruit, recruitAction.Type);
+            Assert.AreEqual(0, destination.DeployedCount);
+
+            var deployActions = 0;
+            for (var guard = 0; guard < 32 && controller.IsStepwiseCycleActive; guard++)
+            {
+                var before = destination.DeployedCount;
+                if (!controller.TryExecuteStepwiseCycleStep(out var action))
+                {
+                    break;
+                }
+
+                var deployedThisStep = destination.DeployedCount - before;
+                Assert.LessOrEqual(deployedThisStep, 1,
+                    "A visual AI step must never add multiple deployed cards at once.");
+                if (action.Type == AiBoardActionType.DeployBasicUnit)
+                {
+                    deployActions++;
+                    Assert.AreEqual(1, deployedThisStep);
+                }
+            }
+
+            Assert.IsFalse(controller.IsStepwiseCycleActive);
+            Assert.Greater(deployActions, 0);
+            Assert.AreEqual(deployActions, destination.DeployedCount);
+        }
+
+        [Test]
+        public void OpeningSequence_StopsAfterConfiguredDeploymentLimit()
+        {
+            var board = DragonBoundBoardLayout.CreateDefault(TeamSide.AI);
+            var destination = new BoardRecruitDestination(board);
+            var team = new TeamState(TeamSide.AI);
+            team.AddResources(100);
+            var catalog = GreyboxRecruitmentCatalog.Create();
+            var deck = new RecruitDeck(catalog, new RunRandom(702), "ai.opening", false, false);
+            var recruitment = new RecruitmentService(team, deck, destination);
+            var controller = new BasicUnitAiController(board, destination, recruitment);
+
+            Assert.IsTrue(controller.BeginOpeningSequence(1, 3));
+            var actions = new List<AiBoardActionType>();
+            for (var guard = 0; guard < 32 && controller.IsStepwiseCycleActive; guard++)
+            {
+                if (controller.TryExecuteStepwiseCycleStep(out var action))
+                {
+                    actions.Add(action.Type);
+                }
+            }
+
+            Assert.IsFalse(controller.IsStepwiseCycleActive);
+            Assert.AreEqual(AiBoardActionType.Recruit, actions[0]);
+            Assert.AreEqual(3, destination.DeployedCount);
+            Assert.AreEqual(3, actions.FindAll(type => type == AiBoardActionType.DeployBasicUnit).Count);
+        }
+
         [Test]
         public void AiTick_RecruitsAndDeploysUsingOnlyAiSideState()
         {

@@ -28,8 +28,13 @@ namespace DragonBound.Core
         private readonly PressureRaceSideRuntime ai;
         private readonly TwentyWavePressureConfiguration configuration;
         private readonly RuneRunRewardService playerRuneRewards;
+        private readonly RuneRunRewardService aiRuneRewards;
         private readonly bool soulChainEnabled;
         private readonly IItemRunSnapshotProvider itemSnapshotProvider;
+        private readonly IItemForgePickPort playerForgePick;
+        private readonly IItemForgePickPort aiForgePick;
+        private readonly IItemFreeRecruitPort playerFreeRecruit;
+        private readonly IItemFreeRecruitPort aiFreeRecruit;
         private readonly float soulChainBossMaxHitPoints;
         private readonly float stormcallerBossMaxHitPoints;
         private readonly float bloodcrownBossMaxHitPoints;
@@ -70,13 +75,23 @@ namespace DragonBound.Core
             float soulChainBossMaxHitPoints = SoulchainBinderConfiguration.GreyboxMaxHitPoints,
             float stormcallerBossMaxHitPoints = StormcallerPriestConfiguration.GreyboxMaxHitPoints,
             float bloodcrownBossMaxHitPoints = BloodcrownTyrantConfiguration.GreyboxMaxHitPoints,
-            float worldeaterBossMaxHitPoints = WorldeaterWyrmConfiguration.GreyboxMaxHitPoints)
+            float worldeaterBossMaxHitPoints = WorldeaterWyrmConfiguration.GreyboxMaxHitPoints,
+            IItemForgePickPort playerForgePick = null,
+            IItemForgePickPort aiForgePick = null,
+            IItemFreeRecruitPort playerFreeRecruit = null,
+            IItemFreeRecruitPort aiFreeRecruit = null,
+            RuneRunRewardService aiRuneRewards = null)
         {
             this.match = match ?? throw new ArgumentNullException(nameof(match));
             this.runSeed = runSeed;
             this.playerRuneRewards = playerRuneRewards;
+            this.aiRuneRewards = aiRuneRewards;
             this.soulChainEnabled = soulChainEnabled;
             this.itemSnapshotProvider = itemSnapshotProvider ?? new EmptyItemRunSnapshotProvider();
+            this.playerForgePick = playerForgePick;
+            this.aiForgePick = aiForgePick;
+            this.playerFreeRecruit = playerFreeRecruit;
+            this.aiFreeRecruit = aiFreeRecruit;
             if (soulChainBossMaxHitPoints <= 0f)
             {
                 throw new ArgumentOutOfRangeException(nameof(soulChainBossMaxHitPoints));
@@ -108,6 +123,12 @@ namespace DragonBound.Core
                 "AI", "TwentyWave", TeamSide.AI, match.AI, aiDestination, Emit, RaiseCombatEvent);
             player.EnemyLifecycleEmitted += HandlePlayerEnemyLifecycle;
             ai.EnemyLifecycleEmitted += HandleAiEnemyLifecycle;
+            player.EnemyGoalResolved += value => PlayerEnemyGoalResolved?.Invoke(value);
+            ai.EnemyGoalResolved += value => AiEnemyGoalResolved?.Invoke(value);
+            player.EnemyKillResolved += value => PlayerEnemyKillResolved?.Invoke(value);
+            ai.EnemyKillResolved += value => AiEnemyKillResolved?.Invoke(value);
+            player.HeroExperienceResolved += value => PlayerHeroExperienceResolved?.Invoke(value);
+            ai.HeroExperienceResolved += value => AiHeroExperienceResolved?.Invoke(value);
             player.EnemyApproachingGoal += runtimeId => playerItems?.HandleCombatEvent(
                 new ItemCombatEvent(
                     ItemCombatEventKind.EnemyApproachingGoal,
@@ -121,20 +142,41 @@ namespace DragonBound.Core
             if (playerDestination != null)
             {
                 playerDestination.BasicUnitMerged += value => playerW6Boss?.NotifyMerge(value.SourceUnitId, value.TargetUnitId);
+                playerDestination.HeroPairLinked += value => playerItems?.HandleCombatEvent(
+                    new ItemCombatEvent(
+                        ItemCombatEventKind.HeroFormed,
+                        TeamSide.Player,
+                        value.PairLink.HeroId));
             }
 
             if (aiDestination != null)
             {
                 aiDestination.BasicUnitMerged += value => aiW6Boss?.NotifyMerge(value.SourceUnitId, value.TargetUnitId);
+                aiDestination.HeroPairLinked += value => aiItems?.HandleCombatEvent(
+                    new ItemCombatEvent(
+                        ItemCombatEventKind.HeroFormed,
+                        TeamSide.AI,
+                        value.PairLink.HeroId));
             }
         }
 
         public event Action<CombatEvent> CombatEmitted;
+        public event Action<int> WaveStarted;
+        public event Action<int, float> WaveFinished;
         public event Action<RuneReward> PlayerRuneRewardGranted;
+        public event Action<RuneReward> AiRuneRewardGranted;
         /// <summary>Development telemetry only; it forwards the shared enemy-runtime lifecycle.</summary>
         public event Action<EnemyLifecycleEvent> PlayerEnemyLifecycleEmitted;
         /// <summary>Development telemetry only; it forwards the shared enemy-runtime lifecycle.</summary>
         public event Action<EnemyLifecycleEvent> AiEnemyLifecycleEmitted;
+        public event Action<EnemyGoalResolvedEvent> PlayerEnemyGoalResolved;
+        public event Action<EnemyGoalResolvedEvent> AiEnemyGoalResolved;
+        public event Action<EnemyKillResolvedEvent> PlayerEnemyKillResolved;
+        public event Action<EnemyKillResolvedEvent> AiEnemyKillResolved;
+        public event Action<HeroExperienceResolvedEvent> PlayerHeroExperienceResolved;
+        public event Action<HeroExperienceResolvedEvent> AiHeroExperienceResolved;
+        public event Action<TeamSide, ItemRunSnapshot> ItemSnapshotLocked;
+        public event Action<TeamSide, ItemUseResolvedEvent> ItemUseResolved;
         public event Action<TeamSide, SoulChainCastEvent> SoulChainCastEmitted;
         public event Action<TeamSide, StormcallerCastEvent> StormcallerCastEmitted;
         public event Action<TeamSide, BossSkillLifecycleEvent> BloodcrownLifecycleEmitted;
@@ -341,6 +383,40 @@ namespace DragonBound.Core
             return true;
         }
 
+        public bool TryDebugSpawnEnemy(TeamSide side, int appearanceWave)
+        {
+            if ((!UnityEngine.Application.isEditor && !UnityEngine.Debug.isDebugBuild) ||
+                appearanceWave < 1 || appearanceWave > 4 || IsComplete)
+            {
+                return false;
+            }
+
+            var plan = GetWaveSpawnPlan(appearanceWave, side);
+            if (plan == null || plan.Count == 0)
+            {
+                return false;
+            }
+
+            var target = side == TeamSide.Player ? player : ai;
+            return target.SpawnDevelopmentEnemy(appearanceWave, plan[0]) != null;
+        }
+
+        public bool TryDebugSpawnBoss(int bossWave)
+        {
+            if ((!UnityEngine.Application.isEditor && !UnityEngine.Debug.isDebugBuild) ||
+                !TwentyWavePressureConfiguration.IsBossWave(bossWave))
+            {
+                return false;
+            }
+
+            if (!JumpToWave(bossWave))
+            {
+                return false;
+            }
+
+            return !IsBossWarningPending || ConfirmBossWarning();
+        }
+
         /// <summary>Confirms the authored warning and starts the deferred boss wave.</summary>
         public bool ConfirmBossWarning()
         {
@@ -406,6 +482,12 @@ namespace DragonBound.Core
             elapsedRunTime += deltaSeconds;
             playerItems?.Tick(deltaSeconds);
             aiItems?.Tick(deltaSeconds);
+            // A timed item may open a modal claim and pause the Run during its Tick.
+            // Do not advance either lane or a Boss for the remainder of that frame.
+            if (paused || match.State != MatchState.Running)
+            {
+                return;
+            }
             player.Tick(deltaSeconds, currentWaveIndex);
             ai.Tick(deltaSeconds, currentWaveIndex);
             playerW6Boss?.Tick(deltaSeconds);
@@ -417,10 +499,13 @@ namespace DragonBound.Core
             playerW20Boss?.Tick(deltaSeconds);
             aiW20Boss?.Tick(deltaSeconds);
 
-            // Base death is the only gameplay settlement trigger. Schedule completion is
-            // deliberately independent: pressure can continue to be observed after W20.
-            if (match.Player.HatchlingHealth <= 0 || match.AI.HatchlingHealth <= 0 ||
-                match.Player.IsInstantDefeated || match.AI.IsInstantDefeated)
+            // Either base being defeated is a real PvP terminal condition. The service
+            // adapter chooses /finish for every player victory and /quit for a loss.
+            bool playerDefeated = match.Player.HatchlingHealth <= 0 ||
+                                  match.Player.IsInstantDefeated;
+            bool aiDefeated = match.AI.HatchlingHealth <= 0 ||
+                              match.AI.IsInstantDefeated;
+            if (playerDefeated || aiDefeated)
             {
                 SettleRun();
                 return;
@@ -578,8 +663,10 @@ namespace DragonBound.Core
                 runSeed: runSeed,
                 opposingTeam: match.AI,
                 opposingRouteEnemies: ai.Registry,
+                freeRecruit: playerFreeRecruit,
+                forgePick: playerForgePick,
                 itemEnemyDamage: player,
-                initialCooldownSeconds: configuration.GetWave(1).FirstSpawnDelaySeconds);
+                startActiveItemsOnCooldown: true);
             aiItems = new ItemRunRuntime(
                 aiSnapshot,
                 match.AI,
@@ -588,8 +675,14 @@ namespace DragonBound.Core
                 runSeed: runSeed,
                 opposingTeam: match.Player,
                 opposingRouteEnemies: player.Registry,
+                freeRecruit: aiFreeRecruit,
+                forgePick: aiForgePick,
                 itemEnemyDamage: ai,
-                initialCooldownSeconds: configuration.GetWave(1).FirstSpawnDelaySeconds);
+                startActiveItemsOnCooldown: true);
+            playerItems.SnapshotLocked += snapshot => ItemSnapshotLocked?.Invoke(TeamSide.Player, snapshot);
+            aiItems.SnapshotLocked += snapshot => ItemSnapshotLocked?.Invoke(TeamSide.AI, snapshot);
+            playerItems.UseResolved += value => ItemUseResolved?.Invoke(TeamSide.Player, value);
+            aiItems.UseResolved += value => ItemUseResolved?.Invoke(TeamSide.AI, value);
             if (!playerItems.StartRun(out reason) || !aiItems.StartRun(out reason))
             {
                 Emit("TwentyWave ItemRuntimeStartRejected Reason=" + (reason ?? "Unknown"));
@@ -753,6 +846,7 @@ namespace DragonBound.Core
                     $"BossHP={bossDefinition.MaxHitPoints:0.00} MoveSpeed={bossDefinition.MoveSpeed:0.00} GreyboxHP=true");
             }
             match.SetCurrentWave(wave);
+            WaveStarted?.Invoke(wave);
             Emit(
                 $"TwentyWave WaveStarted Wave={wave} CountPerSide={definition.EnemyCountPerSide} " +
                 $"DurationSeconds={definition.WaveDurationSeconds:0.00} BossSlot={definition.HasBossSlot}");
@@ -787,6 +881,7 @@ namespace DragonBound.Core
         {
             player.RecordResidual(currentWaveIndex);
             ai.RecordResidual(currentWaveIndex);
+            WaveFinished?.Invoke(currentWaveIndex, waveElapsedTime);
             Emit(
                 $"TwentyWave WaveFinished Wave={currentWaveIndex} " +
                 $"ResidualPlayer={player.Remaining} ResidualAI={ai.Remaining}");
@@ -799,10 +894,22 @@ namespace DragonBound.Core
                 PlayerRuneRewardGranted?.Invoke(runeReward);
             }
 
+            var aiRuneReward = aiRuneRewards?.CompleteWave(currentWaveIndex);
+            if (aiRuneReward != null)
+            {
+                Emit(
+                    $"AiRuneReward Wave={aiRuneReward.Wave} RuneId={aiRuneReward.RuneId} " +
+                    $"Rarity={aiRuneReward.Rarity} Complete={aiRuneReward.IsComplete} Fragment={aiRuneReward.IsFragment}");
+                AiRuneRewardGranted?.Invoke(aiRuneReward);
+            }
+
             if (currentWaveIndex >= TwentyWavePressureConfiguration.WaveCount)
             {
                 wavesExhausted = true;
                 Emit("TwentyWave Event=FinalWaveEnded");
+                match.TryTransition(MatchState.Victory);
+                Emit("TwentyWave Result=Victory Reason=WaveLimitReached");
+                IsComplete = true;
                 return;
             }
 

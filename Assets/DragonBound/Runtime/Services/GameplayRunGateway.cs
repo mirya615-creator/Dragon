@@ -4,7 +4,9 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using DragonBound.AI;
+using GameShared.Random;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace DragonBound.Services
 {
@@ -39,6 +41,8 @@ namespace DragonBound.Services
         public int AiDecisionSeed;
         public bool IsRecoveryMatch;
         public string AiAlgorithmVersion;
+        public string RandomProtocolVersion;
+        public int WaveRandomSeed;
     }
 
     public enum ServerMatchResult
@@ -120,11 +124,37 @@ namespace DragonBound.Services
         public GameplayTerminationReason TerminationReason;
         public GameplayFaultAttribution FaultAttribution;
         public int ReachedWave;
-        public int FinalResources;
+        /// <summary>Player hatchling/base health at the end of the Run.</summary>
+        public int RemainingHealth;
         public int RecruitmentCount;
         public List<string> FormedHeroIds = new List<string>();
+        public List<uint> CriticalRandomSamples = new List<uint>();
         public string GameplaySnapshotHash;
         public string IdempotencyKey;
+    }
+
+    [Serializable]
+    public sealed class GameplayRankState
+    {
+        public string RankId;
+        public int Segment;
+        public long Stars;
+        public long TotalRankStars;
+        public long Version;
+        public string UpdatedAt;
+    }
+
+    [Serializable]
+    public sealed class GameplayRankSettlement
+    {
+        public bool Applied;
+        public bool Replayed;
+        public int StarDelta;
+        public GameplayRankState Before;
+        public GameplayRankState After;
+        public bool Promoted;
+        public bool Demoted;
+        public long Version;
     }
 
     [Serializable]
@@ -140,6 +170,15 @@ namespace DragonBound.Services
         public bool ApplySeasonProgress;
         public bool CountCompletedRun;
         public bool GrantRewards;
+        public bool ServerAuthoritativeSettlement;
+        public string SettlementStatus;
+        public string RejectionCode;
+        public long GoldReward;
+        public long RuneFragmentReward;
+        public bool MerchantEventAvailable;
+        public string MerchantEventId;
+        public bool HasAuthoritativeRankSettlement;
+        public GameplayRankSettlement RankSettlement;
     }
 
     /// <summary>
@@ -184,9 +223,38 @@ namespace DragonBound.Services
     /// </summary>
     public static class GameplayLaunchContext
     {
+        private const string GreyboxSceneName = "Greybox_Main";
         private const string PlayerKey = "dragonbound.gameplay-launch.player";
         private const string NonceKey = "dragonbound.gameplay-launch.nonce";
         private const string RankLevelKey = "dragonbound.gameplay-launch.rank-level";
+        private static string preparedNonce;
+        private static StartGameplayRunResult preparedResult;
+
+        public static bool IsDirectDevelopmentSceneEntry { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetPreparedResult()
+        {
+            preparedNonce = string.Empty;
+            preparedResult = null;
+            IsDirectDevelopmentSceneEntry = false;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void CaptureInitialSceneEntry()
+        {
+            IsDirectDevelopmentSceneEntry = IsDirectDevelopmentScene(
+                Application.isEditor || Debug.isDebugBuild,
+                SceneManager.GetActiveScene().name);
+        }
+
+        public static bool IsDirectDevelopmentScene(bool isDevelopment, string initialSceneName)
+        {
+            return isDevelopment && string.Equals(
+                initialSceneName,
+                GreyboxSceneName,
+                StringComparison.Ordinal);
+        }
 
         public static string GetOrCreateNonce(string playerId)
         {
@@ -227,14 +295,68 @@ namespace DragonBound.Services
             return found;
         }
 
+        public static void StorePrepared(string nonce, StartGameplayRunResult result)
+        {
+            if (string.IsNullOrWhiteSpace(nonce))
+                throw new ArgumentException("Launch nonce is required.", nameof(nonce));
+            if (result == null || string.IsNullOrWhiteSpace(result.RunId))
+                throw new ArgumentException("Prepared gameplay result requires a Run ID.", nameof(result));
+
+            preparedNonce = nonce;
+            preparedResult = Clone(result);
+        }
+
+        public static bool TryTakePrepared(string nonce, out StartGameplayRunResult result)
+        {
+            result = null;
+            if (string.IsNullOrWhiteSpace(nonce) || preparedResult == null ||
+                !string.Equals(preparedNonce, nonce, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            result = Clone(preparedResult);
+            preparedNonce = string.Empty;
+            preparedResult = null;
+            return true;
+        }
+
         public static void Complete(string nonce)
         {
             if (string.IsNullOrWhiteSpace(nonce) ||
                 PlayerPrefs.GetString(NonceKey, string.Empty) != nonce) return;
+            if (string.Equals(preparedNonce, nonce, StringComparison.Ordinal))
+            {
+                preparedNonce = string.Empty;
+                preparedResult = null;
+            }
             PlayerPrefs.DeleteKey(PlayerKey);
             PlayerPrefs.DeleteKey(NonceKey);
             PlayerPrefs.DeleteKey(RankLevelKey);
             PlayerPrefs.Save();
+        }
+
+        private static StartGameplayRunResult Clone(StartGameplayRunResult source)
+        {
+            return new StartGameplayRunResult
+            {
+                RunId = source.RunId,
+                RunSeed = source.RunSeed,
+                PlayerRecruitSeed = source.PlayerRecruitSeed,
+                AiRecruitSeed = source.AiRecruitSeed,
+                CombatSeed = source.CombatSeed,
+                RulesVersion = source.RulesVersion,
+                StartingResources = source.StartingResources,
+                ReconnectGraceSeconds = source.ReconnectGraceSeconds,
+                AfkTimeoutSeconds = source.AfkTimeoutSeconds,
+                PlayerRankLevel = source.PlayerRankLevel,
+                AiProfile = source.AiProfile,
+                AiDecisionSeed = source.AiDecisionSeed,
+                IsRecoveryMatch = source.IsRecoveryMatch,
+                AiAlgorithmVersion = source.AiAlgorithmVersion,
+                RandomProtocolVersion = source.RandomProtocolVersion,
+                WaveRandomSeed = source.WaveRandomSeed
+            };
         }
     }
 
@@ -259,7 +381,11 @@ namespace DragonBound.Services
             {
                 StartGameplayRunResult stored = JsonUtility.FromJson<StartGameplayRunResult>(
                     PlayerPrefs.GetString(startKey, string.Empty));
-                if (stored != null && !string.IsNullOrWhiteSpace(stored.RunId))
+                if (stored != null && !string.IsNullOrWhiteSpace(stored.RunId) &&
+                    string.Equals(
+                        stored.RandomProtocolVersion,
+                        SharedRandomProtocolV1.Version,
+                        StringComparison.Ordinal))
                     return Task.FromResult(stored);
             }
 
@@ -278,18 +404,20 @@ namespace DragonBound.Services
             {
                 RunId = runId,
                 RunSeed = runSeed,
-                PlayerRecruitSeed = unchecked(runSeed ^ 0x13579BDF),
-                AiRecruitSeed = unchecked(runSeed ^ 0x2468ACE0),
-                CombatSeed = runSeed,
+                PlayerRecruitSeed = SharedRandomProtocolV1.DeriveSeed(runSeed, "player.recruit"),
+                AiRecruitSeed = SharedRandomProtocolV1.DeriveSeed(runSeed, "ai.recruit"),
+                CombatSeed = SharedRandomProtocolV1.DeriveSeed(runSeed, "combat"),
                 RulesVersion = LocalRulesVersion,
                 StartingResources = 20,
                 ReconnectGraceSeconds = 90,
                 AfkTimeoutSeconds = 180,
                 PlayerRankLevel = playerRankLevel,
                 AiProfile = effectiveProfile.ToString(),
-                AiDecisionSeed = DeriveSeed(runSeed, "ai.decision"),
+                AiDecisionSeed = SharedRandomProtocolV1.DeriveSeed(runSeed, "ai.decision"),
                 IsRecoveryMatch = recoveryMatch,
-                AiAlgorithmVersion = LocalAiAlgorithmVersion
+                AiAlgorithmVersion = LocalAiAlgorithmVersion,
+                RandomProtocolVersion = SharedRandomProtocolV1.Version,
+                WaveRandomSeed = runSeed
             };
             if (recoveryMatch)
             {
@@ -394,19 +522,7 @@ namespace DragonBound.Services
 
         internal static int DeriveSeed(int seed, string stream)
         {
-            unchecked
-            {
-                uint hash = 2166136261u;
-                foreach (var character in stream)
-                {
-                    hash ^= character;
-                    hash *= 16777619u;
-                }
-
-                hash ^= (uint)seed;
-                hash *= 16777619u;
-                return (int)hash;
-            }
+            return SharedRandomProtocolV1.DeriveSeed(seed, stream);
         }
 
         private static int LoadNormalDefeatStreak(string playerId)

@@ -39,9 +39,9 @@ namespace DragonBound.Tests.EditMode
         public void ComponentsRemainIndependentAfterPairing()
         {
             var context = CreateContext(Sigil("sigil"), Sky("sky"));
-            MoveDirect(context, "sigil", new GridPosition(0, 1));
+            MoveDirect(context, "sigil", new GridPosition(1, 1));
 
-            Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sky", new GridPosition(0, 2)));
+            Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sky", new GridPosition(0, 1)));
             var pairLink = GetOnlyPair(context);
 
             Assert.AreEqual(HeroSliceCatalog.WindclawRangerRecipeId, pairLink.RecipeId);
@@ -62,9 +62,9 @@ namespace DragonBound.Tests.EditMode
             Assert.IsFalse(context.Destination.TryResolvePostDrop("sigil"));
             Assert.AreEqual(0, context.Destination.ActivePairLinkCount);
 
-            MoveDirect(context, "sigil", new GridPosition(0, 1));
+            MoveDirect(context, "sigil", new GridPosition(1, 1));
             Assert.AreEqual(0, context.Destination.ActivePairLinkCount);
-            MoveDirect(context, "sky", new GridPosition(0, 2));
+            MoveDirect(context, "sky", new GridPosition(0, 1));
             Assert.AreEqual(1, context.Destination.ActivePairLinkCount);
         }
 
@@ -118,7 +118,7 @@ namespace DragonBound.Tests.EditMode
             var pairLink = GetOnlyPair(context);
 
             Assert.IsTrue(context.Board.TryGetOccupant(new GridPosition(0, 1), out var first));
-            Assert.IsTrue(context.Board.TryGetOccupant(new GridPosition(0, 2), out var second));
+            Assert.IsTrue(context.Board.TryGetOccupant(new GridPosition(1, 1), out var second));
             CollectionAssert.AreEquivalent(
                 new[] { pairLink.ComponentAId, pairLink.ComponentBId },
                 new[] { first, second });
@@ -176,7 +176,7 @@ namespace DragonBound.Tests.EditMode
             Assert.IsTrue(context.Board.TryGetPosition("sigil", out var moved));
             Assert.IsTrue(context.Board.TryGetPosition("sky", out var partner));
             Assert.AreEqual(new GridPosition(2, 2), moved);
-            Assert.AreEqual(new GridPosition(0, 2), partner);
+            Assert.AreEqual(new GridPosition(0, 1), partner);
             Assert.AreEqual(0, context.Destination.ActivePairLinkCount);
         }
 
@@ -195,7 +195,7 @@ namespace DragonBound.Tests.EditMode
             Assert.IsTrue(context.Board.TryGetPosition("sigil", out var selectedAfter));
             Assert.AreEqual(occupiedBench, selectedAfter);
             Assert.IsTrue(context.Board.TryGetPosition(benchUnitId, out var swappedAfter));
-            Assert.AreEqual(new GridPosition(0, 1), swappedAfter);
+            Assert.AreEqual(new GridPosition(1, 1), swappedAfter);
             Assert.AreEqual(0, context.Destination.ActivePairLinkCount);
         }
 
@@ -210,8 +210,8 @@ namespace DragonBound.Tests.EditMode
 
             Assert.IsTrue(context.Board.TryGetPosition("sigil", out var sigilPosition));
             Assert.IsTrue(context.Board.TryGetPosition("sky", out var skyPosition));
-            Assert.AreEqual(new GridPosition(0, 1), sigilPosition);
-            Assert.AreEqual(new GridPosition(0, 2), skyPosition);
+            Assert.AreEqual(new GridPosition(1, 1), sigilPosition);
+            Assert.AreEqual(new GridPosition(0, 1), skyPosition);
             var restored = GetOnlyPair(context);
             Assert.AreNotEqual(originalPairId, restored.PairLinkId);
         }
@@ -226,12 +226,12 @@ namespace DragonBound.Tests.EditMode
         public void ReplacingPartnerCreatesNewRecipe()
         {
             var context = CreateContext(Sigil("sigil"), Sky("sky"), Knight("knight"));
-            MoveDirect(context, "sigil", new GridPosition(0, 1));
-            MoveDirect(context, "sky", new GridPosition(0, 2));
-            MoveDirect(context, "knight", new GridPosition(1, 2));
+            MoveDirect(context, "sigil", new GridPosition(1, 1));
+            MoveDirect(context, "sky", new GridPosition(0, 1));
+            MoveDirect(context, "knight", new GridPosition(0, 2));
             Assert.AreEqual(HeroSliceCatalog.WindclawRangerRecipeId, GetOnlyPair(context).RecipeId);
 
-            Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", new GridPosition(1, 1)));
+            Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", new GridPosition(1, 2)));
 
             var relinked = GetOnlyPair(context);
             Assert.AreEqual(HeroSliceCatalog.DragonRiderRecipeId, relinked.RecipeId);
@@ -245,9 +245,9 @@ namespace DragonBound.Tests.EditMode
         public void EachComponentCanBelongToOnlyOnePairLink()
         {
             var context = CreateContext(Sigil("sigil"), Sky("sky"), Knight("knight"));
-            MoveDirect(context, "sky", new GridPosition(0, 2));
-            MoveDirect(context, "sigil", new GridPosition(0, 1));
-            MoveDirect(context, "knight", new GridPosition(1, 2));
+            MoveDirect(context, "sky", new GridPosition(0, 1));
+            MoveDirect(context, "sigil", new GridPosition(1, 1));
+            MoveDirect(context, "knight", new GridPosition(0, 2));
 
             Assert.AreEqual(1, context.Destination.ActivePairLinkCount);
             var pair = GetOnlyPair(context);
@@ -266,7 +266,7 @@ namespace DragonBound.Tests.EditMode
             {
                 Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", new GridPosition(2, 2)));
                 Assert.AreEqual(0, context.Destination.ActivePairLinkCount);
-                Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", new GridPosition(0, 1)));
+                Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", new GridPosition(1, 1)));
 
                 var reformed = GetOnlyPair(context);
                 Assert.AreEqual(HeroSliceCatalog.WindclawRangerRecipeId, reformed.RecipeId);
@@ -284,7 +284,7 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", emptyBench));
             Assert.AreEqual(0, context.Destination.ActivePairLinkCount);
             Assert.IsFalse(context.Destination.IsCombatRegistered("sigil"));
-            Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", new GridPosition(0, 1)));
+            Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", new GridPosition(1, 1)));
 
             Assert.AreEqual(1, context.Destination.ActivePairLinkCount);
             Assert.IsTrue(context.Destination.IsCombatRegistered("sigil"));
@@ -314,9 +314,9 @@ namespace DragonBound.Tests.EditMode
                 second.Cards.Single(card => card.ConfigId == HeroSliceCatalog.SkyRangerComponentId));
 
             MoveDirect(context, first.Cards.Single(card =>
-                card.ConfigId == HeroSliceCatalog.DragonSigilComponentId).RuntimeId, new GridPosition(0, 1));
+                card.ConfigId == HeroSliceCatalog.DragonSigilComponentId).RuntimeId, new GridPosition(1, 1));
             MoveDirect(context, second.Cards.Single(card =>
-                card.ConfigId == HeroSliceCatalog.SkyRangerComponentId).RuntimeId, new GridPosition(0, 2));
+                card.ConfigId == HeroSliceCatalog.SkyRangerComponentId).RuntimeId, new GridPosition(0, 1));
 
             Assert.AreEqual(1, context.Destination.ActivePairLinkCount);
             Assert.AreEqual(1, deck.RemainingHeroComponents);
@@ -343,7 +343,7 @@ namespace DragonBound.Tests.EditMode
                 context.Destination.EverFormedHeroIds);
 
             Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", new GridPosition(2, 2)));
-            Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", new GridPosition(0, 1)));
+            Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sigil", new GridPosition(1, 1)));
 
             Assert.AreEqual(1, context.Destination.ActivePairLinkCount);
             Assert.IsTrue(context.Destination.HasEverFormedHero(HeroSliceCatalog.WindclawRangerHeroId));
@@ -354,14 +354,14 @@ namespace DragonBound.Tests.EditMode
         public void ExperienceAndLevelPersistWhenRoleComponentRelinksToNewSigil()
         {
             var context = CreateContext(Sigil("sigil.1"), Sigil("sigil.2"), Sky("sky"));
-            MoveDirect(context, "sigil.1", new GridPosition(0, 1));
-            MoveDirect(context, "sky", new GridPosition(0, 2));
-            MoveDirect(context, "sigil.2", new GridPosition(1, 1));
+            MoveDirect(context, "sigil.1", new GridPosition(1, 1));
+            MoveDirect(context, "sky", new GridPosition(0, 1));
+            MoveDirect(context, "sigil.2", new GridPosition(1, 2));
             var original = GetOnlyPair(context);
             original.CombatProxy.AddExperience(20);
             Assert.AreEqual(2, original.CombatProxy.Level);
 
-            Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sky", new GridPosition(1, 2)));
+            Assert.AreEqual(DragDropStatus.Moved, Drag(context, "sky", new GridPosition(0, 2)));
 
             var relinked = GetOnlyPair(context);
             Assert.IsTrue(relinked.ContainsComponent("sigil.2"));
@@ -550,16 +550,16 @@ namespace DragonBound.Tests.EditMode
 
         private static HeroPairLink FormWindclaw(Context context)
         {
-            MoveDirect(context, "sigil", new GridPosition(0, 1));
-            MoveDirect(context, "sky", new GridPosition(0, 2));
+            MoveDirect(context, "sigil", new GridPosition(1, 1));
+            MoveDirect(context, "sky", new GridPosition(0, 1));
             return GetOnlyPair(context);
         }
 
         private static Context FormDragonRider()
         {
             var context = CreateContext(Sigil("sigil"), Knight("knight"));
-            MoveDirect(context, "sigil", new GridPosition(0, 1));
-            MoveDirect(context, "knight", new GridPosition(0, 2));
+            MoveDirect(context, "sigil", new GridPosition(1, 1));
+            MoveDirect(context, "knight", new GridPosition(0, 1));
             return context;
         }
 
@@ -570,10 +570,10 @@ namespace DragonBound.Tests.EditMode
                 Sky("sky"),
                 Sigil("sigil.rider"),
                 Knight("knight"));
-            MoveDirect(context, "sigil.windclaw", new GridPosition(0, 1));
-            MoveDirect(context, "sky", new GridPosition(0, 2));
-            MoveDirect(context, "sigil.rider", new GridPosition(1, 1));
-            MoveDirect(context, "knight", new GridPosition(1, 2));
+            MoveDirect(context, "sigil.windclaw", new GridPosition(1, 1));
+            MoveDirect(context, "sky", new GridPosition(0, 1));
+            MoveDirect(context, "sigil.rider", new GridPosition(1, 2));
+            MoveDirect(context, "knight", new GridPosition(0, 2));
             return context;
         }
 

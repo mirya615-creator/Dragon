@@ -83,19 +83,19 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void FrozenRecipesUseAllTwelveConfiguredDirections()
+        public void FrozenRecipesUseAllTwelveHorizontalDirections()
         {
-            AssertFormation(DragonBoundHeroIds.WindclawRanger, HeroFormationOrientation.Vertical,
+            AssertFormation(DragonBoundHeroIds.WindclawRanger, HeroFormationOrientation.Horizontal,
                 DragonBoundComponentIds.SkyRanger, DragonBoundComponentIds.DragonSigil);
-            AssertFormation(DragonBoundHeroIds.EmberShaman, HeroFormationOrientation.Vertical,
+            AssertFormation(DragonBoundHeroIds.EmberShaman, HeroFormationOrientation.Horizontal,
                 DragonBoundComponentIds.FlameShaman, DragonBoundComponentIds.DragonSigil);
-            AssertFormation(DragonBoundHeroIds.DragonRider, HeroFormationOrientation.Vertical,
+            AssertFormation(DragonBoundHeroIds.DragonRider, HeroFormationOrientation.Horizontal,
                 DragonBoundComponentIds.DragonKnight, DragonBoundComponentIds.DragonSigil);
-            AssertFormation(DragonBoundHeroIds.HornbladeDuelist, HeroFormationOrientation.Vertical,
+            AssertFormation(DragonBoundHeroIds.HornbladeDuelist, HeroFormationOrientation.Horizontal,
                 DragonBoundComponentIds.WarHorn, DragonBoundComponentIds.WanderingSword);
-            AssertFormation(DragonBoundHeroIds.NorthwatchHunter, HeroFormationOrientation.Vertical,
+            AssertFormation(DragonBoundHeroIds.NorthwatchHunter, HeroFormationOrientation.Horizontal,
                 DragonBoundComponentIds.WarHorn, DragonBoundComponentIds.NorthwatchScout);
-            AssertFormation(DragonBoundHeroIds.ThunderJarl, HeroFormationOrientation.Vertical,
+            AssertFormation(DragonBoundHeroIds.ThunderJarl, HeroFormationOrientation.Horizontal,
                 DragonBoundComponentIds.WarHorn, DragonBoundComponentIds.StormCrown);
             AssertFormation(DragonBoundHeroIds.RuneboltMage, HeroFormationOrientation.Horizontal,
                 DragonBoundComponentIds.RuneGrimoire, DragonBoundComponentIds.RuneApprentice);
@@ -112,48 +112,48 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void DragonRecipeRequiresPersonAboveDragon()
+        public void DragonRecipeRequiresPersonLeftOfDragon()
         {
             var recipe = FrozenHeroConfigurationCatalog.GetRecipe(DragonBoundHeroIds.WindclawRanger);
             Assert.IsTrue(recipe.MatchesFormation(
-                DragonBoundComponentIds.SkyRanger, new GridPosition(1, 2),
-                DragonBoundComponentIds.DragonSigil, new GridPosition(1, 1)));
-        }
-
-        [Test]
-        public void DragonRecipeRejectsDragonAbovePerson()
-        {
-            var recipe = FrozenHeroConfigurationCatalog.GetRecipe(DragonBoundHeroIds.WindclawRanger);
-            Assert.IsFalse(recipe.MatchesFormation(
-                DragonBoundComponentIds.DragonSigil, new GridPosition(1, 2),
-                DragonBoundComponentIds.SkyRanger, new GridPosition(1, 1)));
-        }
-
-        [Test]
-        public void DragonRecipeRejectsHorizontalLayout()
-        {
-            var recipe = FrozenHeroConfigurationCatalog.GetRecipe(DragonBoundHeroIds.WindclawRanger);
-            Assert.IsFalse(recipe.MatchesFormation(
                 DragonBoundComponentIds.SkyRanger, new GridPosition(1, 1),
                 DragonBoundComponentIds.DragonSigil, new GridPosition(2, 1)));
         }
 
         [Test]
-        public void CrownRecipeRequiresCrownAbovePerson()
+        public void DragonRecipeRejectsDragonLeftOfPerson()
         {
-            var recipe = FrozenHeroConfigurationCatalog.GetRecipe(DragonBoundHeroIds.HornbladeDuelist);
-            Assert.IsTrue(recipe.MatchesFormation(
-                DragonBoundComponentIds.WarHorn, new GridPosition(1, 2),
-                DragonBoundComponentIds.WanderingSword, new GridPosition(1, 1)));
+            var recipe = FrozenHeroConfigurationCatalog.GetRecipe(DragonBoundHeroIds.WindclawRanger);
+            Assert.IsFalse(recipe.MatchesFormation(
+                DragonBoundComponentIds.DragonSigil, new GridPosition(1, 1),
+                DragonBoundComponentIds.SkyRanger, new GridPosition(2, 1)));
         }
 
         [Test]
-        public void CrownRecipeRejectsPersonAboveCrown()
+        public void DragonRecipeRejectsVerticalLayout()
+        {
+            var recipe = FrozenHeroConfigurationCatalog.GetRecipe(DragonBoundHeroIds.WindclawRanger);
+            Assert.IsFalse(recipe.MatchesFormation(
+                DragonBoundComponentIds.SkyRanger, new GridPosition(1, 2),
+                DragonBoundComponentIds.DragonSigil, new GridPosition(1, 1)));
+        }
+
+        [Test]
+        public void CrownRecipeRequiresCrownLeftOfPerson()
+        {
+            var recipe = FrozenHeroConfigurationCatalog.GetRecipe(DragonBoundHeroIds.HornbladeDuelist);
+            Assert.IsTrue(recipe.MatchesFormation(
+                DragonBoundComponentIds.WarHorn, new GridPosition(1, 1),
+                DragonBoundComponentIds.WanderingSword, new GridPosition(2, 1)));
+        }
+
+        [Test]
+        public void CrownRecipeRejectsPersonLeftOfCrown()
         {
             var recipe = FrozenHeroConfigurationCatalog.GetRecipe(DragonBoundHeroIds.HornbladeDuelist);
             Assert.IsFalse(recipe.MatchesFormation(
-                DragonBoundComponentIds.WanderingSword, new GridPosition(1, 2),
-                DragonBoundComponentIds.WarHorn, new GridPosition(1, 1)));
+                DragonBoundComponentIds.WanderingSword, new GridPosition(1, 1),
+                DragonBoundComponentIds.WarHorn, new GridPosition(2, 1)));
         }
 
         [Test]
@@ -366,21 +366,16 @@ namespace DragonBound.Tests.EditMode
         {
             var recipe = FrozenHeroConfigurationCatalog.GetRecipe(heroId);
             Assert.AreEqual(orientation, recipe.FormationOrientation, heroId);
-            if (orientation == HeroFormationOrientation.Vertical)
-            {
-                Assert.AreEqual(firstComponentId, recipe.TopComponentId, heroId);
-                Assert.AreEqual(secondComponentId, recipe.BottomComponentId, heroId);
-                Assert.IsTrue(recipe.MatchesFormation(
-                    secondComponentId, new GridPosition(2, 1),
-                    firstComponentId, new GridPosition(2, 2)), heroId);
-                return;
-            }
-
+            Assert.IsNull(recipe.TopComponentId, heroId);
+            Assert.IsNull(recipe.BottomComponentId, heroId);
             Assert.AreEqual(firstComponentId, recipe.LeftComponentId, heroId);
             Assert.AreEqual(secondComponentId, recipe.RightComponentId, heroId);
             Assert.IsTrue(recipe.MatchesFormation(
                 secondComponentId, new GridPosition(2, 1),
                 firstComponentId, new GridPosition(1, 1)), heroId);
+            Assert.IsFalse(recipe.MatchesFormation(
+                firstComponentId, new GridPosition(1, 2),
+                secondComponentId, new GridPosition(1, 1)), heroId);
         }
 
         private static bool HasCompleteRecipe(

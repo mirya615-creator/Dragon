@@ -32,7 +32,9 @@ namespace DragonBound.Core
             string runtimeId,
             EnemyArchetype archetype,
             float maxHitPoints,
-            float pathProgress)
+            float pathProgress,
+            string bossId = "",
+            float moveSpeedCellsPerSecond = 0f)
         {
             Kind = kind;
             SpawnWave = spawnWave;
@@ -40,6 +42,8 @@ namespace DragonBound.Core
             Archetype = archetype;
             MaxHitPoints = maxHitPoints;
             PathProgress = pathProgress;
+            BossId = bossId ?? string.Empty;
+            MoveSpeedCellsPerSecond = moveSpeedCellsPerSecond;
         }
 
         public EnemyLifecycleEventKind Kind { get; }
@@ -48,6 +52,28 @@ namespace DragonBound.Core
         public EnemyArchetype Archetype { get; }
         public float MaxHitPoints { get; }
         public float PathProgress { get; }
+        public string BossId { get; }
+        public float MoveSpeedCellsPerSecond { get; }
+    }
+
+    public readonly struct EnemyGoalResolvedEvent
+    {
+        public EnemyGoalResolvedEvent(
+            EnemyLifecycleEvent enemy,
+            int heartBefore,
+            int heartAfter,
+            bool instantDefeat)
+        {
+            Enemy = enemy;
+            HeartBefore = heartBefore;
+            HeartAfter = heartAfter;
+            InstantDefeat = instantDefeat;
+        }
+
+        public EnemyLifecycleEvent Enemy { get; }
+        public int HeartBefore { get; }
+        public int HeartAfter { get; }
+        public bool InstantDefeat { get; }
     }
 
     public interface IPathProgress

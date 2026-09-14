@@ -42,6 +42,7 @@ public static class ClientCompositionRoot
                     "Unknown backend mode.");
         }
         AuthSessionCoordinator.EnsureCreated();
+        ActiveRunLifecycleCoordinator.EnsureCreated();
     }
 
     public static void InstallForTests(IClientServices services)

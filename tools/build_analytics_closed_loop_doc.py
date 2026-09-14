@@ -398,7 +398,7 @@ def build_doc():
     add_page_break(doc)
     add_heading(doc, "4. Firebase 具体任务步骤", 1)
     firebase_steps = [
-        ("F1 项目与 App", "确认 dragonbound-5f868、Android 包名 com.drakeforge.mergedefense；按 dev/qa/staging/prod 决定独立 Firebase 项目或明确 Lane 隔离。", "项目/App 清单"),
+        ("F1 项目与 App", "确认正式 Firebase Project ID 为 drakeforge、Android 包名 com.drakeforge.mergedefense；按 dev/qa/staging/prod 决定独立 Firebase 项目或明确 Lane 隔离。", "项目/App 清单"),
         ("F2 Analytics/GA4", "启用 Analytics；确认 GA4 Property、时区、货币、数据流和访问角色。", "GA4 数据流可用"),
         ("F3 DebugView", "配置开发设备调试；验证参数、事件顺序和 Lane。", "联调截图/记录"),
         ("F4 自定义定义", "为 build_lane、execution_context、side、reason、boss_id、hero_id 等当前高价值参数注册维度；广告参数暂不注册。", "维度字典"),

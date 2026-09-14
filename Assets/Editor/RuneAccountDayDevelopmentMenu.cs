@@ -4,6 +4,9 @@ using UnityEngine;
 
 public static class RuneAccountDayDevelopmentMenu
 {
+    [MenuItem("Tools/DragonBound/Runes/Restart Three-Day Restriction (Day 1)")]
+    private static void RestartThreeDayRestriction() => SetDay(1);
+
     [MenuItem("Tools/DragonBound/Runes/Set Test Account Day/Day 1")]
     private static void SetDayOne() => SetDay(1);
 

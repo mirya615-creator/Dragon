@@ -170,7 +170,7 @@ namespace DragonBound.Combat
                 {
                     foreach (var target in SelectTargets(hazard.Definition, registry.Snapshot()))
                     {
-                        if (!target.IsAlive)
+                        if (!target.IsAttackable)
                         {
                             continue;
                         }
@@ -207,7 +207,7 @@ namespace DragonBound.Combat
             var result = new List<EnemyRuntime>();
             foreach (var enemy in enemies)
             {
-                if (enemy == null || !enemy.IsAlive || enemy.Team != definition.Side ||
+                if (enemy == null || !enemy.IsAttackable || enemy.Team != definition.Side ||
                     !Contains(definition, enemy.CombatPosition))
                 {
                     continue;

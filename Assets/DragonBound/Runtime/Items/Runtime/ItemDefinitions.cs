@@ -141,45 +141,45 @@ namespace DragonBound.Items
         private static readonly IReadOnlyList<ItemDefinition> definitions = new List<ItemDefinition>
         {
             Define(ItemIds.WyrmfangSnare, ItemCategory.Active, ItemRarity.Rare,
-                ItemImplementationStatus.Implemented, ItemEffectKind.WyrmfangSnare),
+                ItemImplementationStatus.Implemented, ItemEffectKind.WyrmfangSnare, "ItemUI/1"),
             Define(ItemIds.WinterveilRune, ItemCategory.Active, ItemRarity.Rare,
-                ItemImplementationStatus.Implemented, ItemEffectKind.WinterveilRune),
+                ItemImplementationStatus.Implemented, ItemEffectKind.WinterveilRune, "ItemUI/2"),
             Define(ItemIds.RuneburstMine, ItemCategory.Active, ItemRarity.Excellent,
-                ItemImplementationStatus.Implemented, ItemEffectKind.RuneburstMine),
+                ItemImplementationStatus.Implemented, ItemEffectKind.RuneburstMine, "ItemUI/3"),
             Define(ItemIds.FrenzyRune, ItemCategory.Active, ItemRarity.Epic,
-                ItemImplementationStatus.Implemented, ItemEffectKind.FrenzyRune),
+                ItemImplementationStatus.Implemented, ItemEffectKind.FrenzyRune, "ItemUI/4"),
             Define(ItemIds.RuneOfTempering, ItemCategory.Active, ItemRarity.Epic,
-                ItemImplementationStatus.Implemented, ItemEffectKind.RuneOfTempering),
+                ItemImplementationStatus.Implemented, ItemEffectKind.RuneOfTempering, "ItemUI/5"),
             Define(ItemIds.WarforgeSigil, ItemCategory.Active, ItemRarity.Legendary,
-                ItemImplementationStatus.Implemented, ItemEffectKind.WarforgeSigil),
+                ItemImplementationStatus.Implemented, ItemEffectKind.WarforgeSigil, "ItemUI/6"),
             Define(ItemIds.DrakeheartRelic, ItemCategory.Passive, ItemRarity.Rare,
-                ItemImplementationStatus.Implemented, ItemEffectKind.DrakeheartRelic),
+                ItemImplementationStatus.Implemented, ItemEffectKind.DrakeheartRelic, "ItemUI/7"),
             Define(ItemIds.PactOfEndurance, ItemCategory.Passive, ItemRarity.Rare,
-                ItemImplementationStatus.Implemented, ItemEffectKind.PactOfEndurance),
+                ItemImplementationStatus.Implemented, ItemEffectKind.PactOfEndurance, "ItemUI/8"),
             Define(ItemIds.FarwatchCrest, ItemCategory.Passive, ItemRarity.Rare,
-                ItemImplementationStatus.Implemented, ItemEffectKind.FarwatchCrest),
+                ItemImplementationStatus.Implemented, ItemEffectKind.FarwatchCrest, "ItemUI/9"),
             Define(ItemIds.FrostMire, ItemCategory.Passive, ItemRarity.Rare,
-                ItemImplementationStatus.Implemented, ItemEffectKind.FrostMire),
+                ItemImplementationStatus.Implemented, ItemEffectKind.FrostMire, "ItemUI/10"),
             Define(ItemIds.WarTempo, ItemCategory.Passive, ItemRarity.Excellent,
-                ItemImplementationStatus.Implemented, ItemEffectKind.WarTempo),
+                ItemImplementationStatus.Implemented, ItemEffectKind.WarTempo, "ItemUI/11"),
             Define(ItemIds.VeteransMark, ItemCategory.Passive, ItemRarity.Excellent,
-                ItemImplementationStatus.Implemented, ItemEffectKind.VeteransMark),
+                ItemImplementationStatus.Implemented, ItemEffectKind.VeteransMark, "ItemUI/12"),
             Define(ItemIds.QuartermastersSatchel, ItemCategory.Passive, ItemRarity.Excellent,
-                ItemImplementationStatus.Implemented, ItemEffectKind.QuartermastersSatchel),
+                ItemImplementationStatus.Implemented, ItemEffectKind.QuartermastersSatchel, "ItemUI/13"),
             Define(ItemIds.SpellbreakerSeal, ItemCategory.Passive, ItemRarity.Epic,
-                ItemImplementationStatus.Implemented, ItemEffectKind.SpellbreakerSeal),
+                ItemImplementationStatus.Implemented, ItemEffectKind.SpellbreakerSeal, "ItemUI/14"),
             Define(ItemIds.RivalryOath, ItemCategory.Passive, ItemRarity.Epic,
-                ItemImplementationStatus.Implemented, ItemEffectKind.RivalryOath),
+                ItemImplementationStatus.Implemented, ItemEffectKind.RivalryOath, "ItemUI/15"),
             Define(ItemIds.ForgeTreasury, ItemCategory.Passive, ItemRarity.Epic,
-                ItemImplementationStatus.Implemented, ItemEffectKind.ForgeTreasury),
+                ItemImplementationStatus.Implemented, ItemEffectKind.ForgeTreasury, "ItemUI/16"),
             Define(ItemIds.BattlefieldCommand, ItemCategory.Passive, ItemRarity.Epic,
-                ItemImplementationStatus.Implemented, ItemEffectKind.BattlefieldCommand),
+                ItemImplementationStatus.Implemented, ItemEffectKind.BattlefieldCommand, "ItemUI/17"),
             Define(ItemIds.ForgekeepersGift, ItemCategory.Passive, ItemRarity.Legendary,
-                ItemImplementationStatus.Implemented, ItemEffectKind.ForgekeepersGift),
+                ItemImplementationStatus.Implemented, ItemEffectKind.ForgekeepersGift, "ItemUI/18"),
             Define(ItemIds.DragonfallJudgment, ItemCategory.Passive, ItemRarity.Legendary,
-                ItemImplementationStatus.Implemented, ItemEffectKind.DragonfallJudgment),
+                ItemImplementationStatus.Implemented, ItemEffectKind.DragonfallJudgment, "ItemUI/19"),
             Define(ItemIds.DraconicPresence, ItemCategory.Passive, ItemRarity.Legendary,
-                ItemImplementationStatus.Implemented, ItemEffectKind.DraconicPresence)
+                ItemImplementationStatus.Implemented, ItemEffectKind.DraconicPresence, "ItemUI/20")
         };
 
         public static IReadOnlyList<ItemDefinition> All => definitions;
@@ -232,9 +232,17 @@ namespace DragonBound.Items
             ItemCategory category,
             ItemRarity rarity,
             ItemImplementationStatus status = ItemImplementationStatus.Pending,
-            ItemEffectKind effectKind = ItemEffectKind.None)
+            ItemEffectKind effectKind = ItemEffectKind.None,
+            string iconKey = "")
         {
-            return new ItemDefinition(itemId, "Item." + itemId, category, rarity, status, effectKind);
+            return new ItemDefinition(
+                itemId,
+                "Item." + itemId,
+                category,
+                rarity,
+                status,
+                effectKind,
+                iconKey);
         }
     }
 }

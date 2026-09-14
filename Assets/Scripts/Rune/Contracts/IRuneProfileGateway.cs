@@ -25,6 +25,12 @@ public interface IRuneProfileGateway
         string playerId,
         CancellationToken cancellationToken);
 
+    Task<RuneProfileMutationResult> CraftRuneAsync(
+        string playerId,
+        string runeId,
+        string idempotencyKey,
+        CancellationToken cancellationToken);
+
     Task<RuneProfileMutationResult> EquipRuneAsync(
         string playerId,
         string heroId,

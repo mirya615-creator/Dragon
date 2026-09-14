@@ -19,6 +19,13 @@ public sealed class LocalPlayerGoldGateway : IPlayerGoldGateway
     private const string GoldKeyPrefix = "dragonbound.player-gold.";
     private const string MatchKeySegment = ".match.";
     private const string SpendKeySegment = ".spend.";
+    private const string GrantKeySegment = ".grant.";
+    private readonly bool publishBalanceEvents;
+
+    public LocalPlayerGoldGateway(bool publishBalanceEvents = true)
+    {
+        this.publishBalanceEvents = publishBalanceEvents;
+    }
 
     public Task<PlayerGoldState> GetGoldAsync(
         string playerId,
@@ -66,7 +73,7 @@ public sealed class LocalPlayerGoldGateway : IPlayerGoldGateway
         PlayerPrefs.SetString(goldKey, updatedBalance.ToString(CultureInfo.InvariantCulture));
         PlayerPrefs.SetInt(matchKey, (int)appliedReward);
         PlayerPrefs.Save();
-        PlayerGoldEvents.RaiseBalanceChanged(playerId, updatedBalance);
+        PublishBalanceChanged(playerId, updatedBalance);
 
         return Task.FromResult(new GoldSettlementResult
         {
@@ -118,13 +125,57 @@ public sealed class LocalPlayerGoldGateway : IPlayerGoldGateway
         PlayerPrefs.SetString(goldKey, updatedBalance.ToString(CultureInfo.InvariantCulture));
         PlayerPrefs.SetInt(spendKey, amount > int.MaxValue ? int.MaxValue : (int)amount);
         PlayerPrefs.Save();
-        PlayerGoldEvents.RaiseBalanceChanged(playerId, updatedBalance);
+        PublishBalanceChanged(playerId, updatedBalance);
 
         return Task.FromResult(new GoldSpendResult
         {
             Amount = amount,
             Balance = updatedBalance,
             Success = true,
+            Applied = true
+        });
+    }
+
+    /// <summary>
+    /// Local-development reward entry point used by systems whose authoritative
+    /// server claim is not connected yet. rewardId makes it idempotent.
+    /// </summary>
+    public Task<GoldSettlementResult> GrantDevelopmentRewardAsync(
+        string playerId,
+        long amount,
+        string rewardId,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+        if (string.IsNullOrWhiteSpace(rewardId))
+            throw new ArgumentException("Reward ID is required.", nameof(rewardId));
+
+        string goldKey = GetGoldKey(playerId);
+        string grantKey = goldKey + GrantKeySegment + HashKey(rewardId);
+        long currentBalance = LoadBalance(goldKey);
+        if (PlayerPrefs.HasKey(grantKey))
+        {
+            return Task.FromResult(new GoldSettlementResult
+            {
+                Reward = PlayerPrefs.GetInt(grantKey, 0),
+                Balance = currentBalance,
+                Applied = false
+            });
+        }
+
+        long updatedBalance = currentBalance <= long.MaxValue - amount
+            ? currentBalance + amount
+            : long.MaxValue;
+        long appliedReward = updatedBalance - currentBalance;
+        PlayerPrefs.SetString(goldKey, updatedBalance.ToString(CultureInfo.InvariantCulture));
+        PlayerPrefs.SetInt(grantKey, appliedReward > int.MaxValue ? int.MaxValue : (int)appliedReward);
+        PlayerPrefs.Save();
+        PublishBalanceChanged(playerId, updatedBalance);
+        return Task.FromResult(new GoldSettlementResult
+        {
+            Reward = appliedReward,
+            Balance = updatedBalance,
             Applied = true
         });
     }
@@ -165,6 +216,12 @@ public sealed class LocalPlayerGoldGateway : IPlayerGoldGateway
             default:
                 throw new ArgumentOutOfRangeException(nameof(claimType), claimType, "Unknown gold claim type.");
         }
+    }
+
+    private void PublishBalanceChanged(string playerId, long balance)
+    {
+        if (publishBalanceEvents)
+            PlayerGoldEvents.RaiseBalanceChanged(playerId, balance);
     }
 
     private static string GetGoldKey(string playerId)

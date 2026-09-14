@@ -68,6 +68,7 @@ public sealed class LocalLeaderboardPeriodStore
         return new LeaderboardPlayer
         {
             PlayerId = playerId,
+            AvatarId = PlayerAvatarProfile.ResolveAvatarId(playerId, null),
             DisplayName = string.IsNullOrWhiteSpace(displayName) ? "Player" : displayName,
             RankLevel = state.Level,
             Division = state.Division,
@@ -82,6 +83,7 @@ public sealed class LocalLeaderboardPeriodStore
         return new LeaderboardPlayer
         {
             PlayerId = source.PlayerId,
+            AvatarId = source.AvatarId,
             DisplayName = source.DisplayName,
             RankLevel = source.RankLevel,
             Division = source.Division,

@@ -1,9 +1,8 @@
-using System.Collections;
 using DragonBound.Core;
 using DragonBound.Combat;
 using DragonBound.Grid;
 using DragonBound.Recruitment;
-using TMPro;
+using DragonBound.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -14,13 +13,12 @@ namespace DragonBound.Presentation
     {
         [SerializeField] private Button recruitButton;
         [SerializeField] private Text recruitButtonLabel;
-        [SerializeField] private TMP_Text tipText;
 
         private TeamState team;
         private RecruitmentService recruitment;
         private GreyboxBoardView boardView;
+        private RecruitButtonResourceProgress resourceProgress;
         private bool unavailableAtPointerDown;
-        private Coroutine tipHideCoroutine;
 
         public RectTransform RecruitButtonRect => (RectTransform)recruitButton.transform;
         public Button RecruitButton => recruitButton;
@@ -37,16 +35,14 @@ namespace DragonBound.Presentation
         public void Initialize(
             TeamState value,
             RecruitmentService service,
-            GreyboxBoardView view,
-            TMP_Text unavailableTipText = null)
+            GreyboxBoardView view)
         {
             team = value;
             recruitment = service;
             boardView = view;
-            tipText = unavailableTipText;
+            resourceProgress = RecruitButtonResourceProgress.Attach(recruitButton);
             recruitButton.onClick.AddListener(Recruit);
             BindUnavailableClick();
-            HideTip();
             RefreshButton();
         }
 
@@ -72,7 +68,6 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            HideTip();
             boardView.RefreshUnits();
             foreach (var card in attempt.Batch.Cards)
             {
@@ -93,11 +88,14 @@ namespace DragonBound.Presentation
             if (recruitment != null && team != null)
             {
                 recruitButton.interactable = recruitment.CanRecruitNext;
-                recruitButtonLabel.text = recruitment.NextCost.ToString();
-                if (recruitment.CanRecruitNext)
-                {
-                    HideTip();
-                }
+                recruitButtonLabel.text = recruitment.HasFreeRecruit
+                    ? "FREE"
+                    : recruitment.NextCost.ToString();
+                resourceProgress ??= RecruitButtonResourceProgress.Attach(recruitButton);
+                resourceProgress.Refresh(
+                    team.Resources,
+                    recruitment.EffectiveNextCost,
+                    !recruitment.CanAffordNext);
             }
         }
 
@@ -128,45 +126,15 @@ namespace DragonBound.Presentation
 
         private void ShowUnavailableReason()
         {
-            if (recruitment == null || recruitment.CanRecruitNext || tipText == null)
+            if (recruitment == null || recruitment.CanRecruitNext)
             {
                 return;
             }
 
-            tipText.text = !recruitment.CanAffordNext
-                ? $"Not enough Supplies. Need {recruitment.NextCost}."
+            string message = !recruitment.CanAffordNext
+                ? $"Not enough Supplies. Need {recruitment.EffectiveNextCost}."
                 : "Recruitment is currently unavailable.";
-            tipText.gameObject.SetActive(true);
-            if (tipHideCoroutine != null)
-            {
-                StopCoroutine(tipHideCoroutine);
-            }
-
-            tipHideCoroutine = StartCoroutine(HideTipAfterDelay());
-        }
-
-        private void HideTip()
-        {
-            if (tipHideCoroutine != null)
-            {
-                StopCoroutine(tipHideCoroutine);
-                tipHideCoroutine = null;
-            }
-
-            if (tipText != null)
-            {
-                tipText.gameObject.SetActive(false);
-            }
-        }
-
-        private IEnumerator HideTipAfterDelay()
-        {
-            yield return new WaitForSecondsRealtime(1.5f);
-            tipHideCoroutine = null;
-            if (tipText != null)
-            {
-                tipText.gameObject.SetActive(false);
-            }
+            TipTextService.Show(message, 3f);
         }
 
     }

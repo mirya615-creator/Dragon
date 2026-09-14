@@ -125,6 +125,23 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         return Task.FromResult(CreateInventory(LoadState(playerId)));
     }
 
+    public Task<MerchantInventory> SetItemLoadoutAsync(
+        string playerId,
+        IReadOnlyList<string> activeItemIds,
+        IReadOnlyList<string> passiveItemIds,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidatePlayerId(playerId);
+        MerchantInventory inventory = CreateInventory(LoadState(playerId));
+        var owned = new HashSet<string>(StringComparer.Ordinal);
+        foreach (MerchantProduct product in inventory.Products)
+            if (product != null) owned.Add(product.ProductId);
+        AddLocalLoadout(inventory, activeItemIds, owned);
+        AddLocalLoadout(inventory, passiveItemIds, owned);
+        return Task.FromResult(inventory);
+    }
+
     public Task<MerchantLotteryOffer> GetLotteryOfferAsync(
         string playerId,
         string merchantOfferId,
@@ -612,9 +629,30 @@ public sealed class LocalMerchantGateway : IMerchantGateway
         foreach (string productId in state.OwnedProductIds)
         {
             MerchantProduct product = MerchantItemCatalog.Find(productId);
-            if (product != null) inventory.Products.Add(product);
+            if (product != null)
+            {
+                inventory.Products.Add(product);
+                inventory.LoadoutProducts.Add(product);
+            }
         }
         return inventory;
+    }
+
+    private static void AddLocalLoadout(
+        MerchantInventory inventory,
+        IReadOnlyList<string> itemIds,
+        HashSet<string> owned)
+    {
+        if (itemIds == null) return;
+        for (int index = 0; index < itemIds.Count; index++)
+        {
+            string itemId = itemIds[index];
+            if (!owned.Contains(itemId))
+                throw new ArgumentException("Item loadout contains an item that is not owned.", nameof(itemIds));
+            MerchantProduct product = MerchantItemCatalog.Find(itemId);
+            if (product != null && !inventory.LoadoutProducts.Contains(product))
+                inventory.LoadoutProducts.Add(product);
+        }
     }
 
     private async Task<MerchantPurchaseResult> ResultAsync(
@@ -664,6 +702,13 @@ public sealed class LocalMerchantGateway : IMerchantGateway
                     state.CurrentLotteryOffer.WinningProductId;
             }
             if (state.OwnedProductIds == null) state.OwnedProductIds = new List<string>();
+            for (int index = 0; index < state.OwnedProductIds.Count; index++)
+            {
+                if (state.OwnedProductIds[index] == MerchantItemCatalog.LegacyForgekeepersGiftProductId)
+                {
+                    state.OwnedProductIds[index] = MerchantItemCatalog.ForgekeepersGiftProductId;
+                }
+            }
             state.OwnedProductIds = new List<string>(new HashSet<string>(state.OwnedProductIds));
             return state;
         }

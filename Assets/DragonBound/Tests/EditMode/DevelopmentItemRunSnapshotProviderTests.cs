@@ -44,6 +44,26 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void ConfigureSidesBuildsIndependentValidatedSnapshots()
+        {
+            var provider = new DevelopmentItemRunSnapshotProvider();
+
+            Assert.IsTrue(provider.TryConfigureSides(
+                new[] { ItemIds.WyrmfangSnare, ItemIds.DrakeheartRelic },
+                new[] { ItemIds.RuneburstMine, ItemIds.SpellbreakerSeal },
+                out var configureReason), configureReason);
+            Assert.IsTrue(provider.TryGetValidatedSnapshots(
+                out var player,
+                out var ai,
+                out var snapshotReason), snapshotReason);
+
+            CollectionAssert.AreEqual(new[] { ItemIds.WyrmfangSnare }, player.ActiveItems);
+            CollectionAssert.AreEqual(new[] { ItemIds.DrakeheartRelic }, player.PassiveItems);
+            CollectionAssert.AreEqual(new[] { ItemIds.RuneburstMine }, ai.ActiveItems);
+            CollectionAssert.AreEqual(new[] { ItemIds.SpellbreakerSeal }, ai.PassiveItems);
+        }
+
+        [Test]
         public void InvalidConfigurationIsRejectedWithoutReplacingTheLastValidSnapshot()
         {
             var provider = new DevelopmentItemRunSnapshotProvider();

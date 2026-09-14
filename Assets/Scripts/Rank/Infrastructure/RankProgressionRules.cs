@@ -57,21 +57,24 @@ public static class RankProgressionRules
         };
     }
 
+    public static PlayerRankState FromServerState(string rankId, int segment, long stars)
+    {
+        int level = ParseRankLevel(rankId);
+        long safeStars = Math.Max(0, stars);
+        if (level >= 10) return Calculate(DragonMarshalThreshold + safeStars);
+
+        int safeSegment = Math.Max(1, Math.Min(3, segment));
+        long total = 0;
+        for (int previousLevel = 1; previousLevel < level; previousLevel++)
+            total += GetStarsPerDivision(previousLevel) * 3L;
+        total += (safeSegment - 1) * (long)GetStarsPerDivision(level);
+        total += Math.Min(safeStars, GetStarsPerDivision(level) - 1L);
+        return Calculate(total);
+    }
+
     public static long CalculateTotalAfterDefeat(long totalRankStars)
     {
         long safeTotal = Math.Max(0, totalRankStars);
-        PlayerRankState currentState = Calculate(safeTotal);
-
-        // Recruit through Corporal never lose rank progress.
-        if (currentState.Level <= 3) return safeTotal;
-
-        // Dragon Marshal can lose bonus stars, but never drops below level 10.
-        if (currentState.Level >= 10)
-        {
-            return Math.Max(DragonMarshalThreshold, safeTotal - 1);
-        }
-
-        // Sergeant through General lose one star and may be demoted.
         return Math.Max(0, safeTotal - 1);
     }
 
@@ -102,6 +105,15 @@ public static class RankProgressionRules
         if (level <= 3) return 3;
         if (level <= 6) return 4;
         return 5;
+    }
+
+    private static int ParseRankLevel(string rankId)
+    {
+        if (!string.IsNullOrWhiteSpace(rankId) &&
+            rankId.StartsWith("RANK_", StringComparison.Ordinal) &&
+            int.TryParse(rankId.Substring(5), out int level))
+            return Math.Max(1, Math.Min(10, level));
+        return 1;
     }
 
     private static string GetDivisionLabel(int division)

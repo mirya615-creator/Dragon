@@ -42,7 +42,8 @@ namespace DragonBound.Grid
         Moved,
         Swapped,
         Removed,
-        CellUnlocked
+        CellUnlocked,
+        CellLocked
     }
 
     public readonly struct GridMutation

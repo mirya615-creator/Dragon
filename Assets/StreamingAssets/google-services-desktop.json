@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "82952977839",
+    "project_id": "drakeforge",
+    "storage_bucket": "drakeforge.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:82952977839:android:1f8378076b5e183b5a435a",
+        "android_client_info": {
+          "package_name": "com.drakeforge.mergedefense"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBynHqhDdeJM_MNogDGCKUVSBhSedcPCmU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

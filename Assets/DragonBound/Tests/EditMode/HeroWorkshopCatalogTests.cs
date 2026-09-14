@@ -19,9 +19,9 @@ namespace DragonBound.Tests.EditMode
         public void HeroGalleryUsesConfiguredDirections()
         {
             var recipes = FrozenHeroConfigurationCatalog.Configuration.Recipes;
-            Assert.AreEqual(6, recipes.Count(recipe =>
+            Assert.AreEqual(0, recipes.Count(recipe =>
                 recipe.FormationOrientation == HeroFormationOrientation.Vertical));
-            Assert.AreEqual(6, recipes.Count(recipe =>
+            Assert.AreEqual(12, recipes.Count(recipe =>
                 recipe.FormationOrientation == HeroFormationOrientation.Horizontal));
             Assert.IsTrue(recipes.All(recipe => !string.IsNullOrWhiteSpace(recipe.FormationPrefabId)));
         }
@@ -38,53 +38,53 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void DragonRecipeRequiresPersonAboveDragon()
+        public void DragonRecipeRequiresPersonLeftOfDragon()
         {
             Assert.IsTrue(HeroSliceCatalog.TryGetRecipeDefinitionAtFormation(
                 DragonBoundComponentIds.SkyRanger,
-                new GridPosition(0, 2),
-                DragonBoundComponentIds.DragonSigil,
                 new GridPosition(0, 1),
+                DragonBoundComponentIds.DragonSigil,
+                new GridPosition(1, 1),
                 out var recipe));
             Assert.AreEqual(DragonBoundHeroIds.WindclawRanger, recipe.HeroId);
         }
 
         [Test]
-        public void DragonRecipeRejectsDragonAbovePerson()
+        public void DragonRecipeRejectsDragonLeftOfPerson()
         {
             Assert.IsFalse(HeroSliceCatalog.TryGetRecipeDefinitionAtFormation(
                 DragonBoundComponentIds.DragonSigil,
-                new GridPosition(0, 2),
+                new GridPosition(0, 1),
                 DragonBoundComponentIds.SkyRanger,
+                new GridPosition(1, 1),
+                out _));
+        }
+
+        [Test]
+        public void DragonRecipeRejectsVerticalLayout()
+        {
+            Assert.IsFalse(HeroSliceCatalog.TryGetRecipeDefinitionAtFormation(
+                DragonBoundComponentIds.SkyRanger,
+                new GridPosition(0, 2),
+                DragonBoundComponentIds.DragonSigil,
                 new GridPosition(0, 1),
                 out _));
         }
 
         [Test]
-        public void DragonRecipeRejectsHorizontalLayout()
-        {
-            Assert.IsFalse(HeroSliceCatalog.TryGetRecipeDefinitionAtFormation(
-                DragonBoundComponentIds.SkyRanger,
-                new GridPosition(0, 2),
-                DragonBoundComponentIds.DragonSigil,
-                new GridPosition(1, 2),
-                out _));
-        }
-
-        [Test]
-        public void CrownRecipeRequiresCrownAbovePerson()
+        public void CrownRecipeRequiresCrownLeftOfPerson()
         {
             var recipe = FrozenHeroConfigurationCatalog.GetRecipe(DragonBoundHeroIds.HornbladeDuelist);
             Assert.IsTrue(recipe.MatchesFormation(
                 DragonBoundComponentIds.WarHorn,
-                new GridPosition(1, 2),
+                new GridPosition(1, 1),
                 DragonBoundComponentIds.WanderingSword,
-                new GridPosition(1, 1)));
+                new GridPosition(2, 1)));
             Assert.IsFalse(recipe.MatchesFormation(
                 DragonBoundComponentIds.WanderingSword,
-                new GridPosition(1, 2),
+                new GridPosition(1, 1),
                 DragonBoundComponentIds.WarHorn,
-                new GridPosition(1, 1)));
+                new GridPosition(2, 1)));
         }
 
         [Test]
@@ -108,15 +108,15 @@ namespace DragonBound.Tests.EditMode
         {
             Assert.IsTrue(HeroSliceCatalog.TryGetRecipeDefinitionAtFormation(
                 DragonBoundComponentIds.SkyRanger,
-                new GridPosition(0, 2),
-                DragonBoundComponentIds.DragonSigil,
                 new GridPosition(0, 1),
+                DragonBoundComponentIds.DragonSigil,
+                new GridPosition(1, 1),
                 out var first));
             Assert.IsTrue(HeroSliceCatalog.TryGetRecipeDefinitionAtFormation(
                 DragonBoundComponentIds.DragonSigil,
-                new GridPosition(0, 1),
+                new GridPosition(1, 1),
                 DragonBoundComponentIds.SkyRanger,
-                new GridPosition(0, 2),
+                new GridPosition(0, 1),
                 out var second));
             Assert.AreEqual(first.HeroId, second.HeroId);
         }

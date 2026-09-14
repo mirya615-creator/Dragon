@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DragonBound.Runes;
 using UnityEngine;
 
 /// <summary>
@@ -11,9 +12,22 @@ using UnityEngine;
 /// </summary>
 public sealed class LocalRuneRewardService : IRuneProfileGateway
 {
-    private const string ProfileKeyPrefix = "dragonbound.runes.";
+    private const string DefaultProfileKeyPrefix = "dragonbound.runes.";
     private const string SettledRunSegment = ".settled-run.";
     private const string GuestPaginationTestSegment = ".guest-pagination-test-v1";
+    private readonly string profileKeyPrefix;
+
+    public LocalRuneRewardService()
+        : this(DefaultProfileKeyPrefix)
+    {
+    }
+
+    internal LocalRuneRewardService(string profileKeyPrefix)
+    {
+        if (string.IsNullOrWhiteSpace(profileKeyPrefix))
+            throw new ArgumentException("Profile key prefix is required.", nameof(profileKeyPrefix));
+        this.profileKeyPrefix = profileKeyPrefix;
+    }
 
     private RuneProfile RemoveLegacyGuestPaginationTestInventory(string playerId, int itemCount)
     {
@@ -73,31 +87,34 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
         if (PlayerPrefs.HasKey(settledKey)) return Task.FromResult(profile);
 
         profile.LastRunRewards.Clear();
-        if (profile.AccountDay >= 3 && rewards != null)
-        {
-            for (int index = 0; index < rewards.Count && index < 4; index++)
-            {
-                RuneReward reward = rewards[index];
-                RuneDefinition definition = reward != null
-                    ? RuneCatalog.Find(reward.RuneId)
-                    : null;
-                if (reward == null || definition == null) continue;
+        if (profile.AccountDay >= RuneFeatureGate.UnlockAccountDay)
+            ApplyRewards(profile, rewards);
 
-                RuneInventoryEntry entry = FindOrCreateEntry(profile, reward.RuneId);
-                int safeAmount = Math.Max(1, reward.Amount);
-                if (reward.RewardKind == RuneRewardKind.CompleteRune)
-                {
-                    entry.OwnedCount = AddWithoutOverflow(entry.OwnedCount, safeAmount);
-                }
-                else
-                {
-                    AddFragments(entry, definition, safeAmount);
-                }
+        SaveProfile(profileKey, profile);
+        PlayerPrefs.SetInt(settledKey, 1);
+        PlayerPrefs.Save();
+        return Task.FromResult(profile);
+    }
 
-                profile.LastRunRewards.Add(CloneReward(reward));
-            }
-        }
+    /// <summary>
+    /// Local-development reward entry point for non-run systems such as sign-in.
+    /// It stores earned runes even while the rune screen itself is still gated.
+    /// </summary>
+    public Task<RuneProfile> GrantDevelopmentRewardsAsync(
+        string playerId,
+        string rewardId,
+        IReadOnlyList<RuneReward> rewards,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateIdentity(playerId, rewardId);
+        string profileKey = GetProfileKey(playerId);
+        string settledKey = profileKey + SettledRunSegment + HashKey("grant:" + rewardId);
+        RuneProfile profile = LoadProfileByKey(profileKey);
+        if (PlayerPrefs.HasKey(settledKey)) return Task.FromResult(profile);
 
+        profile.LastRunRewards.Clear();
+        ApplyRewards(profile, rewards);
         SaveProfile(profileKey, profile);
         PlayerPrefs.SetInt(settledKey, 1);
         PlayerPrefs.Save();
@@ -119,6 +136,28 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
         return Task.FromResult(RemoveLegacyGuestPaginationTestInventory(playerId, 30));
     }
 
+    public Task<RuneProfileMutationResult> CraftRuneAsync(
+        string playerId,
+        string runeId,
+        string idempotencyKey,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        RuneDefinition definition = RuneCatalog.Find(runeId);
+        if (string.IsNullOrWhiteSpace(playerId) || definition == null ||
+            definition.RequiredFragments <= 0)
+            return MutationResult(false, new RuneProfile());
+        string profileKey = GetProfileKey(playerId);
+        RuneProfile profile = LoadProfileByKey(profileKey);
+        RuneInventoryEntry entry = FindInventoryEntry(profile, runeId);
+        if (entry == null || entry.FragmentCount < definition.RequiredFragments)
+            return MutationResult(false, profile);
+        entry.FragmentCount -= definition.RequiredFragments;
+        entry.OwnedCount++;
+        SaveProfile(profileKey, profile);
+        return MutationResult(true, profile);
+    }
+
     public Task<RuneProfileMutationResult> EquipRuneAsync(
         string playerId,
         string heroId,
@@ -135,7 +174,7 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
 
         string profileKey = GetProfileKey(playerId);
         RuneProfile profile = LoadProfileByKey(profileKey);
-        if (profile.AccountDay < 3)
+        if (profile.AccountDay < RuneFeatureGate.UnlockAccountDay)
         {
             return MutationResult(false, profile);
         }
@@ -180,7 +219,7 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
 
         string profileKey = GetProfileKey(playerId);
         RuneProfile profile = LoadProfileByKey(profileKey);
-        if (profile.AccountDay < 3)
+        if (profile.AccountDay < RuneFeatureGate.UnlockAccountDay)
         {
             return MutationResult(false, profile);
         }
@@ -250,6 +289,27 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
         var entry = new RuneInventoryEntry { RuneId = runeId };
         profile.Inventory.Add(entry);
         return entry;
+    }
+
+    private static void ApplyRewards(RuneProfile profile, IReadOnlyList<RuneReward> rewards)
+    {
+        if (rewards == null) return;
+        for (int index = 0; index < rewards.Count && index < 4; index++)
+        {
+            RuneReward reward = rewards[index];
+            RuneDefinition definition = reward != null
+                ? RuneCatalog.Find(reward.RuneId)
+                : null;
+            if (reward == null || definition == null) continue;
+
+            RuneInventoryEntry entry = FindOrCreateEntry(profile, reward.RuneId);
+            int safeAmount = Math.Max(1, reward.Amount);
+            if (reward.RewardKind == RuneRewardKind.CompleteRune)
+                entry.OwnedCount = AddWithoutOverflow(entry.OwnedCount, safeAmount);
+            else
+                AddFragments(entry, definition, safeAmount);
+            profile.LastRunRewards.Add(CloneReward(reward));
+        }
     }
 
     private static void AddFragments(
@@ -392,9 +452,9 @@ public sealed class LocalRuneRewardService : IRuneProfileGateway
             throw new ArgumentException("Run ID is required.", nameof(runId));
     }
 
-    private static string GetProfileKey(string playerId)
+    private string GetProfileKey(string playerId)
     {
-        return ProfileKeyPrefix + HashKey(playerId);
+        return profileKeyPrefix + HashKey(playerId);
     }
 
     private static string HashKey(string value)

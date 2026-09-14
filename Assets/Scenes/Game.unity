@@ -7783,6 +7783,7 @@ GameObject:
   - component: {fileID: 4564328034278069807}
   - component: {fileID: 1130825545091701834}
   - component: {fileID: 311786133843747250}
+  - component: {fileID: 910000000000000002}
   m_Layer: 5
   m_Name: LoadingPanel
   m_TagString: Untagged
@@ -7790,6 +7791,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
+--- !u!114 &910000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6249138298140451414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d2f2b1b5e5a4fc08e11ed843dd6c977, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entranceMode: 0
+  duration: 0.6
+  horizontalPlayerDelay: 0.05
+  playOnEnable: 1
 --- !u!222 &6303986620512134282
 CanvasRenderer:
   m_ObjectHideFlags: 0

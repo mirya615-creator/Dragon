@@ -9,12 +9,14 @@ namespace DragonBound.Analytics
         public const string LivePlayerVsAi = "live_player_vs_ai";
         public const string DiagnosticAiVsAi = "diagnostic_ai_vs_ai";
         public const string HeroSliceShowcase = "hero_slice_showcase";
+        public const string Application = "application";
 
         public static bool IsKnown(string value)
         {
             return value == LivePlayerVsAi ||
                    value == DiagnosticAiVsAi ||
-                   value == HeroSliceShowcase;
+                   value == HeroSliceShowcase ||
+                   value == Application;
         }
     }
 
@@ -27,6 +29,19 @@ namespace DragonBound.Analytics
         public static bool IsKnown(string value)
         {
             return value == Player || value == Ai || value == System;
+        }
+    }
+
+    public static class AnalyticsBuildLanes
+    {
+        public const string Development = "development";
+        public const string Qa = "qa";
+        public const string Staging = "staging";
+        public const string Production = "production";
+
+        public static bool IsKnown(string value)
+        {
+            return value == Development || value == Qa || value == Staging || value == Production;
         }
     }
 
@@ -44,11 +59,12 @@ namespace DragonBound.Analytics
 
     public static class AnalyticsComponentPolicies
     {
+        public const string RecruitComponentPolicyV2 = "recruit_component_policy_v2";
         public const string RecruitComponentPolicyV3 = "recruit_component_policy_v3";
 
         public static bool IsKnown(string value)
         {
-            return value == RecruitComponentPolicyV3;
+            return value == RecruitComponentPolicyV2 || value == RecruitComponentPolicyV3;
         }
     }
 
@@ -327,6 +343,12 @@ namespace DragonBound.Analytics
             if (!AnalyticsExecutionContexts.IsKnown(value.execution_context))
             {
                 error = "execution_context is invalid";
+                return false;
+            }
+
+            if (!AnalyticsBuildLanes.IsKnown(value.build_lane))
+            {
+                error = "build_lane is invalid";
                 return false;
             }
 
@@ -630,21 +652,32 @@ namespace DragonBound.Analytics
 
         private static bool HasNonSensitiveLedgerReference(AnalyticsEventV2 value)
         {
-            return IsHashedReference(value.transaction_ref_hash) ||
-                   IsHashedReference(value.idempotency_key_hash);
+            return IsHashedLedgerReference(value.transaction_ref_hash) ||
+                   IsHashedLedgerReference(value.idempotency_key_hash);
         }
 
-        private static bool IsHashedReference(string value)
+        public static bool IsHashedLedgerReference(string value)
         {
-            if (string.IsNullOrWhiteSpace(value) || value.Length < 12)
+            const string prefix = "sha256:";
+            if (string.IsNullOrWhiteSpace(value) ||
+                !value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+                value.Length < prefix.Length + 16)
             {
                 return false;
             }
 
-            var lowered = value.ToLowerInvariant();
-            return lowered.IndexOf("token", StringComparison.Ordinal) < 0 &&
-                   lowered.IndexOf("secret", StringComparison.Ordinal) < 0 &&
-                   lowered.IndexOf("bearer", StringComparison.Ordinal) < 0;
+            for (var index = prefix.Length; index < value.Length; index++)
+            {
+                var character = value[index];
+                if (!((character >= '0' && character <= '9') ||
+                      (character >= 'a' && character <= 'f') ||
+                      (character >= 'A' && character <= 'F')))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static bool Missing(string fields, out string error)
@@ -666,6 +699,7 @@ namespace DragonBound.Analytics
         public string execution_context;
         public string config_version;
         public string build_version;
+        public string build_lane;
         public string side;
         public int wave;
         public string rank_tier;
@@ -765,7 +799,8 @@ namespace DragonBound.Analytics
             long sequence,
             string configVersion,
             string buildVersion,
-            DateTime utcTimestamp)
+            DateTime utcTimestamp,
+            string buildLane = AnalyticsBuildLanes.Development)
         {
             return new AnalyticsEventV2
             {
@@ -777,6 +812,7 @@ namespace DragonBound.Analytics
                 execution_context = executionContext,
                 config_version = configVersion,
                 build_version = buildVersion,
+                build_lane = buildLane,
                 side = side,
                 wave = wave,
                 rank_tier = rankTier,
@@ -889,7 +925,18 @@ namespace DragonBound.Analytics
                 return AnalyticsRecordResultV2.OutOfOrder;
             }
 
-            if (!sink.Record(value))
+            bool accepted;
+            try
+            {
+                accepted = sink.Record(value);
+            }
+            catch (Exception exception)
+            {
+                error = "analytics sink threw " + exception.GetType().Name;
+                return AnalyticsRecordResultV2.SinkFailure;
+            }
+
+            if (!accepted)
             {
                 error = "analytics sink rejected the event";
                 return AnalyticsRecordResultV2.SinkFailure;
@@ -905,7 +952,22 @@ namespace DragonBound.Analytics
 
         public void Flush()
         {
-            sink.Flush();
+            try
+            {
+                sink.Flush();
+            }
+            catch (Exception)
+            {
+                // Analytics transport failures must never escape into gameplay lifecycle code.
+            }
+        }
+
+        public void ClearPending()
+        {
+            if (sink is IAnalyticsPrivacyControlV2 privacyControl)
+            {
+                privacyControl.ClearPending();
+            }
         }
     }
 }

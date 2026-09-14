@@ -75,26 +75,46 @@ public sealed class SceneLoader : MonoBehaviour
     /// </summary>
     public void LoadSceneAsync(string sceneName)
     {
+        StartSceneLoad(sceneName, true);
+    }
+
+    /// <summary>
+    /// Starts a guarded asynchronous transition without displaying the source scene's loading UI.
+    /// Login uses this after its one-time startup loading presentation has completed.
+    /// </summary>
+    public void LoadSceneAsyncWithoutLoadingUi(string sceneName)
+    {
+        StartSceneLoad(sceneName, false);
+    }
+
+    private void StartSceneLoad(string sceneName, bool showLoadingUi)
+    {
         if (isLoading || string.IsNullOrWhiteSpace(sceneName))
         {
             return;
         }
 
-        StartCoroutine(LoadSceneRoutine(sceneName));
+        StartCoroutine(LoadSceneRoutine(sceneName, showLoadingUi));
     }
 
-    private IEnumerator LoadSceneRoutine(string sceneName)
+    private IEnumerator LoadSceneRoutine(string sceneName, bool showLoadingUi)
     {
         isLoading = true;
-        ResolveSceneLoadingUi(SceneManager.GetActiveScene());
-        SetLoadingVisible(true);
-        SetProgress(0f);
+        if (showLoadingUi)
+        {
+            ResolveSceneLoadingUi(SceneManager.GetActiveScene());
+            SetLoadingVisible(true);
+            SetProgress(0f);
+        }
 
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
         if (operation == null)
         {
             Debug.LogError($"Unable to load scene '{sceneName}'. Make sure it is in Build Settings.");
-            SetLoadingVisible(false);
+            if (showLoadingUi)
+            {
+                SetLoadingVisible(false);
+            }
             isLoading = false;
             yield break;
         }
@@ -104,12 +124,18 @@ public sealed class SceneLoader : MonoBehaviour
 
         while (operation.progress < 0.9f)
         {
-            SetProgress(operation.progress / 0.9f);
+            if (showLoadingUi)
+            {
+                SetProgress(operation.progress / 0.9f);
+            }
             yield return null;
         }
 
-        SetProgress(1f);
-        yield return null; // Ensure the completed bar is rendered for one frame.
+        if (showLoadingUi)
+        {
+            SetProgress(1f);
+            yield return null; // Ensure the completed bar is rendered for one frame.
+        }
 
         operation.allowSceneActivation = true;
         while (!operation.isDone)
@@ -165,7 +191,8 @@ public sealed class SceneLoader : MonoBehaviour
 
         foreach (GameObject root in scene.GetRootGameObjects())
         {
-            Transform loadingTransform = root.transform.Find("MainPanel/LoginPanel/LoadingImg");
+            Transform loadingTransform = root.transform.Find(
+                "SafeArea/MainPanel/LoginPanel/LoadingImg");
             if (loadingTransform == null)
             {
                 continue;
@@ -185,7 +212,8 @@ public sealed class SceneLoader : MonoBehaviour
             return;
         }
 
-        Debug.LogError("Login scene is missing MainPanel/LoginPanel/LoadingImg.");
+        Debug.LogError(
+            "Login scene is missing Canvas/SafeArea/MainPanel/LoginPanel/LoadingImg.");
     }
 
     private static void ConfigureProgressFill(Image fill)

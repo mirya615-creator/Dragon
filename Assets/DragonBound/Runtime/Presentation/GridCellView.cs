@@ -8,6 +8,7 @@ namespace DragonBound.Presentation
 {
     public sealed class GridCellView : MonoBehaviour, IPointerClickHandler
     {
+        private const float InputInsetPixels = 6f;
         [SerializeField] private int gridX;
         [SerializeField] private int gridY;
         [SerializeField] private CellType cellType;
@@ -354,24 +355,35 @@ namespace DragonBound.Presentation
         private void EnsureInputReceiver()
         {
             var receiver = transform.Find("InputReceiver");
-            if (receiver != null)
+            RectTransform rect;
+            Image image;
+            if (receiver == null)
+            {
+                var receiverObject = new GameObject(
+                    "InputReceiver",
+                    typeof(RectTransform),
+                    typeof(CanvasRenderer),
+                    typeof(Image));
+                rect = receiverObject.GetComponent<RectTransform>();
+                rect.SetParent(transform, false);
+                image = receiverObject.GetComponent<Image>();
+                image.color = new Color(1f, 1f, 1f, 0f);
+            }
+            else
+            {
+                rect = receiver as RectTransform;
+                image = receiver.GetComponent<Image>();
+            }
+
+            if (rect == null || image == null)
             {
                 return;
             }
 
-            var receiverObject = new GameObject(
-                "InputReceiver",
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Image));
-            var rect = receiverObject.GetComponent<RectTransform>();
-            rect.SetParent(transform, false);
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            var image = receiverObject.GetComponent<Image>();
-            image.color = new Color(1f, 1f, 1f, 0f);
+            rect.offsetMin = new Vector2(InputInsetPixels, InputInsetPixels);
+            rect.offsetMax = new Vector2(-InputInsetPixels, -InputInsetPixels);
             image.raycastTarget = true;
             rect.SetAsFirstSibling();
         }

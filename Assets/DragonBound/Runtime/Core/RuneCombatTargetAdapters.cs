@@ -14,7 +14,7 @@ namespace DragonBound.Core
         }
 
         public string RuntimeId => enemy?.RuntimeId ?? string.Empty;
-        public bool IsAlive => enemy != null && enemy.IsAlive;
+        public bool IsAlive => enemy != null && enemy.IsAttackable;
         public bool IsBoss => enemy != null && enemy.Archetype == EnemyArchetype.Boss;
         public float PathProgress => enemy?.PathProgress ?? 0f;
         public CombatPoint CombatPosition => enemy == null ? default(CombatPoint) : enemy.CombatPosition;

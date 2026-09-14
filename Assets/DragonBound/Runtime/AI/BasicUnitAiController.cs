@@ -9,6 +9,48 @@ using UnityEngine;
 
 namespace DragonBound.AI
 {
+    public enum AiBoardActionType
+    {
+        None,
+        Recruit,
+        DeployBasicUnit,
+        MoveComponent,
+        MergeBasicUnit,
+        FormHero,
+        UseForgePick
+    }
+
+    /// <summary>
+    /// One authoritative AI board mutation. Keeping this as a small data contract lets the
+    /// presentation play every AI action separately and leaves a seam for future server-owned
+    /// unary decisions without coupling the core controller to Unity views.
+    /// </summary>
+    public readonly struct AiBoardAction
+    {
+        public AiBoardAction(
+            AiBoardActionType type,
+            string runtimeId = "",
+            GridPosition source = default,
+            GridPosition target = default,
+            bool hasSource = false,
+            bool hasTarget = false)
+        {
+            Type = type;
+            RuntimeId = runtimeId ?? string.Empty;
+            Source = source;
+            Target = target;
+            HasSource = hasSource;
+            HasTarget = hasTarget;
+        }
+
+        public AiBoardActionType Type { get; }
+        public string RuntimeId { get; }
+        public GridPosition Source { get; }
+        public GridPosition Target { get; }
+        public bool HasSource { get; }
+        public bool HasTarget { get; }
+    }
+
     public enum AiRecruitBlockedReason
     {
         None,
@@ -115,6 +157,15 @@ namespace DragonBound.AI
 
     public sealed class BasicUnitAiController
     {
+        private enum StepwiseCyclePhase
+        {
+            Idle,
+            InitialShovel,
+            PreRecruitMaintenance,
+            Recruit,
+            PostRecruitMaintenance
+        }
+
         private readonly BoardGrid board;
         private readonly BoardRecruitDestination destination;
         private readonly RecruitmentService recruitment;
@@ -131,6 +182,16 @@ namespace DragonBound.AI
         private AiStrategyProfile strategyProfile = AiStrategyProfile.Get(AiStrategyProfileId.Beginner);
         private IRunRandom strategyRandom = new RunRandom(0);
         private int strategyDecisionOrdinal;
+        private StepwiseCyclePhase stepwiseCyclePhase;
+        private int stepwiseCycleWave;
+        private int stepwiseObjectsBefore;
+        private int stepwiseLinksBefore;
+        private int stepwiseOpenCellsBefore;
+        private int stepwiseResourcesBefore;
+        private int stepwiseBasicDeployLimit = int.MaxValue;
+        private int stepwiseBasicDeployCount;
+        private bool stepwiseOpeningSequence;
+        private int stepwiseOpeningRecruitmentsRemaining;
 
         public BasicUnitAiController(
             BoardGrid board,
@@ -192,6 +253,7 @@ namespace DragonBound.AI
         public IReadOnlyDictionary<AiRecruitBlockedReason, int> RecruitStallCounts => recruitStallCounts;
         public AiStrategyProfile StrategyProfile => strategyProfile;
         public float LastRecruitActionScore { get; private set; }
+        public bool IsStepwiseCycleActive => stepwiseCyclePhase != StepwiseCyclePhase.Idle;
 
         public void ConfigureStrategy(AiStrategyProfile profile, int decisionSeed)
         {
@@ -217,6 +279,110 @@ namespace DragonBound.AI
             }
 
             return attempt;
+        }
+
+        /// <summary>
+        /// Starts one normal AI decision. Calls to TryExecuteStepwiseCycleStep commit at most
+        /// one visible mutation, so the board view can refresh between actions.
+        /// </summary>
+        public bool BeginStepwiseCycle(int currentWave = 0)
+        {
+            if (IsStepwiseCycleActive)
+            {
+                return false;
+            }
+
+            CaptureStepwiseCycleStart(currentWave, int.MaxValue);
+            stepwiseCyclePhase = StepwiseCyclePhase.InitialShovel;
+            return true;
+        }
+
+        public bool BeginOpeningSequence(int recruitmentCount, int maximumBasicUnits)
+        {
+            if (recruitmentCount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(recruitmentCount));
+            }
+
+            if (maximumBasicUnits < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maximumBasicUnits));
+            }
+
+            if (IsStepwiseCycleActive)
+            {
+                return false;
+            }
+
+            CaptureStepwiseCycleStart(0, maximumBasicUnits);
+            stepwiseOpeningSequence = true;
+            stepwiseOpeningRecruitmentsRemaining = recruitmentCount;
+            stepwiseCyclePhase = recruitmentCount > 0
+                ? StepwiseCyclePhase.Recruit
+                : StepwiseCyclePhase.PostRecruitMaintenance;
+            return true;
+        }
+
+        /// <summary>
+        /// Executes no more than one authoritative mutation. False means the cycle reached a
+        /// stable board during this call; callers should stop their visual sequence.
+        /// </summary>
+        public bool TryExecuteStepwiseCycleStep(out AiBoardAction action)
+        {
+            action = default;
+            while (IsStepwiseCycleActive)
+            {
+                switch (stepwiseCyclePhase)
+                {
+                    case StepwiseCyclePhase.InitialShovel:
+                        stepwiseCyclePhase = StepwiseCyclePhase.PreRecruitMaintenance;
+                        if (TryUseBenchShovelImmediately())
+                        {
+                            action = new AiBoardAction(AiBoardActionType.UseForgePick);
+                            return true;
+                        }
+                        break;
+
+                    case StepwiseCyclePhase.PreRecruitMaintenance:
+                        if (TryMaintainBoardStep(out action))
+                        {
+                            return true;
+                        }
+
+                        stepwiseCyclePhase = StepwiseCyclePhase.Recruit;
+                        break;
+
+                    case StepwiseCyclePhase.Recruit:
+                        ExecuteStepwiseRecruit(out action);
+                        if (action.Type != AiBoardActionType.None)
+                        {
+                            return true;
+                        }
+                        break;
+
+                    case StepwiseCyclePhase.PostRecruitMaintenance:
+                        if (TryMaintainBoardStep(out action))
+                        {
+                            return true;
+                        }
+
+                        if (stepwiseOpeningSequence && stepwiseOpeningRecruitmentsRemaining > 0)
+                        {
+                            stepwiseCyclePhase = StepwiseCyclePhase.Recruit;
+                        }
+                        else
+                        {
+                            CompleteStepwiseCycle();
+                        }
+                        break;
+
+                    default:
+                        CompleteStepwiseCycle();
+                        break;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -293,6 +459,327 @@ namespace DragonBound.AI
                                linksBefore != destination.ActivePairLinkCount ||
                                openCellsBefore != board.UnlockedBattleCellCount ||
                                (team != null && resourcesBefore != team.Resources);
+        }
+
+        private void CaptureStepwiseCycleStart(int currentWave, int maximumBasicUnits)
+        {
+            stepwiseCycleWave = currentWave;
+            stepwiseObjectsBefore = destination.TotalObjectCount;
+            stepwiseLinksBefore = destination.ActivePairLinkCount;
+            stepwiseOpenCellsBefore = board.UnlockedBattleCellCount;
+            stepwiseResourcesBefore = team?.Resources ?? 0;
+            stepwiseBasicDeployLimit = maximumBasicUnits;
+            stepwiseBasicDeployCount = 0;
+            stepwiseOpeningSequence = false;
+            stepwiseOpeningRecruitmentsRemaining = 0;
+            LastCycleChanged = false;
+        }
+
+        private void ExecuteStepwiseRecruit(out AiBoardAction action)
+        {
+            action = default;
+            if (stepwiseOpeningSequence)
+            {
+                var openingAttempt = recruitment.TryRecruit();
+                if (openingAttempt.Status == RecruitmentStatus.Success)
+                {
+                    stepwiseOpeningRecruitmentsRemaining--;
+                    stepwiseCyclePhase = StepwiseCyclePhase.PostRecruitMaintenance;
+                    action = new AiBoardAction(AiBoardActionType.Recruit);
+                }
+                else
+                {
+                    stepwiseOpeningRecruitmentsRemaining = 0;
+                    CompleteStepwiseCycle();
+                }
+
+                return;
+            }
+
+            var wantedToRecruit = team == null || team.HatchlingHealth > 0;
+            var attemptedRecruit = false;
+            var succeededRecruit = false;
+            var blockedReason = AiRecruitBlockedReason.None;
+            var legacyCampPolicyWouldBlock = CanRecruitWithoutDiscardingComponents() == false;
+            var strategyAllowsRecruit = ShouldRecruitThisCycle();
+            if (!wantedToRecruit)
+            {
+                blockedReason = AiRecruitBlockedReason.RunEnded;
+            }
+            else if (!recruitment.CanAffordNext)
+            {
+                blockedReason = AiRecruitBlockedReason.InsufficientResources;
+            }
+            else if (!strategyAllowsRecruit)
+            {
+                blockedReason = AiRecruitBlockedReason.StrategyDeferred;
+            }
+            else
+            {
+                attemptedRecruit = true;
+                var attempt = recruitment.TryRecruit();
+                succeededRecruit = attempt.Status == RecruitmentStatus.Success;
+                if (!succeededRecruit)
+                {
+                    blockedReason = attempt.Status == RecruitmentStatus.InsufficientResources
+                        ? AiRecruitBlockedReason.InsufficientResources
+                        : AiRecruitBlockedReason.Other;
+                }
+            }
+
+            LastRecruitTelemetry = CaptureRecruitTelemetry(
+                wantedToRecruit,
+                attemptedRecruit,
+                succeededRecruit,
+                blockedReason,
+                legacyCampPolicyWouldBlock);
+            if (LastRecruitTelemetry.AIWantedToRecruit &&
+                LastRecruitTelemetry.CanAffordRecruit &&
+                LastRecruitTelemetry.LegacyCampPolicyWouldBlock)
+            {
+                LegacyCampPolicyBlockCount++;
+            }
+
+            UpdateRecruitStall(stepwiseCycleWave);
+            stepwiseCyclePhase = succeededRecruit
+                ? StepwiseCyclePhase.PostRecruitMaintenance
+                : StepwiseCyclePhase.Idle;
+            if (succeededRecruit)
+            {
+                action = new AiBoardAction(AiBoardActionType.Recruit);
+            }
+            else
+            {
+                CompleteStepwiseCycle();
+            }
+        }
+
+        private void CompleteStepwiseCycle()
+        {
+            LastCycleChanged = stepwiseObjectsBefore != destination.TotalObjectCount ||
+                               stepwiseLinksBefore != destination.ActivePairLinkCount ||
+                               stepwiseOpenCellsBefore != board.UnlockedBattleCellCount ||
+                               (team != null && stepwiseResourcesBefore != team.Resources);
+            stepwiseCyclePhase = StepwiseCyclePhase.Idle;
+        }
+
+        private bool TryMaintainBoardStep(out AiBoardAction action)
+        {
+            if (TryMergeOneAvailable(out action) ||
+                TryFormOneRecipeStep(out action) ||
+                TryStageOneBenchComponent(out action))
+            {
+                return true;
+            }
+
+            if (HasBenchHeroComponent() && board.FreeBattleCellCount == 0 &&
+                TryUseBenchShovelForCapacity())
+            {
+                action = new AiBoardAction(AiBoardActionType.UseForgePick);
+                return true;
+            }
+
+            if (stepwiseBasicDeployCount < stepwiseBasicDeployLimit &&
+                TryDeployOneBasicUnit(out action))
+            {
+                stepwiseBasicDeployCount++;
+                return true;
+            }
+
+            action = default;
+            return false;
+        }
+
+        private bool TryMergeOneAvailable(out AiBoardAction action)
+        {
+            action = default;
+            if (!TryFindMergePair(out var source, out var target))
+            {
+                return false;
+            }
+
+            var drag = new DragPlacementController(board, destination, true);
+            if (!drag.BeginDrag(source.UnitId) || drag.Drop(target.Position) != DragDropStatus.Merged)
+            {
+                Debug.LogError($"AI merge resolution failed Source={source.UnitId} Target={target.UnitId}");
+                return false;
+            }
+
+            action = new AiBoardAction(
+                AiBoardActionType.MergeBasicUnit,
+                source.UnitId,
+                source.Position,
+                target.Position,
+                true,
+                true);
+            return true;
+        }
+
+        private bool TryDeployOneBasicUnit(out AiBoardAction action)
+        {
+            action = default;
+            var cards = new List<RecruitCard>();
+            foreach (var position in board.GetPositions(CellType.Bench))
+            {
+                if (board.TryGetOccupant(position, out var runtimeId) &&
+                    destination.TryGetCard(runtimeId, out var card) &&
+                    card.Kind == RecruitItemKind.BasicUnit)
+                {
+                    cards.Add(card);
+                }
+            }
+
+            cards.Sort((first, second) =>
+            {
+                var range = BasicUnitCatalog.GetStats(first.ConfigId, first.Level).RangeCells.CompareTo(
+                    BasicUnitCatalog.GetStats(second.ConfigId, second.Level).RangeCells);
+                return range != 0 ? range : string.CompareOrdinal(first.RuntimeId, second.RuntimeId);
+            });
+            var battle = new List<GridPosition>();
+            foreach (var position in board.GetPositions(CellType.Battle))
+            {
+                if (!board.IsOccupied(position))
+                {
+                    battle.Add(position);
+                }
+            }
+
+            battle.Sort(CompareRoadProximity);
+            if (cards.Count == 0 || battle.Count == 0 ||
+                !board.TryGetPosition(cards[0].RuntimeId, out var origin) ||
+                !board.TryMove(origin, battle[0]))
+            {
+                return false;
+            }
+
+            action = new AiBoardAction(
+                AiBoardActionType.DeployBasicUnit,
+                cards[0].RuntimeId,
+                origin,
+                battle[0],
+                true,
+                true);
+            return true;
+        }
+
+        private bool TryStageOneBenchComponent(out AiBoardAction action)
+        {
+            action = default;
+            var components = new List<RecruitCard>();
+            foreach (var position in board.GetPositions(CellType.Bench))
+            {
+                if (board.TryGetOccupant(position, out var runtimeId) &&
+                    destination.TryGetCard(runtimeId, out var card) &&
+                    card.Kind == RecruitItemKind.HeroComponent)
+                {
+                    components.Add(card);
+                }
+            }
+
+            components.Sort((first, second) =>
+            {
+                var unique = second.IsUnique.CompareTo(first.IsUnique);
+                return unique != 0 ? unique : string.CompareOrdinal(first.RuntimeId, second.RuntimeId);
+            });
+            foreach (var component in components)
+            {
+                if ((!TryFindComponentParkingBattle(out var target) &&
+                     !TryFindBasicUnitSwapBattle(out target)) ||
+                    !board.TryGetPosition(component.RuntimeId, out var origin) ||
+                    !TryMoveUnpairedComponent(component, target))
+                {
+                    continue;
+                }
+
+                destination.TryResolvePostDrop(component.RuntimeId);
+                action = new AiBoardAction(
+                    AiBoardActionType.MoveComponent,
+                    component.RuntimeId,
+                    origin,
+                    target,
+                    true,
+                    true);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryFormOneRecipeStep(out AiBoardAction action)
+        {
+            action = default;
+            var candidates = GetAvailableRecipeCandidates();
+            RefreshRecipeAvailability(candidates);
+            foreach (var candidate in candidates)
+            {
+                var key = BuildRecipeKey(candidate);
+                var pending = GetOrCreatePendingRecipe(candidate, key);
+                if (!TryFindRecipeFormation(candidate, out var firstTarget, out var secondTarget, out var blockedReason))
+                {
+                    if (pending.LastFailureReason != blockedReason)
+                    {
+                        RecordRecipeFailure(pending, blockedReason);
+                    }
+                    continue;
+                }
+
+                if (board.TryGetPosition(candidate.First.RuntimeId, out var firstOrigin) && firstOrigin != firstTarget)
+                {
+                    if (!TryMoveUnpairedComponent(candidate.First, firstTarget))
+                    {
+                        continue;
+                    }
+
+                    destination.TryResolvePostDrop(candidate.First.RuntimeId);
+                    action = new AiBoardAction(
+                        AiBoardActionType.MoveComponent,
+                        candidate.First.RuntimeId,
+                        firstOrigin,
+                        firstTarget,
+                        true,
+                        true);
+                    return true;
+                }
+
+                if (board.TryGetPosition(candidate.Second.RuntimeId, out var secondOrigin) && secondOrigin != secondTarget)
+                {
+                    if (!TryMoveUnpairedComponent(candidate.Second, secondTarget))
+                    {
+                        continue;
+                    }
+
+                    destination.TryResolvePostDrop(candidate.Second.RuntimeId);
+                    var formed = destination.TryGetPairLinkForComponent(candidate.First.RuntimeId, out _);
+                    if (formed)
+                    {
+                        RecipeFormationAttempted++;
+                        RecipeFormationSucceeded++;
+                        pendingFormableRecipes.Remove(key);
+                    }
+
+                    action = new AiBoardAction(
+                        formed ? AiBoardActionType.FormHero : AiBoardActionType.MoveComponent,
+                        candidate.Second.RuntimeId,
+                        secondOrigin,
+                        secondTarget,
+                        true,
+                        true);
+                    return true;
+                }
+
+                RecipeFormationAttempted++;
+                destination.TryResolvePostDrop(candidate.First.RuntimeId);
+                destination.TryResolvePostDrop(candidate.Second.RuntimeId);
+                if (destination.TryGetPairLinkForComponent(candidate.First.RuntimeId, out _))
+                {
+                    RecipeFormationSucceeded++;
+                    pendingFormableRecipes.Remove(key);
+                    action = new AiBoardAction(AiBoardActionType.FormHero, candidate.First.RuntimeId);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool ShouldRecruitThisCycle()

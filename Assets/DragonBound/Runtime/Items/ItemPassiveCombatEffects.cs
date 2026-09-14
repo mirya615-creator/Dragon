@@ -113,7 +113,7 @@ namespace DragonBound.Items
             foreach (var enemy in context.OwnRouteEnemies.Enemies)
             {
                 if (enemy.Team == context.OwnTeam.Side && enemy.IsAlive &&
-                    enemy.ApplyMovementSlow(SlowFraction, RunDurationSeconds))
+                    enemy.ApplyFrostMireSlow(SlowFraction, RunDurationSeconds))
                 {
                     LastAffectedEnemyCount++;
                 }
@@ -135,7 +135,7 @@ namespace DragonBound.Items
                 return;
             }
 
-            if (enemy.ApplyMovementSlow(SlowFraction, RunDurationSeconds))
+            if (enemy.ApplyFrostMireSlow(SlowFraction, RunDurationSeconds))
             {
                 LastAffectedEnemyCount++;
             }

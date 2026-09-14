@@ -35,6 +35,14 @@ namespace DragonBound.Tests.EditMode
         public void W16DecreeRunsThroughProductionTickAndDeathRestoresPolicy()
         {
             var runtime = new TwentyWavePressureRuntime(new MatchController(1602), null, null, 1602);
+            var effectEnded = false;
+            runtime.BloodcrownLifecycleEmitted += (_, value) =>
+            {
+                if (value.Lifecycle == DragonBound.Bosses.Contracts.BossSkillLifecycle.EffectEnded)
+                {
+                    effectEnded = true;
+                }
+            };
             Assert.IsTrue(runtime.StartRun());
             Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.BloodcrownBossWave));
 
@@ -45,6 +53,7 @@ namespace DragonBound.Tests.EditMode
             runtime.PlayerW16Boss.ApplyDamage(100000f);
             runtime.Tick(0.01f);
             Assert.IsTrue(runtime.PlayerW16BossRuntime.IsDead);
+            Assert.IsTrue(effectEnded);
         }
 
         [Test]

@@ -25,6 +25,18 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void Catalog_MapsEveryItemToItsGameplayResourceIcon()
+        {
+            for (var index = 0; index < ItemCatalog.All.Count; index++)
+            {
+                Assert.AreEqual(
+                    "ItemUI/" + (index + 1),
+                    ItemCatalog.All[index].IconKey,
+                    ItemCatalog.All[index].ItemId);
+            }
+        }
+
+        [Test]
         public void Inventory_EnforcesOneOwnedCopyAndPreservesFragments()
         {
             var inventory = new ItemDailyInventory();
@@ -166,8 +178,10 @@ namespace DragonBound.Tests.EditMode
             Assert.IsTrue(runtime.TryUse(ItemIds.WinterveilRune, out reason));
             Assert.AreEqual(30f, ((WinterveilRuneEffect)runtimeEffect(runtime, ItemIds.WinterveilRune)).CooldownRemainingSeconds, .001f);
             foreach (var enemy in enemies) Assert.AreEqual(.9f, enemy.MovementSpeedMultiplier, .001f);
+            foreach (var enemy in enemies) Assert.IsTrue(enemy.IsWinterveilAffected);
             foreach (var enemy in enemies) enemy.TickControl(5f);
             foreach (var enemy in enemies) Assert.AreEqual(1f, enemy.MovementSpeedMultiplier, .001f);
+            foreach (var enemy in enemies) Assert.IsFalse(enemy.IsWinterveilAffected);
             runtime.Tick(30f);
             Assert.IsTrue(runtime.TryUse(ItemIds.WinterveilRune, out reason));
         }

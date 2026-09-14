@@ -46,7 +46,7 @@ public sealed class GameSettlementCoordinator
         GameplayTerminationReason reason,
         GameplayFaultAttribution attribution,
         int reachedWave,
-        int finalResources,
+        int remainingHealth,
         int recruitmentCount,
         CancellationToken cancellationToken)
     {
@@ -54,20 +54,23 @@ public sealed class GameSettlementCoordinator
         SettlementLedger ledger = Load(runId);
         if (!ledger.FinishAccepted || ledger.FinishResult == null)
         {
+            var finishRequest = new FinishGameplayRunRequest
+            {
+                RunId = runId,
+                PlayerId = playerId,
+                ProposedResult = proposedResult,
+                SettlementType = GameplaySettlementType.Normal,
+                TerminationReason = reason,
+                FaultAttribution = attribution,
+                ReachedWave = Math.Max(0, reachedWave),
+                RemainingHealth = proposedResult == ServerMatchResult.Defeat
+                    ? 0
+                    : Math.Max(0, remainingHealth),
+                RecruitmentCount = Math.Max(0, recruitmentCount),
+                IdempotencyKey = runId + ":finish"
+            };
             FinishGameplayRunResult finish = await services.Gameplay.FinishRunAsync(
-                new FinishGameplayRunRequest
-                {
-                    RunId = runId,
-                    PlayerId = playerId,
-                    ProposedResult = proposedResult,
-                    SettlementType = GameplaySettlementType.Normal,
-                    TerminationReason = reason,
-                    FaultAttribution = attribution,
-                    ReachedWave = Math.Max(0, reachedWave),
-                    FinalResources = Math.Max(0, finalResources),
-                    RecruitmentCount = Math.Max(0, recruitmentCount),
-                    IdempotencyKey = runId + ":finish"
-                },
+                finishRequest,
                 cancellationToken);
             if (finish == null || !finish.Accepted)
                 throw new InvalidOperationException("Gameplay settlement was not accepted.");
@@ -84,6 +87,23 @@ public sealed class GameSettlementCoordinator
             return CreatePreparation(result);
         }
 
+        if (result.MerchantEventAvailable)
+        {
+            MerchantPresentationStore.MarkPending(playerId, result.MerchantEventId);
+        }
+
+        if (result.HasAuthoritativeRankSettlement && result.RankSettlement?.After != null)
+        {
+            RankProgressResult authoritativeRank = CreateRankProgress(result.RankSettlement);
+            RankSettlementSnapshotStore.Set(playerId, authoritativeRank);
+            RankPromotionStore.Set(playerId, authoritativeRank);
+            if (!ledger.RankApplied)
+            {
+                ledger.RankApplied = true;
+                Save(runId, ledger);
+            }
+        }
+
         if (result.ApplyRank && !ledger.RankApplied)
         {
             RankProgressResult rank = result.Result == ServerMatchResult.Victory
@@ -91,11 +111,14 @@ public sealed class GameSettlementCoordinator
                 : await services.Rank.RecordDefeatAsync(playerId, runId, cancellationToken);
             if (result.Result == ServerMatchResult.Victory)
                 RankPromotionStore.Set(playerId, rank);
+            RankSettlementSnapshotStore.Set(playerId, rank);
             ledger.RankApplied = true;
             Save(runId, ledger);
         }
 
-        if (result.GrantRewards && !ledger.RunesApplied)
+        bool requiresClientRuneSettlement = !result.ServerAuthoritativeSettlement ||
+                                            LocalRuneProgressionSettings.IsDevelopmentOverrideActive;
+        if (result.GrantRewards && requiresClientRuneSettlement && !ledger.RunesApplied)
         {
             await GameRuneDropSession.SettleAsync(playerId, runId, cancellationToken);
             ledger.RunesApplied = true;
@@ -112,6 +135,44 @@ public sealed class GameSettlementCoordinator
         }
 
         return CreatePreparation(result);
+    }
+
+    private static RankProgressResult CreateRankProgress(
+        DragonBound.Services.GameplayRankSettlement settlement)
+    {
+        PlayerRankState after = ToPlayerRankState(settlement?.After);
+        if (after == null) return null;
+        after.Version = Math.Max(after.Version, settlement.Version);
+        PlayerRankState before = ToPlayerRankState(settlement.Before);
+        PlayerRankState promotionFrom = settlement.Promoted && before != null
+            ? RankProgressionRules.CreateFullPromotionState(before)
+            : null;
+        if (promotionFrom != null) promotionFrom.Version = after.Version;
+        return new RankProgressResult
+        {
+            State = after,
+            PromotionFromState = promotionFrom,
+            Promoted = settlement.Promoted,
+            Demoted = settlement.Demoted,
+            StarDelta = settlement.StarDelta,
+            Replayed = settlement.Replayed
+        };
+    }
+
+    private static PlayerRankState ToPlayerRankState(
+        DragonBound.Services.GameplayRankState value)
+    {
+        if (value == null || string.IsNullOrWhiteSpace(value.RankId)) return null;
+        PlayerRankState state = RankProgressionRules.FromServerState(
+            value.RankId,
+            value.Segment,
+            value.Stars);
+        if (value.TotalRankStars > 0 || state.TotalRankStars == 0)
+            state.TotalRankStars = Math.Max(0, value.TotalRankStars);
+        state.Version = Math.Max(0, value.Version);
+        if (DateTimeOffset.TryParse(value.UpdatedAt, out DateTimeOffset updatedAt))
+            state.ReachedStateAtUnixMilliseconds = updatedAt.ToUnixTimeMilliseconds();
+        return state;
     }
 
     public async Task ClaimGoldAsync(

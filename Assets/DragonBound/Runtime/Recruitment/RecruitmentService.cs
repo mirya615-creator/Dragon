@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using DragonBound.Core;
+using DragonBound.Items;
 using UnityEngine;
 
 namespace DragonBound.Recruitment
@@ -108,7 +109,7 @@ namespace DragonBound.Recruitment
         }
     }
 
-    public sealed class RecruitmentService
+    public sealed class RecruitmentService : IItemFreeRecruitPort
     {
         public const int CardsPerRecruitment = 5;
 
@@ -122,6 +123,7 @@ namespace DragonBound.Recruitment
             new HashSet<string>(StringComparer.Ordinal);
         private long attemptSequence;
         private RecruitmentAttempt lastAttempt;
+        private int freeRecruitCharges;
 
         public RecruitmentService(
             TeamState team,
@@ -138,7 +140,10 @@ namespace DragonBound.Recruitment
         public event Action<RecruitmentAttempt> Attempted;
 
         public int NextCost => RecruitmentPrice.GetCost(deck.CompletedRecruitments + 1);
+        public int EffectiveNextCost => HasFreeRecruit ? 0 : NextCost;
         public int CompletedRecruitments => deck.CompletedRecruitments;
+        public bool HasFreeRecruit => freeRecruitCharges > 0;
+        public int FreeRecruitCharges => freeRecruitCharges;
         public bool UsesFiniteComponentBag => deck.UsesFiniteComponentBag;
         public int InitialHeroComponents => deck.InitialHeroComponents;
         public RecruitDestinationPlan NextDestinationPlan => destination.Plan(CardsPerRecruitment);
@@ -153,7 +158,8 @@ namespace DragonBound.Recruitment
         public int ShovelPityTriggerCount => deck.ShovelState?.GuaranteedShovelCount ?? 0;
         public bool EnableHeroComponents => deck.EnableHeroComponents;
         public bool HeroSliceMode => deck.HeroSliceMode;
-        public bool CanAffordNext => team.Resources >= NextCost;
+        public RecruitComponentPolicy ComponentPolicy => deck.ComponentPolicy;
+        public bool CanAffordNext => team.Resources >= EffectiveNextCost;
         public bool IsRefreshBlockedByHeroComponents =>
             protectHeroComponentsOnRefresh &&
             destination.PendingRefreshCount > 0 &&
@@ -188,9 +194,23 @@ namespace DragonBound.Recruitment
             return !string.IsNullOrWhiteSpace(configId) && discardedHeroComponentIds.Contains(configId);
         }
 
+        public bool TryGrantFreeRecruit(out string reason)
+        {
+            if (freeRecruitCharges > 0)
+            {
+                reason = "FreeRecruitAlreadyAvailable";
+                return false;
+            }
+
+            freeRecruitCharges = 1;
+            reason = ItemOperationFailure.None;
+            return true;
+        }
+
         public RecruitmentAttempt TryRecruit()
         {
-            var cost = NextCost;
+            var usesFreeRecruit = HasFreeRecruit;
+            var cost = usesFreeRecruit ? 0 : NextCost;
             var resourcesBefore = team.Resources;
             if (team.Resources < cost)
             {
@@ -250,6 +270,10 @@ namespace DragonBound.Recruitment
             }
 
             RecordHeroComponentState(batch.Cards, receipt.RemovedCards);
+            if (usesFreeRecruit)
+            {
+                freeRecruitCharges--;
+            }
             team.RecordRecruitment();
             var resourcesAfter = team.Resources;
             return Publish(

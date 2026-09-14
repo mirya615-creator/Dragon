@@ -1,10 +1,10 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using DragonBound.Combat;
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Recruitment;
-using TMPro;
+using DragonBound.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -16,14 +16,13 @@ namespace DragonBound.Presentation
     {
         [SerializeField] private Button recruitButton;
         [SerializeField] private Text recruitButtonLabel;
-        [SerializeField] private TMP_Text tipText;
 
         private TeamState team;
         private RecruitmentService recruitment;
         private GreyboxBoardView boardView;
+        private RecruitButtonResourceProgress resourceProgress;
         private bool initialized;
         private bool unavailableAtPointerDown;
-        private Coroutine tipHideCoroutine;
 
         public Button RecruitButton => recruitButton;
         public Text RecruitButtonLabel => recruitButtonLabel;
@@ -33,8 +32,7 @@ namespace DragonBound.Presentation
             RecruitmentService recruitmentService,
             GreyboxBoardView playerBoardView,
             Button button,
-            Text buttonLabel,
-            TMP_Text unavailableTipText)
+            Text buttonLabel)
         {
             if (initialized)
             {
@@ -46,12 +44,11 @@ namespace DragonBound.Presentation
             boardView = playerBoardView ?? throw new ArgumentNullException(nameof(playerBoardView));
             recruitButton = button ?? throw new ArgumentNullException(nameof(button));
             recruitButtonLabel = buttonLabel ?? throw new ArgumentNullException(nameof(buttonLabel));
-            tipText = unavailableTipText;
+            resourceProgress = RecruitButtonResourceProgress.Attach(recruitButton);
 
             recruitButton.onClick.RemoveListener(Recruit);
             recruitButton.onClick.AddListener(Recruit);
             BindUnavailableClick();
-            HideTip();
             initialized = true;
             RefreshButton();
         }
@@ -84,7 +81,6 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            HideTip();
             boardView.RefreshUnits();
             foreach (var card in attempt.Batch.Cards)
             {
@@ -109,11 +105,14 @@ namespace DragonBound.Presentation
             }
 
             recruitButton.interactable = recruitment.CanRecruitNext;
-            recruitButtonLabel.text = recruitment.NextCost.ToString();
-            if (recruitment.CanRecruitNext)
-            {
-                HideTip();
-            }
+            recruitButtonLabel.text = recruitment.HasFreeRecruit
+                ? "FREE"
+                : recruitment.NextCost.ToString();
+            resourceProgress ??= RecruitButtonResourceProgress.Attach(recruitButton);
+            resourceProgress.Refresh(
+                team.Resources,
+                recruitment.EffectiveNextCost,
+                !recruitment.CanAffordNext);
         }
 
         private void BindUnavailableClick()
@@ -143,45 +142,126 @@ namespace DragonBound.Presentation
 
         private void ShowUnavailableReason()
         {
-            if (!initialized || recruitment == null || recruitment.CanRecruitNext || tipText == null)
+            if (!initialized || recruitment == null || recruitment.CanRecruitNext)
             {
                 return;
             }
 
-            tipText.text = !recruitment.CanAffordNext
-                ? $"Not enough Supplies. Need {recruitment.NextCost}."
+            string message = !recruitment.CanAffordNext
+                ? $"Not enough Supplies. Need {recruitment.EffectiveNextCost}."
                 : "Recruitment is currently unavailable.";
-            tipText.gameObject.SetActive(true);
-            if (tipHideCoroutine != null)
+            TipTextService.Show(message, 3f);
+        }
+    }
+
+    /// <summary>
+    /// Keeps the disabled recruit button grey while revealing the collected-resource
+    /// portion of its original artwork from left to right.
+    /// </summary>
+    internal sealed class RecruitButtonResourceProgress
+    {
+        private const string FillObjectName = "RecruitProgressFill";
+
+        private Button button;
+        private Image sourceImage;
+        private Image fillImage;
+
+        public static RecruitButtonResourceProgress Attach(Button targetButton)
+        {
+            if (targetButton == null)
             {
-                StopCoroutine(tipHideCoroutine);
+                return null;
             }
 
-            tipHideCoroutine = StartCoroutine(HideTipAfterDelay());
+            var progress = new RecruitButtonResourceProgress();
+            progress.Bind(targetButton);
+            return progress;
         }
 
-        private void HideTip()
+        public void Refresh(int collectedResources, int requiredResources, bool isResourceBlocked)
         {
-            if (tipHideCoroutine != null)
+            EnsureFillImage();
+            if (fillImage == null)
             {
-                StopCoroutine(tipHideCoroutine);
-                tipHideCoroutine = null;
+                return;
             }
 
-            if (tipText != null)
-            {
-                tipText.gameObject.SetActive(false);
-            }
+            SyncArtwork();
+            fillImage.gameObject.SetActive(isResourceBlocked && requiredResources > 0);
+            fillImage.fillAmount = requiredResources <= 0
+                ? 1f
+                : Mathf.Clamp01((float)Mathf.Max(0, collectedResources) / requiredResources);
         }
 
-        private IEnumerator HideTipAfterDelay()
+        private void Bind(Button targetButton)
         {
-            yield return new WaitForSecondsRealtime(1.5f);
-            tipHideCoroutine = null;
-            if (tipText != null)
+            button = targetButton;
+            sourceImage = button.targetGraphic as Image;
+            if (sourceImage == null)
             {
-                tipText.gameObject.SetActive(false);
+                sourceImage = button.GetComponent<Image>();
             }
+
+            EnsureFillImage();
+            SyncArtwork();
+        }
+
+        private void EnsureFillImage()
+        {
+            if (fillImage != null)
+            {
+                return;
+            }
+
+            if (button == null)
+            {
+                return;
+            }
+
+            var existing = button.transform.Find(FillObjectName);
+            if (existing != null)
+            {
+                fillImage = existing.GetComponent<Image>();
+            }
+
+            if (fillImage == null)
+            {
+                var fillObject = new GameObject(
+                    FillObjectName,
+                    typeof(RectTransform),
+                    typeof(CanvasRenderer),
+                    typeof(Image));
+                var fillRect = (RectTransform)fillObject.transform;
+                fillRect.SetParent(button.transform, false);
+                fillRect.anchorMin = Vector2.zero;
+                fillRect.anchorMax = Vector2.one;
+                fillRect.offsetMin = Vector2.zero;
+                fillRect.offsetMax = Vector2.zero;
+                fillImage = fillObject.GetComponent<Image>();
+            }
+
+            fillImage.transform.SetAsFirstSibling();
+            fillImage.raycastTarget = false;
+            fillImage.type = Image.Type.Filled;
+            fillImage.fillMethod = Image.FillMethod.Horizontal;
+            fillImage.fillOrigin = (int)Image.OriginHorizontal.Left;
+            fillImage.fillClockwise = true;
+            fillImage.gameObject.SetActive(false);
+        }
+
+        private void SyncArtwork()
+        {
+            if (sourceImage == null || fillImage == null)
+            {
+                return;
+            }
+
+            fillImage.sprite = sourceImage.sprite;
+            fillImage.overrideSprite = sourceImage.overrideSprite;
+            fillImage.color = sourceImage.color;
+            fillImage.material = sourceImage.material;
+            fillImage.preserveAspect = sourceImage.preserveAspect;
+            fillImage.pixelsPerUnitMultiplier = sourceImage.pixelsPerUnitMultiplier;
         }
     }
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.dragonbound.network">
+  <!-- Temporary: allow cleartext only for the public-IP test API. -->
+  <application android:networkSecurityConfig="@xml/dragonbound_network_security" />
+</manifest>

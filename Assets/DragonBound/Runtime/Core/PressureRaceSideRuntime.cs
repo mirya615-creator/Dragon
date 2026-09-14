@@ -8,6 +8,44 @@ using DragonBound.Recruitment;
 
 namespace DragonBound.Core
 {
+    public readonly struct EnemyKillResolvedEvent
+    {
+        public EnemyKillResolvedEvent(EnemyLifecycleEvent enemy, CombatDamageOwner lastHitOwner)
+        {
+            Enemy = enemy;
+            LastHitOwner = lastHitOwner;
+        }
+
+        public EnemyLifecycleEvent Enemy { get; }
+        public CombatDamageOwner LastHitOwner { get; }
+    }
+
+    public readonly struct HeroExperienceResolvedEvent
+    {
+        public HeroExperienceResolvedEvent(
+            string enemyRuntimeId,
+            string heroRuntimeId,
+            string heroId,
+            int amount,
+            int previousLevel,
+            int currentLevel)
+        {
+            EnemyRuntimeId = enemyRuntimeId ?? string.Empty;
+            HeroRuntimeId = heroRuntimeId ?? string.Empty;
+            HeroId = heroId ?? string.Empty;
+            Amount = amount;
+            PreviousLevel = previousLevel;
+            CurrentLevel = currentLevel;
+        }
+
+        public string EnemyRuntimeId { get; }
+        public string HeroRuntimeId { get; }
+        public string HeroId { get; }
+        public int Amount { get; }
+        public int PreviousLevel { get; }
+        public int CurrentLevel { get; }
+    }
+
     /// <summary>One configured enemy spawn. Composition is selected by a wave runtime, not here.</summary>
     public readonly struct PressureRaceEnemySpawn
     {
@@ -120,6 +158,9 @@ namespace DragonBound.Core
         public int TotalResidual { get; private set; }
         public int LastRecordedResidual { get; private set; }
         public event Action<EnemyLifecycleEvent> EnemyLifecycleEmitted;
+        public event Action<EnemyGoalResolvedEvent> EnemyGoalResolved;
+        public event Action<EnemyKillResolvedEvent> EnemyKillResolved;
+        public event Action<HeroExperienceResolvedEvent> HeroExperienceResolved;
         public event Action<string> EnemyApproachingGoal;
 
         public ItemEnemyDamageResult ApplyItemDamage(
@@ -129,7 +170,7 @@ namespace DragonBound.Core
         {
             if (string.IsNullOrWhiteSpace(itemId) || damage <= 0f ||
                 !Registry.TryGet(enemyRuntimeId ?? string.Empty, out var enemy) ||
-                !enemy.IsAlive)
+                !enemy.IsAttackable)
             {
                 return ItemEnemyDamageResult.Rejected;
             }
@@ -250,13 +291,62 @@ namespace DragonBound.Core
                 boss.RuntimeId,
                 boss.Archetype,
                 boss.MaxHitPoints,
-                boss.PathProgress));
+                boss.PathProgress,
+                boss.BossId,
+                moveSpeedCellsPerSecond));
             emit(
                 $"EnemyBossSpawned RuntimeId={boss.RuntimeId} Team={boss.Team} " +
                 $"BossId={bossId} Wave={waveNumber} HP={boss.MaxHitPoints:0.00} " +
                 $"MoveSpeed={moveSpeedCellsPerSecond:0.00}");
             team.SetRemainingEnemyCount(Registry.Count);
             return boss;
+        }
+
+        /// <summary>Development-only immediate spawn used by the Greybox test console.</summary>
+        public EnemyRuntime SpawnDevelopmentEnemy(int appearanceWave, PressureRaceEnemySpawn spawn)
+        {
+            if ((!UnityEngine.Application.isEditor && !UnityEngine.Debug.isDebugBuild) ||
+                appearanceWave < 1)
+            {
+                return null;
+            }
+
+            var enemyNumber = nextEnemyNumber++;
+            var runtimeId = $"{label.ToLowerInvariant()}.dev.wave{appearanceWave}.enemy{enemyNumber:00}";
+            var enemy = new EnemyRuntime(
+                runtimeId,
+                side,
+                spawn.MaxHitPoints,
+                spawn.Archetype,
+                enemyNumber,
+                spawnWaveIndex: appearanceWave);
+            var speedMultiplier = spawn.MoveSpeedCellsPerSecond > 0f
+                ? spawn.MoveSpeedCellsPerSecond * EnemyTravelSeconds / Path.TotalDistance
+                : spawn.MoveSpeedMultiplier;
+            enemy.SetBaseMovementSpeedMultiplier(speedMultiplier);
+            Path.PlaceAtSpawn(enemy);
+            if (!Registry.Register(enemy))
+            {
+                return null;
+            }
+
+            spawnWaveByEnemyId[enemy.RuntimeId] = appearanceWave;
+            SpawnedThisWave++;
+            TotalGenerated++;
+            EnemyLifecycleEmitted?.Invoke(new EnemyLifecycleEvent(
+                EnemyLifecycleEventKind.Spawned,
+                appearanceWave,
+                enemy.RuntimeId,
+                enemy.Archetype,
+                enemy.MaxHitPoints,
+                enemy.PathProgress,
+                enemy.BossId,
+                spawn.MoveSpeedCellsPerSecond));
+            team.SetRemainingEnemyCount(Registry.Count);
+            emit(
+                $"DevelopmentEnemySpawned RuntimeId={enemy.RuntimeId} Team={enemy.Team} " +
+                $"AppearanceWave={appearanceWave} HP={enemy.HitPoints}");
+            return enemy;
         }
 
         public IReadOnlyList<EnemyRuntime> SpawnBossSummons(
@@ -298,7 +388,9 @@ namespace DragonBound.Core
                     summon.RuntimeId,
                     summon.Archetype,
                     summon.MaxHitPoints,
-                    summon.PathProgress));
+                    summon.PathProgress,
+                    summon.BossId,
+                    moveSpeedCellsPerSecond));
                 result.Add(summon);
             }
 
@@ -458,7 +550,9 @@ namespace DragonBound.Core
                     enemy.RuntimeId,
                     enemy.Archetype,
                     enemy.MaxHitPoints,
-                    enemy.PathProgress));
+                    enemy.PathProgress,
+                    enemy.BossId,
+                    spawn.MoveSpeedCellsPerSecond));
                 emit(
                     $"EnemySpawned RuntimeId={enemy.RuntimeId} Team={enemy.Team} " +
                     $"PathIndex={enemy.PathIndex} PathProgress={enemy.PathProgress:0.000} HP={enemy.HitPoints}");
@@ -657,7 +751,8 @@ namespace DragonBound.Core
                         heroXpAwarded,
                         combat.Level,
                         result.ShieldDamage,
-                        result.HealthDamage));
+                        result.HealthDamage,
+                        result.PathDisplacementDistance));
                 }
             }
         }
@@ -723,6 +818,9 @@ namespace DragonBound.Core
             enemy.State = EnemyRuntimeState.Dead;
             Registry.Remove(enemy.RuntimeId, out _);
             EmitEnemyLifecycle(EnemyLifecycleEventKind.Killed, enemy);
+            EnemyKillResolved?.Invoke(new EnemyKillResolvedEvent(
+                CreateLifecycleEvent(EnemyLifecycleEventKind.Killed, enemy),
+                enemy.LastDamageOwner));
             TotalKills++;
             if (enemy.Archetype != EnemyArchetype.Swarm && !IsRewardlessBossSummon(enemy))
             {
@@ -771,6 +869,17 @@ namespace DragonBound.Core
                 emit($"HeroLevelUp Team={side} PairLinkId={ownedPair.PairLinkId} HeroId={ownedPair.HeroId} Level={combat.Level}");
             }
 
+            if (awarded)
+            {
+                HeroExperienceResolved?.Invoke(new HeroExperienceResolvedEvent(
+                    enemy.RuntimeId,
+                    ownedPair.PairLinkId,
+                    ownedPair.HeroId,
+                    amount,
+                    previousLevel,
+                    combat.Level));
+            }
+
             return awarded ? amount : 0;
         }
 
@@ -786,6 +895,7 @@ namespace DragonBound.Core
             Registry.Remove(enemy.RuntimeId, out _);
             EmitEnemyLifecycle(EnemyLifecycleEventKind.Leaked, enemy);
             TotalLeaked++;
+            var heartBefore = team.HatchlingHealth;
             if (enemy.Archetype == EnemyArchetype.Boss || enemy.Archetype == EnemyArchetype.Swarm)
             {
                 team.ApplyBossGoalInstantDefeat();
@@ -794,6 +904,11 @@ namespace DragonBound.Core
             {
                 team.ApplyHatchlingDamage(BattleSettlementDefinition.NormalGoalDamage);
             }
+            EnemyGoalResolved?.Invoke(new EnemyGoalResolvedEvent(
+                CreateLifecycleEvent(EnemyLifecycleEventKind.Leaked, enemy),
+                heartBefore,
+                team.HatchlingHealth,
+                team.IsInstantDefeated));
             emit(
                 $"OnEnemyLeaked RuntimeId={enemy.RuntimeId} Team={enemy.Team} " +
                 $"PathIndex={enemy.PathIndex} PathProgress={enemy.PathProgress:0.000} " +
@@ -824,13 +939,23 @@ namespace DragonBound.Core
                 spawnWaveByEnemyId.Remove(enemy.RuntimeId);
             }
 
-            EnemyLifecycleEmitted?.Invoke(new EnemyLifecycleEvent(
+            EnemyLifecycleEmitted?.Invoke(CreateLifecycleEvent(kind, enemy, spawnWave));
+        }
+
+        private EnemyLifecycleEvent CreateLifecycleEvent(
+            EnemyLifecycleEventKind kind,
+            EnemyRuntime enemy,
+            int knownSpawnWave = 0)
+        {
+            var spawnWave = knownSpawnWave > 0 ? knownSpawnWave : enemy.SpawnWaveIndex;
+            return new EnemyLifecycleEvent(
                 kind,
                 spawnWave,
                 enemy.RuntimeId,
                 enemy.Archetype,
                 enemy.MaxHitPoints,
-                enemy.PathProgress));
+                enemy.PathProgress,
+                enemy.BossId);
         }
 
         private sealed class BoardItemUnitProgressionPort : IItemUnitProgressionPort

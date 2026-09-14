@@ -6,13 +6,18 @@ namespace DragonBound.Presentation
     // The authored shaft and head can be replaced by UI artists without changing drag rules.
     public sealed class DragArrowPreviewView : MonoBehaviour
     {
+        private const string DragPathSpriteResourcePath = "GameUI/SlectRoad";
+        private const float DragPathRectHeight = 180f;
+
         [SerializeField] private Image shaft;
         [SerializeField] private Text headLabel;
 
         public bool IsVisible => gameObject.activeSelf;
+        public Sprite PathSprite => shaft != null ? shaft.sprite : null;
 
         private void Awake()
         {
+            ApplyAuthoredPathSprite();
             DisableAllGraphicRaycasts();
         }
 
@@ -20,6 +25,7 @@ namespace DragonBound.Presentation
         {
             shaft = shaftImage;
             headLabel = arrowHead;
+            ApplyAuthoredPathSprite();
             DisableAllGraphicRaycasts();
 
             Hide();
@@ -45,7 +51,9 @@ namespace DragonBound.Presentation
             var rect = (RectTransform)transform;
             rect.pivot = new Vector2(0f, 0.5f);
             rect.anchoredPosition = source;
-            rect.sizeDelta = new Vector2(delta.magnitude, rect.sizeDelta.y);
+            // SlectRoad has generous transparent padding around its centered line art.
+            // A taller rect keeps the visible line readable without modifying the source asset.
+            rect.sizeDelta = new Vector2(delta.magnitude, DragPathRectHeight);
             rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
             // Keep the authored arrow art above runtime unit cards without changing board state.
             transform.SetAsLastSibling();
@@ -63,6 +71,30 @@ namespace DragonBound.Presentation
             foreach (var graphic in GetComponentsInChildren<Graphic>(true))
             {
                 graphic.raycastTarget = false;
+            }
+        }
+
+        private void ApplyAuthoredPathSprite()
+        {
+            if (shaft == null)
+            {
+                return;
+            }
+
+            var pathSprite = Resources.Load<Sprite>(DragPathSpriteResourcePath);
+            if (pathSprite == null)
+            {
+                throw new System.InvalidOperationException(
+                    $"Missing drag path sprite at Resources/{DragPathSpriteResourcePath}.");
+            }
+
+            shaft.sprite = pathSprite;
+            shaft.type = Image.Type.Simple;
+            shaft.preserveAspect = false;
+            shaft.color = Color.white;
+            if (headLabel != null)
+            {
+                headLabel.gameObject.SetActive(false);
             }
         }
     }

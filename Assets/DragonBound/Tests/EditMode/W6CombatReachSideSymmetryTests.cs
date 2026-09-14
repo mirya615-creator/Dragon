@@ -57,9 +57,9 @@ namespace DragonBound.Tests.EditMode
             var sky = batch.Cards.Single(card => card.ConfigId == HeroSliceCatalog.SkyRangerComponentId);
             var sigil = batch.Cards.Single(card => card.ConfigId == HeroSliceCatalog.DragonSigilComponentId);
             var basic = batch.Cards.First(card => card.Kind == RecruitItemKind.BasicUnit);
-            MoveCard(board, sky.RuntimeId, side == TeamSide.Player ? new GridPosition(0, 2) : new GridPosition(3, 2));
-            MoveCard(board, sigil.RuntimeId, side == TeamSide.Player ? new GridPosition(0, 1) : new GridPosition(3, 1));
-            MoveCard(board, basic.RuntimeId, side == TeamSide.Player ? new GridPosition(1, 1) : new GridPosition(2, 1));
+            MoveCard(board, sky.RuntimeId, side == TeamSide.Player ? new GridPosition(0, 1) : new GridPosition(2, 1));
+            MoveCard(board, sigil.RuntimeId, side == TeamSide.Player ? new GridPosition(1, 1) : new GridPosition(3, 1));
+            MoveCard(board, basic.RuntimeId, side == TeamSide.Player ? new GridPosition(0, 2) : new GridPosition(3, 2));
             Assert.IsTrue(destination.TryResolvePostDrop(sigil.RuntimeId));
 
             var combatEvents = new List<CombatEvent>();

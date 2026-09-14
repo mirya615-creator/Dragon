@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DragonBound.Combat;
 using DragonBound.Core;
 
@@ -124,6 +125,36 @@ namespace DragonBound.Items
         public ItemCombatEventSource Source { get; }
     }
 
+    /// <summary>Read-only observation emitted after an item command has fully resolved.</summary>
+    public readonly struct ItemUseResolvedEvent
+    {
+        public ItemUseResolvedEvent(
+            string itemId,
+            int attemptNumber,
+            string command,
+            bool accepted,
+            string reason,
+            float cooldownRemainingSeconds,
+            float cooldownDurationSeconds)
+        {
+            ItemId = itemId ?? string.Empty;
+            AttemptNumber = attemptNumber;
+            Command = command ?? string.Empty;
+            Accepted = accepted;
+            Reason = reason ?? string.Empty;
+            CooldownRemainingSeconds = Math.Max(0f, cooldownRemainingSeconds);
+            CooldownDurationSeconds = Math.Max(0f, cooldownDurationSeconds);
+        }
+
+        public string ItemId { get; }
+        public int AttemptNumber { get; }
+        public string Command { get; }
+        public bool Accepted { get; }
+        public string Reason { get; }
+        public float CooldownRemainingSeconds { get; }
+        public float CooldownDurationSeconds { get; }
+    }
+
     public readonly struct ItemEnemyDamageResult
     {
         public ItemEnemyDamageResult(
@@ -167,7 +198,7 @@ namespace DragonBound.Items
         {
             if (damage <= 0f ||
                 !registry.TryGet(enemyRuntimeId ?? string.Empty, out var enemy) ||
-                !enemy.IsAlive)
+                !enemy.IsAttackable)
             {
                 return ItemEnemyDamageResult.Rejected;
             }
@@ -216,29 +247,78 @@ namespace DragonBound.Items
 
     public interface IItemForgePickPort
     {
-        ItemForgePickResult TryGrantForgePick(bool requiresAdvertisement);
+        ItemForgePickRequestResult TryBeginForgePickClaim(
+            Action<ItemForgePickClaimResult> completed);
     }
 
-    public enum ItemForgePickResultKind
+    public enum ItemForgePickRequestKind
     {
-        Granted,
+        PromptOpened,
         NoLockedCell,
-        AdvertisementRequired,
-        AuthorityUnavailable,
+        TemporarilyUnavailable,
         Rejected
     }
 
-    public readonly struct ItemForgePickResult
+    public readonly struct ItemForgePickRequestResult
     {
-        public ItemForgePickResult(ItemForgePickResultKind kind, string reason = "")
+        public ItemForgePickRequestResult(ItemForgePickRequestKind kind, string reason = "")
         {
             Kind = kind;
             Reason = reason ?? string.Empty;
         }
 
-        public ItemForgePickResultKind Kind { get; }
+        public ItemForgePickRequestKind Kind { get; }
         public string Reason { get; }
-        public bool Granted => Kind == ItemForgePickResultKind.Granted;
+        public bool PromptOpened => Kind == ItemForgePickRequestKind.PromptOpened;
+    }
+
+    public enum ItemForgePickClaimKind
+    {
+        Granted,
+        Declined,
+        Failed
+    }
+
+    public readonly struct ItemForgePickClaimResult
+    {
+        public ItemForgePickClaimResult(ItemForgePickClaimKind kind, string reason = "")
+        {
+            Kind = kind;
+            Reason = reason ?? string.Empty;
+        }
+
+        public ItemForgePickClaimKind Kind { get; }
+        public string Reason { get; }
+        public bool Granted => Kind == ItemForgePickClaimKind.Granted;
+    }
+
+    /// <summary>
+    /// Stable runtime boundary that permits the scene UI provider to bind before or after
+    /// DragonBoundBootstrap creates the item runtimes.
+    /// </summary>
+    public sealed class ItemForgePickPortRouter : IItemForgePickPort
+    {
+        public IItemForgePickPort Provider { get; private set; }
+
+        public void Bind(IItemForgePickPort provider)
+        {
+            Provider = provider;
+        }
+
+        public void Unbind(IItemForgePickPort provider)
+        {
+            if (ReferenceEquals(Provider, provider)) Provider = null;
+        }
+
+        public ItemForgePickRequestResult TryBeginForgePickClaim(
+            Action<ItemForgePickClaimResult> completed)
+        {
+            return Provider != null
+                ? Provider.TryBeginForgePickClaim(completed)
+                : new ItemForgePickRequestResult(
+                    ItemForgePickRequestKind.TemporarilyUnavailable,
+                    "ForgePickProviderUnavailable");
+        }
     }
 
     public sealed class ItemRunContext
@@ -314,6 +394,15 @@ namespace DragonBound.Items
         void HandleCombatEvent(ItemRunContext context, ItemCombatEvent combatEvent);
     }
 
+    /// <summary>
+    /// Optional state exposed by one-shot effects so presentation code can show
+    /// that an equipped item remains present but has been consumed for this run.
+    /// </summary>
+    public interface IOneShotItemEffectState
+    {
+        bool IsConsumed { get; }
+    }
+
     public sealed class DrakeheartRelicEffect : IItemEffectRuntime
     {
         public const int HeartBonus = 3;
@@ -386,7 +475,7 @@ namespace DragonBound.Items
                     continue;
                 }
 
-                if (enemy.ApplyMovementSlow(SlowFraction, DurationSeconds))
+                if (enemy.ApplyWinterveilSlow(SlowFraction, DurationSeconds))
                 {
                     LastAffectedEnemyCount++;
                 }
@@ -450,8 +539,13 @@ namespace DragonBound.Items
     {
         private readonly Dictionary<string, IItemEffectRuntime> effects =
             new Dictionary<string, IItemEffectRuntime>(StringComparer.Ordinal);
+        private readonly Dictionary<string, float> initialCooldownDurations =
+            new Dictionary<string, float>(StringComparer.Ordinal);
+        private readonly Dictionary<string, float> initialCooldownRemaining =
+            new Dictionary<string, float>(StringComparer.Ordinal);
         private readonly ItemRunContext context;
         private bool effectsActivated;
+        private int useAttemptNumber;
 
         public ItemRunRuntime(
             ItemRunSnapshot snapshot,
@@ -468,15 +562,9 @@ namespace DragonBound.Items
             IItemFreeRecruitPort freeRecruit = null,
             IItemForgePickPort forgePick = null,
             IItemEnemyDamagePort itemEnemyDamage = null,
-            float initialCooldownSeconds = 0f)
+            bool startActiveItemsOnCooldown = false)
         {
-            if (initialCooldownSeconds < 0f)
-            {
-                throw new ArgumentOutOfRangeException(nameof(initialCooldownSeconds));
-            }
             Snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
-            InitialCooldownDurationSeconds = initialCooldownSeconds;
-            InitialCooldownRemainingSeconds = initialCooldownSeconds;
             context = new ItemRunContext(
                 ownTeam,
                 ownRouteEnemies,
@@ -492,18 +580,29 @@ namespace DragonBound.Items
                 forgePick,
                 itemEnemyDamage);
             BuildEffects();
+            if (startActiveItemsOnCooldown)
+            {
+                InitializeActiveItemCooldowns();
+            }
         }
 
         public ItemRunSnapshot Snapshot { get; }
         public bool IsStarted { get; private set; }
-        public float InitialCooldownDurationSeconds { get; }
-        public float InitialCooldownRemainingSeconds { get; private set; }
-        public bool IsInitialCooldownActive => IsStarted && InitialCooldownRemainingSeconds > 0.0001f;
+        public float InitialCooldownDurationSeconds => initialCooldownDurations.Count > 0
+            ? initialCooldownDurations.Values.Max()
+            : 0f;
+        public float InitialCooldownRemainingSeconds => initialCooldownRemaining.Count > 0
+            ? initialCooldownRemaining.Values.Max()
+            : 0f;
+        public bool IsInitialCooldownActive => IsStarted &&
+                                               initialCooldownRemaining.Values.Any(value => value > 0.0001f);
         public bool AreEffectsActivated => effectsActivated;
         public float ElapsedSeconds => context.ElapsedSeconds;
         public ItemRunContext Context => context;
         public ItemCombatUnitRegistry UnitRegistry => context.UnitRegistry;
         public ItemCombatUnitRegistry OpposingUnitRegistry => context.OpposingUnitRegistry;
+        public event Action<ItemRunSnapshot> SnapshotLocked;
+        public event Action<ItemUseResolvedEvent> UseResolved;
 
         public bool StartRun(out string reason)
         {
@@ -514,10 +613,8 @@ namespace DragonBound.Items
             }
 
             IsStarted = true;
-            if (InitialCooldownRemainingSeconds <= 0.0001f)
-            {
-                ActivateEffects();
-            }
+            ActivateEffects();
+            SnapshotLocked?.Invoke(Snapshot);
             return true;
         }
 
@@ -529,28 +626,21 @@ namespace DragonBound.Items
             }
 
             context.ElapsedSeconds += deltaSeconds;
-            if (InitialCooldownRemainingSeconds > 0.0001f)
+            if (initialCooldownRemaining.Count > 0)
             {
-                var cooldownSlice = Math.Min(deltaSeconds, InitialCooldownRemainingSeconds);
-                InitialCooldownRemainingSeconds = Math.Max(
-                    0f,
-                    InitialCooldownRemainingSeconds - deltaSeconds);
-                deltaSeconds -= cooldownSlice;
-                if (InitialCooldownRemainingSeconds > 0.0001f)
+                var itemIds = initialCooldownRemaining.Keys.ToArray();
+                for (var i = 0; i < itemIds.Length; i++)
                 {
-                    return;
+                    var itemId = itemIds[i];
+                    initialCooldownRemaining[itemId] = Math.Max(
+                        0f,
+                        initialCooldownRemaining[itemId] - deltaSeconds);
                 }
-
-                ActivateEffects();
             }
 
             if (!effectsActivated)
             {
                 ActivateEffects();
-            }
-            if (deltaSeconds <= 0f)
-            {
-                return;
             }
             foreach (var effect in effects.Values)
             {
@@ -580,39 +670,44 @@ namespace DragonBound.Items
             CombatPoint activationPoint,
             out string reason)
         {
+            var attemptNumber = ++useAttemptNumber;
+            var command = hasActivationPoint
+                ? "target_point"
+                : string.IsNullOrWhiteSpace(targetId) ? "activate" : "target_unit";
             reason = ItemOperationFailure.None;
             if (!IsStarted)
             {
                 reason = "RunNotStarted";
-                return false;
+                return PublishUseResolved(itemId, attemptNumber, command, false, reason);
             }
 
-            if (IsInitialCooldownActive)
+            if (IsInitialCooldownActiveFor(itemId))
             {
                 reason = "InitialCooldown";
-                return false;
+                return PublishUseResolved(itemId, attemptNumber, command, false, reason);
             }
 
             if (!Snapshot.IsActive(itemId))
             {
                 reason = "NotActiveInSnapshot";
-                return false;
+                return PublishUseResolved(itemId, attemptNumber, command, false, reason);
             }
 
             IItemEffectRuntime effect;
             if (!effects.TryGetValue(itemId, out effect))
             {
                 reason = "EffectPending";
-                return false;
+                return PublishUseResolved(itemId, attemptNumber, command, false, reason);
             }
 
             context.ActivationTargetId = targetId;
             context.HasActivationPoint = hasActivationPoint;
             context.ActivationPoint = activationPoint;
             context.NextActivationOrdinal++;
+            bool accepted;
             try
             {
-                return effect.TryActivate(context, out reason);
+                accepted = effect.TryActivate(context, out reason);
             }
             finally
             {
@@ -620,6 +715,26 @@ namespace DragonBound.Items
                 context.HasActivationPoint = false;
                 context.ActivationPoint = default(CombatPoint);
             }
+
+            return PublishUseResolved(itemId, attemptNumber, command, accepted, reason);
+        }
+
+        private bool PublishUseResolved(
+            string itemId,
+            int attemptNumber,
+            string command,
+            bool accepted,
+            string reason)
+        {
+            UseResolved?.Invoke(new ItemUseResolvedEvent(
+                itemId,
+                attemptNumber,
+                command,
+                accepted,
+                reason,
+                GetCooldownRemainingSeconds(itemId),
+                GetCooldownDurationSeconds(itemId)));
+            return accepted;
         }
 
         public float GetCooldownRemainingSeconds(string itemId)
@@ -632,6 +747,11 @@ namespace DragonBound.Items
             if (effects.TryGetValue(itemId, out effect) && effect is WinterveilRuneEffect winterveil)
             {
                 return winterveil.CooldownRemainingSeconds;
+            }
+
+            if (effects.TryGetValue(itemId, out effect) && effect is ForgekeepersGiftEffect forgekeepersGift)
+            {
+                return forgekeepersGift.CooldownRemainingSeconds;
             }
 
             return 0f;
@@ -649,7 +769,45 @@ namespace DragonBound.Items
                 return WinterveilRuneEffect.CooldownSeconds;
             }
 
+            if (effects.TryGetValue(itemId, out effect) && effect is ForgekeepersGiftEffect)
+            {
+                return ForgekeepersGiftEffect.RepeatForgePickSeconds;
+            }
+
             return 0f;
+        }
+
+        public bool SynchronizeForgekeepersGiftCooldown(float remainingSeconds)
+        {
+            if (!effects.TryGetValue(ItemIds.ForgekeepersGift, out var effect) ||
+                !(effect is ForgekeepersGiftEffect forgekeepersGift))
+            {
+                return false;
+            }
+
+            forgekeepersGift.SynchronizeCooldown(remainingSeconds);
+            return true;
+        }
+
+        public float GetInitialCooldownDurationSeconds(string itemId)
+        {
+            return !string.IsNullOrWhiteSpace(itemId) &&
+                   initialCooldownDurations.TryGetValue(itemId, out var duration)
+                ? duration
+                : 0f;
+        }
+
+        public float GetInitialCooldownRemainingSeconds(string itemId)
+        {
+            return !string.IsNullOrWhiteSpace(itemId) &&
+                   initialCooldownRemaining.TryGetValue(itemId, out var remaining)
+                ? remaining
+                : 0f;
+        }
+
+        public bool IsInitialCooldownActiveFor(string itemId)
+        {
+            return IsStarted && GetInitialCooldownRemainingSeconds(itemId) > 0.0001f;
         }
 
         public void HandleCombatEvent(ItemCombatEvent combatEvent)
@@ -670,6 +828,14 @@ namespace DragonBound.Items
             return effects.TryGetValue(itemId, out effect);
         }
 
+        public bool IsItemConsumed(string itemId)
+        {
+            return !string.IsNullOrWhiteSpace(itemId) &&
+                   effects.TryGetValue(itemId, out var effect) &&
+                   effect is IOneShotItemEffectState oneShot &&
+                   oneShot.IsConsumed;
+        }
+
         public bool TryEvaluateBossCast(ItemBossCastAttempt attempt, out bool blocked, out string reason)
         {
             blocked = false;
@@ -680,7 +846,7 @@ namespace DragonBound.Items
                 return false;
             }
 
-            if (IsInitialCooldownActive || !effectsActivated)
+            if (!effectsActivated)
             {
                 reason = "InitialCooldown";
                 return false;
@@ -701,6 +867,22 @@ namespace DragonBound.Items
         {
             AddEffects(Snapshot.ActiveItems);
             AddEffects(Snapshot.PassiveItems);
+        }
+
+        private void InitializeActiveItemCooldowns()
+        {
+            for (var i = 0; i < Snapshot.ActiveItems.Count; i++)
+            {
+                var itemId = Snapshot.ActiveItems[i];
+                var duration = GetCooldownDurationSeconds(itemId);
+                if (duration <= 0.0001f)
+                {
+                    continue;
+                }
+
+                initialCooldownDurations[itemId] = duration;
+                initialCooldownRemaining[itemId] = duration;
+            }
         }
 
         private void ActivateEffects()

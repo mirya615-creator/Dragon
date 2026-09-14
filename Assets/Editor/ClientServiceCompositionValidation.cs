@@ -27,7 +27,12 @@ public static class ClientServiceCompositionValidation
         Require(services.Runes != null, "Rune service is missing.");
         Require(services.RewardedAds != null, "Rewarded ad service is missing.");
         Require(services.Share != null, "Share service is missing.");
+        Require(services.SignIn != null, "Sign-in service is missing.");
         Require(services.Gameplay != null, "Gameplay run service is missing.");
+        Require(services.GameplaySnapshots != null, "Gameplay snapshot service is missing.");
+        Require(services.CloudSave != null, "Cloud save service is missing.");
+        Require(services.Push != null, "Push service is missing.");
+        Require(services.Social != null, "Social service is missing.");
 
         RequireDependency(services.Merchant, "goldGateway", services.Gold);
         RequireDependency(services.Leaderboard, "rankGateway", services.Rank);

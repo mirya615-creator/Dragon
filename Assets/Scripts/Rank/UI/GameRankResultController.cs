@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DragonBound.Bootstrap;
+using DragonBound.Core;
 using DragonBound.Services;
 using TMPro;
 using UnityEngine;
@@ -10,7 +11,7 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class GameRankResultController : MonoBehaviour
 {
-    private const string DoubleGoldPlacement = "game_gold_double";
+    private const string DoubleGoldPlacement = "settle_double";
     private const int MinimumLoadingMilliseconds = 2000;
 
     private Button victoryButton;
@@ -65,7 +66,7 @@ public sealed class GameRankResultController : MonoBehaviour
         if (victoryButton != null) victoryButton.onClick.AddListener(OnVictoryClicked);
         if (defeatButton != null) defeatButton.onClick.AddListener(OnDefeatClicked);
         receiveButton.onClick.AddListener(OnReceiveClicked);
-        doubleButton.onClick.AddListener(OnDoubleClicked);
+        doubleButton.interactable = false;
 
         if (victoryButton == null || defeatButton == null)
         {
@@ -132,7 +133,6 @@ public sealed class GameRankResultController : MonoBehaviour
         if (victoryButton != null) victoryButton.onClick.RemoveListener(OnVictoryClicked);
         if (defeatButton != null) defeatButton.onClick.RemoveListener(OnDefeatClicked);
         if (receiveButton != null) receiveButton.onClick.RemoveListener(OnReceiveClicked);
-        if (doubleButton != null) doubleButton.onClick.RemoveListener(OnDoubleClicked);
         if (lifetimeCancellation == null) return;
         lifetimeCancellation.Cancel();
         lifetimeCancellation.Dispose();
@@ -147,13 +147,16 @@ public sealed class GameRankResultController : MonoBehaviour
 
     private async void OnVictoryClicked()
     {
+        if (!CanSubmitOnlineDebugResult(ServerMatchResult.Victory)) return;
         if (!TryBeginFinish()) return;
+        ShowProcessingSettlement();
 
         AuthSession session = authSessionStore.Current;
         if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
         {
             Debug.LogError("Victory cannot be recorded without an authenticated PlayerId.");
             SetGameResultBusy(false);
+            ShowSettlementFailure();
             return;
         }
 
@@ -167,7 +170,7 @@ public sealed class GameRankResultController : MonoBehaviour
                 GameplayTerminationReason.Natural,
                 GameplayFaultAttribution.None,
                 bootstrap.Match != null ? bootstrap.Match.CurrentWave : 0,
-                bootstrap.Match != null ? bootstrap.Match.Player.Resources : 0,
+                bootstrap.Match != null ? bootstrap.Match.Player.HatchlingHealth : 0,
                 bootstrap.Recruitment != null ? bootstrap.Recruitment.CompletedRecruitments : 0,
                 lifetimeCancellation.Token);
             ShowSettlement(preparation);
@@ -180,18 +183,22 @@ public sealed class GameRankResultController : MonoBehaviour
         {
             Debug.LogError($"Unable to record victory: {exception.Message}");
             SetGameResultBusy(false);
+            ShowSettlementFailure();
         }
     }
 
     private async void OnDefeatClicked()
     {
+        if (!CanSubmitOnlineDebugResult(ServerMatchResult.Defeat)) return;
         if (!TryBeginFinish()) return;
+        ShowProcessingSettlement();
 
         AuthSession session = authSessionStore.Current;
         if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
         {
             Debug.LogError("Defeat cannot be recorded without an authenticated PlayerId.");
             SetGameResultBusy(false);
+            ShowSettlementFailure();
             return;
         }
 
@@ -205,7 +212,7 @@ public sealed class GameRankResultController : MonoBehaviour
                 GameplayTerminationReason.Natural,
                 GameplayFaultAttribution.None,
                 bootstrap.Match != null ? bootstrap.Match.CurrentWave : 0,
-                bootstrap.Match != null ? bootstrap.Match.Player.Resources : 0,
+                bootstrap.Match != null ? bootstrap.Match.Player.HatchlingHealth : 0,
                 bootstrap.Recruitment != null ? bootstrap.Recruitment.CompletedRecruitments : 0,
                 lifetimeCancellation.Token);
             ShowSettlement(preparation);
@@ -218,6 +225,7 @@ public sealed class GameRankResultController : MonoBehaviour
         {
             Debug.LogError($"Unable to record defeat: {exception.Message}");
             SetGameResultBusy(false);
+            ShowSettlementFailure();
         }
     }
 
@@ -242,9 +250,17 @@ public sealed class GameRankResultController : MonoBehaviour
     private async void OnDoubleClicked()
     {
         if (!TryBeginClaim()) return;
+        string playerId = null;
+        string adEventId = null;
 
         try
         {
+            AuthSession session = authSessionStore.Current;
+            if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
+                throw new InvalidOperationException(
+                    "Gold cannot be doubled without an authenticated PlayerId.");
+            playerId = session.PlayerId;
+
             RewardedAdResult result = await rewardedAdService.ShowAsync(
                 DoubleGoldPlacement,
                 lifetimeCancellation.Token);
@@ -254,8 +270,11 @@ public sealed class GameRankResultController : MonoBehaviour
                 return;
             }
 
-            string adVerificationId = Guid.NewGuid().ToString("N");
-            await SettleGoldAndReturnAsync(GoldClaimType.RewardedAd, adVerificationId);
+            adEventId = PendingAdEventStore.GetOrCreate(
+                playerId, DoubleGoldPlacement, matchId);
+            await SettleGoldAndReturnAsync(GoldClaimType.RewardedAd, adEventId);
+            PendingAdEventStore.Complete(
+                playerId, DoubleGoldPlacement, matchId, adEventId);
         }
         catch (OperationCanceledException)
         {
@@ -309,23 +328,55 @@ public sealed class GameRankResultController : MonoBehaviour
                 : preparation.Result.Result == ServerMatchResult.NoContest
                     ? "No Contest"
                     : "Settlement Pending";
-        long baseReward = !preparation.CanClaimGold
-            ? 0
-            : preparation.GoldOutcome == MatchOutcome.Victory
+        long fallbackReward = preparation.GoldOutcome == MatchOutcome.Victory
             ? LocalPlayerGoldGateway.VictoryReward
             : LocalPlayerGoldGateway.DefeatReward;
+        long baseReward = !preparation.CanClaimGold
+            ? 0
+            : preparation.Result.GoldReward > 0
+                ? preparation.Result.GoldReward
+                : fallbackReward;
         goldText.text = "+" + baseReward;
-        doubleButton.gameObject.SetActive(preparation.CanClaimGold);
+        goldText.gameObject.SetActive(true);
+        receiveButton.gameObject.SetActive(true);
+        doubleButton.gameObject.SetActive(true);
+        doubleButton.interactable = false;
         settlementPanel.SetActive(true);
         settlementPanel.transform.SetAsLastSibling();
         SetClaimBusy(false);
+    }
+
+    private void ShowProcessingSettlement()
+    {
+        hasPendingOutcome = false;
+        settlementResultText.gameObject.SetActive(true);
+        settlementResultText.text = "Processing Results…";
+        goldText.gameObject.SetActive(false);
+        receiveButton.gameObject.SetActive(false);
+        doubleButton.gameObject.SetActive(false);
+        settlementPanel.SetActive(true);
+        settlementPanel.transform.SetAsLastSibling();
+        SetClaimBusy(true);
+    }
+
+    private void ShowSettlementFailure()
+    {
+        hasPendingOutcome = false;
+        settlementResultText.gameObject.SetActive(true);
+        settlementResultText.text = "Processing Results Failed";
+        goldText.gameObject.SetActive(false);
+        receiveButton.gameObject.SetActive(false);
+        doubleButton.gameObject.SetActive(false);
+        settlementPanel.SetActive(true);
+        settlementPanel.transform.SetAsLastSibling();
+        SetClaimBusy(true);
     }
 
     private void SetClaimBusy(bool busy)
     {
         claimInProgress = busy;
         if (receiveButton != null) receiveButton.interactable = !busy;
-        if (doubleButton != null) doubleButton.interactable = !busy;
+        if (doubleButton != null) doubleButton.interactable = false;
     }
 
     private bool TryBeginFinish()
@@ -399,5 +450,23 @@ public sealed class GameRankResultController : MonoBehaviour
         if (bootstrap?.PlayerRuneRewards?.GrantedRewards == null) return;
         foreach (DragonBound.Runes.RuneReward reward in bootstrap.PlayerRuneRewards.GrantedRewards)
             GameRuneDropSession.RecordCompletedWaveReward(reward);
+    }
+
+    private bool CanSubmitOnlineDebugResult(ServerMatchResult result)
+    {
+        if (!(ClientCompositionRoot.Current.Gameplay is GoUnaryGameplayRunGateway)) return true;
+        bool valid = bootstrap?.Match != null &&
+            (result == ServerMatchResult.Victory
+                ? bootstrap.Match.State == MatchState.Victory &&
+                  bootstrap.Match.CurrentWave == BattleSettlementDefinition.MaxScheduledWave
+                : bootstrap.Match.State == MatchState.Defeat &&
+                  bootstrap.Match.Player.HatchlingHealth == 0);
+        if (!valid)
+        {
+            Debug.LogWarning(
+                "Online Run result buttons cannot submit a result before gameplay reaches " +
+                "its matching terminal state.");
+        }
+        return valid;
     }
 }

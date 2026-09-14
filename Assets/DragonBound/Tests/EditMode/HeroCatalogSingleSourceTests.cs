@@ -84,11 +84,11 @@ namespace DragonBound.Tests.EditMode
         }
 
         [TestCase(DragonBoundRecipeIds.WindclawRanger, DragonBoundHeroIds.WindclawRanger,
-            HeroFormationOrientation.Vertical, DragonBoundComponentIds.SkyRanger, DragonBoundComponentIds.ContractHatchling)]
+            HeroFormationOrientation.Horizontal, DragonBoundComponentIds.SkyRanger, DragonBoundComponentIds.ContractHatchling)]
         [TestCase(DragonBoundRecipeIds.EmberShaman, DragonBoundHeroIds.EmberShaman,
-            HeroFormationOrientation.Vertical, DragonBoundComponentIds.FlameShaman, DragonBoundComponentIds.ContractHatchling)]
+            HeroFormationOrientation.Horizontal, DragonBoundComponentIds.FlameShaman, DragonBoundComponentIds.ContractHatchling)]
         [TestCase(DragonBoundRecipeIds.DragonRider, DragonBoundHeroIds.DragonRider,
-            HeroFormationOrientation.Vertical, DragonBoundComponentIds.DragonKnight, DragonBoundComponentIds.ContractHatchling)]
+            HeroFormationOrientation.Horizontal, DragonBoundComponentIds.DragonKnight, DragonBoundComponentIds.ContractHatchling)]
         [TestCase(DragonBoundRecipeIds.RuneboltMage, DragonBoundHeroIds.RuneboltMage,
             HeroFormationOrientation.Horizontal, DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.RuneApprentice)]
         [TestCase(DragonBoundRecipeIds.Stonebinder, DragonBoundHeroIds.Stonebinder,
@@ -96,11 +96,11 @@ namespace DragonBound.Tests.EditMode
         [TestCase(DragonBoundRecipeIds.StarfallArchmage, DragonBoundHeroIds.StarfallArchmage,
             HeroFormationOrientation.Horizontal, DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.AstralMage)]
         [TestCase(DragonBoundRecipeIds.CrownSwordLeader, DragonBoundHeroIds.CrownSwordLeader,
-            HeroFormationOrientation.Vertical, DragonBoundComponentIds.AncestralWarCrown, DragonBoundComponentIds.WanderingSwordsman)]
+            HeroFormationOrientation.Horizontal, DragonBoundComponentIds.AncestralWarCrown, DragonBoundComponentIds.WanderingSwordsman)]
         [TestCase(DragonBoundRecipeIds.CrownHunterLeader, DragonBoundHeroIds.CrownHunterLeader,
-            HeroFormationOrientation.Vertical, DragonBoundComponentIds.AncestralWarCrown, DragonBoundComponentIds.NorthlandScout)]
+            HeroFormationOrientation.Horizontal, DragonBoundComponentIds.AncestralWarCrown, DragonBoundComponentIds.NorthlandScout)]
         [TestCase(DragonBoundRecipeIds.ThunderJarl, DragonBoundHeroIds.ThunderJarl,
-            HeroFormationOrientation.Vertical, DragonBoundComponentIds.AncestralWarCrown, DragonBoundComponentIds.StormWarrior)]
+            HeroFormationOrientation.Horizontal, DragonBoundComponentIds.AncestralWarCrown, DragonBoundComponentIds.StormWarrior)]
         [TestCase(DragonBoundRecipeIds.NightfangAssassin, DragonBoundHeroIds.NightfangAssassin,
             HeroFormationOrientation.Horizontal, DragonBoundComponentIds.RuneDagger, DragonBoundComponentIds.ShadowWalker)]
         [TestCase(DragonBoundRecipeIds.LeviathanHunter, DragonBoundHeroIds.LeviathanHunter,
@@ -117,19 +117,8 @@ namespace DragonBound.Tests.EditMode
             var recipe = HeroRecipeCatalog.Get(recipeId);
             Assert.AreEqual(heroId, recipe.HeroId);
             Assert.AreEqual(orientation, recipe.FormationOrientation);
-            if (orientation == HeroFormationOrientation.Vertical)
-            {
-                Assert.AreEqual(firstRequiredComponent, recipe.TopComponentId);
-                Assert.AreEqual(secondRequiredComponent, recipe.BottomComponentId);
-                Assert.IsTrue(recipe.MatchesFormation(
-                    firstRequiredComponent, new GridPosition(3, 4),
-                    secondRequiredComponent, new GridPosition(3, 3)));
-                Assert.IsFalse(recipe.MatchesFormation(
-                    secondRequiredComponent, new GridPosition(3, 4),
-                    firstRequiredComponent, new GridPosition(3, 3)));
-                return;
-            }
-
+            Assert.IsNull(recipe.TopComponentId);
+            Assert.IsNull(recipe.BottomComponentId);
             Assert.AreEqual(firstRequiredComponent, recipe.LeftComponentId);
             Assert.AreEqual(secondRequiredComponent, recipe.RightComponentId);
             Assert.IsTrue(recipe.MatchesFormation(

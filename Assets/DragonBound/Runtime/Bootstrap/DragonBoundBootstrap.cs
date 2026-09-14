@@ -11,6 +11,7 @@ using DragonBound.Services;
 using GameShared.Random;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace DragonBound.Bootstrap
@@ -24,6 +25,7 @@ namespace DragonBound.Bootstrap
     public sealed class DragonBoundBootstrap : MonoBehaviour
     {
         [SerializeField] private int runSeed = 20260801;
+        private int waveRandomSeed;
         [SerializeField] private bool deferInitializationUntilItemSnapshotReady;
         [SerializeField] private bool useFixedSeedForDiagnostics;
         [SerializeField] private string battlefieldLayoutId = BattlefieldLayoutDefinitions.Fixed8x10ReferenceMap01Id;
@@ -35,11 +37,15 @@ namespace DragonBound.Bootstrap
         [SerializeField, Range(1, 10)] private int localPlayerRankLevel = 1;
         [SerializeField] private RecruitComponentPolicy recruitComponentPolicy = RecruitComponentPolicy.V3;
         [SerializeField, Min(20)] private int heroSliceStartingResources = 500;
+        [SerializeField, Min(0.05f)] private float aiBoardActionIntervalSeconds = 0.2f;
         [SerializeField] private DragonBoundScreenView screenView;
 
         public MatchController Match { get; private set; }
         public RunSeed Seed { get; private set; }
         public string GameplayRunId { get; private set; }
+        public string GameplayRulesVersion { get; private set; }
+        public AnalyticsRunSessionV2 AnalyticsSession { get; private set; }
+        public DrakeforgeAnalyticsAdapterV1 GameplayAnalyticsAdapter { get; private set; }
         public int ReconnectGraceSeconds { get; private set; } = 90;
         public int AfkTimeoutSeconds { get; private set; } = 180;
         public BoardGrid Board => PlayerBoard;
@@ -63,6 +69,7 @@ namespace DragonBound.Bootstrap
         public ShovelRecruitmentState AiShovelState { get; private set; }
         public ShovelUnlockService PlayerShovelUnlocks { get; private set; }
         public ShovelUnlockService AiShovelUnlocks { get; private set; }
+        public ItemForgePickPortRouter PlayerForgePickPort { get; } = new ItemForgePickPortRouter();
         public LimitedComponentBag ComponentBag { get; private set; }
         public LimitedComponentBag AiComponentBag { get; private set; }
         public ThreeWaveSliceRuntime ThreeWave { get; private set; }
@@ -82,6 +89,8 @@ namespace DragonBound.Bootstrap
         public RuneFeatureGate RuneFeatureGate { get; private set; }
         public RuneLoadoutService PlayerRuneLoadout { get; private set; }
         public RuneRunRewardService PlayerRuneRewards { get; private set; }
+        /// <summary>Run-local AI rewards used only by the pause result UI; never persisted to the player profile.</summary>
+        public RuneRunRewardService AiRuneRewards { get; private set; }
         /// <summary>Optional V2 Rune lifecycle observer supplied by the integration owner.</summary>
         public RuneAnalyticsAdapterV2 RuneAnalyticsAdapter { get; set; }
         public GreyboxRunStatistics PlayerLayoutStatistics { get; private set; }
@@ -96,6 +105,11 @@ namespace DragonBound.Bootstrap
         private RuneLoadoutSnapshot externalPlayerRuneLoadoutSnapshot;
         private int? externalPlayerRuneAccountDay;
         public bool IsInitialized { get; private set; }
+        public bool InitializationFailed { get; private set; }
+        public System.Exception InitializationException { get; private set; }
+        public event System.Action Initialized;
+        public event System.Action<System.Exception> InitializationFailedEvent;
+        private bool initializationInProgress;
 
         public const float InitializationPromptSeconds = 1f;
         private float initializationRemaining;
@@ -105,12 +119,15 @@ namespace DragonBound.Bootstrap
         private int aiRecruitSeed;
         private int combatSeed;
         private int aiDecisionSeed;
+        private int debugSpawnSequence;
+        private float aiBoardActionRemaining;
 
         // Test-only injection keeps persistence tests away from a developer's real local profile.
         public static IRuneProfileRepository RuneProfileRepositoryOverrideForTests { get; set; }
         public static IItemRunSnapshotProvider ItemRunSnapshotProviderOverrideForTests { get; set; }
         public static IItemValidatedProfileSnapshotSource ItemProfileSnapshotSourceOverrideForTests { get; set; }
         public static RuneAnalyticsAdapterV2 RuneAnalyticsAdapterOverrideForTests { get; set; }
+        public static IAnalyticsSinkV2 AnalyticsSinkOverrideForTests { get; set; }
 
         public void Configure(DragonBoundScreenView view)
         {
@@ -139,6 +156,16 @@ namespace DragonBound.Bootstrap
             service?.GrantShovel(count);
         }
 
+        public void BindPlayerForgePickPort(IItemForgePickPort provider)
+        {
+            PlayerForgePickPort.Bind(provider);
+        }
+
+        public void UnbindPlayerForgePickPort(IItemForgePickPort provider)
+        {
+            PlayerForgePickPort.Unbind(provider);
+        }
+
         public bool TryDebugSpawnDragonRouteHero(TeamSide side, string heroId)
         {
             var destination = side == TeamSide.Player ? RecruitDestination : AiRecruitDestination;
@@ -153,6 +180,82 @@ namespace DragonBound.Bootstrap
                 $"DebugDragonRouteSpawned Team={side} HeroId={pairLink.HeroId} " +
                 $"RecipeId={pairLink.RecipeId} PairLinkId={pairLink.PairLinkId}");
             return true;
+        }
+
+        public bool TryDebugSpawnDragonRouteHeroDirect(TeamSide side, string heroId)
+        {
+            var destination = side == TeamSide.Player ? RecruitDestination : AiRecruitDestination;
+            var prefix =
+                $"dev.console.{side.ToString().ToLowerInvariant()}.{heroId}.{runSeed}.{++debugSpawnSequence}";
+            if (!DragonRouteHeroDevelopmentFactory.TrySpawnPairDirect(
+                    destination,
+                    heroId,
+                    prefix,
+                    out var pairLink))
+            {
+                Debug.LogWarning($"DebugDirectHeroSpawnRejected Team={side} HeroId={heroId}");
+                return false;
+            }
+
+            Debug.Log(
+                $"DebugDirectHeroSpawned Team={side} HeroId={pairLink.HeroId} " +
+                $"RecipeId={pairLink.RecipeId} PairLinkId={pairLink.PairLinkId}");
+            return true;
+        }
+
+        public bool TryDebugSpawnBasicUnit(TeamSide side, string configId)
+        {
+            if ((!Application.isEditor && !Debug.isDebugBuild) || string.IsNullOrWhiteSpace(configId))
+            {
+                return false;
+            }
+
+            var destination = side == TeamSide.Player ? RecruitDestination : AiRecruitDestination;
+            if (destination == null)
+            {
+                return false;
+            }
+
+            var runtimeId =
+                $"dev.{side.ToString().ToLowerInvariant()}.basic.{++debugSpawnSequence}.{configId}";
+            var card = new RecruitCard(
+                runtimeId,
+                RecruitItemKind.BasicUnit,
+                configId,
+                string.Empty);
+            foreach (var position in destination.Board.GetPositions(CellType.Battle))
+            {
+                if (destination.TryDebugPlaceCard(card, position))
+                {
+                    Debug.Log(
+                        $"DebugBasicUnitSpawned Team={side} ConfigId={configId} " +
+                        $"RuntimeId={runtimeId} Position={position}");
+                    return true;
+                }
+            }
+
+            Debug.LogWarning($"DebugBasicUnitSpawnRejected Team={side} ConfigId={configId}");
+            return false;
+        }
+
+        public bool TryDebugSetCurrentWave(int wave)
+        {
+            if (TwentyWave == null || !TwentyWave.JumpToWave(wave))
+            {
+                return false;
+            }
+
+            return !TwentyWave.IsBossWarningPending || TwentyWave.ConfirmBossWarning();
+        }
+
+        public bool TryDebugSpawnEnemy(TeamSide defendingSide, int appearanceIndex)
+        {
+            return TwentyWave != null && TwentyWave.TryDebugSpawnEnemy(defendingSide, appearanceIndex);
+        }
+
+        public bool TryDebugSpawnBoss(int bossWave)
+        {
+            return TwentyWave != null && TwentyWave.TryDebugSpawnBoss(bossWave);
         }
 
         [ContextMenu("DEV/Spawn Player Windclaw Ranger")]
@@ -452,13 +555,18 @@ namespace DragonBound.Bootstrap
             return true;
         }
 
-        private void InitializeRuntime()
+        private async void InitializeRuntime()
         {
-            if (IsInitialized) return;
-            IsInitialized = true;
-            Time.timeScale = 1f;
-            Debug.Log("TimeScaleInitialized Time.timeScale=1");
-            BeginGameplayRun();
+            if (IsInitialized || initializationInProgress) return;
+            initializationInProgress = true;
+            try
+            {
+                InitializationFailed = false;
+                InitializationException = null;
+                Time.timeScale = 1f;
+                Debug.Log("TimeScaleInitialized Time.timeScale=1");
+                await BeginGameplayRunAsync();
+            InitializeAnalyticsSession();
             if (heroSliceMode && !enableHeroComponents)
             {
                 Debug.LogError("HeroSliceMode requires EnableHeroComponents=true.");
@@ -499,6 +607,11 @@ namespace DragonBound.Bootstrap
                 RuneFeatureGate,
                 () => PersistRuneProfile(),
                 RuneAnalyticsAdapter);
+            AiRuneRewards = new RuneRunRewardService(
+                unchecked(runSeed ^ (int)0x6D2B79F5),
+                new RuneInventory(),
+                RuneFeatureGate,
+                null);
             Debug.Log(
                 $"RuneProfileLoaded Status={runeProfileResult.Status} Day={RuneFeatureGate.AccountDay} " +
                 $"Unlocked={RuneFeatureGate.IsUnlocked}");
@@ -598,6 +711,7 @@ namespace DragonBound.Bootstrap
                 AiRecruitment,
                 RecruitDestination,
                 AiRecruitDestination);
+            screenView.OverlayController.BindRuneRewardServices(PlayerRuneRewards, AiRuneRewards);
             BoardView.BindShovelUnlockService(PlayerShovelUnlocks);
             AiBoardView.BindShovelUnlockService(AiShovelUnlocks);
 
@@ -607,9 +721,13 @@ namespace DragonBound.Bootstrap
                     Match,
                     RecruitDestination,
                     AiRecruitDestination,
-                    runSeed,
+                    waveRandomSeed,
                     playerRuneRewards: PlayerRuneRewards,
-                    itemSnapshotProvider: ItemRunSnapshotProvider);
+                    itemSnapshotProvider: ItemRunSnapshotProvider,
+                    playerForgePick: PlayerForgePickPort,
+                    playerFreeRecruit: Recruitment,
+                    aiFreeRecruit: AiRecruitment,
+                    aiRuneRewards: AiRuneRewards);
                 screenView.BindWaveRuntime(TwentyWave);
                 screenView.BindItemRuntime(TwentyWave);
             }
@@ -624,6 +742,26 @@ namespace DragonBound.Bootstrap
                         : ThreeWaveEnemyDurabilityProfile.BasicUnitBaseline);
                 ThreeWave = WaveSystem.Runtime;
                 screenView.BindWaveRuntime(ThreeWave);
+            }
+
+            GameplayAnalyticsAdapter = new DrakeforgeAnalyticsAdapterV1(AnalyticsSession);
+            if (TwentyWave != null)
+            {
+                GameplayAnalyticsAdapter.Attach(
+                    TwentyWave,
+                    RecruitDestination,
+                    AiRecruitDestination,
+                    Recruitment,
+                    AiRecruitment);
+            }
+            else
+            {
+                GameplayAnalyticsAdapter.Attach(
+                    ThreeWave,
+                    RecruitDestination,
+                    AiRecruitDestination,
+                    Recruitment,
+                    AiRecruitment);
             }
 
             if (enablePressureRunDiagnostics && TwentyWave != null)
@@ -649,23 +787,33 @@ namespace DragonBound.Bootstrap
             if (!useTwentyWavePressureRuntime)
             {
                 var aiRecruitments = heroSliceMode ? 3 : 1;
-                for (var index = 0; index < aiRecruitments; index++)
+                if (!AiController.BeginOpeningSequence(aiRecruitments, heroSliceMode ? 2 : 3))
                 {
-                    var aiOpening = AiController.RecruitOrRefresh();
-                    if (aiOpening.Status != RecruitmentStatus.Success)
-                    {
-                        Debug.LogError("AI opening recruitment failed despite using the same starting resources.");
-                        break;
-                    }
+                    Debug.LogError("AI opening deployment sequence could not be started.");
                 }
-
-                AiController.DeployOpeningUnits(heroSliceMode ? 2 : 3);
+                aiBoardActionRemaining = 0f;
             }
 
             AiBoardView.RefreshUnits();
             Match.TryTransition(MatchState.Ready);
             initializationRemaining = InitializationPromptSeconds;
+            IsInitialized = true;
+            GreyboxGameplayAnimationTestConsole.Create(this);
+            Initialized?.Invoke();
             Debug.Log("MatchStateChanged State=Ready InitializationComplete=true");
+            }
+            catch (System.Exception exception)
+            {
+                IsInitialized = false;
+                InitializationFailed = true;
+                InitializationException = exception;
+                Debug.LogException(exception, this);
+                InitializationFailedEvent?.Invoke(exception);
+            }
+            finally
+            {
+                initializationInProgress = false;
+            }
         }
 
         private RecruitDeck CreateRecruitDeck(
@@ -695,44 +843,86 @@ namespace DragonBound.Bootstrap
                 heroSliceMode);
         }
 
-        private void BeginGameplayRun()
+        private async Task BeginGameplayRunAsync()
         {
             bool hasLaunchContext = GameplayLaunchContext.TryGet(
                 out string launchPlayerId,
                 out string launchNonce,
                 out int launchPlayerRankLevel);
-            if (!hasLaunchContext)
+            StartGameplayRunResult result;
+            if (GameplayLaunchContext.IsDirectDevelopmentSceneEntry)
             {
+                var staleLaunchContextCleared = hasLaunchContext;
+                if (hasLaunchContext)
+                {
+                    GameplayLaunchContext.Complete(launchNonce);
+                }
+
                 launchPlayerId = string.Empty;
                 launchNonce = System.Guid.NewGuid().ToString("N");
                 launchPlayerRankLevel = Mathf.Clamp(localPlayerRankLevel, 1, 10);
+                var request = new StartGameplayRunRequest
+                {
+                    PlayerId = launchPlayerId,
+                    GameMode = useTwentyWavePressureRuntime ? "TwentyWave" : "Greybox",
+                    ClientRunNonce = launchNonce,
+                    UseDiagnosticSeed = true,
+                    DiagnosticSeed = runSeed,
+                    PlayerRankLevel = launchPlayerRankLevel
+                };
+                result = await new LocalGameplayRunGateway()
+                    .StartRunAsync(request, CancellationToken.None);
+                hasLaunchContext = false;
+                Debug.Log(
+                    $"GreyboxDirectDevelopmentLaunch Seed={runSeed} " +
+                    $"StaleLaunchContextCleared={staleLaunchContextCleared}");
             }
-            var request = new StartGameplayRunRequest
+            else if (hasLaunchContext)
             {
-                PlayerId = launchPlayerId,
-                GameMode = useTwentyWavePressureRuntime ? "TwentyWave" : "Greybox",
-                ClientRunNonce = launchNonce,
-                UseDiagnosticSeed = useFixedSeedForDiagnostics,
-                DiagnosticSeed = runSeed,
-                PlayerRankLevel = launchPlayerRankLevel
-            };
-            var result = GameplayRunGatewayRegistry.Current
-                .StartRunAsync(request, CancellationToken.None)
-                .GetAwaiter()
-                .GetResult();
+                if (!GameplayLaunchContext.TryTakePrepared(launchNonce, out result))
+                {
+                    throw new System.InvalidOperationException(
+                        "Gameplay launch ticket is missing. Return to Main and start a new run.");
+                }
+            }
+            else
+            {
+                // Direct scene entry remains available for local diagnostics and existing PlayMode tests.
+                launchPlayerId = string.Empty;
+                launchNonce = System.Guid.NewGuid().ToString("N");
+                launchPlayerRankLevel = Mathf.Clamp(localPlayerRankLevel, 1, 10);
+                var request = new StartGameplayRunRequest
+                {
+                    PlayerId = launchPlayerId,
+                    GameMode = useTwentyWavePressureRuntime ? "TwentyWave" : "Greybox",
+                    ClientRunNonce = launchNonce,
+                    UseDiagnosticSeed = useFixedSeedForDiagnostics,
+                    DiagnosticSeed = runSeed,
+                    PlayerRankLevel = launchPlayerRankLevel
+                };
+                result = await GameplayRunGatewayRegistry.Current
+                    .StartRunAsync(request, CancellationToken.None);
+            }
             if (result == null)
             {
                 throw new System.InvalidOperationException("Gameplay gateway returned no run configuration.");
             }
 
             GameplayRunId = result.RunId;
+            GameplayRulesVersion = string.IsNullOrWhiteSpace(result.RulesVersion)
+                ? LocalGameplayRunGateway.LocalRulesVersion
+                : result.RulesVersion;
             runSeed = result.RunSeed;
+            waveRandomSeed = string.IsNullOrWhiteSpace(result.RandomProtocolVersion)
+                ? result.RunSeed
+                : result.WaveRandomSeed;
             playerRecruitSeed = result.PlayerRecruitSeed;
             aiRecruitSeed = result.AiRecruitSeed;
             combatSeed = result.CombatSeed;
             int resolvedRankLevel = result.PlayerRankLevel > 0
                 ? Mathf.Clamp(result.PlayerRankLevel, 1, 10)
                 : Mathf.Clamp(localPlayerRankLevel, 1, 10);
+            localPlayerRankLevel = resolvedRankLevel;
             AiProfileId = AiRankProfileMapping.TryParseWireValue(result.AiProfile, out var profile)
                 ? profile
                 : AiRankProfileMapping.FromRankLevel(resolvedRankLevel);
@@ -757,6 +947,63 @@ namespace DragonBound.Bootstrap
                 $"AIAlgorithm={AiAlgorithmVersion}");
         }
 
+        private void InitializeAnalyticsSession()
+        {
+            IAnalyticsSinkV2 sink = AnalyticsSinkOverrideForTests ??
+                new BufferedAnalyticsSinkV2(
+                    new FirebaseAnalyticsSinkV2(),
+                    canBuffer: () => FirebaseAnalyticsRuntimeState.CanCollect);
+            var context = new DrakeforgeAnalyticsRunContext(
+                GameplayRunId,
+                runSeed,
+                ResolveAnalyticsExecutionContext(),
+                GameplayRulesVersion,
+                string.IsNullOrWhiteSpace(Application.version) ? "development" : Application.version,
+                ResolveAnalyticsRankTier(localPlayerRankLevel),
+                ResolveAnalyticsAiDifficulty(AiProfileId),
+                AiProfileId.ToString().ToLowerInvariant(),
+                AiAlgorithmVersion,
+                aiDecisionSeed,
+                IsAiRecoveryMatch,
+                localPlayerRankLevel,
+                AnalyticsBuildLaneResolverV2.Resolve());
+            AnalyticsSession = new AnalyticsRunSessionV2(new AnalyticsRecorderV2(sink), context);
+            AnalyticsRuntimeRegistryV2.SetCurrent(AnalyticsSession);
+            if (RuneAnalyticsAdapterOverrideForTests == null && RuneAnalyticsAdapter == null)
+            {
+                RuneAnalyticsAdapter = new RuneAnalyticsAdapterV2(AnalyticsSession, AnalyticsSides.Player);
+            }
+        }
+
+        private string ResolveAnalyticsExecutionContext()
+        {
+            if (useFixedSeedForDiagnostics) return AnalyticsExecutionContexts.DiagnosticAiVsAi;
+            if (heroSliceMode) return AnalyticsExecutionContexts.HeroSliceShowcase;
+            return AnalyticsExecutionContexts.LivePlayerVsAi;
+        }
+
+        private static string ResolveAnalyticsRankTier(int rankLevel)
+        {
+            if (rankLevel <= 0) return AnalyticsRankTiers.Unranked;
+            if (rankLevel <= 2) return AnalyticsRankTiers.Bronze;
+            if (rankLevel <= 4) return AnalyticsRankTiers.Silver;
+            if (rankLevel <= 6) return AnalyticsRankTiers.Gold;
+            if (rankLevel <= 8) return AnalyticsRankTiers.Platinum;
+            return AnalyticsRankTiers.Diamond;
+        }
+
+        private static string ResolveAnalyticsAiDifficulty(AiStrategyProfileId profile)
+        {
+            switch (profile)
+            {
+                case AiStrategyProfileId.Beginner: return AnalyticsAiDifficulties.Easy;
+                case AiStrategyProfileId.Veteran: return AnalyticsAiDifficulties.Standard;
+                case AiStrategyProfileId.Elite: return AnalyticsAiDifficulties.Hard;
+                case AiStrategyProfileId.Master: return AnalyticsAiDifficulties.Elite;
+                default: return AnalyticsAiDifficulties.None;
+            }
+        }
+
         private void Update()
         {
             if (Match == null)
@@ -773,6 +1020,11 @@ namespace DragonBound.Bootstrap
             {
                 RecruitDestination?.TickPairLinks(Time.deltaTime);
                 AiRecruitDestination?.TickPairLinks(Time.deltaTime);
+                if (ProcessAiStepwiseSequence(Time.deltaTime))
+                {
+                    return;
+                }
+
                 initializationRemaining -= Time.deltaTime;
                 if (initializationRemaining <= 0f)
                 {
@@ -802,14 +1054,16 @@ namespace DragonBound.Bootstrap
 
                 if (enableAiSurvivalController && Match.State == MatchState.Running)
                 {
-                    bool canDecide = AiDecisionScheduler != null &&
+                    ProcessAiStepwiseSequence(Time.deltaTime);
+                    bool canDecide = !AiController.IsStepwiseCycleActive &&
+                                     AiDecisionScheduler != null &&
                                      AiDecisionScheduler.Tick(Time.deltaTime, true);
                     if (canDecide)
                     {
-                        AiController.Tick(TwentyWave.CurrentWaveIndex);
-                        if (AiController.LastCycleChanged)
+                        if (AiController.BeginStepwiseCycle(TwentyWave.CurrentWaveIndex))
                         {
-                            AiBoardView.RefreshUnits();
+                            aiBoardActionRemaining = 0f;
+                            ProcessAiStepwiseSequence(0f);
                         }
                     }
                 }
@@ -823,6 +1077,33 @@ namespace DragonBound.Bootstrap
             WaveSystem?.Tick(Time.deltaTime);
         }
 
+        private bool ProcessAiStepwiseSequence(float deltaTime)
+        {
+            if (AiController == null || !AiController.IsStepwiseCycleActive)
+            {
+                return false;
+            }
+
+            aiBoardActionRemaining -= Mathf.Max(0f, deltaTime);
+            if (aiBoardActionRemaining > 0f)
+            {
+                return true;
+            }
+
+            if (AiController.TryExecuteStepwiseCycleStep(out var action))
+            {
+                var interval = Mathf.Max(0.05f, aiBoardActionIntervalSeconds);
+                AiBoardView?.RefreshUnits(action, interval * 0.85f);
+                aiBoardActionRemaining = interval;
+            }
+            else
+            {
+                aiBoardActionRemaining = 0f;
+            }
+
+            return AiController.IsStepwiseCycleActive;
+        }
+
         private void OnDestroy()
         {
             if (Match != null)
@@ -831,6 +1112,11 @@ namespace DragonBound.Bootstrap
             }
 
             PressureDiagnostics?.Dispose();
+            GameplayAnalyticsAdapter?.Detach();
+            if (AnalyticsSession != null)
+            {
+                AnalyticsRuntimeRegistryV2.Clear(AnalyticsSession);
+            }
             PersistRuneProfile();
             if (pressureDiagnosticsPanel != null)
             {
@@ -865,6 +1151,7 @@ namespace DragonBound.Bootstrap
                 }
 
                 RecruitDestination?.SealRuneLoadoutSnapshot();
+                RecordRuneLoadoutSnapshotLocked(externalPlayerRuneLoadoutSnapshot);
                 return;
             }
 
@@ -878,6 +1165,7 @@ namespace DragonBound.Bootstrap
                 Debug.LogError("RuneLoadoutLockFailed " + error);
                 RecruitDestination?.TrySetRuneLoadoutSnapshot(RuneLoadoutSnapshot.Empty);
                 RecruitDestination?.SealRuneLoadoutSnapshot();
+                RecordRuneLoadoutSnapshotLocked(RuneLoadoutSnapshot.Empty);
                 return;
             }
 
@@ -887,14 +1175,43 @@ namespace DragonBound.Bootstrap
                 Debug.LogError("RuneLoadoutSnapshotRejectedAfterHeroFormation");
             }
             RecruitDestination?.SealRuneLoadoutSnapshot();
+            RecordRuneLoadoutSnapshotLocked(snapshot);
+        }
+
+        private void RecordRuneLoadoutSnapshotLocked(RuneLoadoutSnapshot snapshot)
+        {
+            GameplayAnalyticsAdapter?.RecordRuneLoadoutSnapshotLocked(
+                TeamSide.Player,
+                0,
+                snapshot ?? RuneLoadoutSnapshot.Empty);
         }
 
         private void HandleMatchStateChanged(MatchState state)
         {
+            if (state == MatchState.Running)
+            {
+                if (GameplayAnalyticsAdapter != null && GameplayAnalyticsAdapter.RecordRunStart())
+                {
+                    GameplayAnalyticsAdapter.RecordFormationSnapshots(0, "run_start", "run:start");
+                }
+                return;
+            }
+
             if (state != MatchState.Victory && state != MatchState.Defeat)
             {
                 return;
             }
+
+            int analyticsFinishWave = Match != null ? Match.CurrentWave : 0;
+            GameplayAnalyticsAdapter?.RecordFormationSnapshots(
+                analyticsFinishWave,
+                "match_finish",
+                "match:finish");
+            GameplayAnalyticsAdapter?.RecordMatchFinished(
+                analyticsFinishWave,
+                state == MatchState.Victory ? "victory" : "defeat",
+                ResolveAnalyticsFinishReason(state),
+                ResolveAnalyticsElapsedSeconds());
 
             Debug.Log($"GreyboxLayoutStatistics Side=Player {PlayerLayoutStatistics}");
             Debug.Log($"GreyboxLayoutStatistics Side=AI {AiLayoutStatistics}");
@@ -907,6 +1224,23 @@ namespace DragonBound.Bootstrap
                     TwentyWave.AiTotalReachedGoal);
                 Debug.Log(AiController.Diagnostics.CreateSummary());
             }
+        }
+
+        private string ResolveAnalyticsFinishReason(MatchState state)
+        {
+            if (state == MatchState.Victory) return "opponent_defeated";
+            if (Match == null) return "unknown";
+            bool playerDefeated = Match.Player.HatchlingHealth <= 0 || Match.Player.IsInstantDefeated;
+            bool aiDefeated = Match.AI.HatchlingHealth <= 0 || Match.AI.IsInstantDefeated;
+            if (playerDefeated && aiDefeated) return "simultaneous_defeat";
+            if (playerDefeated) return "player_defeated";
+            return "run_rule_defeat";
+        }
+
+        private float ResolveAnalyticsElapsedSeconds()
+        {
+            if (TwentyWave != null) return TwentyWave.ElapsedRunTime;
+            return ThreeWave != null ? ThreeWave.ElapsedRunTime : 0f;
         }
 
         private void CaptureAiWaveDiagnostics()

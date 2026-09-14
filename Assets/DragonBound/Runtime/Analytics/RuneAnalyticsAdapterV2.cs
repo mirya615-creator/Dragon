@@ -95,16 +95,8 @@ namespace DragonBound.Analytics
     /// </summary>
     public sealed class RuneAnalyticsAdapterV2
     {
-        private readonly AnalyticsRecorderV2 recorder;
-        private readonly string runId;
-        private readonly int runSeed;
-        private readonly string executionContext;
+        private readonly AnalyticsRunSessionV2 session;
         private readonly string side;
-        private readonly string rankTier;
-        private readonly string aiDifficulty;
-        private readonly string configVersion;
-        private readonly string buildVersion;
-        private long nextSequence = 1;
 
         public RuneAnalyticsAdapterV2(
             AnalyticsRecorderV2 recorder,
@@ -116,21 +108,25 @@ namespace DragonBound.Analytics
             string aiDifficulty,
             string configVersion,
             string buildVersion)
+            : this(
+                new AnalyticsRunSessionV2(
+                    recorder,
+                    new DrakeforgeAnalyticsRunContext(
+                        runId,
+                        runSeed,
+                        executionContext,
+                        configVersion,
+                        buildVersion,
+                        rankTier,
+                        aiDifficulty)),
+                side)
         {
-            if (recorder == null)
-            {
-                throw new ArgumentNullException("recorder");
-            }
+        }
 
-            this.recorder = recorder;
-            this.runId = runId ?? string.Empty;
-            this.runSeed = runSeed;
-            this.executionContext = executionContext ?? string.Empty;
+        public RuneAnalyticsAdapterV2(AnalyticsRunSessionV2 session, string side)
+        {
+            this.session = session ?? throw new ArgumentNullException(nameof(session));
             this.side = side ?? string.Empty;
-            this.rankTier = rankTier ?? string.Empty;
-            this.aiDifficulty = aiDifficulty ?? string.Empty;
-            this.configVersion = configVersion ?? string.Empty;
-            this.buildVersion = buildVersion ?? string.Empty;
         }
 
         public AnalyticsRecordResultV2 RecordLoadoutAssign(
@@ -173,48 +169,60 @@ namespace DragonBound.Analytics
             RuneGateRejectionObservationV2 observation,
             out string error)
         {
-            var value = Create(
+            return session.Record(
                 AnalyticsEventNamesV2.RuneGateRejection,
+                side,
+                observation.Wave,
                 observation.DedupeKey,
-                observation.Wave);
-            value.rune_operation = observation.Operation;
-            value.gate_state = AnalyticsRuneGateStates.Locked;
-            value.account_day = observation.AccountDay;
-            value.reason = observation.Reason;
-            return Record(value, out error);
+                value =>
+                {
+                    value.rune_operation = observation.Operation;
+                    value.gate_state = AnalyticsRuneGateStates.Locked;
+                    value.account_day = observation.AccountDay;
+                    value.reason = observation.Reason;
+                },
+                out error);
         }
 
         public AnalyticsRecordResultV2 RecordRewardPending(
             RuneRewardPendingObservationV2 observation,
             out string error)
         {
-            var value = Create(
+            return session.Record(
                 AnalyticsEventNamesV2.RuneRewardPending,
+                side,
+                observation.Wave,
                 observation.DedupeKey,
-                observation.Wave);
-            value.reward_wave = observation.Wave;
-            value.reward_state = AnalyticsRuneRewardStates.Pending;
-            return Record(value, out error);
+                value =>
+                {
+                    value.reward_wave = observation.Wave;
+                    value.reward_state = AnalyticsRuneRewardStates.Pending;
+                },
+                out error);
         }
 
         public AnalyticsRecordResultV2 RecordRewardResult(
             RuneRewardResultObservationV2 observation,
             out string error)
         {
-            var value = Create(
+            return session.Record(
                 observation.Granted
                     ? AnalyticsEventNamesV2.RuneRewardGranted
                     : AnalyticsEventNamesV2.RuneRewardRejected,
+                side,
+                observation.Wave,
                 observation.DedupeKey,
-                observation.Wave);
-            value.reward_wave = observation.Wave;
-            value.rune_id = observation.RuneId;
-            value.reward_form = observation.RewardForm;
-            value.reward_state = observation.Granted
-                ? AnalyticsRuneRewardStates.Granted
-                : AnalyticsRuneRewardStates.Rejected;
-            value.reason = observation.Reason;
-            return Record(value, out error);
+                value =>
+                {
+                    value.reward_wave = observation.Wave;
+                    value.rune_id = observation.RuneId;
+                    value.reward_form = observation.RewardForm;
+                    value.reward_state = observation.Granted
+                        ? AnalyticsRuneRewardStates.Granted
+                        : AnalyticsRuneRewardStates.Rejected;
+                    value.reason = observation.Reason;
+                },
+                out error);
         }
 
         private AnalyticsRecordResultV2 RecordOperation(
@@ -224,43 +232,21 @@ namespace DragonBound.Analytics
             string runeId,
             out string error)
         {
-            var value = Create(eventName, observation.DedupeKey, observation.Wave);
-            value.hero_id = heroId;
-            value.rune_id = runeId;
-            value.operation_result = observation.Accepted
-                ? AnalyticsRuneOperationResults.Accepted
-                : AnalyticsRuneOperationResults.Rejected;
-            value.reason = observation.Reason;
-            return Record(value, out error);
-        }
-
-        private AnalyticsEventV2 Create(string eventName, string dedupeKey, int wave)
-        {
-            return AnalyticsEventV2Factory.Create(
+            return session.Record(
                 eventName,
-                runId + ":rune:" + (dedupeKey ?? string.Empty),
-                runId,
-                runSeed,
-                executionContext,
                 side,
-                wave,
-                rankTier,
-                aiDifficulty,
-                nextSequence,
-                configVersion,
-                buildVersion,
-                DateTime.UtcNow);
-        }
-
-        private AnalyticsRecordResultV2 Record(AnalyticsEventV2 value, out string error)
-        {
-            var result = recorder.Record(value, out error);
-            if (result == AnalyticsRecordResultV2.Accepted)
-            {
-                nextSequence++;
-            }
-
-            return result;
+                observation.Wave,
+                observation.DedupeKey,
+                value =>
+                {
+                    value.hero_id = heroId;
+                    value.rune_id = runeId;
+                    value.operation_result = observation.Accepted
+                        ? AnalyticsRuneOperationResults.Accepted
+                        : AnalyticsRuneOperationResults.Rejected;
+                    value.reason = observation.Reason;
+                },
+                out error);
         }
     }
 }

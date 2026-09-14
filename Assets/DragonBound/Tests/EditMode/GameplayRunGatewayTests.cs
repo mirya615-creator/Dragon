@@ -1,11 +1,26 @@
 using System.Threading;
 using DragonBound.Services;
+using GameShared.Random;
 using NUnit.Framework;
 
 namespace DragonBound.Tests.EditMode
 {
     public sealed class GameplayRunGatewayTests
     {
+        [TestCase(true, "Greybox_Main", true)]
+        [TestCase(true, "Main", false)]
+        [TestCase(true, "Login", false)]
+        [TestCase(false, "Greybox_Main", false)]
+        public void DirectDevelopmentSceneEntryRequiresDevelopmentGreyboxInitialScene(
+            bool isDevelopment,
+            string sceneName,
+            bool expected)
+        {
+            Assert.AreEqual(
+                expected,
+                GameplayLaunchContext.IsDirectDevelopmentScene(isDevelopment, sceneName));
+        }
+
         [Test]
         public void DiagnosticSeedReplaysAllGameplayStreams()
         {
@@ -24,6 +39,17 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(first.AiRecruitSeed, second.AiRecruitSeed);
             Assert.AreEqual(first.CombatSeed, second.CombatSeed);
             Assert.AreNotEqual(first.PlayerRecruitSeed, first.AiRecruitSeed);
+            Assert.AreEqual(SharedRandomProtocolV1.Version, first.RandomProtocolVersion);
+            Assert.AreEqual(first.RunSeed, first.WaveRandomSeed);
+            Assert.AreEqual(
+                SharedRandomProtocolV1.DeriveSeed(first.RunSeed, "player.recruit"),
+                first.PlayerRecruitSeed);
+            Assert.AreEqual(
+                SharedRandomProtocolV1.DeriveSeed(first.RunSeed, "ai.recruit"),
+                first.AiRecruitSeed);
+            Assert.AreEqual(
+                SharedRandomProtocolV1.DeriveSeed(first.RunSeed, "combat"),
+                first.CombatSeed);
         }
 
         [Test]
@@ -152,6 +178,32 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(applyProgress, result.ApplyRank);
             Assert.AreEqual(applyProgress, result.CountCompletedRun);
             Assert.AreEqual(applyProgress, result.GrantRewards);
+        }
+
+        [Test]
+        public void PreparedLaunchResultIsConsumedExactlyOnce()
+        {
+            string nonce = System.Guid.NewGuid().ToString("N");
+            var source = new StartGameplayRunResult
+            {
+                RunId = System.Guid.NewGuid().ToString("N"),
+                RunSeed = 71,
+                PlayerRecruitSeed = 72,
+                AiRecruitSeed = 73,
+                CombatSeed = 74,
+                RulesVersion = "rules-v1",
+                PlayerRankLevel = 4
+            };
+
+            GameplayLaunchContext.StorePrepared(nonce, source);
+            source.RunId = "mutated-after-store";
+
+            Assert.IsFalse(GameplayLaunchContext.TryTakePrepared("wrong-nonce", out _));
+            Assert.IsTrue(GameplayLaunchContext.TryTakePrepared(nonce, out var prepared));
+            Assert.AreNotEqual(source.RunId, prepared.RunId);
+            Assert.AreEqual(71, prepared.RunSeed);
+            Assert.AreEqual(4, prepared.PlayerRankLevel);
+            Assert.IsFalse(GameplayLaunchContext.TryTakePrepared(nonce, out _));
         }
     }
 }

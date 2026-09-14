@@ -49,6 +49,52 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void ShovelRedevelopsAnInitiallyUnlockedCellLockedByWorldeater()
+        {
+            var board = DragonBoundBoardLayout.CreateDefault(TeamSide.Player);
+            var destination = new BoardRecruitDestination(board);
+            var unlocks = new ShovelUnlockService(board, destination);
+            var position = board.GetPositions(CellType.Battle)[0];
+            var basic = new RecruitCard(
+                "worldeater.victim",
+                RecruitItemKind.BasicUnit,
+                "axe",
+                string.Empty);
+            Assert.IsTrue(destination.TryDebugPlaceCard(basic, position));
+            Assert.IsTrue(destination.TryConsumeDeployedBasicAndLockCell(basic.RuntimeId));
+            Assert.IsTrue(board.IsBossLockedCell(position));
+
+            unlocks.GrantShovel(1);
+            Assert.IsTrue(unlocks.BeginSelection());
+            Assert.IsTrue(unlocks.TryUnlockCell(position));
+            Assert.AreEqual(CellType.Battle, GetCellType(board, position));
+            Assert.IsFalse(board.IsBossLockedCell(position));
+            Assert.AreEqual(0, unlocks.AvailableShovelCount);
+        }
+
+        [Test]
+        public void RewardShovelIsAddedToBeachAndUsesTheNormalUnlockPath()
+        {
+            var board = DragonBoundBoardLayout.CreateDefault(TeamSide.Player);
+            var destination = new BoardRecruitDestination(board);
+            var unlocks = new ShovelUnlockService(board, destination);
+            var card = new RecruitCard(
+                "forgekeeper.reward.1",
+                RecruitItemKind.Shovel,
+                ShovelRecruitmentConfig.ShovelConfigId,
+                string.Empty);
+            var target = board.GetPositions(CellType.Locked)[0];
+
+            Assert.IsTrue(destination.HasEmptyBenchSlot());
+            Assert.IsTrue(destination.TryAddRewardShovelToFirstEmptyBench(card));
+            Assert.AreEqual(1, destination.GetBenchShovelCount());
+            Assert.IsTrue(unlocks.BeginSelection(card.RuntimeId));
+            Assert.IsTrue(unlocks.TryUnlockCell(target));
+            Assert.AreEqual(0, destination.GetBenchShovelCount());
+            Assert.IsFalse(destination.TryGetCard(card.RuntimeId, out _));
+        }
+
+        [Test]
         public void BenchShovelUsesTheSameUnlockPathAndCannotBeDragged()
         {
             var board = DragonBoundBoardLayout.CreateDefault(TeamSide.Player);

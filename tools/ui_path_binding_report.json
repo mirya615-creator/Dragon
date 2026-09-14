@@ -1,0 +1,4445 @@
+{
+ "total": 422,
+ "by_cat": {
+  "编辑器工具": 38,
+  "运行时": 220,
+  "测试": 164
+ },
+ "by_kind": {
+  "Transform.Find": 299,
+  "FindObjectOfType": 94,
+  "GetChild": 24,
+  "GameObject.Find": 5
+ },
+ "files": {
+  "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs": {
+   "FindObjectOfType": 50,
+   "Transform.Find": 3
+  },
+  "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs": {
+   "FindObjectOfType": 9,
+   "Transform.Find": 33,
+   "GameObject.Find": 5,
+   "GetChild": 2
+  },
+  "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs": {
+   "Transform.Find": 28
+  },
+  "Assets/Scripts/Merchant/MainMerchantController.cs": {
+   "Transform.Find": 21,
+   "GetChild": 6
+  },
+  "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs": {
+   "Transform.Find": 26
+  },
+  "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs": {
+   "FindObjectOfType": 8,
+   "Transform.Find": 16
+  },
+  "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs": {
+   "Transform.Find": 23
+  },
+  "Assets/Scripts/Rank/UI/MainLeaderboardController.cs": {
+   "Transform.Find": 14,
+   "GetChild": 1
+  },
+  "Assets/Scripts/Rune/RuneWeaponPanelController.cs": {
+   "Transform.Find": 12,
+   "GetChild": 2
+  },
+  "Assets/DragonBound/Runtime/Presentation/EnemyView.cs": {
+   "Transform.Find": 11
+  },
+  "Assets/DragonBound/Runtime/Presentation/DragonBoundScreenView.cs": {
+   "Transform.Find": 8,
+   "GetChild": 1
+  },
+  "Assets/Scripts/Auth/Energy/UI/MainEnergyController.cs": {
+   "Transform.Find": 8
+  },
+  "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs": {
+   "Transform.Find": 6,
+   "GetChild": 1
+  },
+  "Assets/DragonBound/Runtime/Presentation/GridCellView.cs": {
+   "Transform.Find": 7
+  },
+  "Assets/Scripts/Rank/UI/GameRankResultController.cs": {
+   "Transform.Find": 6,
+   "FindObjectOfType": 1
+  },
+  "Assets/DragonBound/Runtime/Presentation/FixedBoardCanvasView.cs": {
+   "Transform.Find": 6
+  },
+  "Assets/DragonBound/Tests/EditMode/AuthoredGreyboxUiTests.cs": {
+   "Transform.Find": 6
+  },
+  "Assets/Scripts/Rank/UI/MainRankController.cs": {
+   "Transform.Find": 5,
+   "GetChild": 1
+  },
+  "Assets/Scripts/SignIn/UI/MainSignInController.cs": {
+   "Transform.Find": 6
+  },
+  "Assets/Scripts/UI/GameplayLoadingPanelController.cs": {
+   "FindObjectOfType": 1,
+   "Transform.Find": 5
+  },
+  "Assets/Scripts/UI/PlayerAvatarView.cs": {
+   "GetChild": 2,
+   "Transform.Find": 4
+  },
+  "Assets/Editor/GreyboxMerchantLoadoutSceneMigration.cs": {
+   "Transform.Find": 5
+  },
+  "Assets/Scripts/Rank/UI/GreyboxSettlementRewardController.cs": {
+   "Transform.Find": 4,
+   "FindObjectOfType": 1
+  },
+  "Assets/Scripts/UI/ForgekeepersGiftPanelController.cs": {
+   "FindObjectOfType": 2,
+   "Transform.Find": 3
+  },
+  "Assets/DragonBound/Runtime/Presentation/CampPanelView.cs": {
+   "Transform.Find": 1,
+   "GetChild": 3
+  },
+  "Assets/Scripts/Analytics/AnalyticsConsentUiController.cs": {
+   "FindObjectOfType": 3,
+   "GetChild": 1
+  },
+  "Assets/Scripts/UI/MainNavTabController.cs": {
+   "Transform.Find": 3,
+   "GetChild": 1
+  },
+  "Assets/Editor/SignInFeatureValidation.cs": {
+   "Transform.Find": 3
+  },
+  "Assets/Scripts/Auth/UI/LoginController.cs": {
+   "Transform.Find": 2,
+   "FindObjectOfType": 1
+  },
+  "Assets/Scripts/UI/LoadingPanelEntranceAnimator.cs": {
+   "Transform.Find": 3
+  },
+  "Assets/Scripts/UI/VoidShovelRewardController.cs": {
+   "FindObjectOfType": 2,
+   "GetChild": 1
+  },
+  "Assets/DragonBound/Editor/HandoffUiVisualCapture.cs": {
+   "FindObjectOfType": 2
+  },
+  "Assets/DragonBound/Runtime/Presentation/PauseRuneRewardPresenter.cs": {
+   "Transform.Find": 2
+  },
+  "Assets/DragonBound/Runtime/Presentation/TipTextController.cs": {
+   "Transform.Find": 2
+  },
+  "Assets/DragonBound/Tests/PlayMode/HandoffUiPlayModeTests.cs": {
+   "FindObjectOfType": 2
+  },
+  "Assets/Scripts/SceneLoader.cs": {
+   "FindObjectOfType": 1,
+   "Transform.Find": 1
+  },
+  "Assets/Scripts/Rank/UI/GreyboxPauseExitRewardController.cs": {
+   "FindObjectOfType": 2
+  },
+  "Assets/Scripts/Rune/RuneDragItem.cs": {
+   "Transform.Find": 2
+  },
+  "Assets/Scripts/Settings/DragFillController.cs": {
+   "Transform.Find": 1,
+   "GetChild": 1
+  },
+  "Assets/Scripts/UI/UiGoldExampleEffect.cs": {
+   "Transform.Find": 2
+  },
+  "Assets/DragonBound/Editor/AuthoredGreyboxUiMigration.cs": {
+   "Transform.Find": 1
+  },
+  "Assets/DragonBound/Editor/DragonBoundVisualCapture.cs": {
+   "FindObjectOfType": 1
+  },
+  "Assets/DragonBound/Runtime/Bootstrap/DragonBoundBootstrap.cs": {
+   "FindObjectOfType": 1
+  },
+  "Assets/DragonBound/Runtime/Presentation/BoardDebugOverlay.cs": {
+   "Transform.Find": 1
+  },
+  "Assets/DragonBound/Runtime/Presentation/DraggableUnitView.cs": {
+   "Transform.Find": 1
+  },
+  "Assets/DragonBound/Runtime/Presentation/GreyboxGameplayAnimationTestConsole.cs": {
+   "FindObjectOfType": 1
+  },
+  "Assets/DragonBound/Runtime/Presentation/HeroFormationView.cs": {
+   "Transform.Find": 1
+  },
+  "Assets/DragonBound/Runtime/Presentation/UnitInformController.cs": {
+   "Transform.Find": 1
+  },
+  "Assets/DragonBound/Tests/EditMode/ItemGameplayIntegrationTests.cs": {
+   "Transform.Find": 1
+  },
+  "Assets/DragonBound/Tests/EditMode/RecruitItemColorTests.cs": {
+   "Transform.Find": 1
+  },
+  "Assets/Scripts/Ads/Infrastructure/MockRewardedAdService.cs": {
+   "FindObjectOfType": 1
+  },
+  "Assets/Scripts/Auth/Session/AuthSessionCoordinator.cs": {
+   "FindObjectOfType": 1
+  },
+  "Assets/Scripts/Gold/UI/GoldBalanceController.cs": {
+   "Transform.Find": 1
+  },
+  "Assets/Scripts/Merchant/GreyboxMerchantLoadoutController.cs": {
+   "FindObjectOfType": 1
+  },
+  "Assets/Scripts/Rank/UI/DebugDirectFinishController.cs": {
+   "FindObjectOfType": 1
+  },
+  "Assets/Scripts/Rune/MainRuneUnlockController.cs": {
+   "GetChild": 1
+  },
+  "Assets/Scripts/Services/Gameplay/ActiveRunLifecycle.cs": {
+   "FindObjectOfType": 1
+  },
+  "Assets/Scripts/Settings/DamageNumberToggleController.cs": {
+   "Transform.Find": 1
+  },
+  "Assets/Scripts/Settings/VisualStateToggleController.cs": {
+   "Transform.Find": 1
+  },
+  "Assets/Scripts/UI/SingleEventSystemGuard.cs": {
+   "FindObjectOfType": 1
+  },
+  "Assets/Scripts/UI/UiImageFadeLoop.cs": {
+   "Transform.Find": 1
+  }
+ },
+ "path_literal_count": 62,
+ "rows": [
+  {
+   "file": "Assets/DragonBound/Editor/AuthoredGreyboxUiMigration.cs",
+   "line": 207,
+   "kind": "Transform.Find",
+   "arg": "RangeDismissSurface",
+   "expr": "var existing = parent.Find(\"RangeDismissSurface\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 113,
+   "kind": "Transform.Find",
+   "arg": "ART_StarfallWarning",
+   "expr": "var warningTransform = root.transform.Find(\"ART_StarfallWarning\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 587,
+   "kind": "Transform.Find",
+   "arg": "ART_LockOverlay",
+   "expr": "var lockOverlay = view.transform.Find(\"ART_LockOverlay\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 600,
+   "kind": "Transform.Find",
+   "arg": "ART_Background",
+   "expr": "var background = instance.transform.Find(\"ART_Background\").GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 610,
+   "kind": "Transform.Find",
+   "arg": "RouteWaypoints",
+   "expr": "var points = instance.transform.Find(\"RouteWaypoints\").GetComponentsInChildren<RectTransform>(true);",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 646,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyMarker",
+   "expr": "var marker = instance.transform.Find(\"ART_EnemyMarker\").GetComponent<RectTransform>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 656,
+   "kind": "Transform.Find",
+   "arg": "SideLabel",
+   "expr": "var sideLabel = instance.transform.Find(\"SideLabel\").GetComponent<Text>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 663,
+   "kind": "Transform.Find",
+   "arg": "HatchlingLabel",
+   "expr": "instance.transform.Find(\"HatchlingLabel\").GetComponent<Text>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 664,
+   "kind": "Transform.Find",
+   "arg": "EnemyProgressLabel",
+   "expr": "instance.transform.Find(\"EnemyProgressLabel\").GetComponent<Text>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 665,
+   "kind": "Transform.Find",
+   "arg": "ART_BossTrack/ART_BossFill",
+   "expr": "instance.transform.Find(\"ART_BossTrack/ART_BossFill\").GetComponent<Image>(),",
+   "commented": false,
+   "pathish": true,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 705,
+   "kind": "Transform.Find",
+   "arg": "ART_LockOverlay",
+   "expr": "var lockOverlay = instance.transform.Find(\"ART_LockOverlay\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 797,
+   "kind": "Transform.Find",
+   "arg": "ART_DragArrow",
+   "expr": "var aiDragArrow = aiBattlefieldObject.transform.Find(\"ART_DragArrow\").GetComponent<DragArrowPreviewView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 798,
+   "kind": "Transform.Find",
+   "arg": "ART_DragArrow",
+   "expr": "var playerDragArrow = playerBattlefieldObject.transform.Find(\"ART_DragArrow\").GetComponent<DragArrowPreviewView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 804,
+   "kind": "Transform.Find",
+   "arg": "ART_PauseButton",
+   "expr": "hudObject.transform.Find(\"ART_PauseButton\").GetComponent<Button>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 805,
+   "kind": "Transform.Find",
+   "arg": "ART_PauseButton/PauseLabel",
+   "expr": "hudObject.transform.Find(\"ART_PauseButton/PauseLabel\").GetComponent<Text>(),",
+   "commented": false,
+   "pathish": true,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 806,
+   "kind": "Transform.Find",
+   "arg": "ResourceLabel",
+   "expr": "hudObject.transform.Find(\"ResourceLabel\").GetComponent<Text>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 807,
+   "kind": "Transform.Find",
+   "arg": "WaveLabel",
+   "expr": "hudObject.transform.Find(\"WaveLabel\").GetComponent<Text>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 808,
+   "kind": "Transform.Find",
+   "arg": "DebugLabel",
+   "expr": "hudObject.transform.Find(\"DebugLabel\").GetComponent<Text>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 809,
+   "kind": "Transform.Find",
+   "arg": "EnemyDebugLabel",
+   "expr": "hudObject.transform.Find(\"EnemyDebugLabel\").GetComponent<Text>());",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 862,
+   "kind": "Transform.Find",
+   "arg": "AiUnitLayer",
+   "expr": "screenObject.transform.Find(\"AiUnitLayer\").GetComponent<RectTransform>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 864,
+   "kind": "Transform.Find",
+   "arg": "AiUnitLayer/ART_AiRangePreview",
+   "expr": "screenObject.transform.Find(\"AiUnitLayer/ART_AiRangePreview\").GetComponent<Image>(),",
+   "commented": false,
+   "pathish": true,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 866,
+   "kind": "Transform.Find",
+   "arg": "ART_DragArrow",
+   "expr": "screenView.AiBattlefieldView.transform.Find(\"ART_DragArrow\").GetComponent<DragArrowPreviewView>());",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 870,
+   "kind": "Transform.Find",
+   "arg": "PlayerUnitLayer",
+   "expr": "screenObject.transform.Find(\"PlayerUnitLayer\").GetComponent<RectTransform>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 872,
+   "kind": "Transform.Find",
+   "arg": "PlayerUnitLayer/ART_PlayerRangePreview",
+   "expr": "screenObject.transform.Find(\"PlayerUnitLayer/ART_PlayerRangePreview\").GetComponent<Image>(),",
+   "commented": false,
+   "pathish": true,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 874,
+   "kind": "Transform.Find",
+   "arg": "ART_DragArrow",
+   "expr": "screenView.PlayerBattlefieldView.transform.Find(\"ART_DragArrow\").GetComponent<DragArrowPreviewView>());",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 976,
+   "kind": "Transform.Find",
+   "arg": "ART_DragArrow",
+   "expr": "var existing = battlefield.Find(\"ART_DragArrow\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundPortraitUiBuilder.cs",
+   "line": 1163,
+   "kind": "Transform.Find",
+   "arg": "ART_RangeOutline",
+   "expr": "var outlineTransform = target.Find(\"ART_RangeOutline\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/DragonBoundVisualCapture.cs",
+   "line": 118,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = UnityEngine.Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/HandoffUiVisualCapture.cs",
+   "line": 34,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var layout = UnityEngine.Object.FindObjectOfType<DragonBound.HandoffUi.HandoffResponsiveLayout>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Editor/HandoffUiVisualCapture.cs",
+   "line": 37,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var canvas = UnityEngine.Object.FindObjectOfType<Canvas>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Bootstrap/DragonBoundBootstrap.cs",
+   "line": 697,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "screenView = FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/BoardDebugOverlay.cs",
+   "line": 69,
+   "kind": "Transform.Find",
+   "arg": "DEV_BoardDebugOverlay",
+   "expr": "var existing = parent.Find(\"DEV_BoardDebugOverlay\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/CampPanelView.cs",
+   "line": 262,
+   "kind": "Transform.Find",
+   "arg": "Img",
+   "expr": "image = slot.Find(\"Img\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/CampPanelView.cs",
+   "line": 501,
+   "kind": "GetChild",
+   "arg": "i",
+   "expr": "var child = parent.GetChild(i);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/CampPanelView.cs",
+   "line": 522,
+   "kind": "GetChild",
+   "arg": "i",
+   "expr": "var child = collectionPart.GetChild(i);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/CampPanelView.cs",
+   "line": 548,
+   "kind": "GetChild",
+   "arg": "i",
+   "expr": "result.Add(parent.GetChild(i));",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/DraggableUnitView.cs",
+   "line": 604,
+   "kind": "Transform.Find",
+   "arg": "ART_SoulChainOverlay",
+   "expr": "var existing = transform.Find(\"ART_SoulChainOverlay\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/DragonBoundScreenView.cs",
+   "line": 275,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground/GameOverlayController",
+   "expr": "var host = transform.Find(\"ART_ScreenBackground/GameOverlayController\") ??",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/DragonBoundScreenView.cs",
+   "line": 276,
+   "kind": "Transform.Find",
+   "arg": "GameOverlayController",
+   "expr": "transform.Find(\"GameOverlayController\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/DragonBoundScreenView.cs",
+   "line": 290,
+   "kind": "Transform.Find",
+   "arg": "campPanel",
+   "expr": "var campPanel = transform.Find(\"campPanel\") ??",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/DragonBoundScreenView.cs",
+   "line": 291,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground/campPanel",
+   "expr": "transform.Find(\"ART_ScreenBackground/campPanel\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/DragonBoundScreenView.cs",
+   "line": 311,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground/RecruitmentButtonController",
+   "expr": "var host = transform.Find(\"ART_ScreenBackground/RecruitmentButtonController\") ??",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/DragonBoundScreenView.cs",
+   "line": 312,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground/ART_RecruitButton",
+   "expr": "transform.Find(\"ART_ScreenBackground/ART_RecruitButton\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/DragonBoundScreenView.cs",
+   "line": 328,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground/ART_RecruitButton",
+   "expr": "var target = transform.Find(\"ART_ScreenBackground/ART_RecruitButton\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/DragonBoundScreenView.cs",
+   "line": 440,
+   "kind": "Transform.Find",
+   "arg": "HpBg",
+   "expr": "var heartRoot = goal?.Find(\"HpBg\") as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/DragonBoundScreenView.cs",
+   "line": 498,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "var child = heartRoot.GetChild(index);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 201,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyHpTrack",
+   "expr": "var healthTrack = transform.Find(\"ART_EnemyHpTrack\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 260,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyHpTrack",
+   "expr": "var healthTrack = transform.Find(\"ART_EnemyHpTrack\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 319,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyHpTrack",
+   "expr": "var healthTrack = transform.Find(\"ART_EnemyHpTrack\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 953,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyHpTrack",
+   "expr": "var healthTrack = transform.Find(\"ART_EnemyHpTrack\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 955,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyHpFill",
+   "expr": "? healthTrack.Find(\"ART_EnemyHpFill\")",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 985,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyHpTrack",
+   "expr": "var track = transform.Find(\"ART_EnemyHpTrack\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 986,
+   "kind": "Transform.Find",
+   "arg": "overHp",
+   "expr": "var overHpTransform = track != null ? track.Find(\"overHp\") : null;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 1001,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyHpTrack",
+   "expr": "var track = transform.Find(\"ART_EnemyHpTrack\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 1057,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyHpTrack",
+   "expr": "var healthTrack = transform.Find(\"ART_EnemyHpTrack\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 1065,
+   "kind": "Transform.Find",
+   "arg": "Image",
+   "expr": "var imageTransform = animationRoot.Find(\"Image\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/EnemyView.cs",
+   "line": 1082,
+   "kind": "Transform.Find",
+   "arg": "Animator",
+   "expr": "var authoredAnimatorTransform = animationRoot.Find(\"Animator\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/FixedBoardCanvasView.cs",
+   "line": 121,
+   "kind": "Transform.Find",
+   "arg": "ART_FixedBoardCanvasRuntime",
+   "expr": "var existing = targetScreenRoot.Find(\"ART_FixedBoardCanvasRuntime\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/FixedBoardCanvasView.cs",
+   "line": 288,
+   "kind": "Transform.Find",
+   "arg": "ART_DeploymentFxLayer",
+   "expr": "deploymentFxLayer = parent.Find(\"ART_DeploymentFxLayer\") as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/FixedBoardCanvasView.cs",
+   "line": 329,
+   "kind": "Transform.Find",
+   "arg": "ART_DeploymentGuideLayer",
+   "expr": "deploymentGuideLayer = parent.Find(\"ART_DeploymentGuideLayer\") as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/FixedBoardCanvasView.cs",
+   "line": 562,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground/campPanel",
+   "expr": "var campPanel = screenRoot.Find(\"ART_ScreenBackground/campPanel\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/FixedBoardCanvasView.cs",
+   "line": 834,
+   "kind": "Transform.Find",
+   "arg": "AiUnitLayer",
+   "expr": "var aiUnits = screenRoot.Find(\"AiUnitLayer\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/FixedBoardCanvasView.cs",
+   "line": 873,
+   "kind": "Transform.Find",
+   "arg": "ART_CenterDivider",
+   "expr": ": terrainLayer.Find(\"ART_CenterDivider\") as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+   "line": 2109,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground/BeachContainer",
+   "expr": "? screen.transform.Find(\"ART_ScreenBackground/BeachContainer\")",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+   "line": 2121,
+   "kind": "GetChild",
+   "arg": "childIndex",
+   "expr": "var slot = beachContainer.GetChild(childIndex) as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+   "line": 2133,
+   "kind": "Transform.Find",
+   "arg": "BeachItem",
+   "expr": "var beachItem = slot.Find(\"BeachItem\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+   "line": 2157,
+   "kind": "Transform.Find",
+   "arg": "Text (TMP)",
+   "expr": "var nameTransform = beachItem.Find(\"Text (TMP)\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+   "line": 2158,
+   "kind": "Transform.Find",
+   "arg": "Text",
+   "expr": "var levelTransform = beachItem.Find(\"Text\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+   "line": 2159,
+   "kind": "Transform.Find",
+   "arg": "Image",
+   "expr": "var artTransform = beachItem.Find(\"Image\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxBoardView.cs",
+   "line": 2270,
+   "kind": "Transform.Find",
+   "arg": "Select",
+   "expr": "var selection = cellView.transform.Find(\"Select\")?.gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxGameplayAnimationTestConsole.cs",
+   "line": 94,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var existing = FindObjectOfType<GreyboxGameplayAnimationTestConsole>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 302,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground",
+   "expr": "? screen.transform.Find(\"ART_ScreenBackground\")",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 311,
+   "kind": "Transform.Find",
+   "arg": "ItemContainer",
+   "expr": "var authoredItemContainer = screen.transform.Find(\"ItemContainer\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 323,
+   "kind": "Transform.Find",
+   "arg": "Active",
+   "expr": "var authoredActiveContainer = authoredItemContainer?.Find(\"Active\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 327,
+   "kind": "Transform.Find",
+   "arg": "Active",
+   "expr": "authoredActiveContainer.Find(\"Active\")?.GetComponent<Button>() ??",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 328,
+   "kind": "Transform.Find",
+   "arg": "Active0",
+   "expr": "authoredActiveContainer.Find(\"Active0\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 330,
+   "kind": "Transform.Find",
+   "arg": "Active1",
+   "expr": "authoredActiveContainer.Find(\"Active1\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 345,
+   "kind": "Transform.Find",
+   "arg": "ActiveItemContainer",
+   "expr": "activeItemContainer = background.Find(\"ActiveItemContainer\") as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 352,
+   "kind": "Transform.Find",
+   "arg": "ResourceLabel",
+   "expr": "var authoredResourceLabel = background.Find(\"ResourceLabel\")?.GetComponent<Text>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 358,
+   "kind": "Transform.Find",
+   "arg": "WaveLabel",
+   "expr": "var authoredWaveLabel = background.Find(\"WaveLabel\")?.GetComponent<Text>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 364,
+   "kind": "Transform.Find",
+   "arg": "ART_PauseButton",
+   "expr": "var authoredButton = background.Find(\"ART_PauseButton\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 368,
+   "kind": "Transform.Find",
+   "arg": "PauseLabel",
+   "expr": "pauseLabel = authoredButton.transform.Find(\"PauseLabel\")?.GetComponent<Text>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 374,
+   "kind": "Transform.Find",
+   "arg": "PausePanel",
+   "expr": "var authoredPanel = screen.transform.Find(\"PausePanel\") ??",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 375,
+   "kind": "Transform.Find",
+   "arg": "PausePanel",
+   "expr": "background.Find(\"PausePanel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 382,
+   "kind": "Transform.Find",
+   "arg": "Bg/PauseBtn",
+   "expr": "finishMatchButton = authoredPanel.Find(\"Bg/PauseBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 383,
+   "kind": "Transform.Find",
+   "arg": "Bg/ContinueBtn",
+   "expr": "continueButton = authoredPanel.Find(\"Bg/ContinueBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 387,
+   "kind": "Transform.Find",
+   "arg": "SettlementPanel",
+   "expr": "var authoredSettlement = screen.transform.Find(\"SettlementPanel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 391,
+   "kind": "Transform.Find",
+   "arg": "SettleImg",
+   "expr": "settlementResultImage = authoredSettlement.Find(\"SettleImg\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 395,
+   "kind": "Transform.Find",
+   "arg": "BossWarning",
+   "expr": "var authoredBossWarning = screen.transform.Find(\"BossWarning\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 399,
+   "kind": "Transform.Find",
+   "arg": "ConfirmBtn",
+   "expr": "bossWarningConfirmButton = authoredBossWarning.Find(\"ConfirmBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 403,
+   "kind": "Transform.Find",
+   "arg": "Debug",
+   "expr": "var debugRoot = background.Find(\"Debug\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 406,
+   "kind": "Transform.Find",
+   "arg": "DebugLabel",
+   "expr": "var authoredDebugLabel = debugRoot.Find(\"DebugLabel\")?.GetComponent<Text>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 412,
+   "kind": "Transform.Find",
+   "arg": "EnemyDebugLabel",
+   "expr": "var authoredEnemyDebugLabel = debugRoot.Find(\"EnemyDebugLabel\")?.GetComponent<Text>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GreyboxHudView.cs",
+   "line": 1814,
+   "kind": "Transform.Find",
+   "arg": "CooldownMask",
+   "expr": "var existing = slot.Find(\"CooldownMask\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GridCellView.cs",
+   "line": 52,
+   "kind": "Transform.Find",
+   "arg": "ART_LockOverlay",
+   "expr": "var overlay = transform.Find(\"ART_LockOverlay\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GridCellView.cs",
+   "line": 58,
+   "kind": "Transform.Find",
+   "arg": "DebugRangeBandLabel",
+   "expr": "var label = transform.Find(\"DebugRangeBandLabel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GridCellView.cs",
+   "line": 97,
+   "kind": "Transform.Find",
+   "arg": "ART_LockOverlay",
+   "expr": "var overlay = transform.Find(\"ART_LockOverlay\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GridCellView.cs",
+   "line": 102,
+   "kind": "Transform.Find",
+   "arg": "DebugRangeBandLabel",
+   "expr": "var label = transform.Find(\"DebugRangeBandLabel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GridCellView.cs",
+   "line": 128,
+   "kind": "Transform.Find",
+   "arg": "ART_CellSurface",
+   "expr": "var surface = artImage != null ? artImage.transform : transform.Find(\"ART_CellSurface\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GridCellView.cs",
+   "line": 160,
+   "kind": "Transform.Find",
+   "arg": "ART_LockOverlay",
+   "expr": "var overlay = transform.Find(\"ART_LockOverlay\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/GridCellView.cs",
+   "line": 357,
+   "kind": "Transform.Find",
+   "arg": "InputReceiver",
+   "expr": "var receiver = transform.Find(\"InputReceiver\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/HeroFormationView.cs",
+   "line": 527,
+   "kind": "Transform.Find",
+   "arg": "ParticalBg",
+   "expr": "var particalBg = transform.Find(\"ParticalBg\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/PauseRuneRewardPresenter.cs",
+   "line": 36,
+   "kind": "Transform.Find",
+   "arg": "Bg",
+   "expr": "var background = transform.Find(\"Bg\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/PauseRuneRewardPresenter.cs",
+   "line": 133,
+   "kind": "Transform.Find",
+   "arg": "ItemImg",
+   "expr": "var icon = instance.transform.Find(\"ItemImg\")?.GetComponent<Image>() ??",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/TipTextController.cs",
+   "line": 122,
+   "kind": "Transform.Find",
+   "arg": "Text",
+   "expr": "if (label == null && transform.Find(\"Text\") != null)",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/TipTextController.cs",
+   "line": 123,
+   "kind": "Transform.Find",
+   "arg": "Text",
+   "expr": "label = transform.Find(\"Text\").GetComponent<TextMeshProUGUI>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Runtime/Presentation/UnitInformController.cs",
+   "line": 113,
+   "kind": "Transform.Find",
+   "arg": "device",
+   "expr": "divider = divider != null ? divider : transform.Find(\"device\")?.gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/AuthoredGreyboxUiTests.cs",
+   "line": 26,
+   "kind": "Transform.Find",
+   "arg": "RangeDismissSurface",
+   "expr": "Assert.IsNotNull(prefab.transform.Find(\"RangeDismissSurface\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/AuthoredGreyboxUiTests.cs",
+   "line": 27,
+   "kind": "Transform.Find",
+   "arg": "ItemEntryButton",
+   "expr": "Assert.IsNull(prefab.transform.Find(\"ItemEntryButton\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/AuthoredGreyboxUiTests.cs",
+   "line": 28,
+   "kind": "Transform.Find",
+   "arg": "ART_ItemLoadout",
+   "expr": "Assert.IsNull(prefab.transform.Find(\"ART_ItemLoadout\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/AuthoredGreyboxUiTests.cs",
+   "line": 29,
+   "kind": "Transform.Find",
+   "arg": "ART_HeroWorkshop",
+   "expr": "Assert.IsNull(prefab.transform.Find(\"ART_HeroWorkshop\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/AuthoredGreyboxUiTests.cs",
+   "line": 30,
+   "kind": "Transform.Find",
+   "arg": "ART_RuneLoadout",
+   "expr": "Assert.IsNull(prefab.transform.Find(\"ART_RuneLoadout\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/AuthoredGreyboxUiTests.cs",
+   "line": 31,
+   "kind": "Transform.Find",
+   "arg": "Versus",
+   "expr": "Assert.IsNull(prefab.transform.Find(\"Versus\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/ItemGameplayIntegrationTests.cs",
+   "line": 287,
+   "kind": "Transform.Find",
+   "arg": "CooldownMask",
+   "expr": "var cooldownMask = first.transform.Find(\"CooldownMask\").GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 145,
+   "kind": "Transform.Find",
+   "arg": "ART_SoulChainOverlay",
+   "expr": "var soulChainOverlay = unitCard.transform.Find(\"ART_SoulChainOverlay\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 166,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyAnimation/Image",
+   "expr": ".Find(\"ART_EnemyAnimation/Image\")",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 206,
+   "kind": "Transform.Find",
+   "arg": "ART_UnitPortrait",
+   "expr": "var portrait = instance.transform.Find(\"ART_UnitPortrait\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 349,
+   "kind": "Transform.Find",
+   "arg": "weapon",
+   "expr": "Transform weapon = prefab.transform.Find(\"weapon\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 736,
+   "kind": "Transform.Find",
+   "arg": "SideLabel",
+   "expr": "Assert.AreEqual(\"AI\", view.AiBattlefieldView.transform.Find(\"SideLabel\").GetComponent<Text>().text);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 737,
+   "kind": "Transform.Find",
+   "arg": "SideLabel",
+   "expr": "Assert.AreEqual(\"PLAYER\", view.PlayerBattlefieldView.transform.Find(\"SideLabel\").GetComponent<Text>().text);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 755,
+   "kind": "Transform.Find",
+   "arg": "ART_PathLeft",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_PathLeft\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 756,
+   "kind": "Transform.Find",
+   "arg": "ART_PathRight",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_PathRight\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 757,
+   "kind": "Transform.Find",
+   "arg": "ART_PathTop",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_PathTop\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 758,
+   "kind": "Transform.Find",
+   "arg": "ART_PathBottom",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_PathBottom\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 759,
+   "kind": "Transform.Find",
+   "arg": "ART_Spawn",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_Spawn\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 760,
+   "kind": "Transform.Find",
+   "arg": "ART_Hatchling",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_Hatchling\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 761,
+   "kind": "Transform.Find",
+   "arg": "RouteWaypoints/DragonGoal",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"RouteWaypoints/DragonGoal\"));",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 762,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyMarker/ART_EnemyHpTrack/ART_EnemyHpFill",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_EnemyMarker/ART_EnemyHpTrack/ART_EnemyHpFill\"));",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 763,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyMarker/EnemyRuntimeLabel",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_EnemyMarker/EnemyRuntimeLabel\"));",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 764,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyMarker",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_EnemyMarker\").GetComponent<EnemyView>());",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 766,
+   "kind": "Transform.Find",
+   "arg": "ART_AttackLine",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_AttackLine\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 767,
+   "kind": "Transform.Find",
+   "arg": "ART_BowProjectile",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_BowProjectile\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 768,
+   "kind": "Transform.Find",
+   "arg": "ART_SpearPierceLine",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_SpearPierceLine\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 769,
+   "kind": "Transform.Find",
+   "arg": "ART_RiderSweepCircle",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"ART_RiderSweepCircle\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 770,
+   "kind": "Transform.Find",
+   "arg": "ART_StarfallWarning",
+   "expr": "var starfallWarning = battlefield.transform.Find(\"ART_StarfallWarning\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 773,
+   "kind": "Transform.Find",
+   "arg": "DamageNumber",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"DamageNumber\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 774,
+   "kind": "Transform.Find",
+   "arg": "SuppliesGain",
+   "expr": "Assert.IsNotNull(battlefield.transform.Find(\"SuppliesGain\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 793,
+   "kind": "Transform.Find",
+   "arg": "ART_PathLeft",
+   "expr": "battlefield.transform.Find(\"ART_PathLeft\").GetComponent<RectTransform>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 794,
+   "kind": "Transform.Find",
+   "arg": "ART_PathRight",
+   "expr": "battlefield.transform.Find(\"ART_PathRight\").GetComponent<RectTransform>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 795,
+   "kind": "Transform.Find",
+   "arg": "ART_PathTop",
+   "expr": "battlefield.transform.Find(\"ART_PathTop\").GetComponent<RectTransform>(),",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 796,
+   "kind": "Transform.Find",
+   "arg": "ART_PathBottom",
+   "expr": "battlefield.transform.Find(\"ART_PathBottom\").GetComponent<RectTransform>()",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/PortraitUiPrefabTests.cs",
+   "line": 851,
+   "kind": "Transform.Find",
+   "arg": "ART_RangeOutline",
+   "expr": "var outline = fill.transform.Find(\"ART_RangeOutline\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/EditMode/RecruitItemColorTests.cs",
+   "line": 93,
+   "kind": "Transform.Find",
+   "arg": "ART_SoulChainOverlay",
+   "expr": "Assert.IsNull(root.transform.Find(\"ART_SoulChainOverlay\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 66,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var loginSystems = Object.FindObjectsOfType<EventSystem>(true)",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 70,
+   "kind": "Transform.Find",
+   "arg": "AnalyticsBootstrap",
+   "expr": "var analyticsHost = GameObject.Find(\"AnalyticsBootstrap\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 70,
+   "kind": "GameObject.Find",
+   "arg": "AnalyticsBootstrap",
+   "expr": "var analyticsHost = GameObject.Find(\"AnalyticsBootstrap\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 78,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var mainSystems = Object.FindObjectsOfType<EventSystem>(true)",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 82,
+   "kind": "Transform.Find",
+   "arg": "AnalyticsBootstrap",
+   "expr": "Assert.AreSame(analyticsHost, GameObject.Find(\"AnalyticsBootstrap\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 82,
+   "kind": "GameObject.Find",
+   "arg": "AnalyticsBootstrap",
+   "expr": "Assert.AreSame(analyticsHost, GameObject.Find(\"AnalyticsBootstrap\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 92,
+   "kind": "Transform.Find",
+   "arg": "Canvas",
+   "expr": "var canvas = GameObject.Find(\"Canvas\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 92,
+   "kind": "GameObject.Find",
+   "arg": "Canvas",
+   "expr": "var canvas = GameObject.Find(\"Canvas\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 99,
+   "kind": "Transform.Find",
+   "arg": "Text",
+   "expr": "Assert.IsNotNull(tip.Find(\"Text\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 108,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var legacyTips = Object.FindObjectsOfType<Transform>(true)",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 120,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var tipController = Object.FindObjectOfType<TipTextController>(true);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 124,
+   "kind": "Transform.Find",
+   "arg": "Text",
+   "expr": "Assert.IsNotNull(tipController.transform.Find(\"Text\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 149,
+   "kind": "Transform.Find",
+   "arg": "TipText",
+   "expr": "var legacyTip = screen.transform.Find(\"TipText\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 168,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var sharedTip = Object.FindObjectOfType<TipTextController>(true);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 182,
+   "kind": "Transform.Find",
+   "arg": "SafeAreaRoot",
+   "expr": "var safeAreaRoot = GameObject.Find(\"SafeAreaRoot\")?.transform as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 182,
+   "kind": "GameObject.Find",
+   "arg": "SafeAreaRoot",
+   "expr": "var safeAreaRoot = GameObject.Find(\"SafeAreaRoot\")?.transform as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 183,
+   "kind": "Transform.Find",
+   "arg": "RIVER",
+   "expr": "var river = GameObject.Find(\"RIVER\")?.transform as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 183,
+   "kind": "GameObject.Find",
+   "arg": "RIVER",
+   "expr": "var river = GameObject.Find(\"RIVER\")?.transform as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 231,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground/BeachContainer",
+   "expr": "var beachContainer = FindScreen().transform.Find(\"ART_ScreenBackground/BeachContainer\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 263,
+   "kind": "Transform.Find",
+   "arg": "BoardSelect",
+   "expr": "var boardSelection = targetCell.ContentAnchor.Find(\"BoardSelect\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 414,
+   "kind": "Transform.Find",
+   "arg": "campPanel",
+   "expr": "var campPanel = screen.transform.Find(\"campPanel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 416,
+   "kind": "Transform.Find",
+   "arg": "CampBg/DeckPart",
+   "expr": "var deckPart = campPanel.Find(\"CampBg/DeckPart\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 417,
+   "kind": "Transform.Find",
+   "arg": "CampBg/CollectionPart",
+   "expr": "var collectionPart = campPanel.Find(\"CampBg/CollectionPart\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 418,
+   "kind": "Transform.Find",
+   "arg": "BtnImg/DeckBtn",
+   "expr": "var deckButton = campPanel.Find(\"BtnImg/DeckBtn\").GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 419,
+   "kind": "Transform.Find",
+   "arg": "BtnImg/CollectionBtn",
+   "expr": "var collectionButton = campPanel.Find(\"BtnImg/CollectionBtn\").GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 477,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "var slot = componentContainer.GetChild(index);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 488,
+   "kind": "Transform.Find",
+   "arg": "campPanel/CampBg/CollectionPart",
+   "expr": "var collectionPart = screen.transform.Find(\"campPanel/CampBg/CollectionPart\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 496,
+   "kind": "Transform.Find",
+   "arg": "Img1",
+   "expr": "Assert.AreSame(expectedTop, collectionPart.Find(\"Img1\").GetComponent<Image>().sprite);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 497,
+   "kind": "Transform.Find",
+   "arg": "Img2",
+   "expr": "Assert.AreSame(expectedBottom, collectionPart.Find(\"Img2\").GetComponent<Image>().sprite);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 502,
+   "kind": "Transform.Find",
+   "arg": "HeroContainer",
+   "expr": "var heroContainer = collectionPart.Find(\"HeroContainer\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 509,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "var slot = heroContainer.GetChild(index);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 768,
+   "kind": "Transform.Find",
+   "arg": "ART_RangeOutline",
+   "expr": "var rangeOutline = range.transform.Find(\"ART_RangeOutline\").GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 842,
+   "kind": "Transform.Find",
+   "arg": "BeachItem",
+   "expr": "var beachItem = benchCell.transform.Find(\"BeachItem\")?.GetComponent<DraggableUnitView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 860,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var inform = Object.FindObjectOfType<UnitInformController>(true);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 866,
+   "kind": "Transform.Find",
+   "arg": "Name",
+   "expr": "ReadTmpText(inform.transform.Find(\"Name\")));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 869,
+   "kind": "Transform.Find",
+   "arg": "MaxLv",
+   "expr": "ReadTmpText(inform.transform.Find(\"MaxLv\")));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 870,
+   "kind": "Transform.Find",
+   "arg": "EXP",
+   "expr": "Assert.IsFalse(inform.transform.Find(\"EXP\").gameObject.activeSelf);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 871,
+   "kind": "Transform.Find",
+   "arg": "device",
+   "expr": "Assert.IsFalse(inform.transform.Find(\"device\").gameObject.activeSelf);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 872,
+   "kind": "Transform.Find",
+   "arg": "Rune",
+   "expr": "Assert.IsFalse(inform.transform.Find(\"Rune\").gameObject.activeSelf);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 899,
+   "kind": "Transform.Find",
+   "arg": "InputReceiver",
+   "expr": "var inputReceiver = emptyCell.transform.Find(\"InputReceiver\") as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 935,
+   "kind": "Transform.Find",
+   "arg": "ART_FixedBoardCellLayer/BoardBackgroundClickSurface",
+   "expr": ".Find(\"ART_FixedBoardCellLayer/BoardBackgroundClickSurface\")",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 969,
+   "kind": "Transform.Find",
+   "arg": "RangeDismissSurface",
+   "expr": "var receiver = FindScreen().transform.Find(\"RangeDismissSurface\")",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 1004,
+   "kind": "Transform.Find",
+   "arg": "BeachSourceSelect",
+   "expr": "var sourceSelection = sourceCell.ContentAnchor.Find(\"BeachSourceSelect\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 1020,
+   "kind": "Transform.Find",
+   "arg": "BoardSelect",
+   "expr": "var mapTargetSelection = mapTargetCell.ContentAnchor.Find(\"BoardSelect\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 1034,
+   "kind": "Transform.Find",
+   "arg": "BoardSelect",
+   "expr": "var benchSelection = benchCell.ContentAnchor.Find(\"BoardSelect\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 1089,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground/BeachContainer",
+   "expr": "var beachContainer = FindScreen().transform.Find(\"ART_ScreenBackground/BeachContainer\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 1146,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "Object.FindObjectsOfType<DraggableUnitView>().Length,",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 1171,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/BootstrapPlayModeTests.cs",
+   "line": 1179,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 22,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 35,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 48,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 49,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 109,
+   "kind": "Transform.Find",
+   "arg": "Versus",
+   "expr": "Assert.IsNull(screen.transform.Find(\"Versus\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 127,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 128,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 131,
+   "kind": "Transform.Find",
+   "arg": "ART_ScreenBackground",
+   "expr": "var background = screen.transform.Find(\"ART_ScreenBackground\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 132,
+   "kind": "Transform.Find",
+   "arg": "ART_PauseButton",
+   "expr": "var openButton = background.Find(\"ART_PauseButton\").GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 133,
+   "kind": "Transform.Find",
+   "arg": "PausePanel",
+   "expr": "var panel = background.Find(\"PausePanel\").gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 134,
+   "kind": "Transform.Find",
+   "arg": "Bg/PauseBtn",
+   "expr": "var finishButton = panel.transform.Find(\"Bg/PauseBtn\").GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 135,
+   "kind": "Transform.Find",
+   "arg": "Bg/ContinueBtn",
+   "expr": "var continueButton = panel.transform.Find(\"Bg/ContinueBtn\").GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 152,
+   "kind": "Transform.Find",
+   "arg": "SettlementPanel",
+   "expr": "var settlement = screen.transform.Find(\"SettlementPanel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 154,
+   "kind": "Transform.Find",
+   "arg": "SettleImg",
+   "expr": "var settlementImage = settlement.Find(\"SettleImg\").GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 159,
+   "kind": "Transform.Find",
+   "arg": "GoldText",
+   "expr": "Assert.IsFalse(settlement.Find(\"GoldText\").gameObject.activeSelf);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 160,
+   "kind": "Transform.Find",
+   "arg": "ReciveBtn",
+   "expr": "Assert.IsFalse(settlement.Find(\"ReciveBtn\").gameObject.activeSelf);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 161,
+   "kind": "Transform.Find",
+   "arg": "DoubleBtn",
+   "expr": "Assert.IsFalse(settlement.Find(\"DoubleBtn\").gameObject.activeSelf);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 170,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 171,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 176,
+   "kind": "Transform.Find",
+   "arg": "SettlementPanel",
+   "expr": "var settlement = screen.transform.Find(\"SettlementPanel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 178,
+   "kind": "Transform.Find",
+   "arg": "SettleImg",
+   "expr": "var settlementImage = settlement.Find(\"SettleImg\").GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 183,
+   "kind": "Transform.Find",
+   "arg": "GoldText",
+   "expr": "Assert.IsFalse(settlement.Find(\"GoldText\").gameObject.activeSelf);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 184,
+   "kind": "Transform.Find",
+   "arg": "ReciveBtn",
+   "expr": "Assert.IsFalse(settlement.Find(\"ReciveBtn\").gameObject.activeSelf);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/FixedBoardCanvasPlayModeTests.cs",
+   "line": 185,
+   "kind": "Transform.Find",
+   "arg": "DoubleBtn",
+   "expr": "Assert.IsFalse(settlement.Find(\"DoubleBtn\").gameObject.activeSelf);",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HandoffUiPlayModeTests.cs",
+   "line": 21,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var presenter = Object.FindObjectOfType<HandoffPreviewPresenter>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HandoffUiPlayModeTests.cs",
+   "line": 31,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var layout = Object.FindObjectOfType<HandoffResponsiveLayout>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 26,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 53,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 88,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 89,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 101,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyAnimation/Image",
+   "expr": "enemyView.transform.Find(\"ART_EnemyAnimation/Image\").position,",
+   "commented": false,
+   "pathish": true,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 130,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 131,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 167,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 168,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 210,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 242,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 265,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 298,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 340,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 363,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 387,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 439,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 440,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 459,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 460,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 507,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 508,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 617,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 618,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 693,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 694,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 772,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 773,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 877,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 878,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 944,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 945,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1044,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1045,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1147,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1148,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1223,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1224,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1314,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1315,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1392,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1393,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1458,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1459,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1520,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1521,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1581,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1582,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var screen = Object.FindObjectOfType<DragonBoundScreenView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1740,
+   "kind": "Transform.Find",
+   "arg": "ART_StormShieldVFX",
+   "expr": "var shield = root.transform.Find(\"ART_StormShieldVFX\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1784,
+   "kind": "Transform.Find",
+   "arg": "ART_EnemyDeathVFX",
+   "expr": "var deathVfx = root.transform.Find(\"ART_EnemyDeathVFX\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1807,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1907,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/DragonBound/Tests/PlayMode/HeroSlicePlayModeTests.cs",
+   "line": 1941,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var bootstrap = Object.FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "测试"
+  },
+  {
+   "file": "Assets/Editor/GreyboxMerchantLoadoutSceneMigration.cs",
+   "line": 89,
+   "kind": "Transform.Find",
+   "arg": "Active",
+   "expr": "Transform activeContainer = itemContainer.Find(\"Active\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/Editor/GreyboxMerchantLoadoutSceneMigration.cs",
+   "line": 90,
+   "kind": "Transform.Find",
+   "arg": "Passtive",
+   "expr": "Transform passiveContainer = itemContainer.Find(\"Passtive\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/Editor/GreyboxMerchantLoadoutSceneMigration.cs",
+   "line": 147,
+   "kind": "Transform.Find",
+   "arg": "Active",
+   "expr": "if (candidate.Find(\"Active\") != null && candidate.Find(\"Passtive\") != null)",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/Editor/GreyboxMerchantLoadoutSceneMigration.cs",
+   "line": 147,
+   "kind": "Transform.Find",
+   "arg": "Passtive",
+   "expr": "if (candidate.Find(\"Active\") != null && candidate.Find(\"Passtive\") != null)",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/Editor/GreyboxMerchantLoadoutSceneMigration.cs",
+   "line": 170,
+   "kind": "Transform.Find",
+   "arg": "CooldownMask",
+   "expr": "Transform existing = slot.Find(\"CooldownMask\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/Editor/SignInFeatureValidation.cs",
+   "line": 57,
+   "kind": "Transform.Find",
+   "arg": "SignPanel",
+   "expr": "Transform panel = controller.transform.Find(\"SignPanel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/Editor/SignInFeatureValidation.cs",
+   "line": 58,
+   "kind": "Transform.Find",
+   "arg": "Image",
+   "expr": "Transform imageRoot = panel != null ? panel.Find(\"Image\") : null;",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/Editor/SignInFeatureValidation.cs",
+   "line": 59,
+   "kind": "Transform.Find",
+   "arg": "ContentCon",
+   "expr": "Transform content = imageRoot != null ? imageRoot.Find(\"ContentCon\") : null;",
+   "commented": false,
+   "pathish": false,
+   "cat": "编辑器工具"
+  },
+  {
+   "file": "Assets/Scripts/SceneLoader.cs",
+   "line": 24,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "if (Instance != null || FindObjectOfType<SceneLoader>() != null)",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/SceneLoader.cs",
+   "line": 201,
+   "kind": "Transform.Find",
+   "arg": "FillImg",
+   "expr": "Transform fillTransform = loadingTransform.Find(\"FillImg\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Ads/Infrastructure/MockRewardedAdService.cs",
+   "line": 60,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Analytics/AnalyticsConsentUiController.cs",
+   "line": 30,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var current = FindObjectOfType<AnalyticsConsentUiController>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Analytics/AnalyticsConsentUiController.cs",
+   "line": 94,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var canvas = FindObjectOfType<Canvas>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Analytics/AnalyticsConsentUiController.cs",
+   "line": 252,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "var found = FindRecursive(parent.GetChild(index), objectName);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Analytics/AnalyticsConsentUiController.cs",
+   "line": 272,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "var controller = UnityEngine.Object.FindObjectOfType<AnalyticsConsentUiController>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/Energy/UI/MainEnergyController.cs",
+   "line": 569,
+   "kind": "Transform.Find",
+   "arg": "StartBtn",
+   "expr": "startButton = transform.Find(\"StartBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/Energy/UI/MainEnergyController.cs",
+   "line": 570,
+   "kind": "Transform.Find",
+   "arg": "EnergyBg/AddBtn",
+   "expr": "addEnergyButton = transform.Find(\"EnergyBg/AddBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/Energy/UI/MainEnergyController.cs",
+   "line": 571,
+   "kind": "Transform.Find",
+   "arg": "AddEnergyPanel",
+   "expr": "addEnergyPanel = transform.Find(\"AddEnergyPanel\")?.gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/Energy/UI/MainEnergyController.cs",
+   "line": 573,
+   "kind": "Transform.Find",
+   "arg": "BG/CloseBtn",
+   "expr": "closeEnergyPanelButton = addEnergyRoot?.Find(\"BG/CloseBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/Energy/UI/MainEnergyController.cs",
+   "line": 574,
+   "kind": "Transform.Find",
+   "arg": "BG/VideoBtn",
+   "expr": "videoButton = addEnergyRoot?.Find(\"BG/VideoBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/Energy/UI/MainEnergyController.cs",
+   "line": 575,
+   "kind": "Transform.Find",
+   "arg": "BG/ShareBtn",
+   "expr": "shareButton = addEnergyRoot?.Find(\"BG/ShareBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/Energy/UI/MainEnergyController.cs",
+   "line": 576,
+   "kind": "Transform.Find",
+   "arg": "EnergyBg/RAmount",
+   "expr": "currentAmountText = transform.Find(\"EnergyBg/RAmount\")?.GetComponent<TMP_Text>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/Energy/UI/MainEnergyController.cs",
+   "line": 577,
+   "kind": "Transform.Find",
+   "arg": "EnergyBg/MaxAmount",
+   "expr": "maximumAmountText = transform.Find(\"EnergyBg/MaxAmount\")?.GetComponent<TMP_Text>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/Session/AuthSessionCoordinator.cs",
+   "line": 21,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "if (instance != null || FindObjectOfType<AuthSessionCoordinator>() != null) return;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/UI/LoginController.cs",
+   "line": 89,
+   "kind": "Transform.Find",
+   "arg": "SignUpPanel",
+   "expr": "signUpPanel = mainPanel.Find(\"SignUpPanel\")?.gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/UI/LoginController.cs",
+   "line": 410,
+   "kind": "Transform.Find",
+   "arg": "TipText",
+   "expr": "var authoredTip = googleRoot != null ? googleRoot.Find(\"TipText\") : null;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Auth/UI/LoginController.cs",
+   "line": 504,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "if (scene.name != \"Login\" || UnityEngine.Object.FindObjectOfType<LoginController>() != null) return;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Gold/UI/GoldBalanceController.cs",
+   "line": 22,
+   "kind": "Transform.Find",
+   "arg": "CoinQua",
+   "expr": "amountText = transform.Find(\"CoinQua\")?.GetComponent<TMP_Text>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/GreyboxMerchantLoadoutController.cs",
+   "line": 31,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "bootstrap = FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 89,
+   "kind": "Transform.Find",
+   "arg": "MerchantPanel",
+   "expr": "Transform panelTransform = transform.Find(\"MerchantPanel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 90,
+   "kind": "Transform.Find",
+   "arg": "Bg/ChatItemCon",
+   "expr": "itemContainer = panelTransform?.Find(\"Bg/ChatItemCon\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 91,
+   "kind": "Transform.Find",
+   "arg": "Bg/LotteryContainer",
+   "expr": "lotteryContainer = panelTransform?.Find(\"Bg/LotteryContainer\")?.gameObject;",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 92,
+   "kind": "Transform.Find",
+   "arg": "Bg/ChantBtn",
+   "expr": "chantButton = panelTransform?.Find(\"Bg/ChantBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 93,
+   "kind": "Transform.Find",
+   "arg": "Bg/LotteryBtn",
+   "expr": "lotteryButton = panelTransform?.Find(\"Bg/LotteryBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 98,
+   "kind": "Transform.Find",
+   "arg": "Bg/LotteryContainer/LotteryBtn",
+   "expr": "lotteryDrawButton = panelTransform?.Find(\"Bg/LotteryContainer/LotteryBtn\")",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 101,
+   "kind": "Transform.Find",
+   "arg": "Bg/ItemContainer",
+   "expr": "ownedItemContainer = panelTransform?.Find(\"Bg/ItemContainer\") ??",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 102,
+   "kind": "Transform.Find",
+   "arg": "Bg/MyItemBg/ItemContainer",
+   "expr": "panelTransform?.Find(\"Bg/MyItemBg/ItemContainer\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 105,
+   "kind": "Transform.Find",
+   "arg": "ActiveColumn",
+   "expr": "activeItemColumn = ownedItemContainer.Find(\"ActiveColumn\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 106,
+   "kind": "Transform.Find",
+   "arg": "PassiveColumn",
+   "expr": "passiveItemColumn = ownedItemContainer.Find(\"PassiveColumn\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 109,
+   "kind": "GetChild",
+   "arg": "0",
+   "expr": "activeItemColumn = ownedItemContainer.GetChild(0);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 113,
+   "kind": "GetChild",
+   "arg": "1",
+   "expr": "passiveItemColumn = ownedItemContainer.GetChild(1);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 118,
+   "kind": "Transform.Find",
+   "arg": "Bg/CancleItemPanel",
+   "expr": "Transform cancelPanelTransform = panelTransform?.Find(\"Bg/CancleItemPanel\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 120,
+   "kind": "Transform.Find",
+   "arg": "CancleBtn",
+   "expr": "cancelItemButton = (cancelPanelTransform?.Find(\"CancleBtn\") ??",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 121,
+   "kind": "Transform.Find",
+   "arg": "Bg/CancleBtn",
+   "expr": "cancelPanelTransform?.Find(\"Bg/CancleBtn\"))?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 122,
+   "kind": "Transform.Find",
+   "arg": "ConfirmBtn",
+   "expr": "confirmItemButton = (cancelPanelTransform?.Find(\"ConfirmBtn\") ??",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 123,
+   "kind": "Transform.Find",
+   "arg": "Bg/ConfirmBtn",
+   "expr": "cancelPanelTransform?.Find(\"Bg/ConfirmBtn\"))?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 226,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "Transform child = containerTransform.GetChild(index);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 290,
+   "kind": "Transform.Find",
+   "arg": "Image",
+   "expr": "return button.transform.Find(\"Image\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 659,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "GameObject existing = itemContainer.GetChild(index).gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 680,
+   "kind": "Transform.Find",
+   "arg": "BuyBtn",
+   "expr": "Transform buyTransform = itemObject.transform.Find(\"BuyBtn\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 682,
+   "kind": "Transform.Find",
+   "arg": "Text (TMP)",
+   "expr": "TMP_Text priceText = buyTransform?.Find(\"Text (TMP)\")?.GetComponent<TMP_Text>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 692,
+   "kind": "Transform.Find",
+   "arg": "CItemImg",
+   "expr": "Image itemImage = itemObject.transform.Find(\"CItemImg\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 895,
+   "kind": "Transform.Find",
+   "arg": "ItemImg",
+   "expr": "Image targetImage = itemObject.transform.Find(\"ItemImg\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 903,
+   "kind": "Transform.Find",
+   "arg": "DelBtn",
+   "expr": "Button deleteButton = itemObject.transform.Find(\"DelBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 948,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "GameObject item = column.GetChild(index).gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Merchant/MainMerchantController.cs",
+   "line": 963,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "GameObject existing = column.GetChild(index).gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/DebugDirectFinishController.cs",
+   "line": 73,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "bootstrap = FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GameRankResultController.cs",
+   "line": 43,
+   "kind": "Transform.Find",
+   "arg": "LoadingPanel",
+   "expr": "loadingPanel = transform.Find(\"LoadingPanel\")?.gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GameRankResultController.cs",
+   "line": 113,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "DragonBoundBootstrap bootstrap = FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GameRankResultController.cs",
+   "line": 412,
+   "kind": "Transform.Find",
+   "arg": "SettlementPanel",
+   "expr": "Transform panelTransform = transform.Find(\"SettlementPanel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GameRankResultController.cs",
+   "line": 419,
+   "kind": "Transform.Find",
+   "arg": "Text",
+   "expr": "Transform resultTransform = panelTransform.Find(\"Text\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GameRankResultController.cs",
+   "line": 420,
+   "kind": "Transform.Find",
+   "arg": "GoldText",
+   "expr": "Transform goldTransform = panelTransform.Find(\"GoldText\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GameRankResultController.cs",
+   "line": 421,
+   "kind": "Transform.Find",
+   "arg": "ReciveBtn",
+   "expr": "Transform receiveTransform = panelTransform.Find(\"ReciveBtn\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GameRankResultController.cs",
+   "line": 422,
+   "kind": "Transform.Find",
+   "arg": "DoubleBtn",
+   "expr": "Transform doubleTransform = panelTransform.Find(\"DoubleBtn\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GreyboxPauseExitRewardController.cs",
+   "line": 29,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "hudView = FindObjectOfType<GreyboxHudView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GreyboxPauseExitRewardController.cs",
+   "line": 30,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "bootstrap = FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GreyboxSettlementRewardController.cs",
+   "line": 36,
+   "kind": "Transform.Find",
+   "arg": "SettleImg",
+   "expr": "resultImage = transform.Find(\"SettleImg\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GreyboxSettlementRewardController.cs",
+   "line": 37,
+   "kind": "Transform.Find",
+   "arg": "GoldText",
+   "expr": "goldText = transform.Find(\"GoldText\")?.GetComponent<TMPro.TMP_Text>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GreyboxSettlementRewardController.cs",
+   "line": 38,
+   "kind": "Transform.Find",
+   "arg": "ReciveBtn",
+   "expr": "receiveButton = transform.Find(\"ReciveBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GreyboxSettlementRewardController.cs",
+   "line": 39,
+   "kind": "Transform.Find",
+   "arg": "DoubleBtn",
+   "expr": "doubleButton = transform.Find(\"DoubleBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/GreyboxSettlementRewardController.cs",
+   "line": 65,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "bootstrap = FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 57,
+   "kind": "Transform.Find",
+   "arg": "Bg",
+   "expr": "Transform background = transform.Find(\"Bg\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 58,
+   "kind": "Transform.Find",
+   "arg": "WeekBtn",
+   "expr": "weekButton = background?.Find(\"WeekBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 59,
+   "kind": "Transform.Find",
+   "arg": "MonthBtn",
+   "expr": "monthButton = background?.Find(\"MonthBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 60,
+   "kind": "Transform.Find",
+   "arg": "LeaderLimit/LeaderContainer",
+   "expr": "container = background?.Find(\"LeaderLimit/LeaderContainer\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 61,
+   "kind": "Transform.Find",
+   "arg": "MyLeaderItemBg",
+   "expr": "myLeaderItem = background?.Find(\"MyLeaderItemBg\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 62,
+   "kind": "Transform.Find",
+   "arg": "AvatarImg",
+   "expr": "myAvatarImage = myLeaderItem?.Find(\"AvatarImg\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 63,
+   "kind": "Transform.Find",
+   "arg": "LeaderImg/Text",
+   "expr": "myLeaderboardPositionText = myLeaderItem?.Find(\"LeaderImg/Text\")?.GetComponent<TMP_Text>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 64,
+   "kind": "Transform.Find",
+   "arg": "RankText",
+   "expr": "myRankText = myLeaderItem?.Find(\"RankText\")?.GetComponent<TMP_Text>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 65,
+   "kind": "Transform.Find",
+   "arg": "RankText/StarAct",
+   "expr": "myTotalStarsText = myLeaderItem?.Find(\"RankText/StarAct\")?.GetComponent<TMP_Text>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 197,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "GameObject previousItem = container.GetChild(index).gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 209,
+   "kind": "Transform.Find",
+   "arg": "AvatarImg",
+   "expr": "Image avatar = item.transform.Find(\"AvatarImg\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 221,
+   "kind": "Transform.Find",
+   "arg": "RankText",
+   "expr": "SetText(item.transform.Find(\"RankText\"), rankName);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 222,
+   "kind": "Transform.Find",
+   "arg": "RankText/StarAct",
+   "expr": "SetText(item.transform.Find(\"RankText/StarAct\"), player.TotalRankStars.ToString());",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 233,
+   "kind": "Transform.Find",
+   "arg": "LeaderImg",
+   "expr": "Transform leaderImageTransform = item.Find(\"LeaderImg\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainLeaderboardController.cs",
+   "line": 235,
+   "kind": "Transform.Find",
+   "arg": "Text",
+   "expr": "Transform positionTextTransform = leaderImageTransform?.Find(\"Text\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainRankController.cs",
+   "line": 157,
+   "kind": "Transform.Find",
+   "arg": "RankText",
+   "expr": "Transform rankTextTransform = transform.Find(\"RankText\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainRankController.cs",
+   "line": 159,
+   "kind": "Transform.Find",
+   "arg": "threeStar",
+   "expr": "threeStar = transform.Find(\"threeStar\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainRankController.cs",
+   "line": 160,
+   "kind": "Transform.Find",
+   "arg": "fourStar",
+   "expr": "fourStar = transform.Find(\"fourStar\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainRankController.cs",
+   "line": 161,
+   "kind": "Transform.Find",
+   "arg": "fiveStar",
+   "expr": "fiveStar = transform.Find(\"fiveStar\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainRankController.cs",
+   "line": 184,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "Transform star = group.GetChild(index);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rank/UI/MainRankController.cs",
+   "line": 185,
+   "kind": "Transform.Find",
+   "arg": "Img",
+   "expr": "Transform image = star.Find(\"Img\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/MainRuneUnlockController.cs",
+   "line": 201,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "Transform found = FindDescendant(root.GetChild(index), objectName);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneDragItem.cs",
+   "line": 29,
+   "kind": "Transform.Find",
+   "arg": "AcText",
+   "expr": "amountRoot = transform.Find(\"AcText\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneDragItem.cs",
+   "line": 31,
+   "kind": "Transform.Find",
+   "arg": "Text (TMP)",
+   "expr": "? amountRoot.Find(\"Text (TMP)\")?.GetComponent<TMP_Text>()",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 57,
+   "kind": "Transform.Find",
+   "arg": "WeaponContainer",
+   "expr": "weaponContainer = transform.Find(\"WeaponContainer\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 62,
+   "kind": "Transform.Find",
+   "arg": "MyHeroBg/HeroContainer",
+   "expr": "heroContainer = transform.Find(\"MyHeroBg/HeroContainer\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 63,
+   "kind": "Transform.Find",
+   "arg": "PageLeft",
+   "expr": "pageLeftButton = GetButton(transform.Find(\"PageLeft\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 64,
+   "kind": "Transform.Find",
+   "arg": "PageRight",
+   "expr": "pageRightButton = GetButton(transform.Find(\"PageRight\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 65,
+   "kind": "Transform.Find",
+   "arg": "page",
+   "expr": "pageText = GetText(transform.Find(\"page\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 228,
+   "kind": "Transform.Find",
+   "arg": "Name",
+   "expr": "SetRuneName(instance.transform.Find(\"Name\"), entry.Definition);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 233,
+   "kind": "Transform.Find",
+   "arg": "count",
+   "expr": "instance.transform.Find(\"count\"),",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 254,
+   "kind": "Transform.Find",
+   "arg": "BG",
+   "expr": "Transform background = instance.transform.Find(\"BG\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 358,
+   "kind": "Transform.Find",
+   "arg": "AcText",
+   "expr": "Transform amountRoot = item.Find(\"AcText\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 369,
+   "kind": "Transform.Find",
+   "arg": "Text (TMP)",
+   "expr": "SetText(amountRoot.Find(\"Text (TMP)\"), availableCompleteRunes.ToString());",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 652,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "Transform hero = heroContainer.GetChild(index);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 653,
+   "kind": "Transform.Find",
+   "arg": "weapon",
+   "expr": "Transform weapon = hero.Find(\"weapon\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 656,
+   "kind": "Transform.Find",
+   "arg": "Name",
+   "expr": "TMP_Text heroName = GetText(hero.Find(\"Name\"));",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Rune/RuneWeaponPanelController.cs",
+   "line": 730,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "GameObject child = weaponContainer.GetChild(index).gameObject;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Services/Gameplay/ActiveRunLifecycle.cs",
+   "line": 176,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "instance = FindObjectOfType<ActiveRunLifecycleCoordinator>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Settings/DamageNumberToggleController.cs",
+   "line": 15,
+   "kind": "Transform.Find",
+   "arg": "State",
+   "expr": "Transform stateTransform = transform.Find(\"State\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Settings/DragFillController.cs",
+   "line": 55,
+   "kind": "Transform.Find",
+   "arg": "FillImg",
+   "expr": "Transform fillTransform = transform.Find(\"FillImg\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Settings/DragFillController.cs",
+   "line": 78,
+   "kind": "GetChild",
+   "arg": "0",
+   "expr": "handle = fillTransform.GetChild(0) as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/Settings/VisualStateToggleController.cs",
+   "line": 15,
+   "kind": "Transform.Find",
+   "arg": "State",
+   "expr": "Transform stateTransform = transform.Find(\"State\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/SignIn/UI/MainSignInController.cs",
+   "line": 116,
+   "kind": "Transform.Find",
+   "arg": "SignPanel",
+   "expr": "Transform panel = transform.Find(\"SignPanel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/SignIn/UI/MainSignInController.cs",
+   "line": 117,
+   "kind": "Transform.Find",
+   "arg": "Image",
+   "expr": "Transform imageRoot = panel?.Find(\"Image\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/SignIn/UI/MainSignInController.cs",
+   "line": 118,
+   "kind": "Transform.Find",
+   "arg": "ContentCon",
+   "expr": "Transform content = imageRoot?.Find(\"ContentCon\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/SignIn/UI/MainSignInController.cs",
+   "line": 120,
+   "kind": "Transform.Find",
+   "arg": "SignBtn",
+   "expr": "openButton = transform.Find(\"SignBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/SignIn/UI/MainSignInController.cs",
+   "line": 121,
+   "kind": "Transform.Find",
+   "arg": "closeBtn",
+   "expr": "closeButton = imageRoot?.Find(\"closeBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/SignIn/UI/MainSignInController.cs",
+   "line": 137,
+   "kind": "Transform.Find",
+   "arg": "Image (6)",
+   "expr": "dayRoot = imageRoot?.Find(\"Image (6)\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/ForgekeepersGiftPanelController.cs",
+   "line": 48,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "bootstrap = FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/ForgekeepersGiftPanelController.cs",
+   "line": 765,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "bootstrap = FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/ForgekeepersGiftPanelController.cs",
+   "line": 806,
+   "kind": "Transform.Find",
+   "arg": "ForgePanel",
+   "expr": "Transform panel = transform.Find(\"ForgePanel\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/ForgekeepersGiftPanelController.cs",
+   "line": 811,
+   "kind": "Transform.Find",
+   "arg": "Bg/VideoReward",
+   "expr": "videoRewardButton = root?.Find(\"Bg/VideoReward\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/ForgekeepersGiftPanelController.cs",
+   "line": 813,
+   "kind": "Transform.Find",
+   "arg": "Bg/CloseBtn",
+   "expr": "closeButton = root?.Find(\"Bg/CloseBtn\")?.GetComponent<Button>();",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/GameplayLoadingPanelController.cs",
+   "line": 144,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "bootstrap = FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/GameplayLoadingPanelController.cs",
+   "line": 219,
+   "kind": "Transform.Find",
+   "arg": "BG/MyPart/MyItem/Text (TMP)/RateText",
+   "expr": "playerRateText = (root.Find(\"BG/MyPart/MyItem/Text (TMP)/RateText\") ??",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/GameplayLoadingPanelController.cs",
+   "line": 220,
+   "kind": "Transform.Find",
+   "arg": "MyPart/MyItem/Text (TMP)/RateText",
+   "expr": "root.Find(\"MyPart/MyItem/Text (TMP)/RateText\") ??",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/GameplayLoadingPanelController.cs",
+   "line": 221,
+   "kind": "Transform.Find",
+   "arg": "BG/PlayerPart/PlayerItem/Text (TMP)/RateText",
+   "expr": "root.Find(\"BG/PlayerPart/PlayerItem/Text (TMP)/RateText\"))?",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/GameplayLoadingPanelController.cs",
+   "line": 223,
+   "kind": "Transform.Find",
+   "arg": "BG/EnemyPart/EnemyItem/Text (TMP)/RateText",
+   "expr": "aiRateText = (root.Find(\"BG/EnemyPart/EnemyItem/Text (TMP)/RateText\") ??",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/GameplayLoadingPanelController.cs",
+   "line": 224,
+   "kind": "Transform.Find",
+   "arg": "EnemyPart/EnemyItem/Text (TMP)/RateText",
+   "expr": "root.Find(\"EnemyPart/EnemyItem/Text (TMP)/RateText\"))?",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/LoadingPanelEntranceAnimator.cs",
+   "line": 165,
+   "kind": "Transform.Find",
+   "arg": "BG/EnemyPart",
+   "expr": "Transform enemyPart = transform.Find(\"BG/EnemyPart\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/LoadingPanelEntranceAnimator.cs",
+   "line": 166,
+   "kind": "Transform.Find",
+   "arg": "BG/MyPart",
+   "expr": "Transform playerPart = transform.Find(\"BG/MyPart\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/LoadingPanelEntranceAnimator.cs",
+   "line": 184,
+   "kind": "Transform.Find",
+   "arg": "Image",
+   "expr": "Transform image = part.Find(\"Image\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/MainNavTabController.cs",
+   "line": 61,
+   "kind": "Transform.Find",
+   "arg": "BagBtn",
+   "expr": "bagImage = navigation?.Find(\"BagBtn\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/MainNavTabController.cs",
+   "line": 62,
+   "kind": "Transform.Find",
+   "arg": "RankingBtn",
+   "expr": "rankingImage = navigation?.Find(\"RankingBtn\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/MainNavTabController.cs",
+   "line": 63,
+   "kind": "Transform.Find",
+   "arg": "MainBtn",
+   "expr": "mainImage = navigation?.Find(\"MainBtn\")?.GetComponent<Image>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/MainNavTabController.cs",
+   "line": 201,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "Transform found = FindDescendant(root.GetChild(index), objectName);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/PlayerAvatarView.cs",
+   "line": 94,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "PlayerAvatarView view = slot.GetChild(index).GetComponent<PlayerAvatarView>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/PlayerAvatarView.cs",
+   "line": 123,
+   "kind": "Transform.Find",
+   "arg": "ProfileFire",
+   "expr": "RectTransform frameRect = profileRect.Find(\"ProfileFire\") as RectTransform;",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/PlayerAvatarView.cs",
+   "line": 164,
+   "kind": "Transform.Find",
+   "arg": "BG/Image",
+   "expr": "Transform target = loadingPanel.Find(\"BG/Image\") ?? loadingPanel.Find(\"BG/MyPart/Image\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/PlayerAvatarView.cs",
+   "line": 164,
+   "kind": "Transform.Find",
+   "arg": "BG/MyPart/Image",
+   "expr": "Transform target = loadingPanel.Find(\"BG/Image\") ?? loadingPanel.Find(\"BG/MyPart/Image\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/PlayerAvatarView.cs",
+   "line": 170,
+   "kind": "Transform.Find",
+   "arg": "BG/EnemyPart/Image",
+   "expr": "Transform enemyTarget = loadingPanel.Find(\"BG/EnemyPart/Image\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/PlayerAvatarView.cs",
+   "line": 185,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "Transform match = FindDescendant(root.GetChild(index), objectName);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/SingleEventSystemGuard.cs",
+   "line": 27,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "EventSystem[] activeSystems = Object.FindObjectsOfType<EventSystem>(true)",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/UiGoldExampleEffect.cs",
+   "line": 32,
+   "kind": "Transform.Find",
+   "arg": "GoldParticleExample",
+   "expr": "if (targetRect == null || transform.Find(\"GoldParticleExample\") != null)",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/UiGoldExampleEffect.cs",
+   "line": 343,
+   "kind": "Transform.Find",
+   "arg": "ImageA",
+   "expr": "var imageA = canvases[canvasIndex].transform.Find(\"ImageA\");",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/UiImageFadeLoop.cs",
+   "line": 98,
+   "kind": "Transform.Find",
+   "arg": "ImageA/ImageB",
+   "expr": "var imageB = canvases[canvasIndex].transform.Find(\"ImageA/ImageB\");",
+   "commented": false,
+   "pathish": true,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/VoidShovelRewardController.cs",
+   "line": 72,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "bootstrap = FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/VoidShovelRewardController.cs",
+   "line": 472,
+   "kind": "FindObjectOfType",
+   "arg": "",
+   "expr": "if (bootstrap == null) bootstrap = FindObjectOfType<DragonBoundBootstrap>();",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  },
+  {
+   "file": "Assets/Scripts/UI/VoidShovelRewardController.cs",
+   "line": 536,
+   "kind": "GetChild",
+   "arg": "index",
+   "expr": "Transform result = FindDescendant(root.GetChild(index), objectName);",
+   "commented": false,
+   "pathish": false,
+   "cat": "运行时"
+  }
+ ]
+}

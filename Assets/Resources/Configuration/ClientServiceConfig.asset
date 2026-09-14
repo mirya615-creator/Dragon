@@ -12,9 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7d6af5b744f4c299d768c305e597c2d, type: 3}
   m_Name: ClientServiceConfig
   m_EditorClassIdentifier: 
-  backendMode: 0
-  apiBaseUrl: 
+  backendMode: 1
+  apiBaseUrl: http://192.168.31.221:8081
   timeoutSeconds: 15
-  clientVersion: 
-  contentVersion: 
+  clientVersion: 0.1
+  contentVersion: 2026081301
+  configVersion: 2026081501
+  defaultStageId: stage-001
+  expectedStageSnapshotDigest: a555903b1f717480e79dc29c4a28c8ec09bd18fc4316a6328cfc2e672b6d05eb
+  requireAuthoritativeRunContract: 1
   enableNetworkLogging: 0

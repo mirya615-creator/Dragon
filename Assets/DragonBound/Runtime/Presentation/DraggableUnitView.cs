@@ -1,4 +1,7 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using DragonBound.Combat;
 using DragonBound.Grid;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,17 +12,22 @@ namespace DragonBound.Presentation
     public sealed class DraggableUnitView : MonoBehaviour,
         IPointerDownHandler,
         IPointerUpHandler,
+        IPointerClickHandler,
         IBeginDragHandler,
         IDragHandler,
         IEndDragHandler
     {
         private const float FallbackDragThresholdPixels = 10f;
+        private const float InputSizePixels = 100f;
+        private const string InputReceiverName = "InputReceiver";
 
         [SerializeField] private Image artImage;
         [SerializeField] private Text label;
         [SerializeField] private Graphic alternateLabel;
         [SerializeField] private Graphic levelLabel;
         [SerializeField] private CanvasGroup canvasGroup;
+        [SerializeField] private Animator basicAttackAnimator;
+        [SerializeField] private Graphic inputReceiver;
         [Header("Optional authored level presentation")]
         [SerializeField] private Text heroLevelLabel;
         [Header("Soul Chain presentation")]
@@ -30,35 +38,63 @@ namespace DragonBound.Presentation
         private bool interactive = true;
         private bool dragging;
         private bool pairedPresentation;
+        private bool deploymentVisualHidden;
         private bool isBeachPresentation;
         private Color authoredArtColor = Color.white;
         private bool hasAuthoredArtColor;
         private Sprite authoredArtSprite;
+        private Vector3 authoredArtScale = Vector3.one;
+        private bool hasAuthoredArtScale;
+        private Vector2 authoredArtAnchoredPosition;
+        private bool hasAuthoredArtAnchoredPosition;
         private Coroutine soulChainVisualCoroutine;
         private bool soulChainControlled;
+        private bool bloodcrownSuppressed;
+        private string configuredBasicAnimationId = string.Empty;
+        private int lastBasicAttackAnimationFrame = -1;
+        private float basicAttackAnimationSpeed = 1f;
         private readonly FixedSlotDragGesture gesture = new FixedSlotDragGesture();
 
         private const float SoulChainFlashPeakAlpha = 0.75f;
         private const float SoulChainDarkAlpha = 0.45f;
+        private static readonly Color SoulChainOverlayColor = new Color(0.14f, 0.08f, 0.18f, 1f);
+        private static readonly Color BloodcrownOverlayColor = new Color(0.32f, 0.32f, 0.32f, 1f);
         private const float SoulChainFlashHalfPhaseSeconds = 0.12f;
         private const int SoulChainFlashCount = 2;
+        private const float ArtFacingTransitionSeconds = 0.14f;
+
+        private Coroutine artFacingCoroutine;
+        private bool artFacingInitialized;
+        private bool artFacingMirrored;
 
         public RectTransform RectTransform => (RectTransform)transform;
         public Image ArtImage => artImage;
+        public Animator BasicAttackAnimator => basicAttackAnimator;
+        public Graphic InputReceiver => inputReceiver;
         public Text HeroLevelLabel => heroLevelLabel;
         public bool IsPairedPresentationHidden => pairedPresentation;
         public bool IsDragging => dragging;
         public bool IsSoulChainControlled => soulChainControlled;
+        public bool IsBloodcrownSuppressed => bloodcrownSuppressed;
+        public bool IsArtMirrored => artFacingInitialized
+            ? artFacingMirrored
+            : artImage != null &&
+              Mathf.Sign(artImage.rectTransform.localScale.x) !=
+              Mathf.Sign(authoredArtScale.x);
+        public event Action<string> BowProjectileReleased;
 
         public void Configure(Image art, Text valueLabel, CanvasGroup group)
         {
             artImage = art;
+            basicAttackAnimator = artImage != null ? artImage.GetComponent<Animator>() : null;
             label = valueLabel;
             alternateLabel = null;
             levelLabel = null;
             canvasGroup = group;
             isBeachPresentation = false;
             CaptureAuthoredArtColor();
+            CaptureAuthoredArtScale();
+            CaptureAuthoredArtAnchoredPosition();
         }
 
         public void ConfigureBeach(
@@ -74,6 +110,8 @@ namespace DragonBound.Presentation
             canvasGroup = group;
             isBeachPresentation = true;
             CaptureAuthoredArtColor();
+            CaptureAuthoredArtScale();
+            CaptureAuthoredArtAnchoredPosition();
         }
 
         public void ConfigureLevelPresentation(Text levelText)
@@ -104,9 +142,12 @@ namespace DragonBound.Presentation
         public void SetInteractive(bool value)
         {
             interactive = value;
+            EnsureInputReceiver();
             foreach (var graphic in GetComponentsInChildren<Graphic>(true))
             {
-                graphic.raycastTarget = graphic != soulChainOverlay && value;
+                // Artwork may intentionally extend beyond one grid cell. It must never grow
+                // the touch target into an adjacent cell; only the dedicated receiver owns UI input.
+                graphic.raycastTarget = ReferenceEquals(graphic, inputReceiver) && value;
             }
 
             if (soulChainOverlay != null)
@@ -117,8 +158,46 @@ namespace DragonBound.Presentation
             if (canvasGroup != null)
             {
                 canvasGroup.interactable = value;
-                canvasGroup.blocksRaycasts = value;
+                // A formed hero still consists of two independently draggable component
+                // entities. Hide their artwork, but keep each component cell as the input
+                // target so dragging either half can break the pair.
+                canvasGroup.blocksRaycasts = value && !deploymentVisualHidden;
             }
+        }
+
+        private void EnsureInputReceiver()
+        {
+            if (inputReceiver != null)
+            {
+                return;
+            }
+
+            var existing = transform.Find(InputReceiverName);
+            if (existing != null)
+            {
+                inputReceiver = existing.GetComponent<Graphic>();
+            }
+
+            if (inputReceiver == null)
+            {
+                var receiverObject = new GameObject(
+                    InputReceiverName,
+                    typeof(RectTransform),
+                    typeof(CanvasRenderer),
+                    typeof(Image));
+                var receiverRect = receiverObject.GetComponent<RectTransform>();
+                receiverRect.SetParent(transform, false);
+                receiverRect.anchorMin = new Vector2(0.5f, 0.5f);
+                receiverRect.anchorMax = new Vector2(0.5f, 0.5f);
+                receiverRect.pivot = new Vector2(0.5f, 0.5f);
+                receiverRect.anchoredPosition = Vector2.zero;
+                receiverRect.sizeDelta = new Vector2(InputSizePixels, InputSizePixels);
+                var receiverImage = receiverObject.GetComponent<Image>();
+                receiverImage.color = new Color(1f, 1f, 1f, 0f);
+                inputReceiver = receiverImage;
+            }
+
+            inputReceiver.transform.SetAsFirstSibling();
         }
 
         public void SetPairedPresentation(bool value)
@@ -126,9 +205,39 @@ namespace DragonBound.Presentation
             pairedPresentation = value;
             if (canvasGroup != null && !dragging)
             {
-                canvasGroup.alpha = value ? 0f : 1f;
-                canvasGroup.blocksRaycasts = interactive;
+                ApplyVisibilityToCanvasGroup();
             }
+        }
+
+        public void SetDeploymentVisualHidden(bool hidden)
+        {
+            deploymentVisualHidden = hidden;
+            if (!dragging)
+            {
+                ApplyVisibilityToCanvasGroup();
+            }
+        }
+
+        public void SetDragGhostOpacity(float alpha)
+        {
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = Mathf.Clamp01(alpha);
+            }
+        }
+
+        private void ApplyVisibilityToCanvasGroup()
+        {
+            if (canvasGroup == null)
+            {
+                return;
+            }
+
+            var visible = !pairedPresentation && !deploymentVisualHidden;
+            canvasGroup.alpha = visible ? 1f : 0f;
+            // Paired component graphics are transparent input zones. Deployment-hidden
+            // views, on the other hand, must not intercept input while their ghost flies.
+            canvasGroup.blocksRaycasts = interactive && !deploymentVisualHidden;
         }
 
         public void SetLabel(string value)
@@ -174,6 +283,224 @@ namespace DragonBound.Presentation
             artImage.preserveAspect = sprite != null;
         }
 
+        public void SetArtMirrored(bool mirrored)
+        {
+            if (artImage == null)
+            {
+                return;
+            }
+
+            CaptureAuthoredArtScale();
+            StopArtFacingTransition();
+            artFacingInitialized = true;
+            artFacingMirrored = mirrored;
+            var scale = authoredArtScale;
+            if (mirrored)
+            {
+                scale.x = -scale.x;
+            }
+
+            artImage.rectTransform.localScale = scale;
+        }
+
+        public void InitializeArtFacing(bool mirrored, float mirroredAnchoredPositionX)
+        {
+            if (artFacingInitialized)
+            {
+                return;
+            }
+
+            ApplyArtFacing(mirrored, mirroredAnchoredPositionX, false);
+        }
+
+        public void FaceArtTowards(bool mirrored, float mirroredAnchoredPositionX)
+        {
+            ApplyArtFacing(mirrored, mirroredAnchoredPositionX, true);
+        }
+
+        private void ApplyArtFacing(
+            bool mirrored,
+            float mirroredAnchoredPositionX,
+            bool animate)
+        {
+            if (artImage == null)
+            {
+                return;
+            }
+
+            CaptureAuthoredArtScale();
+            CaptureAuthoredArtAnchoredPosition();
+            var rect = artImage.rectTransform;
+            var targetScaleX = mirrored ? -authoredArtScale.x : authoredArtScale.x;
+            var targetPositionX = mirrored
+                ? mirroredAnchoredPositionX
+                : authoredArtAnchoredPosition.x;
+
+            if (artFacingInitialized && artFacingMirrored == mirrored)
+            {
+                return;
+            }
+
+            StopArtFacingTransition();
+            artFacingInitialized = true;
+            artFacingMirrored = mirrored;
+            if (!animate || !isActiveAndEnabled || !gameObject.activeInHierarchy)
+            {
+                SetArtFacingValues(rect, targetScaleX, targetPositionX);
+                return;
+            }
+
+            artFacingCoroutine = StartCoroutine(AnimateArtFacing(
+                rect,
+                rect.localScale.x,
+                targetScaleX,
+                rect.anchoredPosition.x,
+                targetPositionX));
+        }
+
+        private IEnumerator AnimateArtFacing(
+            RectTransform rect,
+            float startScaleX,
+            float targetScaleX,
+            float startPositionX,
+            float targetPositionX)
+        {
+            var elapsed = 0f;
+            while (elapsed < ArtFacingTransitionSeconds && rect != null)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                var progress = Mathf.Clamp01(elapsed / ArtFacingTransitionSeconds);
+                var eased = progress * progress * (3f - (2f * progress));
+                SetArtFacingValues(
+                    rect,
+                    Mathf.LerpUnclamped(startScaleX, targetScaleX, eased),
+                    Mathf.LerpUnclamped(startPositionX, targetPositionX, eased));
+                yield return null;
+            }
+
+            if (rect != null)
+            {
+                SetArtFacingValues(rect, targetScaleX, targetPositionX);
+            }
+            artFacingCoroutine = null;
+        }
+
+        private static void SetArtFacingValues(
+            RectTransform rect,
+            float scaleX,
+            float anchoredPositionX)
+        {
+            var scale = rect.localScale;
+            scale.x = scaleX;
+            rect.localScale = scale;
+
+            var position = rect.anchoredPosition;
+            position.x = anchoredPositionX;
+            rect.anchoredPosition = position;
+        }
+
+        private void StopArtFacingTransition()
+        {
+            if (artFacingCoroutine == null)
+            {
+                return;
+            }
+
+            StopCoroutine(artFacingCoroutine);
+            artFacingCoroutine = null;
+        }
+
+        public void SetArtAnchoredPositionX(float? anchoredPositionX)
+        {
+            if (artImage == null)
+            {
+                return;
+            }
+
+            CaptureAuthoredArtAnchoredPosition();
+            var position = authoredArtAnchoredPosition;
+            if (anchoredPositionX.HasValue)
+            {
+                position.x = anchoredPositionX.Value;
+            }
+
+            artImage.rectTransform.anchoredPosition = position;
+        }
+
+        public void ConfigureBasicAttackAnimation(string configId, float playbackSpeed = 1f)
+        {
+            if (isBeachPresentation || artImage == null)
+            {
+                return;
+            }
+
+            if (basicAttackAnimator == null)
+            {
+                basicAttackAnimator = artImage.GetComponent<Animator>();
+                if (basicAttackAnimator == null)
+                {
+                    basicAttackAnimator = artImage.gameObject.AddComponent<Animator>();
+                }
+            }
+
+            basicAttackAnimationSpeed = Mathf.Max(0.01f, playbackSpeed);
+            if (string.Equals(configuredBasicAnimationId, configId, StringComparison.Ordinal) &&
+                basicAttackAnimator.runtimeAnimatorController != null)
+            {
+                return;
+            }
+
+            configuredBasicAnimationId = configId ?? string.Empty;
+            lastBasicAttackAnimationFrame = -1;
+            basicAttackAnimator.runtimeAnimatorController =
+                BasicUnitAnimationControllerCatalog.Load(configId);
+            if (basicAttackAnimator.runtimeAnimatorController == null)
+            {
+                basicAttackAnimator.enabled = false;
+                return;
+            }
+
+            // Keep the first authored frame visible until this unit actually attacks.
+            basicAttackAnimator.enabled = true;
+            var relay = basicAttackAnimator.GetComponent<BasicUnitAnimationEventRelay>();
+            if (relay == null)
+            {
+                relay = basicAttackAnimator.gameObject.AddComponent<BasicUnitAnimationEventRelay>();
+            }
+            relay.Bind(this);
+            basicAttackAnimator.Rebind();
+            basicAttackAnimator.Play(0, 0, 0f);
+            basicAttackAnimator.Update(0f);
+            basicAttackAnimator.speed = 0f;
+        }
+
+        public bool PlayBasicAttackAnimation()
+        {
+            if (basicAttackAnimator == null ||
+                basicAttackAnimator.runtimeAnimatorController == null ||
+                lastBasicAttackAnimationFrame == Time.frameCount)
+            {
+                return false;
+            }
+
+            // Piercing and sweeping attacks can emit several damage events in one frame.
+            // Restart only once so one gameplay attack always produces one animation.
+            lastBasicAttackAnimationFrame = Time.frameCount;
+            basicAttackAnimator.enabled = true;
+            basicAttackAnimator.speed = basicAttackAnimationSpeed;
+            basicAttackAnimator.Play(0, 0, 0f);
+            basicAttackAnimator.Update(0f);
+            return true;
+        }
+
+        internal void NotifyBowProjectileRelease()
+        {
+            if (!string.IsNullOrEmpty(unitId))
+            {
+                BowProjectileReleased?.Invoke(unitId);
+            }
+        }
+
         public void SetSoulChainControlled(bool controlled)
         {
             ResolveSoulChainOverlay();
@@ -191,9 +518,18 @@ namespace DragonBound.Presentation
 
             if (!controlled)
             {
-                SetSoulChainOverlayAlpha(0f);
+                if (bloodcrownSuppressed)
+                {
+                    SetSuppressionOverlay(BloodcrownOverlayColor, SoulChainDarkAlpha);
+                }
+                else
+                {
+                    SetSoulChainOverlayAlpha(0f);
+                }
                 return;
             }
+
+            SetSuppressionOverlay(SoulChainOverlayColor, 0f);
 
             if (isActiveAndEnabled)
             {
@@ -202,6 +538,35 @@ namespace DragonBound.Presentation
             else
             {
                 SetSoulChainOverlayAlpha(SoulChainDarkAlpha);
+            }
+        }
+
+        public void SetBloodcrownSuppressed(bool suppressed)
+        {
+            ResolveSoulChainOverlay();
+            if (bloodcrownSuppressed == suppressed)
+            {
+                return;
+            }
+
+            bloodcrownSuppressed = suppressed;
+            if (soulChainVisualCoroutine != null)
+            {
+                StopCoroutine(soulChainVisualCoroutine);
+                soulChainVisualCoroutine = null;
+            }
+
+            if (suppressed)
+            {
+                SetSuppressionOverlay(BloodcrownOverlayColor, SoulChainDarkAlpha);
+            }
+            else if (soulChainControlled)
+            {
+                SetSuppressionOverlay(SoulChainOverlayColor, SoulChainDarkAlpha);
+            }
+            else
+            {
+                SetSoulChainOverlayAlpha(0f);
             }
         }
 
@@ -221,7 +586,9 @@ namespace DragonBound.Presentation
 
             if (soulChainControlled)
             {
-                SetSoulChainOverlayAlpha(SoulChainDarkAlpha);
+                SetSuppressionOverlay(
+                    bloodcrownSuppressed ? BloodcrownOverlayColor : SoulChainOverlayColor,
+                    SoulChainDarkAlpha);
             }
 
             soulChainVisualCoroutine = null;
@@ -271,9 +638,21 @@ namespace DragonBound.Presentation
             soulChainOverlay.color = color;
         }
 
+        private void SetSuppressionOverlay(Color color, float alpha)
+        {
+            if (soulChainOverlay == null)
+            {
+                return;
+            }
+
+            color.a = Mathf.Clamp01(alpha);
+            soulChainOverlay.color = color;
+        }
+
         private void ResetSoulChainVisual(bool resolveOverlay = true)
         {
             soulChainControlled = false;
+            bloodcrownSuppressed = false;
             if (soulChainVisualCoroutine != null)
             {
                 StopCoroutine(soulChainVisualCoroutine);
@@ -335,6 +714,28 @@ namespace DragonBound.Presentation
             hasAuthoredArtColor = true;
         }
 
+        private void CaptureAuthoredArtScale()
+        {
+            if (hasAuthoredArtScale || artImage == null)
+            {
+                return;
+            }
+
+            authoredArtScale = artImage.rectTransform.localScale;
+            hasAuthoredArtScale = true;
+        }
+
+        private void CaptureAuthoredArtAnchoredPosition()
+        {
+            if (hasAuthoredArtAnchoredPosition || artImage == null)
+            {
+                return;
+            }
+
+            authoredArtAnchoredPosition = artImage.rectTransform.anchoredPosition;
+            hasAuthoredArtAnchoredPosition = true;
+        }
+
         private static void SetGraphicText(Graphic graphic, string value)
         {
             if (graphic == null)
@@ -386,7 +787,9 @@ namespace DragonBound.Presentation
             ghost.unitId = null;
             ghost.dragging = false;
             ghost.pairedPresentation = false;
+            ghost.deploymentVisualHidden = false;
             ghost.ResetSoulChainVisual();
+            ghost.FreezeBasicAttackAnimationForVisualProxy();
             ghost.SetInteractive(false);
             foreach (var graphic in ghost.GetComponentsInChildren<Graphic>(true))
             {
@@ -402,6 +805,24 @@ namespace DragonBound.Presentation
 
             ghost.transform.SetAsLastSibling();
             return ghost;
+        }
+
+        private void FreezeBasicAttackAnimationForVisualProxy()
+        {
+            if (basicAttackAnimator == null ||
+                basicAttackAnimator.runtimeAnimatorController == null)
+            {
+                return;
+            }
+
+            // UnitAni controllers use the attack clip as their default state. A freshly
+            // instantiated flight proxy would therefore attack even without a combat event.
+            basicAttackAnimator.enabled = true;
+            basicAttackAnimator.Rebind();
+            basicAttackAnimator.Play(0, 0, 0f);
+            basicAttackAnimator.Update(0f);
+            basicAttackAnimator.speed = 0f;
+            basicAttackAnimator.enabled = false;
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -449,16 +870,25 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var isTap = gesture.PointerUp(eventData.pointerId);
+            gesture.PointerUp(eventData.pointerId);
             if (dragging)
             {
                 CompleteDrag(eventData.position);
                 return;
             }
 
-            if (isTap)
+            // Unity sends PointerClick after PointerUp when the press and release belong to
+            // this card. Keep tap selection in OnPointerClick so the card both owns and
+            // consumes the complete click event instead of relying on pointer-up ordering.
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData != null &&
+                eventData.button == PointerEventData.InputButton.Left &&
+                CanProcessInput())
             {
-                boardView?.SelectUnit(unitId);
+                boardView.SelectUnit(unitId);
             }
         }
 
@@ -476,6 +906,7 @@ namespace DragonBound.Presentation
 
         private void OnDisable()
         {
+            StopArtFacingTransition();
             if (dragging)
             {
                 dragging = false;
@@ -484,6 +915,78 @@ namespace DragonBound.Presentation
 
             gesture.Cancel();
             ResetSoulChainVisual(false);
+        }
+    }
+
+    [DisallowMultipleComponent]
+    public sealed class BasicUnitAnimationEventRelay : MonoBehaviour
+    {
+        private DraggableUnitView owner;
+
+        public void Bind(DraggableUnitView value)
+        {
+            owner = value;
+        }
+
+        // Called after the seventeenth authored BOW attack frame.
+        public void OnBowProjectileRelease()
+        {
+            owner?.NotifyBowProjectileRelease();
+        }
+    }
+
+    internal static class BasicUnitAnimationControllerCatalog
+    {
+        private static readonly IReadOnlyDictionary<BasicUnitArchetype, string> ResourcePaths =
+            new Dictionary<BasicUnitArchetype, string>
+            {
+                { BasicUnitArchetype.Axe, "Animation/UnitAni/AXE" },
+                { BasicUnitArchetype.Rider, "Animation/UnitAni/BERSERKER" },
+                { BasicUnitArchetype.Bow, "Animation/UnitAni/BOW" },
+                { BasicUnitArchetype.Spear, "Animation/UnitAni/SPEAR" }
+            };
+
+        private static readonly Dictionary<BasicUnitArchetype, RuntimeAnimatorController> Cache =
+            new Dictionary<BasicUnitArchetype, RuntimeAnimatorController>();
+        private static readonly HashSet<string> MissingControllerWarnings =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        public static RuntimeAnimatorController Load(string configId)
+        {
+            BasicUnitArchetype archetype;
+            try
+            {
+                archetype = BasicUnitCatalog.GetArchetype(configId);
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+
+            if (Cache.TryGetValue(archetype, out var cached) && cached != null)
+            {
+                return cached;
+            }
+
+            if (!ResourcePaths.TryGetValue(archetype, out var resourcePath))
+            {
+                return null;
+            }
+
+            var controller = Resources.Load<RuntimeAnimatorController>(resourcePath);
+            if (controller != null)
+            {
+                Cache[archetype] = controller;
+                return controller;
+            }
+
+            if (MissingControllerWarnings.Add(resourcePath))
+            {
+                Debug.LogWarning(
+                    $"Basic-unit animation controller '{resourcePath}' is missing for '{configId}'.");
+            }
+
+            return null;
         }
     }
 }

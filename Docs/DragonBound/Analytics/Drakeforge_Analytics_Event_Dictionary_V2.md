@@ -27,6 +27,8 @@ Event count: 45.
 
 PII rule: do not include display names, localized text, account IDs, platform IDs, device IDs, ad IDs, IP addresses, tokens, secrets, raw transaction IDs, input traces or chat text. Ledger references must be hashes or opaque non-sensitive references.
 
+Consent rule: collection starts in `Unknown` and is disabled. Only an explicit `Granted` state may transmit or buffer future events. `Denied` and consent withdrawal stop future collection and clear the unsent in-memory queue; already uploaded data follows the Firebase/GA4 retention and deletion process. Consent state itself is not emitted as a gameplay event.
+
 ## Event Dictionary
 
 | Event | Trigger point | Required payload | Source environment | Dedupe key | Authority boundary | PII rule | Acceptance method |

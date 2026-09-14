@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -28,10 +30,29 @@ public sealed class AuthSessionCoordinator : MonoBehaviour
         instance.RedirectToLogin();
     }
 
+    public static async Task LogoutAndReturnToLoginAsync(
+        CancellationToken cancellationToken = default)
+    {
+        IClientServices services = ClientCompositionRoot.Current;
+        try
+        {
+            await services.Auth.LogoutAsync(cancellationToken);
+        }
+        finally
+        {
+            services.AuthSession.Clear();
+            EnsureCreated();
+            instance.RedirectToLogin();
+        }
+    }
+
     private void Awake()
     {
         if (instance != null && instance != this)
         {
+            // A duplicate scene instance can still receive Start/Update until Destroy is applied
+            // at the end of the frame. Disable it immediately so its uninitialized store is never used.
+            enabled = false;
             Destroy(gameObject);
             return;
         }
@@ -69,6 +90,7 @@ public sealed class AuthSessionCoordinator : MonoBehaviour
 
     private void ValidateActiveScene(Scene scene)
     {
+        if (instance != this || sessionStore == null) return;
         if (!IsProtectedScene(scene.name) || sessionStore.IsValid(sessionStore.Current)) return;
         sessionStore.Clear();
         RedirectToLogin();

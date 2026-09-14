@@ -151,7 +151,14 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsFalse(panel.activeSelf);
             var settlement = screen.transform.Find("SettlementPanel");
             Assert.IsTrue(settlement.gameObject.activeSelf);
-            Assert.AreEqual("Defalt", ReadAuthoredText(settlement.Find("Text")));
+            var settlementImage = settlement.Find("SettleImg").GetComponent<Image>();
+            Assert.AreSame(
+                Resources.Load<Sprite>("GameUI/SettlementUI/Defeat"),
+                settlementImage.sprite);
+            Assert.IsTrue(settlementImage.preserveAspect);
+            Assert.IsFalse(settlement.Find("GoldText").gameObject.activeSelf);
+            Assert.IsFalse(settlement.Find("ReciveBtn").gameObject.activeSelf);
+            Assert.IsFalse(settlement.Find("DoubleBtn").gameObject.activeSelf);
         }
 
         [UnityTest]
@@ -168,14 +175,14 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsTrue(bootstrap.Match.TryTransition(MatchState.Victory));
             var settlement = screen.transform.Find("SettlementPanel");
             Assert.IsTrue(settlement.gameObject.activeSelf);
-            Assert.AreEqual("Victory", ReadAuthoredText(settlement.Find("Text")));
-        }
-
-        private static string ReadAuthoredText(Transform target)
-        {
-            var component = target.GetComponent("TextMeshProUGUI");
-            Assert.IsNotNull(component);
-            return (string)component.GetType().GetProperty("text").GetValue(component);
+            var settlementImage = settlement.Find("SettleImg").GetComponent<Image>();
+            Assert.AreSame(
+                Resources.Load<Sprite>("GameUI/SettlementUI/Victory"),
+                settlementImage.sprite);
+            Assert.IsTrue(settlementImage.preserveAspect);
+            Assert.IsFalse(settlement.Find("GoldText").gameObject.activeSelf);
+            Assert.IsFalse(settlement.Find("ReciveBtn").gameObject.activeSelf);
+            Assert.IsFalse(settlement.Find("DoubleBtn").gameObject.activeSelf);
         }
 
         private static void AssertEnemyTraversesOrderedPath(

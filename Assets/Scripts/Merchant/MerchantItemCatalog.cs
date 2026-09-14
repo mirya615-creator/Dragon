@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 public static class MerchantItemCatalog
 {
+    public const string ForgekeepersGiftProductId = "ITEM_FORGEKEEPERS_GIFT";
+    public const string LegacyForgekeepersGiftProductId = "ITEM_FORGEGIFTERS_GIFT";
+
     private static readonly Dictionary<string, string> ItemUiIconKeys =
         new Dictionary<string, string>
         {
@@ -22,7 +25,7 @@ public static class MerchantItemCatalog
             { "ITEM_RIVALRY_OATH", "ItemUI/15" },
             { "ITEM_FORGE_TREASURY", "ItemUI/16" },
             { "ITEM_BATTLEFIELD_COMMAND", "ItemUI/17" },
-            { "ITEM_FORGEGIFTERS_GIFT", "ItemUI/18" },
+            { ForgekeepersGiftProductId, "ItemUI/18" },
             { "ITEM_DRAGONFALL_JUDGMENT", "ItemUI/19" },
             { "ITEM_DRACONIC_PRESENCE", "ItemUI/20" }
         };
@@ -30,7 +33,7 @@ public static class MerchantItemCatalog
     private static readonly Dictionary<string, string> EnglishIntroductions =
         new Dictionary<string, string>
         {
-            { "ITEM_WYRMFANG_SNARE", "Place a trap: 40% HP to normal enemies, Boss capped at 5%" },
+            { "ITEM_WYRMFANG_SNARE", "Drag onto an enemy: 40% Max HP damage; Boss 5%, capped at 120" },
             { "ITEM_WINTERVEIL_RUNE", "Slow all enemies by 10% for 5s; effective against Bosses" },
             { "ITEM_MANABURST_MINE", "One-time AoE: 80 damage to normal enemies, Boss capped at 3%" },
             { "ITEM_FRENZY_RUNE", "Target unit Attack Speed x1.4; stacks up to 2 times" },
@@ -47,14 +50,14 @@ public static class MerchantItemCatalog
             { "ITEM_RIVALRY_OATH", "Your Attack Speed +50%; opponent Attack Speed +30%" },
             { "ITEM_FORGE_TREASURY", "Gain 3 resources after every 10 kills" },
             { "ITEM_BATTLEFIELD_COMMAND", "The first Hero recruitment is free" },
-            { "ITEM_FORGEGIFTERS_GIFT", "Generate one Forge Pick every 90 seconds" },
+            { ForgekeepersGiftProductId, "Every 90s, watch an ad to receive 1 free Shovel; you may decline" },
             { "ITEM_DRAGONFALL_JUDGMENT", "First enemy near the finish is judged: normal 80%, Boss capped at 8%" },
             { "ITEM_DRACONIC_PRESENCE", "Each Hero slows enemies by 2%, up to 10%" }
         };
 
     private static readonly MerchantProduct[] Products =
     {
-        Item("ITEM_WYRMFANG_SNARE", "Wyrmfang Snare", "Wyrmfang Snare", "Rare", "Active", 40, "Place a trap: 40% HP to normal enemies, Boss capped at 5%"),
+        Item("ITEM_WYRMFANG_SNARE", "Wyrmfang Snare", "Wyrmfang Snare", "Rare", "Active", 40, "Drag onto an enemy: 40% Max HP damage; Boss 5%, capped at 120"),
         Item("ITEM_WINTERVEIL_RUNE", "Winterveil Scroll", "Winterveil Scroll", "Rare", "Active", 40, "Slow all enemies by 10% for 5s; effective against Bosses"),
         Item("ITEM_MANABURST_MINE", "Arcane Thunderburst", "Arcane Thunderburst", "Excellent", "Active", 60, "One-time AoE: 80 damage to normal enemies, Boss capped at 3%"),
         Item("ITEM_FRENZY_RUNE", "Berserker War Drum", "Berserker War Drum", "Epic", "Active", 80, "Target unit Attack Speed x1.4; stacks up to 2 times"),
@@ -71,7 +74,7 @@ public static class MerchantItemCatalog
         Item("ITEM_RIVALRY_OATH", "Rivalry Oath", "Rivalry Oath", "Epic", "Passive", 80, "Your Attack Speed +50%; opponent Attack Speed +30%"),
         Item("ITEM_FORGE_TREASURY", "Forge Treasury", "Forge Treasury", "Epic", "Passive", 80, "Gain 3 resources after every 10 kills"),
         Item("ITEM_BATTLEFIELD_COMMAND", "Battlefield Command", "Battlefield Command", "Epic", "Passive", 80, "The first Hero recruitment is free"),
-        Item("ITEM_FORGEGIFTERS_GIFT", "Forgekeeper's Gift", "Forgekeeper's Gift", "Legendary", "Passive", 120, "Generate one Forge Pick every 90 seconds", false),
+        Item(ForgekeepersGiftProductId, "Forgekeeper's Gift", "Forgekeeper's Gift", "Legendary", "Passive", 120, "Every 90s, watch an ad to receive 1 free Shovel; you may decline"),
         Item("ITEM_DRAGONFALL_JUDGMENT", "Dragonfall Judgment", "Dragonfall Judgment", "Legendary", "Passive", 120, "First enemy near the finish is judged: normal 80%, Boss capped at 8%"),
         Item("ITEM_DRACONIC_PRESENCE", "Draconic Presence", "Draconic Presence", "Legendary", "Passive", 120, "Each Hero slows enemies by 2%, up to 10%")
     };

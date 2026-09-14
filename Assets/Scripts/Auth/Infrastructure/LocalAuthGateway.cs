@@ -51,6 +51,23 @@ public sealed class LocalAuthGateway : IAuthGateway
         return Task.FromResult(CreateSession(playerId, false));
     }
 
+    public Task LinkGoogleAsync(
+        string idToken,
+        DeviceInfoDto deviceInfo,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (string.IsNullOrWhiteSpace(idToken))
+            throw new AuthException("INVALID_CREDENTIALS", "Google ID token is required.");
+        return Task.CompletedTask;
+    }
+
+    public Task LogoutAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.CompletedTask;
+    }
+
     private static AuthSession CreateSession(string playerId, bool isGuest)
     {
         return new AuthSession

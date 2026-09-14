@@ -231,6 +231,13 @@ namespace DragonBound.Bosses.Runtime
             {
                 basicPolicy.DisableDecree();
                 basicPolicy.SetMergeBlocked(false);
+                EmitLifecycle(new BossCastAttempt(
+                    definition.BossId,
+                    skillId,
+                    castAttemptNumber,
+                    elapsedSeconds,
+                    true,
+                    true), BossSkillLifecycle.EffectEnded);
             }
 
             decreeApplied = false;

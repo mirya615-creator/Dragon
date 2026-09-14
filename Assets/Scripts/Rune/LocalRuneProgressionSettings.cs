@@ -8,7 +8,25 @@ using UnityEngine;
 public static class LocalRuneProgressionSettings
 {
     private const string AccountDayOverrideKey = "dragonbound.runes.dev-account-day-v1";
-    private const int DevelopmentDefaultAccountDay = 3;
+    private const int DevelopmentDefaultAccountDay = 1;
+
+    /// <summary>
+    /// Raised after the local development override changes so active rune UI can
+    /// reload the profile without requiring a scene reload.
+    /// </summary>
+    public static event Action AccountDayChanged;
+
+    public static bool IsDevelopmentOverrideActive
+    {
+        get
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            return PlayerPrefs.HasKey(AccountDayOverrideKey);
+#else
+            return false;
+#endif
+        }
+    }
 
     public static int ResolveAccountDay(int persistedAccountDay)
     {
@@ -19,9 +37,9 @@ public static class LocalRuneProgressionSettings
         }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        // During development the rune feature is tested as an account that has
-        // already reached day three. An explicit PlayerPrefs override still wins,
-        // so locked-day behaviour can be tested from the development menu.
+        // Development starts at day one so the three-day restriction is active by
+        // default. An explicit PlayerPrefs override still wins, allowing each day
+        // to be tested from the development menu without changing profile data.
         return Math.Max(DevelopmentDefaultAccountDay, fallback);
 #else
         // Release builds keep using the persisted/server-owned account day.
@@ -33,11 +51,13 @@ public static class LocalRuneProgressionSettings
     {
         PlayerPrefs.SetInt(AccountDayOverrideKey, Math.Max(1, accountDay));
         PlayerPrefs.Save();
+        AccountDayChanged?.Invoke();
     }
 
     public static void ClearDevelopmentOverride()
     {
         PlayerPrefs.DeleteKey(AccountDayOverrideKey);
         PlayerPrefs.Save();
+        AccountDayChanged?.Invoke();
     }
 }

@@ -13,4 +13,11 @@ public interface IAuthGateway
         string idToken,
         DeviceInfoDto deviceInfo,
         CancellationToken cancellationToken);
+
+    Task LinkGoogleAsync(
+        string idToken,
+        DeviceInfoDto deviceInfo,
+        CancellationToken cancellationToken);
+
+    Task LogoutAsync(CancellationToken cancellationToken);
 }

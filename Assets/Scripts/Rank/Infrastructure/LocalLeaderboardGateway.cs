@@ -37,6 +37,7 @@ public sealed class LocalLeaderboardGateway : ILeaderboardGateway
             periodStore.Upsert(period, new LeaderboardPlayer
             {
                 PlayerId = playerId,
+                AvatarId = PlayerAvatarProfile.GetOrCreateAvatarId(playerId),
                 DisplayName = "You",
                 RankLevel = currentRank.Level,
                 Division = currentRank.Division,

@@ -8,17 +8,20 @@ public sealed class ClientServiceException : Exception
         bool retryable = false,
         int httpStatus = 0,
         string traceId = "",
-        Exception innerException = null)
+        Exception innerException = null,
+        string responseBody = "")
         : base(message, innerException)
     {
         Code = code ?? string.Empty;
         Retryable = retryable;
         HttpStatus = httpStatus;
         TraceId = traceId ?? string.Empty;
+        ResponseBody = responseBody ?? string.Empty;
     }
 
     public string Code { get; }
     public bool Retryable { get; }
     public int HttpStatus { get; }
     public string TraceId { get; }
+    public string ResponseBody { get; }
 }

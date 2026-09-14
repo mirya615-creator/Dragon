@@ -32,12 +32,29 @@ namespace DragonBound.Tests.EditMode
             var context = new ItemRunContext(team, registry);
             var effect = new WyrmfangSnareEffect();
 
+            context.SetActivationTarget("normal");
             Assert.IsTrue(effect.TryActivate(context, out var reason), reason);
             Assert.AreEqual(40f, effect.LastDamage, 0.001f);
             effect.Tick(context, 45f);
             context.SetActivationTarget("boss");
             Assert.IsTrue(effect.TryActivate(context, out reason), reason);
             Assert.AreEqual(120f, effect.LastDamage, 0.001f);
+        }
+
+        [Test]
+        public void WyrmfangSnare_RequiresAnExplicitLivingEnemyTarget()
+        {
+            var team = new TeamState(TeamSide.Player);
+            var registry = new EnemyRegistry();
+            var enemy = new EnemyRuntime("enemy", TeamSide.Player, 100f, EnemyArchetype.Normal);
+            registry.Register(enemy);
+            var context = new ItemRunContext(team, registry);
+            var effect = new WyrmfangSnareEffect();
+
+            Assert.IsFalse(effect.TryActivate(context, out var reason));
+            Assert.AreEqual("NoAliveTargets", reason);
+            Assert.AreEqual(100f, enemy.HitPoints, 0.001f);
+            Assert.AreEqual(0f, effect.CooldownRemainingSeconds, 0.001f);
         }
 
         [Test]
@@ -165,8 +182,10 @@ namespace DragonBound.Tests.EditMode
             var context = new ItemRunContext(team, registry);
             var effect = new DragonfallJudgmentEffect();
 
+            Assert.IsFalse(effect.IsConsumed);
             effect.HandleCombatEvent(context, new ItemCombatEvent(ItemCombatEventKind.EnemyApproachingGoal, TeamSide.Player, "normal"));
             Assert.IsTrue(effect.Used);
+            Assert.IsTrue(effect.IsConsumed);
             Assert.AreEqual(20f, normal.HitPoints, 0.001f);
             effect.HandleCombatEvent(context, new ItemCombatEvent(ItemCombatEventKind.EnemyApproachingGoal, TeamSide.Player, "minion"));
             Assert.IsFalse(effect.WorldeaterMinionInteractionPending);

@@ -36,7 +36,7 @@ namespace DragonBound.Combat
 
         public bool IsWithinRange(CombatPoint attacker, EnemyRuntime target, float rangeCells)
         {
-            return target != null && target.IsAlive && IsWithinRange(attacker, target.CombatPosition, rangeCells);
+            return target != null && target.IsAttackable && IsWithinRange(attacker, target.CombatPosition, rangeCells);
         }
 
         public EnemyRuntime SelectFrontmostInRange(

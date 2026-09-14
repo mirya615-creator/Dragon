@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using DragonBound.AI;
 using DragonBound.Combat;
 using DragonBound.Core;
 using DragonBound.Grid;
@@ -12,6 +14,24 @@ namespace DragonBound.Presentation
     [DisallowMultipleComponent]
     public sealed class GreyboxBoardView : MonoBehaviour
     {
+        private const string ShovelSpriteResourcePath = "ComponentUI/shovel";
+        private const string BoardSelectPrefabResourcePath = "prefabs/BoardSelect";
+        private const string BeachSelectSpriteResourcePath = "GameUI/BoardSelect";
+        private const string BoardSelectSpriteResourcePath = "GameUI/BeachSelect";
+        private const string InformPrefabResourcePath = "prefabs/Inform";
+        private const float MirroredUnitArtAnchoredPositionX = -38f;
+        private const float MirroredHeroArtAnchoredPositionX = 13f;
+        private const float AttackFacingHorizontalDeadZone = 0.5f;
+        private const float DeploymentFlightDuration = 0.34f;
+        private const float DeploymentArcHeightInCells = 0.8f;
+        private const float SwapReturnArcHeightInCells = -0.55f;
+        private const float LandingSquashDuration = 0.07f;
+        private const float LandingReboundDuration = 0.08f;
+        private const float LandingSettleDuration = 0.10f;
+        private const float SynthesisComponentFadeDuration = 0.08f;
+        private const float SynthesisComponentEndScale = 0.8f;
+        private const float DragTargetSwitchHysteresisPixels = 12f;
+
         [SerializeField] private Canvas canvas;
         [SerializeField] private GridCellView[] cellViews;
         [SerializeField] private RectTransform unitLayer;
@@ -37,6 +57,8 @@ namespace DragonBound.Presentation
             new Dictionary<string, DraggableUnitView>(StringComparer.Ordinal);
         private readonly Dictionary<GridPosition, DraggableUnitView> beachItemViews =
             new Dictionary<GridPosition, DraggableUnitView>();
+        private readonly Dictionary<GridPosition, GameObject> beachSelectionViews =
+            new Dictionary<GridPosition, GameObject>();
         private readonly Dictionary<GridCellView, DraggableUnitView> beachItemViewsByCell =
             new Dictionary<GridCellView, DraggableUnitView>();
         private readonly HashSet<DraggableUnitView> authoredBeachItemViews =
@@ -49,8 +71,16 @@ namespace DragonBound.Presentation
             new Dictionary<string, bool>(StringComparer.Ordinal);
         private readonly Dictionary<string, HeroFormationView> pairPresentations =
             new Dictionary<string, HeroFormationView>(StringComparer.Ordinal);
+        private readonly Dictionary<string, int> observedHeroLevels =
+            new Dictionary<string, int>(StringComparer.Ordinal);
+        private readonly HashSet<string> pendingSynthesisPairIds =
+            new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> soulChainControlledUnitIds =
             new HashSet<string>(StringComparer.Ordinal);
+        private readonly Dictionary<string, DeploymentAnimationState> deploymentAnimations =
+            new Dictionary<string, DeploymentAnimationState>(StringComparer.Ordinal);
+        private readonly HashSet<DraggableUnitView> synthesisComponentGhosts =
+            new HashSet<DraggableUnitView>();
         private BoardGrid board;
         private BoardRecruitDestination unitDestination;
         private RecruitmentService recruitment;
@@ -59,8 +89,26 @@ namespace DragonBound.Presentation
         private FixedBoardCanvasView fixedBoardCanvas;
         private string selectedUnitId;
         private string activeShovelDragId;
+        private GridPosition? activeBeachDragOrigin;
+        private GridPosition? stableDragTarget;
+        private GameObject boardSelectPrefab;
+        private GameObject sourceSelectPreview;
+        private GameObject boardSelectPreview;
+        private Sprite beachSelectSprite;
+        private Sprite boardSelectSprite;
         private bool isRefreshingUnits;
         private bool refreshUnitsPending;
+        private bool bloodcrownSuppressionActive;
+        private UnitInformController unitInform;
+
+        private sealed class DeploymentAnimationState
+        {
+            public Coroutine Routine;
+            public DraggableUnitView Ghost;
+            public Vector3 BaseScale = Vector3.one;
+            public bool HideCommittedView = true;
+            public bool OwnsCombatSuspension;
+        }
 
         public Canvas Canvas => canvas;
         public BoardGrid Board => board;
@@ -76,10 +124,87 @@ namespace DragonBound.Presentation
         public RectTransform DragGhostRectTransform => null;
         public bool HasDragArrowPreview => dragArrowPreview != null;
         public bool IsDragArrowVisible => dragArrowPreview != null && dragArrowPreview.IsVisible;
+        public Sprite DragPathSprite => dragArrowPreview != null ? dragArrowPreview.PathSprite : null;
+        public bool IsBoardSelectVisible => boardSelectPreview != null && boardSelectPreview.activeSelf;
+        public bool IsSourceSelectVisible
+        {
+            get
+            {
+                if (sourceSelectPreview != null && sourceSelectPreview.activeSelf)
+                {
+                    return true;
+                }
+
+                foreach (var selection in beachSelectionViews.Values)
+                {
+                    if (selection != null && selection.activeSelf)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+        public int VisibleBeachSelectionCount
+        {
+            get
+            {
+                var count = 0;
+                foreach (var selection in beachSelectionViews.Values)
+                {
+                    if (selection != null && selection.activeSelf)
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+        }
+
+        public void CollectFrostcrownMarkedEnemyIds(ISet<string> targetRuntimeIds)
+        {
+            if (targetRuntimeIds == null || unitDestination == null)
+            {
+                return;
+            }
+
+            foreach (var activePair in unitDestination.GetActiveHeroPairs())
+            {
+                var pairLink = activePair.PairLink;
+                if (!string.Equals(
+                        pairLink.HeroId,
+                        HeroSliceCatalog.CrownHunterLeaderHeroId,
+                        StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var targetRuntimeId = pairLink.CombatProxy.HuntMarkTargetRuntimeId;
+                if (!string.IsNullOrWhiteSpace(targetRuntimeId))
+                {
+                    targetRuntimeIds.Add(targetRuntimeId);
+                }
+            }
+        }
         public Color BasicUnitColor => basicUnitColor;
         public Color HeroComponentColor => heroComponentColor;
         public Color PurpleHeroColor => purpleHeroColor;
         public Color GoldHeroColor => goldHeroColor;
+        public event Action<string> FlameDrakeFireballReleased;
+        public event Action<string> SkyborneValkyrieArrowReleased;
+        public event Action<string> StarfallArchmageGemReleased;
+        public event Action<string> NightfangSkillAnimationCompleted;
+        public event Action<string> BowProjectileReleased;
+        public event Action<string> WindclawSkillReleased;
+        public event Action<string> EmberShamanFireballReleased;
+        public event Action<string> RuneboltMageBoltReleased;
+        public event Action<string> StoneboundWarlockRockReleased;
+        public event Action<string> ThunderlordChainReleased;
+        public event Action<string> ThunderlordSkillReleased;
+        public event Action<string> AbyssalHarpoonReleased;
+        public event Action<string> AbyssalHarpoonSkillReleased;
 
         public void SetSoulChainControlledUnits(IReadOnlyList<string> controlledRuntimeIds)
         {
@@ -101,6 +226,26 @@ namespace DragonBound.Presentation
                 entry.Value?.SetSoulChainControlled(
                     soulChainControlledUnitIds.Contains(entry.Key));
             }
+        }
+
+        public void SetBloodcrownSuppression(bool active)
+        {
+            bloodcrownSuppressionActive = active;
+            foreach (var entry in unitViews)
+            {
+                entry.Value?.SetBloodcrownSuppressed(active && IsDeployedBasic(entry.Key));
+            }
+        }
+
+        private bool IsDeployedBasic(string runtimeId)
+        {
+            return unitDestination != null &&
+                   unitDestination.TryGetCard(runtimeId, out var card) &&
+                   card.Kind == RecruitItemKind.BasicUnit &&
+                   board != null &&
+                   board.TryGetPosition(runtimeId, out var position) &&
+                   board.TryGetCellType(position, out var cellType) &&
+                   cellType == CellType.Battle;
         }
 
         public void ConfigureRecruitItemColors(
@@ -152,6 +297,115 @@ namespace DragonBound.Presentation
             }
 
             position = transform.position;
+            return false;
+        }
+
+        public bool TryGetHeroCurrentTargetRuntimeId(
+            string pairLinkId,
+            out string targetRuntimeId)
+        {
+            targetRuntimeId = string.Empty;
+            if (string.IsNullOrWhiteSpace(pairLinkId) || unitDestination == null)
+            {
+                return false;
+            }
+
+            foreach (var activePair in unitDestination.GetActiveHeroPairs())
+            {
+                var pairLink = activePair.PairLink;
+                if (pairLink == null ||
+                    !string.Equals(pairLink.PairLinkId, pairLinkId, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                targetRuntimeId = pairLink.CombatProxy.CurrentTargetRuntimeId ?? string.Empty;
+                return !string.IsNullOrWhiteSpace(targetRuntimeId);
+            }
+
+            return false;
+        }
+
+        public bool TryGetHeroAttackOrigin(string pairLinkId, out Vector3 position)
+        {
+            if (!string.IsNullOrWhiteSpace(pairLinkId) &&
+                pairPresentations.TryGetValue(pairLinkId, out var pairView) &&
+                pairView != null)
+            {
+                pairView.TryGetAttackOrigin(out position);
+                return true;
+            }
+
+            position = transform.position;
+            return false;
+        }
+
+        public bool SetHeroFormationArtVisible(string pairLinkId, bool visible)
+        {
+            if (string.IsNullOrWhiteSpace(pairLinkId) ||
+                !pairPresentations.TryGetValue(pairLinkId, out var pairView) ||
+                pairView == null)
+            {
+                return false;
+            }
+
+            pairView.SetHeroArtVisible(visible);
+            return true;
+        }
+
+        public bool PlayHeroFormationAttackAnimation(string pairLinkId, bool useSkillAnimation = false)
+        {
+            return !string.IsNullOrWhiteSpace(pairLinkId) &&
+                   pairPresentations.TryGetValue(pairLinkId, out var pairView) &&
+                   pairView != null &&
+                   pairView.PlayAttackAnimation(useSkillAnimation);
+        }
+
+        public bool PlayBasicUnitAttackAnimation(string runtimeId)
+        {
+            return !string.IsNullOrWhiteSpace(runtimeId) &&
+                   unitViews.TryGetValue(runtimeId, out var unitView) &&
+                   unitView != null &&
+                   unitView.PlayBasicAttackAnimation();
+        }
+
+        public bool FaceAttackerTowardsTarget(string runtimeId, float targetWorldX)
+        {
+            if (string.IsNullOrWhiteSpace(runtimeId))
+            {
+                return false;
+            }
+
+            if (unitViews.TryGetValue(runtimeId, out var unitView) && unitView != null)
+            {
+                var horizontalDelta = targetWorldX - unitView.RectTransform.position.x;
+                if (Mathf.Abs(horizontalDelta) <= AttackFacingHorizontalDeadZone)
+                {
+                    return true;
+                }
+
+                unitView.FaceArtTowards(
+                    horizontalDelta > 0f,
+                    MirroredUnitArtAnchoredPositionX);
+                return true;
+            }
+
+            if (pairPresentations.TryGetValue(runtimeId, out var pairView) && pairView != null)
+            {
+                // Use the formation center rather than the offset art pivot. Otherwise the
+                // mirrored PosX correction can make a vertically aligned target look lateral.
+                var horizontalDelta = targetWorldX - pairView.RectTransform.position.x;
+                if (Mathf.Abs(horizontalDelta) <= AttackFacingHorizontalDeadZone)
+                {
+                    return true;
+                }
+
+                pairView.FaceArtTowards(
+                    horizontalDelta > 0f,
+                    MirroredHeroArtAnchoredPositionX);
+                return true;
+            }
+
             return false;
         }
 
@@ -246,10 +500,11 @@ namespace DragonBound.Presentation
             fixedBoardCanvas.BackgroundClicked -= HandleBackgroundClicked;
             fixedBoardCanvas.BackgroundClicked += HandleBackgroundClicked;
 
-            if (dragArrowPreview != null && fixedBoardCanvas.OverlayLayer != null &&
-                dragArrowPreview.transform.parent != fixedBoardCanvas.OverlayLayer)
+            var guideLayer = fixedBoardCanvas.EnsureDeploymentGuideLayer();
+            if (dragArrowPreview != null && guideLayer != null &&
+                dragArrowPreview.transform.parent != guideLayer)
             {
-                dragArrowPreview.transform.SetParent(fixedBoardCanvas.OverlayLayer, false);
+                dragArrowPreview.transform.SetParent(guideLayer, false);
             }
         }
 
@@ -313,6 +568,10 @@ namespace DragonBound.Presentation
                 }
 
                 cells.Add(cellView.Position, cellView);
+                if (cellView.CellType == CellType.Bench)
+                {
+                    BindBeachSelection(cellView.Position, cellView);
+                }
                 cellView.Clicked -= HandleCellClicked;
                 cellView.Clicked += HandleCellClicked;
             }
@@ -328,10 +587,16 @@ namespace DragonBound.Presentation
             }
 
             RefreshUnits();
+            if (allowInteraction)
+            {
+                EnsureUnitInform();
+            }
         }
 
         private void OnDestroy()
         {
+            StopAllSynthesisComponentFades();
+            StopAllDeploymentAnimations();
             CancelActiveDrag(false);
             if (unitDestination != null)
             {
@@ -363,8 +628,11 @@ namespace DragonBound.Presentation
 
         private void OnDisable()
         {
+            StopAllSynthesisComponentFades();
+            StopAllDeploymentAnimations();
             CancelActiveDrag(false);
             CancelShovelSelection();
+            unitInform?.Hide();
         }
 
         private void OnApplicationFocus(bool hasFocus)
@@ -400,11 +668,64 @@ namespace DragonBound.Presentation
             while (refreshUnitsPending);
         }
 
+        /// <summary>
+        /// Refreshes the authoritative board and gives visible AI movement the same arced flight
+        /// and landing response used by player deployment. Gameplay has already committed the
+        /// action; this method only supplies the readable AI transition.
+        /// </summary>
+        public void RefreshUnits(AiBoardAction action, float transitionSeconds)
+        {
+            _ = transitionSeconds;
+            var sourceWorld = Vector3.zero;
+            var targetWorld = Vector3.zero;
+            var canAnimate = action.HasSource && action.HasTarget &&
+                             TryGetCellWorldPosition(action.Source, out sourceWorld) &&
+                             TryGetCellWorldPosition(action.Target, out targetWorld);
+            var swappedUnitId = string.Empty;
+            if (canAnimate)
+            {
+                // The action is already committed. A remaining occupant in the source cell is
+                // therefore the unit displaced by an AI swap and must fly back at the same time.
+                board.TryGetOccupant(action.Source, out swappedUnitId);
+            }
+
+            RefreshUnits();
+            if (!canAnimate || string.IsNullOrWhiteSpace(action.RuntimeId))
+            {
+                return;
+            }
+
+            PlayDeploymentFlight(
+                action.RuntimeId,
+                sourceWorld,
+                targetWorld,
+                DeploymentArcHeightInCells);
+            if (!string.IsNullOrWhiteSpace(swappedUnitId) &&
+                !string.Equals(swappedUnitId, action.RuntimeId, StringComparison.Ordinal))
+            {
+                PlayDeploymentFlight(
+                    swappedUnitId,
+                    targetWorld,
+                    sourceWorld,
+                    SwapReturnArcHeightInCells);
+            }
+        }
+
         private void RefreshUnitsCore()
         {
             var previousViews = new Dictionary<string, DraggableUnitView>(unitViews, StringComparer.Ordinal);
             var usedViews = new HashSet<DraggableUnitView>();
             var currentIds = new HashSet<string>(StringComparer.Ordinal);
+            var pairedComponentIds = new HashSet<string>(StringComparer.Ordinal);
+            if (unitDestination != null)
+            {
+                foreach (var activePair in unitDestination.GetActiveHeroPairs())
+                {
+                    pairedComponentIds.Add(activePair.PairLink.ComponentAId);
+                    pairedComponentIds.Add(activePair.PairLink.ComponentBId);
+                }
+            }
+
             unitViews.Clear();
             foreach (var beachItemView in authoredBeachItemViews)
             {
@@ -449,6 +770,8 @@ namespace DragonBound.Presentation
 
                 unitView.gameObject.SetActive(true);
                 unitView.SetInteractive(allowInteraction);
+                unitView.BowProjectileReleased -= HandleBowProjectileReleased;
+                unitView.BowProjectileReleased += HandleBowProjectileReleased;
                 unitViews.Add(occupant.UnitId, unitView);
                 usedViews.Add(unitView);
 
@@ -458,6 +781,9 @@ namespace DragonBound.Presentation
                 {
                     unitView.SetStandardPresentation();
                     ApplyCardPresentation(currentCard, unitView);
+                    unitView.InitializeArtFacing(
+                        board.Side == TeamSide.AI,
+                        MirroredUnitArtAnchoredPositionX);
                 }
 
                 if (unitLabels.TryGetValue(occupant.UnitId, out var label))
@@ -467,10 +793,20 @@ namespace DragonBound.Presentation
                     unitView.SetLabel(hideComponentName ? string.Empty : label);
                 }
 
-                unitView.SetPairedPresentation(false);
+                // Preserve the authoritative pair state throughout the refresh. Resetting
+                // every view to unpaired here and hiding it again later can expose the two
+                // component cards briefly while the synthesis presentation is rebuilt.
+                unitView.SetPairedPresentation(pairedComponentIds.Contains(occupant.UnitId));
                 unitView.SetSoulChainControlled(
                     soulChainControlledUnitIds.Contains(occupant.UnitId));
+                unitView.SetBloodcrownSuppressed(
+                    bloodcrownSuppressionActive && IsDeployedBasic(occupant.UnitId));
                 SnapUnit(occupant.UnitId);
+                if (deploymentAnimations.TryGetValue(occupant.UnitId, out var deploymentState) &&
+                    deploymentState.HideCommittedView)
+                {
+                    unitView.SetDeploymentVisualHidden(true);
+                }
             }
 
             foreach (var entry in previousViews)
@@ -539,6 +875,9 @@ namespace DragonBound.Presentation
 
         public bool BeginDrag(string unitId)
         {
+            ClearBeachDragPreview();
+            stableDragTarget = null;
+            unitInform?.Hide();
             if (allowInteraction &&
                 unitDestination != null &&
                 unitDestination.TryGetCard(unitId, out var card) &&
@@ -549,6 +888,7 @@ namespace DragonBound.Presentation
                 activeShovelDragId = unitId;
                 HideDragArrow();
                 HideRangePreview();
+                ShowDragSourceSelection(unitId);
                 return true;
             }
 
@@ -565,6 +905,7 @@ namespace DragonBound.Presentation
 
             HideDragArrow();
             HideRangePreview();
+            ShowDragSourceSelection(unitId);
             return true;
         }
 
@@ -572,6 +913,7 @@ namespace DragonBound.Presentation
         {
             if (string.Equals(activeShovelDragId, unitId, StringComparison.Ordinal))
             {
+                UpdateShovelDragPreview(screenPosition);
                 return;
             }
 
@@ -584,16 +926,34 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            if (TryGetPositionAt(screenPosition, out var target) &&
+            if (TryGetStableDragPositionAt(screenPosition, out var target) &&
                 drag.CanPreviewTarget(target) &&
                 cells.TryGetValue(target, out var targetCell))
             {
-                var parent = dragArrowPreview.transform.parent as RectTransform;
+                var parent = fixedBoardCanvas != null
+                    ? fixedBoardCanvas.EnsureDeploymentGuideLayer()
+                    : dragArrowPreview.transform.parent as RectTransform;
+                if (parent != null && dragArrowPreview.transform.parent != parent)
+                {
+                    dragArrowPreview.transform.SetParent(parent, false);
+                }
                 dragArrowPreview.Show(parent, sourceCell.ContentAnchor.position, targetCell.ContentAnchor.position);
+                ShowBoardSelect(targetCell);
+                if (activeBeachDragOrigin.HasValue &&
+                    board.TryGetCellType(target, out var targetType) &&
+                    targetType == CellType.Battle)
+                {
+                    ShowDeploymentRangePreview(unitId, targetCell);
+                }
+                else
+                {
+                    HideDeploymentRangePreview();
+                }
                 return;
             }
 
             HideDragArrow();
+            HideDeploymentRangePreview();
         }
 
         public void CompleteDrag(string unitId, Vector2 screenPosition)
@@ -601,7 +961,7 @@ namespace DragonBound.Presentation
             if (string.Equals(activeShovelDragId, unitId, StringComparison.Ordinal))
             {
                 activeShovelDragId = null;
-                var unlocked = TryGetPositionAt(screenPosition, out var shovelTarget) &&
+                var unlocked = TryGetStableDragPositionAt(screenPosition, out var shovelTarget) &&
                                shovelUnlockService != null &&
                                shovelUnlockService.TryUnlockCell(shovelTarget);
                 if (!unlocked)
@@ -611,6 +971,7 @@ namespace DragonBound.Presentation
 
                 HideDragArrow();
                 HideRangePreview();
+                ClearBeachDragPreview();
                 return;
             }
 
@@ -619,12 +980,38 @@ namespace DragonBound.Presentation
                 HideDragArrow();
                 SnapUnit(unitId);
                 HideRangePreview();
+                ClearBeachDragPreview();
                 return;
             }
 
-            if (TryGetPositionAt(screenPosition, out var target))
+            var origin = default(GridPosition);
+            var target = default(GridPosition);
+            var originWorld = Vector3.zero;
+            var targetWorld = Vector3.zero;
+            var hasOrigin = board != null && board.TryGetPosition(unitId, out origin);
+            var hasTarget = TryGetStableDragPositionAt(screenPosition, out target);
+            var targetUnitId = string.Empty;
+            if (hasTarget)
             {
-                drag.Drop(target);
+                board.TryGetOccupant(target, out targetUnitId);
+            }
+
+            var canAnimatePositions = hasOrigin && hasTarget &&
+                                      TryGetCellWorldPosition(origin, out originWorld) &&
+                                      TryGetCellWorldPosition(target, out targetWorld);
+            var movementTouchesBattlefield = false;
+            if (canAnimatePositions &&
+                board.TryGetCellType(origin, out var sourceType) &&
+                board.TryGetCellType(target, out var targetType))
+            {
+                movementTouchesBattlefield = sourceType == CellType.Battle ||
+                                             targetType == CellType.Battle;
+            }
+
+            var status = DragDropStatus.Cancelled;
+            if (hasTarget)
+            {
+                status = drag.Drop(target);
             }
             else
             {
@@ -633,7 +1020,272 @@ namespace DragonBound.Presentation
 
             HideDragArrow();
             RefreshUnits();
+            if (canAnimatePositions && board.Side == TeamSide.Player)
+            {
+                if (status == DragDropStatus.Moved && movementTouchesBattlefield)
+                {
+                    PlayDeploymentFlight(
+                        unitId,
+                        originWorld,
+                        targetWorld,
+                        DeploymentArcHeightInCells);
+                }
+                else if (status == DragDropStatus.Swapped &&
+                         !string.IsNullOrWhiteSpace(targetUnitId))
+                {
+                    PlayDeploymentFlight(
+                        unitId,
+                        originWorld,
+                        targetWorld,
+                        DeploymentArcHeightInCells);
+                    PlayDeploymentFlight(
+                        targetUnitId,
+                        targetWorld,
+                        originWorld,
+                        SwapReturnArcHeightInCells);
+                }
+            }
             HideRangePreview();
+            ClearBeachDragPreview();
+            stableDragTarget = null;
+        }
+
+        private bool TryGetCellWorldPosition(GridPosition position, out Vector3 worldPosition)
+        {
+            if (cells.TryGetValue(position, out var cell) &&
+                cell != null && cell.ContentAnchor != null)
+            {
+                worldPosition = cell.ContentAnchor.position;
+                return true;
+            }
+
+            worldPosition = transform.position;
+            return false;
+        }
+
+        private void PlayDeploymentFlight(
+            string runtimeId,
+            Vector3 startWorld,
+            Vector3 targetWorld,
+            float arcHeightInCells)
+        {
+            if (string.IsNullOrWhiteSpace(runtimeId) ||
+                !unitViews.TryGetValue(runtimeId, out var committedView) ||
+                committedView == null)
+            {
+                return;
+            }
+
+            StopDeploymentAnimation(runtimeId);
+            var fxLayer = fixedBoardCanvas != null
+                ? fixedBoardCanvas.EnsureDeploymentFxLayer()
+                : unitLayer;
+            if (fxLayer == null)
+            {
+                return;
+            }
+
+            var ghost = committedView.CreateDragGhost(fxLayer);
+            ghost.gameObject.name = $"DeploymentGhost_{runtimeId}";
+            ghost.RectTransform.position = startWorld;
+            ghost.RectTransform.sizeDelta = committedView.RectTransform.sizeDelta;
+            ghost.SetDragGhostOpacity(1f);
+            ghost.transform.SetAsLastSibling();
+
+            var state = new DeploymentAnimationState
+            {
+                Ghost = ghost,
+                BaseScale = committedView.RectTransform.localScale,
+                HideCommittedView = true
+            };
+            deploymentAnimations[runtimeId] = state;
+            committedView.SetDeploymentVisualHidden(true);
+            state.OwnsCombatSuspension = unitDestination != null &&
+                                             unitDestination.SetDeploymentAnimationCombatSuspended(
+                                                 runtimeId,
+                                                 true);
+            state.Routine = StartCoroutine(AnimateDeploymentFlight(
+                runtimeId,
+                state,
+                startWorld,
+                targetWorld,
+                arcHeightInCells));
+        }
+
+        private IEnumerator AnimateDeploymentFlight(
+            string runtimeId,
+            DeploymentAnimationState state,
+            Vector3 startWorld,
+            Vector3 targetWorld,
+            float arcHeightInCells)
+        {
+            var ghostRect = state.Ghost != null ? state.Ghost.RectTransform : null;
+            var fxLayer = ghostRect != null ? ghostRect.parent as RectTransform : null;
+            if (ghostRect == null || fxLayer == null)
+            {
+                FinishDeploymentAnimation(runtimeId, state);
+                yield break;
+            }
+
+            var start = fxLayer.InverseTransformPoint(startWorld);
+            var target = fxLayer.InverseTransformPoint(targetWorld);
+            start.z = 0f;
+            target.z = 0f;
+            var arcHeight = Mathf.Max(40f, ghostRect.rect.height * Mathf.Abs(arcHeightInCells));
+            var control = (start + target) * 0.5f +
+                          (Vector3.up * arcHeight * Mathf.Sign(arcHeightInCells));
+            var ghostBaseScale = ghostRect.localScale;
+            var elapsed = 0f;
+            while (ghostRect != null && elapsed < DeploymentFlightDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                var progress = Mathf.Clamp01(elapsed / DeploymentFlightDuration);
+                var eased = 1f - Mathf.Pow(1f - progress, 3f);
+                var inverse = 1f - eased;
+                ghostRect.localPosition =
+                    (inverse * inverse * start) +
+                    (2f * inverse * eased * control) +
+                    (eased * eased * target);
+                var liftScale = 1f + (Mathf.Sin(progress * Mathf.PI) * 0.06f);
+                ghostRect.localScale = new Vector3(
+                    ghostBaseScale.x * liftScale,
+                    ghostBaseScale.y * liftScale,
+                    ghostBaseScale.z);
+                yield return null;
+            }
+
+            if (state.Ghost != null)
+            {
+                Destroy(state.Ghost.gameObject);
+                state.Ghost = null;
+            }
+
+            state.HideCommittedView = false;
+            if (!unitViews.TryGetValue(runtimeId, out var landedView) || landedView == null)
+            {
+                FinishDeploymentAnimation(runtimeId, state);
+                yield break;
+            }
+
+            landedView.SetDeploymentVisualHidden(false);
+            var landedRect = landedView.RectTransform;
+            var baseScale = landedRect.localScale;
+            state.BaseScale = baseScale;
+            yield return AnimateDeploymentScale(
+                landedRect,
+                baseScale,
+                new Vector2(1.16f, 0.78f),
+                LandingSquashDuration);
+            yield return AnimateDeploymentScale(
+                landedRect,
+                baseScale,
+                new Vector2(0.92f, 1.10f),
+                LandingReboundDuration);
+            yield return AnimateDeploymentScale(
+                landedRect,
+                baseScale,
+                Vector2.one,
+                LandingSettleDuration);
+            FinishDeploymentAnimation(runtimeId, state);
+        }
+
+        private static IEnumerator AnimateDeploymentScale(
+            RectTransform target,
+            Vector3 baseScale,
+            Vector2 multiplier,
+            float duration)
+        {
+            if (target == null)
+            {
+                yield break;
+            }
+
+            var source = target.localScale;
+            var destination = new Vector3(
+                baseScale.x * multiplier.x,
+                baseScale.y * multiplier.y,
+                baseScale.z);
+            var elapsed = 0f;
+            while (target != null && elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                var progress = Mathf.Clamp01(elapsed / duration);
+                var eased = progress * progress * (3f - (2f * progress));
+                target.localScale = Vector3.LerpUnclamped(source, destination, eased);
+                yield return null;
+            }
+
+            if (target != null)
+            {
+                target.localScale = destination;
+            }
+        }
+
+        private void FinishDeploymentAnimation(string runtimeId, DeploymentAnimationState state)
+        {
+            ReleaseDeploymentCombatSuspension(runtimeId, state);
+            if (deploymentAnimations.TryGetValue(runtimeId, out var current) &&
+                ReferenceEquals(current, state))
+            {
+                deploymentAnimations.Remove(runtimeId);
+            }
+
+            if (unitViews.TryGetValue(runtimeId, out var view) && view != null)
+            {
+                view.SetDeploymentVisualHidden(false);
+                view.RectTransform.localScale = state.BaseScale;
+            }
+        }
+
+        private void StopDeploymentAnimation(string runtimeId)
+        {
+            if (!deploymentAnimations.TryGetValue(runtimeId, out var state))
+            {
+                return;
+            }
+
+            if (state.Routine != null)
+            {
+                StopCoroutine(state.Routine);
+            }
+            if (state.Ghost != null)
+            {
+                Destroy(state.Ghost.gameObject);
+            }
+            ReleaseDeploymentCombatSuspension(runtimeId, state);
+            if (unitViews.TryGetValue(runtimeId, out var view) && view != null)
+            {
+                view.SetDeploymentVisualHidden(false);
+                view.RectTransform.localScale = state.BaseScale;
+            }
+            deploymentAnimations.Remove(runtimeId);
+        }
+
+        private void ReleaseDeploymentCombatSuspension(
+            string runtimeId,
+            DeploymentAnimationState state)
+        {
+            if (state == null || !state.OwnsCombatSuspension)
+            {
+                return;
+            }
+
+            state.OwnsCombatSuspension = false;
+            unitDestination?.SetDeploymentAnimationCombatSuspended(runtimeId, false);
+        }
+
+        private void StopAllDeploymentAnimations()
+        {
+            if (deploymentAnimations.Count == 0)
+            {
+                return;
+            }
+
+            var runtimeIds = new List<string>(deploymentAnimations.Keys);
+            foreach (var runtimeId in runtimeIds)
+            {
+                StopDeploymentAnimation(runtimeId);
+            }
         }
 
         public void CancelActiveDrag()
@@ -645,6 +1297,7 @@ namespace DragonBound.Presentation
         {
             selectedUnitId = null;
             SetRangePreviewVisible(false);
+            unitInform?.Hide();
         }
 
         public GridCellView GetCellView(GridPosition position)
@@ -680,16 +1333,27 @@ namespace DragonBound.Presentation
                 return;
             }
 
+            RecruitCard selectedCard = null;
+            if (unitDestination != null)
+            {
+                unitDestination.TryGetCard(unitId, out selectedCard);
+            }
+
+            var isBasicUnit = selectedCard != null &&
+                              selectedCard.Kind == RecruitItemKind.BasicUnit;
+
             if (rangePreview == null ||
                 board == null ||
                 !board.TryGetPosition(unitId, out var position) ||
                 !cells.TryGetValue(position, out var cellView) ||
-                cellView.CellType != CellType.Battle ||
+                (cellView.CellType != CellType.Battle &&
+                 !(isBasicUnit && cellView.CellType == CellType.Bench)) ||
                 !unitShowsRange.TryGetValue(unitId, out var showRange) ||
                 !showRange)
             {
                 SetRangePreviewVisible(false);
                 selectedUnitId = null;
+                unitInform?.Hide();
                 return;
             }
 
@@ -698,6 +1362,10 @@ namespace DragonBound.Presentation
                 ? configuredRadius
                 : 1.5f;
             ShowRange(cellView.ContentAnchor.position, cellView, null, radius);
+            if (isBasicUnit)
+            {
+                EnsureUnitInform()?.ShowBasic(selectedCard);
+            }
         }
 
         private bool TrySelectPairRange(string componentId)
@@ -717,7 +1385,41 @@ namespace DragonBound.Presentation
             selectedUnitId = componentId;
             var worldCenter = (firstCell.ContentAnchor.position + secondCell.ContentAnchor.position) * 0.5f;
             ShowRange(worldCenter, firstCell, secondCell, pairLink.CombatProxy.RangeCells);
+            EnsureUnitInform()?.ShowHero(pairLink.CombatProxy);
             return true;
+        }
+
+        private UnitInformController EnsureUnitInform()
+        {
+            if (!allowInteraction)
+            {
+                return null;
+            }
+
+            if (unitInform != null)
+            {
+                return unitInform;
+            }
+
+            var prefab = Resources.Load<GameObject>(InformPrefabResourcePath);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Unit inform prefab is missing at Resources/{InformPrefabResourcePath}.");
+                return null;
+            }
+
+            var parentCanvas = canvas != null ? canvas.rootCanvas : GetComponentInParent<Canvas>()?.rootCanvas;
+            var parent = parentCanvas != null ? parentCanvas.transform : transform;
+            var instance = Instantiate(prefab, parent, false);
+            instance.name = "Inform";
+            unitInform = instance.GetComponent<UnitInformController>();
+            if (unitInform == null)
+            {
+                unitInform = instance.AddComponent<UnitInformController>();
+            }
+
+            unitInform.Hide();
+            return unitInform;
         }
 
         private void ShowRange(
@@ -760,8 +1462,22 @@ namespace DragonBound.Presentation
             {
                 unitView?.SetUnitLabelVisibility(true);
                 unitView?.SetBeachTextVisibility(true, true);
-                unitView?.SetCardColor(GetRecruitItemColor(card.Kind));
+                if (unitView != null &&
+                    ResourcesCampComponentArtProvider.Shared.TryGetBasicUnitSprite(
+                        card.ConfigId,
+                        out var basicUnitSprite))
+                {
+                    unitView.SetCardSprite(basicUnitSprite);
+                    unitView.SetCardColor(Color.white);
+                }
+                else
+                {
+                    unitView?.SetCardColor(GetRecruitItemColor(card.Kind));
+                }
                 var stats = BasicUnitCatalog.GetStats(card.ConfigId, card.Level);
+                unitView?.ConfigureBasicAttackAnimation(
+                    card.ConfigId,
+                    ResolveBasicAttackAnimationSpeed(stats));
                 unitLabels[card.RuntimeId] = BasicUnitCatalog.GetDisplayName(card.ConfigId);
                 unitRangeCells[card.RuntimeId] = stats.RangeCells;
                 unitShowsRange[card.RuntimeId] = true;
@@ -773,7 +1489,12 @@ namespace DragonBound.Presentation
             unitView?.SetUnitLabelVisibility(!isHeroComponent);
             unitView?.SetBeachTextVisibility(card.Kind == RecruitItemKind.Shovel, false);
 
-            if (isHeroComponent &&
+            if (card.Kind == RecruitItemKind.Shovel && TryApplyShovelSprite(unitView))
+            {
+                // The authored BeachItem is reused by every bench card. Reapply the shovel
+                // sprite whenever a shovel occupies the slot so a previous card cannot leak.
+            }
+            else if (isHeroComponent &&
                 unitView != null &&
                 ResourcesCampComponentArtProvider.Shared.TryGetHeroComponentSprite(
                     card.ConfigId,
@@ -842,7 +1563,103 @@ namespace DragonBound.Presentation
 
         private void HandleHeroPairLinked(HeroPairLinkedEvent linked)
         {
+            if (linked.PairLink != null)
+            {
+                PlaySynthesisComponentFade(linked.PairLink.ComponentAId);
+                PlaySynthesisComponentFade(linked.PairLink.ComponentBId);
+                pendingSynthesisPairIds.Add(linked.PairLink.PairLinkId);
+            }
+
             RefreshUnits();
+        }
+
+        private void PlaySynthesisComponentFade(string componentId)
+        {
+            if (string.IsNullOrEmpty(componentId) ||
+                !unitViews.TryGetValue(componentId, out var source) ||
+                source == null)
+            {
+                return;
+            }
+
+            var parent = heroEffectLayer != null ? heroEffectLayer : unitLayer;
+            if (parent == null)
+            {
+                return;
+            }
+
+            var ghost = source.CreateDragGhost(parent);
+            ghost.gameObject.name = $"SynthesisGhost_{componentId}";
+            ghost.RectTransform.anchoredPosition = source.RectTransform.anchoredPosition;
+            ghost.RectTransform.sizeDelta = source.RectTransform.sizeDelta;
+            ghost.RectTransform.localScale = source.RectTransform.localScale;
+            ghost.SetDragGhostOpacity(1f);
+            synthesisComponentGhosts.Add(ghost);
+            StartCoroutine(AnimateSynthesisComponentFade(ghost));
+        }
+
+        private IEnumerator AnimateSynthesisComponentFade(DraggableUnitView ghost)
+        {
+            var rect = ghost != null ? ghost.RectTransform : null;
+            var startScale = rect != null ? rect.localScale : Vector3.one;
+            var endScale = new Vector3(
+                startScale.x * SynthesisComponentEndScale,
+                startScale.y * SynthesisComponentEndScale,
+                startScale.z);
+            var elapsed = 0f;
+            while (ghost != null && elapsed < SynthesisComponentFadeDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                var progress = Mathf.Clamp01(elapsed / SynthesisComponentFadeDuration);
+                var eased = progress * progress * (3f - (2f * progress));
+                ghost.SetDragGhostOpacity(1f - eased);
+                rect.localScale = Vector3.LerpUnclamped(startScale, endScale, eased);
+                yield return null;
+            }
+
+            if (ghost != null)
+            {
+                synthesisComponentGhosts.Remove(ghost);
+                Destroy(ghost.gameObject);
+            }
+        }
+
+        private void StopAllSynthesisComponentFades()
+        {
+            if (synthesisComponentGhosts.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var ghost in synthesisComponentGhosts)
+            {
+                if (ghost != null)
+                {
+                    Destroy(ghost.gameObject);
+                }
+            }
+
+            synthesisComponentGhosts.Clear();
+        }
+
+        private void HandleBowProjectileReleased(string runtimeId)
+        {
+            BowProjectileReleased?.Invoke(runtimeId);
+        }
+
+        private static float ResolveBasicAttackAnimationSpeed(BasicUnitStats stats)
+        {
+            if (stats.Archetype != BasicUnitArchetype.Bow)
+            {
+                return 1f;
+            }
+
+            const float releaseClipTime = 17f / 60f;
+            const float controllerStateSpeed = 0.8f;
+            const float timingMargin = 1.05f;
+            return Mathf.Max(
+                1f,
+                releaseClipTime * stats.AttackSpeed / controllerStateSpeed * timingMargin);
         }
 
         private void HandleBasicUnitLevelChanged(string runtimeId)
@@ -907,6 +1724,28 @@ namespace DragonBound.Presentation
                 }
 
                 ApplyPairPresentation(activePair, pairView, layout);
+                if (pendingSynthesisPairIds.Remove(pairLink.PairLinkId))
+                {
+                    var definition = HeroSliceCatalog.Get(pairLink.HeroId);
+                    pairView.PlaySynthesisAnimation(definition.Rarity);
+                }
+
+                var currentLevel = pairLink.CombatProxy.Level;
+                if (observedHeroLevels.TryGetValue(pairLink.PairLinkId, out var previousLevel))
+                {
+                    if (currentLevel > previousLevel)
+                    {
+                        pairView.PlayLevelUpAnimation();
+                    }
+
+                    observedHeroLevels[pairLink.PairLinkId] = currentLevel;
+                }
+                else
+                {
+                    // Initial formation/restored state establishes a baseline and must not
+                    // masquerade as a level-up event.
+                    observedHeroLevels.Add(pairLink.PairLinkId, currentLevel);
+                }
             }
 
             var staleIds = new List<string>();
@@ -937,10 +1776,38 @@ namespace DragonBound.Presentation
                 layout.Primary - layout.Center,
                 layout.Secondary - layout.Center,
                 layout.PairSize,
-                layout.CellSize,
                 GetHeroRarityColor(definition.Rarity),
                 definition.Rarity);
+            pairView.SetCombatRuntimeId(pairLink.PairLinkId);
+            pairView.FlameDrakeFireballReleased -= HandleFlameDrakeFireballReleased;
+            pairView.FlameDrakeFireballReleased += HandleFlameDrakeFireballReleased;
+            pairView.SkyborneValkyrieArrowReleased -= HandleSkyborneValkyrieArrowReleased;
+            pairView.SkyborneValkyrieArrowReleased += HandleSkyborneValkyrieArrowReleased;
+            pairView.StarfallArchmageGemReleased -= HandleStarfallArchmageGemReleased;
+            pairView.StarfallArchmageGemReleased += HandleStarfallArchmageGemReleased;
+            pairView.NightfangSkillAnimationCompleted -= HandleNightfangSkillAnimationCompleted;
+            pairView.NightfangSkillAnimationCompleted += HandleNightfangSkillAnimationCompleted;
+            pairView.WindclawSkillReleased -= HandleWindclawSkillReleased;
+            pairView.WindclawSkillReleased += HandleWindclawSkillReleased;
+            pairView.EmberShamanFireballReleased -= HandleEmberShamanFireballReleased;
+            pairView.EmberShamanFireballReleased += HandleEmberShamanFireballReleased;
+            pairView.RuneboltMageBoltReleased -= HandleRuneboltMageBoltReleased;
+            pairView.RuneboltMageBoltReleased += HandleRuneboltMageBoltReleased;
+            pairView.StoneboundWarlockRockReleased -= HandleStoneboundWarlockRockReleased;
+            pairView.StoneboundWarlockRockReleased += HandleStoneboundWarlockRockReleased;
+            pairView.ThunderlordChainReleased -= HandleThunderlordChainReleased;
+            pairView.ThunderlordChainReleased += HandleThunderlordChainReleased;
+            pairView.ThunderlordSkillReleased -= HandleThunderlordSkillReleased;
+            pairView.ThunderlordSkillReleased += HandleThunderlordSkillReleased;
+            pairView.AbyssalHarpoonReleased -= HandleAbyssalHarpoonReleased;
+            pairView.AbyssalHarpoonReleased += HandleAbyssalHarpoonReleased;
+            pairView.AbyssalHarpoonSkillReleased -= HandleAbyssalHarpoonSkillReleased;
+            pairView.AbyssalHarpoonSkillReleased += HandleAbyssalHarpoonSkillReleased;
             pairView.SetHeroAnimation(pairLink.HeroId);
+            pairView.SetHeroLevel(combat.Level);
+            pairView.InitializeArtFacing(
+                board.Side == TeamSide.AI,
+                MirroredHeroArtAnchoredPositionX);
             pairView.ObserveAttackSequence(combat.SuccessfulAttackSequence);
             pairView.SetRune(combat.RuneId);
             pairView.SetProgress(combat.FormationProgress);
@@ -955,10 +1822,84 @@ namespace DragonBound.Presentation
 
             if (pairView != null)
             {
+                pairView.FlameDrakeFireballReleased -= HandleFlameDrakeFireballReleased;
+                pairView.SkyborneValkyrieArrowReleased -= HandleSkyborneValkyrieArrowReleased;
+                pairView.StarfallArchmageGemReleased -= HandleStarfallArchmageGemReleased;
+                pairView.NightfangSkillAnimationCompleted -= HandleNightfangSkillAnimationCompleted;
+                pairView.WindclawSkillReleased -= HandleWindclawSkillReleased;
+                pairView.EmberShamanFireballReleased -= HandleEmberShamanFireballReleased;
+                pairView.RuneboltMageBoltReleased -= HandleRuneboltMageBoltReleased;
+                pairView.StoneboundWarlockRockReleased -= HandleStoneboundWarlockRockReleased;
+                pairView.ThunderlordChainReleased -= HandleThunderlordChainReleased;
+                pairView.ThunderlordSkillReleased -= HandleThunderlordSkillReleased;
+                pairView.AbyssalHarpoonReleased -= HandleAbyssalHarpoonReleased;
+                pairView.AbyssalHarpoonSkillReleased -= HandleAbyssalHarpoonSkillReleased;
                 Destroy(pairView.gameObject);
             }
 
             pairPresentations.Remove(pairLinkId);
+            observedHeroLevels.Remove(pairLinkId);
+            pendingSynthesisPairIds.Remove(pairLinkId);
+        }
+
+        private void HandleFlameDrakeFireballReleased(string attackerRuntimeId)
+        {
+            FlameDrakeFireballReleased?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleSkyborneValkyrieArrowReleased(string attackerRuntimeId)
+        {
+            SkyborneValkyrieArrowReleased?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleStarfallArchmageGemReleased(string attackerRuntimeId)
+        {
+            StarfallArchmageGemReleased?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleNightfangSkillAnimationCompleted(string attackerRuntimeId)
+        {
+            NightfangSkillAnimationCompleted?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleWindclawSkillReleased(string attackerRuntimeId)
+        {
+            WindclawSkillReleased?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleEmberShamanFireballReleased(string attackerRuntimeId)
+        {
+            EmberShamanFireballReleased?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleRuneboltMageBoltReleased(string attackerRuntimeId)
+        {
+            RuneboltMageBoltReleased?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleStoneboundWarlockRockReleased(string attackerRuntimeId)
+        {
+            StoneboundWarlockRockReleased?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleThunderlordChainReleased(string attackerRuntimeId)
+        {
+            ThunderlordChainReleased?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleThunderlordSkillReleased(string attackerRuntimeId)
+        {
+            ThunderlordSkillReleased?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleAbyssalHarpoonReleased(string attackerRuntimeId)
+        {
+            AbyssalHarpoonReleased?.Invoke(attackerRuntimeId);
+        }
+
+        private void HandleAbyssalHarpoonSkillReleased(string attackerRuntimeId)
+        {
+            AbyssalHarpoonSkillReleased?.Invoke(attackerRuntimeId);
         }
 
         private void Start()
@@ -1215,11 +2156,13 @@ namespace DragonBound.Presentation
 
                 var nameTransform = beachItem.Find("Text (TMP)");
                 var levelTransform = beachItem.Find("Text");
+                var artTransform = beachItem.Find("Image");
                 itemView.ConfigureBeach(
-                    beachItem.GetComponent<Image>(),
+                    artTransform != null ? artTransform.GetComponent<Image>() : null,
                     nameTransform != null ? nameTransform.GetComponent<Graphic>() : null,
                     levelTransform != null ? levelTransform.GetComponent<Graphic>() : null,
                     canvasGroup);
+                TryApplyShovelSprite(itemView);
                 beachItem.gameObject.SetActive(false);
 
                 cell.Configure(0, 0, CellType.Bench, slot.GetComponent<Image>(), slot);
@@ -1227,6 +2170,24 @@ namespace DragonBound.Presentation
                 authoredBeachItemViews.Add(itemView);
                 benchCells.Add(cell);
             }
+        }
+
+        private static bool TryApplyShovelSprite(DraggableUnitView itemView)
+        {
+            if (itemView == null)
+            {
+                return false;
+            }
+
+            var shovelSprite = Resources.Load<Sprite>(ShovelSpriteResourcePath);
+            if (shovelSprite == null)
+            {
+                return false;
+            }
+
+            itemView.SetCardSprite(shovelSprite);
+            itemView.SetCardColor(Color.white);
+            return true;
         }
 
         private void ConfigureFormationCell(GridCellView cell, GridPosition position, CellType type)
@@ -1298,8 +2259,275 @@ namespace DragonBound.Presentation
             dragArrowPreview?.Hide();
         }
 
+        private void BindBeachSelection(GridPosition position, GridCellView cellView)
+        {
+            if (cellView == null)
+            {
+                return;
+            }
+
+            EnsureSelectionSprites();
+            var selection = cellView.transform.Find("Select")?.gameObject;
+            if (selection == null)
+            {
+                selection = Instantiate(RequireBoardSelectPrefab(), cellView.transform, false);
+                selection.name = "Select";
+            }
+
+            ApplySelectionSprite(selection, beachSelectSprite);
+            StretchToParent(selection);
+            DisableGraphicRaycasts(selection);
+            selection.transform.SetAsLastSibling();
+            selection.SetActive(false);
+            beachSelectionViews[position] = selection;
+        }
+
+        private void ShowDragSourceSelection(string unitId)
+        {
+            if (board == null ||
+                !board.TryGetPosition(unitId, out var origin) ||
+                !cells.TryGetValue(origin, out var sourceCell) ||
+                sourceCell == null ||
+                sourceCell.ContentAnchor == null)
+            {
+                return;
+            }
+
+            EnsureSelectionSprites();
+            if (beachItemViews.ContainsKey(origin) &&
+                beachSelectionViews.TryGetValue(origin, out var beachSelection) &&
+                beachSelection != null)
+            {
+                activeBeachDragOrigin = origin;
+                ApplySelectionSprite(beachSelection, beachSelectSprite);
+                beachSelection.SetActive(true);
+                return;
+            }
+
+            if (sourceSelectPreview == null)
+            {
+                sourceSelectPreview = Instantiate(
+                    RequireBoardSelectPrefab(),
+                    sourceCell.ContentAnchor,
+                    false);
+                sourceSelectPreview.name = "BeachSourceSelect";
+                DisableGraphicRaycasts(sourceSelectPreview);
+            }
+            else if (sourceSelectPreview.transform.parent != sourceCell.ContentAnchor)
+            {
+                sourceSelectPreview.transform.SetParent(sourceCell.ContentAnchor, false);
+            }
+
+            ApplySelectionSprite(sourceSelectPreview, beachSelectSprite);
+            StretchToParent(sourceSelectPreview);
+            sourceSelectPreview.transform.SetAsLastSibling();
+            sourceSelectPreview.SetActive(true);
+        }
+
+        private void UpdateShovelDragPreview(Vector2 screenPosition)
+        {
+            if (!activeBeachDragOrigin.HasValue ||
+                !cells.TryGetValue(activeBeachDragOrigin.Value, out var sourceCell) ||
+                !TryGetPositionAt(screenPosition, out var target) ||
+                !cells.TryGetValue(target, out var targetCell) ||
+                !board.TryGetCellType(target, out var targetType) ||
+                targetType != CellType.Locked ||
+                (board.Layout != null && !board.Layout.IsUnlockable(target, board.Side)))
+            {
+                HideDragArrow();
+                HideBoardSelect();
+                return;
+            }
+
+            var parent = fixedBoardCanvas != null
+                ? fixedBoardCanvas.EnsureDeploymentGuideLayer()
+                : dragArrowPreview != null
+                    ? dragArrowPreview.transform.parent as RectTransform
+                    : null;
+            if (dragArrowPreview != null && parent != null && dragArrowPreview.transform.parent != parent)
+            {
+                dragArrowPreview.transform.SetParent(parent, false);
+            }
+            dragArrowPreview?.Show(
+                parent,
+                sourceCell.ContentAnchor.position,
+                targetCell.ContentAnchor.position);
+            ShowBoardSelect(targetCell);
+        }
+
+        private void ShowBoardSelect(GridCellView targetCell)
+        {
+            if (targetCell == null || targetCell.ContentAnchor == null)
+            {
+                HideBoardSelect();
+                return;
+            }
+
+            EnsureSelectionSprites();
+            if (boardSelectPreview == null)
+            {
+                boardSelectPreview = Instantiate(
+                    RequireBoardSelectPrefab(),
+                    targetCell.ContentAnchor,
+                    false);
+                boardSelectPreview.name = "BeachSelect";
+                DisableGraphicRaycasts(boardSelectPreview);
+            }
+            else if (boardSelectPreview.transform.parent != targetCell.ContentAnchor)
+            {
+                boardSelectPreview.transform.SetParent(targetCell.ContentAnchor, false);
+            }
+
+            ApplySelectionSprite(boardSelectPreview, boardSelectSprite);
+            StretchToParent(boardSelectPreview);
+            boardSelectPreview.transform.SetAsLastSibling();
+            boardSelectPreview.SetActive(true);
+        }
+
+        private void ShowDeploymentRangePreview(string unitId, GridCellView targetCell)
+        {
+            if (!activeBeachDragOrigin.HasValue ||
+                targetCell == null ||
+                targetCell.CellType != CellType.Battle ||
+                !unitShowsRange.TryGetValue(unitId, out var showRange) ||
+                !showRange ||
+                !unitRangeCells.TryGetValue(unitId, out var radiusCells) ||
+                radiusCells <= 0f)
+            {
+                HideDeploymentRangePreview();
+                return;
+            }
+
+            ShowRange(
+                targetCell.ContentAnchor.position,
+                targetCell,
+                null,
+                radiusCells);
+        }
+
+        private void HideDeploymentRangePreview()
+        {
+            if (activeBeachDragOrigin.HasValue)
+            {
+                SetRangePreviewVisible(false);
+            }
+        }
+
+        private void HideBoardSelect()
+        {
+            if (boardSelectPreview != null)
+            {
+                boardSelectPreview.SetActive(false);
+            }
+        }
+
+        private void ClearBeachDragPreview()
+        {
+            foreach (var selection in beachSelectionViews.Values)
+            {
+                if (selection != null)
+                {
+                    selection.SetActive(false);
+                }
+            }
+
+            activeBeachDragOrigin = null;
+            if (sourceSelectPreview != null)
+            {
+                sourceSelectPreview.SetActive(false);
+            }
+            HideBoardSelect();
+            SetRangePreviewVisible(false);
+        }
+
+        private GameObject RequireBoardSelectPrefab()
+        {
+            if (boardSelectPrefab == null)
+            {
+                boardSelectPrefab = Resources.Load<GameObject>(BoardSelectPrefabResourcePath);
+            }
+
+            if (boardSelectPrefab == null)
+            {
+                throw new InvalidOperationException(
+                    $"Missing board selection prefab at Resources/{BoardSelectPrefabResourcePath}.");
+            }
+
+            return boardSelectPrefab;
+        }
+
+        private void EnsureSelectionSprites()
+        {
+            if (beachSelectSprite == null)
+            {
+                beachSelectSprite = Resources.Load<Sprite>(BeachSelectSpriteResourcePath);
+            }
+
+            if (boardSelectSprite == null)
+            {
+                boardSelectSprite = Resources.Load<Sprite>(BoardSelectSpriteResourcePath);
+            }
+
+            if (beachSelectSprite == null || boardSelectSprite == null)
+            {
+                throw new InvalidOperationException(
+                    "Missing BeachSelect or BoardSelect sprite in Resources/GameUI.");
+            }
+        }
+
+        private static void ApplySelectionSprite(GameObject selection, Sprite sprite)
+        {
+            if (selection == null || sprite == null)
+            {
+                return;
+            }
+
+            var image = selection.GetComponent<Image>();
+            if (image == null)
+            {
+                image = selection.GetComponentInChildren<Image>(true);
+            }
+
+            if (image == null)
+            {
+                throw new InvalidOperationException(
+                    $"{selection.name} requires an Image component for its selection sprite.");
+            }
+
+            image.sprite = sprite;
+            image.type = Image.Type.Simple;
+            image.preserveAspect = false;
+            image.color = Color.white;
+            image.raycastTarget = false;
+        }
+
+        private static void StretchToParent(GameObject value)
+        {
+            if (value == null || !(value.transform is RectTransform rect))
+            {
+                return;
+            }
+
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = Vector2.zero;
+            rect.localScale = Vector3.one;
+            rect.localRotation = Quaternion.identity;
+        }
+
+        private static void DisableGraphicRaycasts(GameObject value)
+        {
+            foreach (var graphic in value.GetComponentsInChildren<Graphic>(true))
+            {
+                graphic.raycastTarget = false;
+            }
+        }
+
         private void CancelActiveDrag(bool refreshView)
         {
+            stableDragTarget = null;
             if (!string.IsNullOrEmpty(activeShovelDragId))
             {
                 activeShovelDragId = null;
@@ -1312,6 +2540,7 @@ namespace DragonBound.Presentation
             }
 
             HideDragArrow();
+            ClearBeachDragPreview();
             HideRangePreview();
             if (refreshView && board != null)
             {
@@ -1350,20 +2579,76 @@ namespace DragonBound.Presentation
 
         private bool TryGetPositionAt(Vector2 screenPosition, out GridPosition position)
         {
+            var found = false;
+            var nearestDistance = float.PositiveInfinity;
+            var nearestPosition = default(GridPosition);
+            var eventCamera = GetEventCamera();
             foreach (var entry in cells)
             {
-                if (RectTransformUtility.RectangleContainsScreenPoint(
-                        entry.Value.RectTransform,
+                var cellRect = entry.Value != null ? entry.Value.RectTransform : null;
+                if (cellRect == null ||
+                    !RectTransformUtility.RectangleContainsScreenPoint(
+                        cellRect,
                         screenPosition,
-                        GetEventCamera()))
+                        eventCamera))
                 {
-                    position = entry.Key;
+                    continue;
+                }
+
+                var center = RectTransformUtility.WorldToScreenPoint(
+                    eventCamera,
+                    cellRect.TransformPoint(cellRect.rect.center));
+                var distance = (center - screenPosition).sqrMagnitude;
+                if (!found ||
+                    distance < nearestDistance - Mathf.Epsilon ||
+                    (Mathf.Approximately(distance, nearestDistance) &&
+                     entry.Key.CompareTo(nearestPosition) < 0))
+                {
+                    found = true;
+                    nearestDistance = distance;
+                    nearestPosition = entry.Key;
+                }
+            }
+
+            position = nearestPosition;
+            return found;
+        }
+
+        private bool TryGetStableDragPositionAt(Vector2 screenPosition, out GridPosition position)
+        {
+            if (!TryGetPositionAt(screenPosition, out var candidate))
+            {
+                stableDragTarget = null;
+                position = default;
+                return false;
+            }
+
+            var eventCamera = GetEventCamera();
+            if (stableDragTarget.HasValue &&
+                stableDragTarget.Value != candidate &&
+                cells.TryGetValue(stableDragTarget.Value, out var previousCell) &&
+                previousCell != null &&
+                cells.TryGetValue(candidate, out var candidateCell) &&
+                candidateCell != null)
+            {
+                var previousCenter = RectTransformUtility.WorldToScreenPoint(
+                    eventCamera,
+                    previousCell.RectTransform.TransformPoint(previousCell.RectTransform.rect.center));
+                var candidateCenter = RectTransformUtility.WorldToScreenPoint(
+                    eventCamera,
+                    candidateCell.RectTransform.TransformPoint(candidateCell.RectTransform.rect.center));
+                var previousDistance = Vector2.Distance(screenPosition, previousCenter);
+                var candidateDistance = Vector2.Distance(screenPosition, candidateCenter);
+                if (previousDistance <= candidateDistance + DragTargetSwitchHysteresisPixels)
+                {
+                    position = stableDragTarget.Value;
                     return true;
                 }
             }
 
-            position = default;
-            return false;
+            stableDragTarget = candidate;
+            position = candidate;
+            return true;
         }
 
         private Camera GetEventCamera()

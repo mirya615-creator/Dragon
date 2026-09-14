@@ -12,17 +12,23 @@ public static class GameRuneDropSession
     private const int MaxRewardsPerRun = 4;
     private static string pendingRunId;
     private static List<RuneReward> pendingRewards;
+    private static HashSet<string> recordedRewardKeys;
 
     public static void Begin(string runId)
     {
         pendingRunId = runId;
         pendingRewards = new List<RuneReward>(MaxRewardsPerRun);
+        recordedRewardKeys = new HashSet<string>();
     }
 
     public static void RecordCompletedWaveReward(DragonBound.Runes.RuneReward runtimeReward)
     {
         if (runtimeReward == null || pendingRewards == null ||
             pendingRewards.Count >= MaxRewardsPerRun) return;
+
+        string rewardKey = runtimeReward.Wave + "|" + runtimeReward.RuneId + "|" +
+                           runtimeReward.IsComplete + "|" + runtimeReward.IsFragment;
+        if (recordedRewardKeys != null && !recordedRewardKeys.Add(rewardKey)) return;
 
         string profileRuneId = RuneGameplayLoadoutAdapter.ResolveProfileRuneId(
             runtimeReward.RuneId);
@@ -57,6 +63,7 @@ public static class GameRuneDropSession
         {
             pendingRunId = runId;
             pendingRewards = new List<RuneReward>(MaxRewardsPerRun);
+            recordedRewardKeys = new HashSet<string>();
         }
 
         RuneProfile profile = await ClientCompositionRoot.Current.Runes.SettleRunAsync(
@@ -66,6 +73,7 @@ public static class GameRuneDropSession
             cancellationToken);
         pendingRunId = null;
         pendingRewards = null;
+        recordedRewardKeys = null;
         return profile;
     }
 }

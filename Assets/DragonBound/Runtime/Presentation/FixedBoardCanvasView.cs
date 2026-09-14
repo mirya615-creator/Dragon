@@ -41,6 +41,8 @@ namespace DragonBound.Presentation
         [SerializeField] private RectTransform combatFxLayer;
         [SerializeField] private BoardBackgroundClickReceiver backgroundClickReceiver;
         [SerializeField] private RectTransform overlayLayer;
+        private RectTransform deploymentGuideLayer;
+        private RectTransform deploymentFxLayer;
         [SerializeField] private RectTransform centerDivider;
         [SerializeField] private BoardDebugOverlay debugOverlay;
         [Header("River board layout")]
@@ -64,6 +66,8 @@ namespace DragonBound.Presentation
         public RectTransform UnitLayer => unitLayer;
         public RectTransform CombatFxLayer => combatFxLayer;
         public RectTransform OverlayLayer => overlayLayer;
+        public RectTransform DeploymentGuideLayer => deploymentGuideLayer;
+        public RectTransform DeploymentFxLayer => deploymentFxLayer;
         public event Action BackgroundClicked;
         /// <summary>
         /// Development-only, non-interactive map inspection layer. It is created disabled and
@@ -259,6 +263,94 @@ namespace DragonBound.Presentation
         public void SetDebugOverlayVisible(bool visible)
         {
             debugOverlay?.SetVisible(visible);
+        }
+
+        /// <summary>
+        /// Returns a screen-space visual layer above all authored screen content. A child of
+        /// ART_FixedBoardOverlay cannot cross the board root's sibling order, and authored
+        /// battlefield/beach roots may also render after the board, so deployment ghosts
+        /// require this dedicated top-most sibling layer.
+        /// </summary>
+        public RectTransform EnsureDeploymentFxLayer()
+        {
+            var parent = boardRect != null ? boardRect.parent as RectTransform : null;
+            if (parent == null)
+            {
+                parent = screenRoot;
+            }
+            if (parent == null)
+            {
+                return null;
+            }
+
+            if (deploymentFxLayer == null)
+            {
+                deploymentFxLayer = parent.Find("ART_DeploymentFxLayer") as RectTransform;
+            }
+            if (deploymentFxLayer == null)
+            {
+                deploymentFxLayer = new GameObject(
+                    "ART_DeploymentFxLayer",
+                    typeof(RectTransform)).GetComponent<RectTransform>();
+                deploymentFxLayer.SetParent(parent, false);
+                deploymentFxLayer.anchorMin = Vector2.zero;
+                deploymentFxLayer.anchorMax = Vector2.one;
+                deploymentFxLayer.pivot = new Vector2(0.5f, 0.5f);
+                deploymentFxLayer.offsetMin = Vector2.zero;
+                deploymentFxLayer.offsetMax = Vector2.zero;
+            }
+
+            // Re-apply this every time an animation starts. Other runtime systems can append
+            // UI roots after initialization; keeping this layer last prevents map and beach
+            // cells from covering a unit flying in either direction.
+            deploymentFxLayer.SetAsLastSibling();
+            return deploymentFxLayer;
+        }
+
+        /// <summary>
+        /// Returns the non-interactive layer used by deployment selection frames and their
+        /// connecting path. It is kept above the authored board roots and immediately below
+        /// the deployment flight layer so map cells cannot cover the guide.
+        /// </summary>
+        public RectTransform EnsureDeploymentGuideLayer()
+        {
+            var parent = boardRect != null ? boardRect.parent as RectTransform : null;
+            if (parent == null)
+            {
+                parent = screenRoot;
+            }
+            if (parent == null)
+            {
+                return null;
+            }
+
+            if (deploymentGuideLayer == null)
+            {
+                deploymentGuideLayer = parent.Find("ART_DeploymentGuideLayer") as RectTransform;
+            }
+            if (deploymentGuideLayer == null)
+            {
+                deploymentGuideLayer = new GameObject(
+                    "ART_DeploymentGuideLayer",
+                    typeof(RectTransform)).GetComponent<RectTransform>();
+                deploymentGuideLayer.SetParent(parent, false);
+                deploymentGuideLayer.anchorMin = Vector2.zero;
+                deploymentGuideLayer.anchorMax = Vector2.one;
+                deploymentGuideLayer.pivot = new Vector2(0.5f, 0.5f);
+                deploymentGuideLayer.offsetMin = Vector2.zero;
+                deploymentGuideLayer.offsetMax = Vector2.zero;
+            }
+
+            if (deploymentFxLayer != null && deploymentFxLayer.parent == parent)
+            {
+                deploymentGuideLayer.SetSiblingIndex(deploymentFxLayer.GetSiblingIndex());
+            }
+            else
+            {
+                deploymentGuideLayer.SetAsLastSibling();
+            }
+
+            return deploymentGuideLayer;
         }
 
         public GridCellView GetDeploymentCell(GridPosition position, TeamSide side)

@@ -83,6 +83,43 @@ namespace DragonBound.Recruitment
             return destination.TryGetPairLinkForComponent(firstRuntimeId, out pairLink);
         }
 
+        public static bool TrySpawnPairDirect(
+            BoardRecruitDestination destination,
+            string heroId,
+            string runtimePrefix,
+            out HeroPairLink pairLink)
+        {
+            pairLink = null;
+            if (!IsAvailable || destination == null || string.IsNullOrWhiteSpace(runtimePrefix))
+            {
+                return false;
+            }
+
+            var recipe = GetImplementedHeroRecipe(heroId);
+            if (!TryFindEmptyFormation(destination.Board, recipe, out var firstCell, out var secondCell))
+            {
+                return false;
+            }
+
+            var firstRuntimeId = runtimePrefix + ".component.a";
+            var secondRuntimeId = runtimePrefix + ".component.b";
+            var first = CreateComponentCard(firstRuntimeId, GetFirstComponentId(recipe));
+            var second = CreateComponentCard(secondRuntimeId, GetSecondComponentId(recipe));
+            if (!destination.TryDebugPlaceCard(first, firstCell))
+            {
+                return false;
+            }
+
+            if (!destination.TryDebugPlaceCard(second, secondCell))
+            {
+                destination.TryRemoveUnit(firstRuntimeId);
+                return false;
+            }
+
+            destination.TryResolvePostDrop(secondRuntimeId);
+            return destination.TryGetPairLinkForComponent(firstRuntimeId, out pairLink);
+        }
+
         private static HeroRecipeDefinition GetImplementedHeroRecipe(string heroId)
         {
             var recipe = HeroRecipeCatalog.Get(heroId);

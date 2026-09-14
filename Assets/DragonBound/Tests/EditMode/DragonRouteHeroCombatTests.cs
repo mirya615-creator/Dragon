@@ -51,8 +51,8 @@ namespace DragonBound.Tests.EditMode
         {
             var recipe = HeroRecipeCatalog.Get(recipeId);
             Assert.AreEqual(heroId, recipe.HeroId);
-            Assert.AreEqual(DragonBoundComponentIds.DragonSigil, recipe.BottomComponentId);
-            Assert.AreEqual(HeroFormationOrientation.Vertical, recipe.FormationOrientation);
+            Assert.AreEqual(DragonBoundComponentIds.DragonSigil, recipe.RightComponentId);
+            Assert.AreEqual(HeroFormationOrientation.Horizontal, recipe.FormationOrientation);
         }
 
         [TestCase(DragonBoundHeroIds.WindclawRanger, 14f, 1.80f, 3.25f, 3)]
@@ -506,8 +506,8 @@ namespace DragonBound.Tests.EditMode
                     new RecruitCard("filler.3", RecruitItemKind.BasicUnit, "basic.axe_raider", string.Empty),
                     new RecruitCard("filler.4", RecruitItemKind.BasicUnit, "basic.axe_raider", string.Empty)
                 }));
-            Assert.IsTrue(board.TryMove(board.GetPositions(CellType.Bench)[0], new GridPosition(0, 1)));
-            Assert.IsTrue(board.TryMove(board.GetPositions(CellType.Bench)[1], new GridPosition(0, 2)));
+            Assert.IsTrue(board.TryMove(board.GetPositions(CellType.Bench)[0], new GridPosition(1, 1)));
+            Assert.IsTrue(board.TryMove(board.GetPositions(CellType.Bench)[1], new GridPosition(0, 1)));
             Assert.IsTrue(destination.TryResolvePostDrop("sky"));
             var first = destination.GetActiveHeroPairs().Single().PairLink;
             first.CombatProxy.TickFormation(HeroCombatState.FormationDurationSeconds);
@@ -555,13 +555,25 @@ namespace DragonBound.Tests.EditMode
             var target = Enemy("target", TeamSide.Player, new CombatPoint(1f, 0f), 0.8f, 1000f);
             registry.Register(target);
 
-            var results = state.TickCombat(4f / state.AttackSpeed, new CombatPoint(0f, 0f), registry);
+            var results = new List<HeroDamageResult>();
+            for (var attack = 0; attack < 4; attack++)
+            {
+                results.AddRange(state.TickCombat(
+                    (1f / state.AttackSpeed) + 0.43f,
+                    new CombatPoint(0f, 0f),
+                    registry));
+            }
 
             Assert.AreEqual(0, state.StoneBindAttackCount);
-            Assert.IsTrue(target.IsStunned);
-            Assert.AreEqual(1.20f, target.StunRemainingSeconds, 0.02f);
+            Assert.IsFalse(target.IsStunned, "Stone Bind must wait for the authored rock impact.");
             Assert.AreEqual(1, results.Count(result => result.Kind == AttackKind.StoneBind));
             Assert.AreEqual(4, results.Count(result => result.Kind == AttackKind.StonebinderShot));
+
+            state.TickCombat(0.49f, new CombatPoint(0f, 0f), registry);
+            Assert.IsFalse(target.IsStunned);
+            state.TickCombat(0.02f, new CombatPoint(0f, 0f), registry);
+            Assert.IsTrue(target.IsStunned);
+            Assert.AreEqual(1.20f, target.StunRemainingSeconds, 0.02f);
         }
 
         [Test]
@@ -572,14 +584,30 @@ namespace DragonBound.Tests.EditMode
             var elite = Enemy("elite", TeamSide.Player, new CombatPoint(1f, 0f), 0.8f, 1000f, EnemyArchetype.Elite);
             registry.Register(elite);
 
-            state.TickCombat(4f / state.AttackSpeed, new CombatPoint(0f, 0f), registry);
+            for (var attack = 0; attack < 4; attack++)
+            {
+                state.TickCombat(
+                    (1f / state.AttackSpeed) + 0.43f,
+                    new CombatPoint(0f, 0f),
+                    registry);
+            }
+            Assert.IsFalse(elite.IsStunned);
+            state.TickCombat(0.50f, new CombatPoint(0f, 0f), registry);
             Assert.AreEqual(1.20f * 0.60f, elite.StunRemainingSeconds, 0.02f);
 
             var boss = Enemy("boss", TeamSide.Player, new CombatPoint(1f, 0f), 0.8f, 1000f, EnemyArchetype.Boss);
             var bossState = CreateState(HeroSliceCatalog.StonebinderHeroId, TeamSide.Player);
             var bossRegistry = new EnemyRegistry();
             bossRegistry.Register(boss);
-            bossState.TickCombat(4f / bossState.AttackSpeed, new CombatPoint(0f, 0f), bossRegistry);
+            for (var attack = 0; attack < 4; attack++)
+            {
+                bossState.TickCombat(
+                    (1f / bossState.AttackSpeed) + 0.43f,
+                    new CombatPoint(0f, 0f),
+                    bossRegistry);
+            }
+            Assert.IsFalse(boss.IsStunned);
+            bossState.TickCombat(0.50f, new CombatPoint(0f, 0f), bossRegistry);
             Assert.AreEqual(1.20f * 0.20f, boss.StunRemainingSeconds, 0.02f);
             boss.TickControl(0.25f);
             Assert.AreEqual(2f, boss.StunImmunityRemainingSeconds, 0.0001f);
@@ -603,6 +631,8 @@ namespace DragonBound.Tests.EditMode
             var ready = state.TickCombat(8f, new CombatPoint(0f, 0f), registry);
             Assert.IsTrue(state.IsSkillTelegraphActive);
             Assert.IsFalse(ready.Any(result => result.Kind == AttackKind.StarfallImpact));
+            Assert.IsFalse(ready.Any(result => result.Kind == AttackKind.StarfallArea),
+                "A Starfall telegraph must not also resolve a Basic attack.");
 
             var impact = state.TickCombat(1f, new CombatPoint(0f, 0f), registry);
             Assert.IsFalse(state.IsSkillTelegraphActive);
@@ -610,6 +640,8 @@ namespace DragonBound.Tests.EditMode
             Assert.IsTrue(impact.Any(result => result.Kind == AttackKind.StarfallImpact && result.Target == denseA));
             Assert.IsTrue(impact.Any(result => result.Kind == AttackKind.StarfallImpact && result.Target == denseB));
             Assert.IsFalse(impact.Any(result => result.Kind == AttackKind.StarfallImpact && result.Target == sparse));
+            Assert.IsFalse(impact.Any(result => result.Kind == AttackKind.StarfallArea),
+                "The Starfall impact frame must remain skill-only.");
         }
 
         [Test]
@@ -698,6 +730,8 @@ namespace DragonBound.Tests.EditMode
 
             var dominion = state.TickCombat(8f, new CombatPoint(0f, 0f), registry);
             Assert.AreEqual(3, dominion.Count(result => result.Kind == AttackKind.ThunderDominion));
+            Assert.IsFalse(dominion.Any(result => result.Kind == AttackKind.ThunderJarlChain),
+                "Thunder Dominion and the Basic lightning chain cannot resolve together.");
             Assert.IsTrue(first.IsStunned);
             Assert.AreEqual(0.90f, first.StunRemainingSeconds, 0.02f);
             Assert.AreEqual(8f - (1f / state.AttackSpeed), state.SkillCooldownRemaining, 0.001f);
@@ -1068,6 +1102,46 @@ namespace DragonBound.Tests.EditMode
                 skillState.Attack * 1.50f * skillMultiplier,
                 skill.Single(result => result.Kind == AttackKind.AbyssHarpoonStrike).Damage,
                 0.001f);
+        }
+
+        [Test]
+        public void AbyssHarpoonMovesEveryHitTargetAndPublishesPullDistanceForPresentation()
+        {
+            var state = CreateState(DragonBoundHeroIds.LeviathanHunter, TeamSide.Player);
+            var registry = new EnemyRegistry();
+            var enemies = new List<EnemyRuntime>();
+            for (var index = 1; index <= 6; index++)
+            {
+                var enemy = Enemy(
+                    "abyss.pull." + index,
+                    TeamSide.Player,
+                    new CombatPoint(index, 0f),
+                    index / 10f,
+                    index == 6 ? 1f : 10000f);
+                enemies.Add(enemy);
+                registry.Register(enemy);
+            }
+
+            var path = new EnemyPath(
+                Enumerable.Range(0, 11)
+                    .Select(index => index == 10 ? "DragonGoal" : "P" + index)
+                    .ToArray(),
+                Enumerable.Range(0, 11)
+                    .Select(index => new CombatPoint(index, 0f))
+                    .ToArray());
+            var displacement = new PathDisplacementSystem(path);
+
+            state.TickCombat(9f, new CombatPoint(0f, 0f), registry, displacement);
+            var results = state.TickCombat(0.25f, new CombatPoint(0f, 0f), registry, displacement)
+                .Where(result => result.Kind == AttackKind.AbyssHarpoonStrike)
+                .ToArray();
+
+            Assert.AreEqual(6, results.Length);
+            for (var index = 0; index < enemies.Count; index++)
+            {
+                Assert.AreEqual(index / 10f, enemies[index].PathProgress, 0.001f);
+                Assert.AreEqual(1f, results[index].PathDisplacementDistance, 0.001f);
+            }
         }
 
         [TestCase(0, 1f)]

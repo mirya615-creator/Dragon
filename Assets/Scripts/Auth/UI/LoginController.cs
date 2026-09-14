@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Threading;
+using DragonBound.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,12 +13,14 @@ using UnityEngine.UI;
 public sealed class LoginController : MonoBehaviour
 {
     private const float StartupLoadingDurationSeconds = 3f;
+    private const float LoginTipDurationSeconds = 3f;
+    private const string TipTextPrefabPath = "prefabs/TipText";
 
     private GameObject loginPanel;
     private GameObject signUpPanel;
     private GameObject googleConfirmPanel;
     private GameObject startupLoadingImage;
-    private TMP_Text errorText;
+    private TipTextController googleConfirmationTip;
     private TMP_Text googleAccountText;
     private Image googleAvatarImage;
     private Image startupLoadingFill;
@@ -64,6 +67,7 @@ public sealed class LoginController : MonoBehaviour
         if (googleConfirmButton != null) googleConfirmButton.onClick.RemoveListener(OnGoogleConfirmClicked);
         if (googleCancelButton != null) googleCancelButton.onClick.RemoveListener(CancelGoogleConfirmation);
         if (startupLoadingCoroutine != null) StopCoroutine(startupLoadingCoroutine);
+        HideAllTips();
 
         googleOAuthProvider?.CancelPendingSignIn();
         DisposePendingGoogleIdentity();
@@ -74,18 +78,16 @@ public sealed class LoginController : MonoBehaviour
 
     private bool ResolveView()
     {
-        Transform mainPanel = FindInScene("Canvas/MainPanel");
+        Transform mainPanel = FindInScene("Canvas/SafeArea/MainPanel");
         if (mainPanel == null)
         {
-            Debug.LogError("LoginController could not find Canvas/MainPanel.");
+            Debug.LogError("LoginController could not find Canvas/SafeArea/MainPanel.");
             return false;
         }
 
         loginPanel = FindRequired(mainPanel, "LoginPanel")?.gameObject;
         signUpPanel = mainPanel.Find("SignUpPanel")?.gameObject;
         googleConfirmPanel = FindRequired(mainPanel, "GoogleConfirmPanel")?.gameObject;
-        errorText = mainPanel.Find("ErrorText")?.GetComponent<TMP_Text>();
-
         Transform loginRoot = loginPanel != null ? loginPanel.transform : null;
         guestLoginButton = GetRequired<Button>(loginRoot, "GuestLoginBtn");
         googleButton = GetRequired<Button>(loginRoot, "GoogleBtn");
@@ -97,6 +99,7 @@ public sealed class LoginController : MonoBehaviour
         Transform googleRoot = googleConfirmPanel != null ? googleConfirmPanel.transform : null;
         googleAvatarImage = GetRequired<Image>(googleRoot, "GoogleInform/GoogleImg");
         googleAccountText = GetRequired<TMP_Text>(googleRoot, "GoogleInform/GoogleAccount");
+        googleConfirmationTip = ResolveConfirmationTip(googleRoot);
         googleConfirmButton = GetRequired<Button>(googleRoot, "ConfirmBtn");
         googleCancelButton = GetRequired<Button>(googleRoot, "CancleBtn");
         defaultGoogleAvatarSprite = googleAvatarImage != null ? googleAvatarImage.sprite : null;
@@ -105,8 +108,8 @@ public sealed class LoginController : MonoBehaviour
                         guestLoginButton != null && googleButton != null &&
                         startupLoadingImage != null && startupLoadingFill != null &&
                         startupLoadingFillRect != null && googleAvatarImage != null &&
-                        googleAccountText != null && googleConfirmButton != null &&
-                        googleCancelButton != null;
+                        googleAccountText != null && googleConfirmationTip != null &&
+                        googleConfirmButton != null && googleCancelButton != null;
         if (!complete) Debug.LogError("LoginController is missing Google or guest login UI components.");
         return complete;
     }
@@ -151,17 +154,15 @@ public sealed class LoginController : MonoBehaviour
         // Allow all BeforeSceneLoad and sceneLoaded initialization to finish first.
         yield return null;
 
-        if (authSessionStore.TryRestore(out AuthSession restored) &&
-            authSessionStore.IsValid(restored))
+        if (!AnalyticsConsentUiController.HasResolvedConsent)
         {
-            SetStartupLoadingProgress(1f);
-            yield return null;
-            startupLoadingCoroutine = null;
-            LoadMainScene();
-            yield break;
+            AnalyticsConsentUiController.ShowRequiredPrompt();
+            while (!AnalyticsConsentUiController.HasResolvedConsent)
+            {
+                yield return null;
+            }
         }
 
-        authSessionStore.Clear();
         float elapsed = 0f;
         while (elapsed < StartupLoadingDurationSeconds)
         {
@@ -171,7 +172,19 @@ public sealed class LoginController : MonoBehaviour
         }
 
         SetStartupLoadingProgress(1f);
+        yield return null;
         startupLoadingImage.SetActive(false);
+
+        if (authSessionStore.TryRestore(out AuthSession restored) &&
+            authSessionStore.IsValid(restored))
+        {
+            PlayerAvatarProfile.GetOrCreateAvatarId(restored.PlayerId);
+            startupLoadingCoroutine = null;
+            LoadMainScene();
+            yield break;
+        }
+
+        authSessionStore.Clear();
         guestLoginButton.gameObject.SetActive(true);
         googleButton.gameObject.SetActive(true);
         startupLoadingCoroutine = null;
@@ -189,6 +202,7 @@ public sealed class LoginController : MonoBehaviour
     {
         if (requestInProgress) return;
 
+        bool sceneTransitionStarted = false;
         try
         {
             SetBusy(true);
@@ -197,8 +211,10 @@ public sealed class LoginController : MonoBehaviour
             AuthSession session = await authGateway.GuestLoginAsync(
                 request,
                 lifetimeCancellation.Token);
+            PlayerAvatarProfile.GetOrCreateAvatarId(session.PlayerId);
             authSessionStore.Set(session);
             LoadMainScene();
+            sceneTransitionStarted = true;
         }
         catch (OperationCanceledException)
         {
@@ -244,6 +260,7 @@ public sealed class LoginController : MonoBehaviour
             googleAvatarImage.preserveAspect = true;
             loginPanel.SetActive(false);
             googleConfirmPanel.SetActive(true);
+            googleConfirmationTip.Show("Confirm to login ?", LoginTipDurationSeconds);
         }
         catch (OperationCanceledException)
         {
@@ -275,6 +292,7 @@ public sealed class LoginController : MonoBehaviour
                 pendingGoogleIdentity.IdToken,
                 guestIdentityService.CreateDeviceInfo(),
                 lifetimeCancellation.Token);
+            PlayerAvatarProfile.GetOrCreateAvatarId(session.PlayerId);
             authSessionStore.Set(session);
             googleConfirmPanel.SetActive(false);
             loginPanel.SetActive(true);
@@ -306,7 +324,7 @@ public sealed class LoginController : MonoBehaviour
         DisposePendingGoogleIdentity();
         googleConfirmPanel.SetActive(false);
         loginPanel.SetActive(true);
-        ClearError();
+        HideAllTips();
     }
 
     private void ShowLoginPanel()
@@ -314,7 +332,7 @@ public sealed class LoginController : MonoBehaviour
         if (signUpPanel != null) signUpPanel.SetActive(false);
         googleConfirmPanel.SetActive(false);
         loginPanel.SetActive(true);
-        ClearError();
+        HideAllTips();
     }
 
     private void LoadMainScene()
@@ -323,7 +341,11 @@ public sealed class LoginController : MonoBehaviour
         {
             throw new InvalidOperationException("SceneLoader is not available.");
         }
-        SceneLoader.Instance.LoadSceneAsync("Main");
+        HideAllTips();
+        // LoadingImg belongs exclusively to the three-second startup presentation.
+        // Authentication and the subsequent scene transition run without reopening it.
+        startupLoadingImage.SetActive(false);
+        SceneLoader.Instance.LoadSceneAsyncWithoutLoadingUi("Main");
     }
 
     private void DisposePendingGoogleIdentity()
@@ -351,12 +373,79 @@ public sealed class LoginController : MonoBehaviour
 
     private void ClearError()
     {
-        ShowMessage(string.Empty);
+        TipTextService.Hide();
+        // Unity keeps a managed wrapper after a component is destroyed. The null
+        // conditional operator only checks the wrapper and can therefore invoke
+        // Hide on an already-destroyed TipTextController during scene teardown.
+        if (googleConfirmationTip != null) googleConfirmationTip.Hide();
     }
 
     private void ShowMessage(string message)
     {
-        if (errorText != null) errorText.text = message;
+        if (string.IsNullOrEmpty(message))
+        {
+            ClearError();
+            return;
+        }
+
+        if (googleConfirmPanel != null && googleConfirmPanel.activeInHierarchy &&
+            googleConfirmationTip != null)
+        {
+            TipTextService.Hide();
+            googleConfirmationTip.Show(message, LoginTipDurationSeconds);
+            return;
+        }
+
+        TipTextService.Show(message, LoginTipDurationSeconds);
+    }
+
+    private void HideAllTips()
+    {
+        if (googleConfirmationTip != null) googleConfirmationTip.Hide();
+        TipTextService.Hide();
+    }
+
+    private static TipTextController ResolveConfirmationTip(Transform googleRoot)
+    {
+        var authoredTip = googleRoot != null ? googleRoot.Find("TipText") : null;
+        var existingController = authoredTip != null
+            ? authoredTip.GetComponent<TipTextController>()
+            : null;
+        if (existingController != null)
+        {
+            existingController.Hide();
+            return existingController;
+        }
+
+        var prefab = Resources.Load<GameObject>(TipTextPrefabPath);
+        if (prefab == null)
+        {
+            Debug.LogError("Login requires Resources/" + TipTextPrefabPath + ".prefab.");
+            return null;
+        }
+
+        var instance = Instantiate(prefab, googleRoot, false);
+        instance.name = "TipText";
+        var instanceRect = instance.transform as RectTransform;
+        var authoredRect = authoredTip as RectTransform;
+        if (instanceRect != null && authoredRect != null)
+        {
+            instanceRect.position = authoredRect.position;
+            instanceRect.SetSiblingIndex(authoredRect.GetSiblingIndex());
+        }
+
+        instance.SetActive(false);
+        if (authoredTip != null)
+        {
+            Destroy(authoredTip.gameObject);
+        }
+
+        var controller = instance.GetComponent<TipTextController>();
+        if (controller == null)
+        {
+            Debug.LogError("TipText.prefab requires TipTextController on its root.", instance);
+        }
+        return controller;
     }
 
     private static void SetChildActive(Transform parent, string childName, bool active)

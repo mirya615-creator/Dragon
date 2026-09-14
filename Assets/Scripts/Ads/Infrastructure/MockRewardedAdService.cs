@@ -48,6 +48,13 @@ public sealed class MockRewardedAdService : IRewardedAdService
         }
     }
 
+    public Task<RewardedAdResult> ShowAsync(
+        RewardedAdPlaybackRequest request,
+        CancellationToken cancellationToken)
+    {
+        return ShowAsync(request?.PlacementId, cancellationToken);
+    }
+
     private TMP_Text CreateOverlay()
     {
         Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();

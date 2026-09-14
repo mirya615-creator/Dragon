@@ -34,7 +34,7 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void BeachItemAppliesTheRequestedTintToItsRootImage()
+        public void BeachItemAppliesSpriteAndTintOnlyToItsChildArtImage()
         {
             var root = new GameObject(
                 "BeachItem",
@@ -45,14 +45,23 @@ namespace DragonBound.Tests.EditMode
                 typeof(DraggableUnitView));
             try
             {
-                var image = root.GetComponent<Image>();
+                var rootImage = root.GetComponent<Image>();
+                rootImage.color = new Color(1f, 1f, 1f, 0f);
+                var artObject = new GameObject(
+                    "Image",
+                    typeof(RectTransform),
+                    typeof(CanvasRenderer),
+                    typeof(Image));
+                artObject.transform.SetParent(root.transform, false);
+                var artImage = artObject.GetComponent<Image>();
                 var view = root.GetComponent<DraggableUnitView>();
-                view.ConfigureBeach(image, null, null, root.GetComponent<CanvasGroup>());
+                view.ConfigureBeach(artImage, null, null, root.GetComponent<CanvasGroup>());
                 var expected = new Color(0.3f, 0.6f, 1f, 1f);
 
                 view.SetCardColor(expected);
 
-                Assert.AreEqual(expected, image.color);
+                Assert.AreEqual(expected, artImage.color);
+                Assert.AreEqual(new Color(1f, 1f, 1f, 0f), rootImage.color);
             }
             finally
             {

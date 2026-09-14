@@ -1,13 +1,13 @@
 using DragonBound.Core;
 using DragonBound.Combat;
-using DragonBound.Bosses.Contracts;
 using DragonBound.Bosses.Runtime;
 using DragonBound.Items;
 using DragonBound.Recruitment;
+using DragonBound.Runes;
+using DragonBound.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -21,8 +21,17 @@ namespace DragonBound.Presentation
         private const int PausePanelSortingOrder = 120;
         private const int BossWarningSortingOrder = 125;
         private const int SettlementPanelSortingOrder = 130;
+        private const string ArcaneThunderburstControllerPath = "Animation/Arcane Thunderburst";
+        private const float ArcaneThunderburstPlaybackSpeed = 0.2f;
+        private const float ArcaneThunderburstImpactFrame = 2f;
+        private const string SettlementVictorySpritePath = "GameUI/SettlementUI/Victory";
+        private const string SettlementDefeatSpritePath = "GameUI/SettlementUI/Defeat";
         private const int RuntimeCircleTextureSize = 64;
         private static Sprite runtimeCircleSprite;
+        private static readonly Dictionary<string, Sprite> ItemIconCache =
+            new Dictionary<string, Sprite>();
+        private static readonly HashSet<string> MissingItemIconKeys =
+            new HashSet<string>();
 
         [SerializeField] private Button pauseButton;
         [SerializeField] private Text pauseLabel;
@@ -32,7 +41,7 @@ namespace DragonBound.Presentation
         [SerializeField] private GameObject bossWarning;
         [SerializeField] private Button bossWarningConfirmButton;
         [SerializeField] private GameObject settlementPanel;
-        [SerializeField] private TMP_Text settlementResultText;
+        [SerializeField] private Image settlementResultImage;
         [SerializeField] private Text resourceLabel;
         [SerializeField] private Text waveLabel;
         [SerializeField] private Text debugLabel;
@@ -44,14 +53,12 @@ namespace DragonBound.Presentation
         [SerializeField] private Image activeItemSlotOneCooldownMask;
         [SerializeField] private Image activeItemSlotTwoCooldownMask;
         [SerializeField] private RectTransform activeItemContainer;
-        [SerializeField] private TMP_Text tipText;
         [SerializeField] private bool showDebugOverlay;
 
         private MatchController match;
         private TeamState team;
         private RecruitmentService playerRecruitment;
         private RecruitmentService aiRecruitment;
-        private BoardRecruitDestination playerRecruitDestination;
         private BoardRecruitDestination aiRecruitDestination;
         private MatchState stateBeforePause = MatchState.Preparing;
         private float timeScaleBeforePause = 1f;
@@ -64,7 +71,12 @@ namespace DragonBound.Presentation
         // Passive items share the authored radial masks during the opening preparation window.
         private readonly Image[] passiveItemCooldownMasks = new Image[6];
         private readonly Transform[] passiveItemSlots = new Transform[6];
-        private Coroutine tipHideCoroutine;
+        private readonly Coroutine[] passiveItemConsumedEffects = new Coroutine[6];
+        private readonly bool[] passiveItemConsumedVisualized = new bool[6];
+        private readonly Dictionary<Image, Sprite> itemSlotFallbackSprites =
+            new Dictionary<Image, Sprite>();
+        private readonly Dictionary<Image, Color> itemSlotFallbackColors =
+            new Dictionary<Image, Color>();
         private int activeDragSlot = -1;
         private string activeDragItemId;
         private RectTransform activeItemDragRoot;
@@ -73,9 +85,16 @@ namespace DragonBound.Presentation
         private bool activeItemDropIsOnPath;
         private bool activeItemDropIsValid;
         private CombatPoint activeItemDropPoint;
+        private Vector2 activeItemDropScreenPosition;
+        private float activeItemDropPixelsPerCell;
         private string activeItemDropTargetId;
+        private readonly HashSet<string> arcaneThunderburstHeldEnemyIds =
+            new HashSet<string>();
+        private readonly HashSet<GameObject> activeArcaneThunderburstVfxRoots =
+            new HashSet<GameObject>();
         private int suppressedClickSlot = -1;
         private Coroutine clearClickSuppressionCoroutine;
+        private PauseRuneRewardPresenter pauseRuneRewardPresenter;
         private readonly Dictionary<Button, List<EventTrigger.Entry>> activeItemDragEntries =
             new Dictionary<Button, List<EventTrigger.Entry>>();
 
@@ -111,13 +130,7 @@ namespace DragonBound.Presentation
             team = playerTeam;
             this.playerRecruitment = playerRecruitment;
             this.aiRecruitment = aiRecruitment;
-            this.playerRecruitDestination = playerRecruitDestination;
             this.aiRecruitDestination = aiRecruitDestination;
-            if (this.playerRecruitDestination != null)
-            {
-                this.playerRecruitDestination.BasicMergeBlocked -= HandleBasicMergeBlocked;
-                this.playerRecruitDestination.BasicMergeBlocked += HandleBasicMergeBlocked;
-            }
             ResolveAuthoredScreenControls();
             if (pauseButton == null)
             {
@@ -166,16 +179,27 @@ namespace DragonBound.Presentation
             Refresh();
         }
 
+        public void BindRuneRewardServices(
+            RuneRunRewardService playerRewards,
+            RuneRunRewardService aiRewards)
+        {
+            if (pauseRuneRewardPresenter == null && pausePanel != null)
+            {
+                pauseRuneRewardPresenter =
+                    pausePanel.GetComponent<PauseRuneRewardPresenter>() ??
+                    pausePanel.AddComponent<PauseRuneRewardPresenter>();
+            }
+
+            pauseRuneRewardPresenter?.Bind(playerRewards, aiRewards);
+        }
+
         public void BindItemRuntime(TwentyWavePressureRuntime runtime)
         {
             if (itemRuntime != null)
             {
                 itemRuntime.BossWarningRequested -= HandleBossWarningRequested;
-                itemRuntime.SoulChainCastEmitted -= HandleSoulChainCast;
-                itemRuntime.StormcallerCastEmitted -= HandleStormcallerCast;
-                itemRuntime.BloodcrownLifecycleEmitted -= HandleBloodcrownLifecycle;
-                itemRuntime.WorldeaterCastEmitted -= HandleWorldeaterCast;
             }
+            ResetPassiveItemConsumedEffects();
             itemRuntime = runtime;
             if (itemRuntime != null)
             {
@@ -183,10 +207,6 @@ namespace DragonBound.Presentation
                 {
                     itemRuntime.BossWarningRequested += HandleBossWarningRequested;
                 }
-                itemRuntime.SoulChainCastEmitted += HandleSoulChainCast;
-                itemRuntime.StormcallerCastEmitted += HandleStormcallerCast;
-                itemRuntime.BloodcrownLifecycleEmitted += HandleBloodcrownLifecycle;
-                itemRuntime.WorldeaterCastEmitted += HandleWorldeaterCast;
             }
             EnsureActiveItemSlots();
             Refresh();
@@ -244,20 +264,21 @@ namespace DragonBound.Presentation
             if (itemRuntime != null)
             {
                 itemRuntime.BossWarningRequested -= HandleBossWarningRequested;
-                itemRuntime.SoulChainCastEmitted -= HandleSoulChainCast;
-                itemRuntime.StormcallerCastEmitted -= HandleStormcallerCast;
-                itemRuntime.BloodcrownLifecycleEmitted -= HandleBloodcrownLifecycle;
-                itemRuntime.WorldeaterCastEmitted -= HandleWorldeaterCast;
-            }
-            if (playerRecruitDestination != null)
-            {
-                playerRecruitDestination.BasicMergeBlocked -= HandleBasicMergeBlocked;
             }
 
             ReleaseGlobalPause();
             ReleaseBossWarningPause();
 
             RemoveActiveItemListeners();
+            ReleaseArcaneThunderburstEnemyVisuals();
+            foreach (var effectRoot in activeArcaneThunderburstVfxRoots)
+            {
+                if (effectRoot != null)
+                {
+                    Destroy(effectRoot);
+                }
+            }
+            activeArcaneThunderburstVfxRoots.Clear();
             CancelActiveItemDrag();
         }
 
@@ -285,7 +306,6 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            tipText = screen.transform.Find("TipText")?.GetComponent<TMP_Text>();
             ResolvePassiveItemCooldownMasks(screen.transform);
 
             var authoredItemContainer = screen.transform.Find("ItemContainer");
@@ -356,6 +376,9 @@ namespace DragonBound.Presentation
             if (authoredPanel != null)
             {
                 pausePanel = authoredPanel.gameObject;
+                pauseRuneRewardPresenter =
+                    pausePanel.GetComponent<PauseRuneRewardPresenter>() ??
+                    pausePanel.AddComponent<PauseRuneRewardPresenter>();
                 finishMatchButton = authoredPanel.Find("Bg/PauseBtn")?.GetComponent<Button>();
                 continueButton = authoredPanel.Find("Bg/ContinueBtn")?.GetComponent<Button>();
                 EnsureOverlayCanvas(pausePanel, PausePanelSortingOrder, true);
@@ -365,7 +388,7 @@ namespace DragonBound.Presentation
             if (authoredSettlement != null)
             {
                 settlementPanel = authoredSettlement.gameObject;
-                settlementResultText = authoredSettlement.Find("Text")?.GetComponent<TMP_Text>();
+                settlementResultImage = authoredSettlement.Find("SettleImg")?.GetComponent<Image>();
                 EnsureOverlayCanvas(settlementPanel, SettlementPanelSortingOrder, true);
             }
 
@@ -431,6 +454,7 @@ namespace DragonBound.Presentation
             {
                 pausePanel.SetActive(true);
                 pausePanel.transform.SetAsLastSibling();
+                pauseRuneRewardPresenter?.RefreshRewards();
             }
         }
 
@@ -544,16 +568,47 @@ namespace DragonBound.Presentation
             // pause-owned time scale so the settlement UI and following scene remain healthy.
             ReleaseGlobalPause();
             ReleaseBossWarningPause();
-            if (settlementResultText != null)
-            {
-                settlementResultText.text = state == MatchState.Victory ? "Victory" : "Defeat";
-            }
+            ApplySettlementResultImage(state);
             if (settlementPanel != null)
             {
+                SetSettlementChildActive("GoldText", false);
+                SetSettlementChildActive("ReciveBtn", false);
+                SetSettlementChildActive("DoubleBtn", false);
                 settlementPanel.SetActive(true);
                 settlementPanel.transform.SetAsLastSibling();
             }
             Refresh();
+        }
+
+        private void ApplySettlementResultImage(MatchState state)
+        {
+            if (settlementResultImage == null)
+            {
+                Debug.LogError("SettlementPanel/SettleImg with an Image component is missing.");
+                return;
+            }
+
+            var resourcePath = state == MatchState.Victory
+                ? SettlementVictorySpritePath
+                : SettlementDefeatSpritePath;
+            var sprite = Resources.Load<Sprite>(resourcePath);
+            if (sprite == null)
+            {
+                Debug.LogError("Settlement result sprite is missing at Resources/" + resourcePath + ".png");
+                return;
+            }
+
+            settlementResultImage.sprite = sprite;
+            settlementResultImage.preserveAspect = true;
+            settlementResultImage.gameObject.SetActive(true);
+        }
+
+        private void SetSettlementChildActive(string childName, bool active)
+        {
+            Transform child = settlementPanel != null
+                ? settlementPanel.transform.Find(childName)
+                : null;
+            if (child != null) child.gameObject.SetActive(active);
         }
 
         private void ReleaseGlobalPause()
@@ -771,6 +826,12 @@ namespace DragonBound.Presentation
                 return;
             }
 
+            if (IsEnemyTargetedItem(snapshot.ActiveItems[slot]))
+            {
+                ShowTip("Drag onto an enemy");
+                return;
+            }
+
             if (IsUnitTargetedItem(snapshot.ActiveItems[slot]))
             {
                 ShowTip("Drag onto a basic unit");
@@ -829,20 +890,32 @@ namespace DragonBound.Presentation
             var releasedOnPath = activeItemDropIsOnPath;
             var validDrop = activeItemDropIsValid;
             var dropPoint = activeItemDropPoint;
+            var dropScreenPosition = activeItemDropScreenPosition;
+            var dropPixelsPerCell = activeItemDropPixelsPerCell;
             var targetRuntimeId = activeItemDropTargetId;
             var isUnitTargeted = IsUnitTargetedItem(releasedItemId);
+            var isEnemyTargeted = IsEnemyTargetedItem(releasedItemId);
+            var isTargeted = isUnitTargeted || isEnemyTargeted;
+            var isArcaneThunderburst =
+                string.Equals(releasedItemId, ItemIds.RuneburstMine, System.StringComparison.Ordinal);
+            if (validDrop && isArcaneThunderburst)
+            {
+                HoldArcaneThunderburstEnemyVisuals(dropPoint);
+            }
             CancelActiveItemDrag();
             SuppressClickAfterDrag(releasedSlot);
 
             if (!validDrop)
             {
-                ShowTip(isUnitTargeted
-                    ? "Drag onto a basic unit"
-                    : releasedOnPath ? "No enemies" : "Invalid placement");
+                ShowTip(isEnemyTargeted
+                    ? "Drag onto an enemy"
+                    : isUnitTargeted
+                        ? "Drag onto a basic unit"
+                        : releasedOnPath ? "No enemies" : "Invalid placement");
                 return;
             }
 
-            var used = isUnitTargeted
+            var used = isTargeted
                 ? itemRuntime.TryUseItemOnUnit(
                     TeamSide.Player,
                     releasedItemId,
@@ -855,10 +928,18 @@ namespace DragonBound.Presentation
                     out reason);
             if (!used)
             {
-                ShowTip(FormatActiveItemFailure(reason, isUnitTargeted));
+                if (isArcaneThunderburst)
+                {
+                    ReleaseArcaneThunderburstEnemyVisuals();
+                }
+                ShowTip(FormatActiveItemFailure(reason, isTargeted));
                 Debug.LogWarning(
                     $"Dragged active item rejected: Item={releasedItemId} Target={targetRuntimeId} Reason={reason}",
                     this);
+            }
+            else if (isArcaneThunderburst)
+            {
+                PlayArcaneThunderburstAnimation(dropScreenPosition, dropPixelsPerCell);
             }
             Refresh();
         }
@@ -868,14 +949,16 @@ namespace DragonBound.Presentation
             itemId = null;
             var snapshot = itemRuntime?.PlayerItems?.Snapshot;
             if (snapshot == null || slot < 0 || slot >= snapshot.ActiveItems.Count ||
-                match == null || match.State != MatchState.Running ||
-                itemRuntime.PlayerItems.IsInitialCooldownActive)
+                match == null || match.State != MatchState.Running)
             {
                 return false;
             }
 
             itemId = snapshot.ActiveItems[slot];
-            if ((!IsPathPositionedItem(itemId) && !IsUnitTargetedItem(itemId)) ||
+            if ((!IsPathPositionedItem(itemId) &&
+                 !IsUnitTargetedItem(itemId) &&
+                 !IsEnemyTargetedItem(itemId)) ||
+                itemRuntime.PlayerItems.IsInitialCooldownActiveFor(itemId) ||
                 itemRuntime.PlayerItems.GetCooldownRemainingSeconds(itemId) > 0.0001f)
             {
                 return false;
@@ -897,8 +980,14 @@ namespace DragonBound.Presentation
                    itemId == ItemIds.WarforgeSigil;
         }
 
+        private static bool IsEnemyTargetedItem(string itemId)
+        {
+            return itemId == ItemIds.WyrmfangSnare;
+        }
+
         private static string FormatActiveItemFailure(string reason, bool unitTargeted)
         {
+            if (reason == "InitialCooldown") return "On cooldown";
             if (reason == "Cooldown") return "On cooldown";
             if (reason == "MaxActivationsPerUnit") return "Maximum stacks reached";
             if (reason == "MaxLevel") return "Maximum level reached";
@@ -994,6 +1083,18 @@ namespace DragonBound.Presentation
 
             SetDragVisualScreenPosition(activeItemDragGhost, screenPosition);
             activeItemDropTargetId = null;
+            if (IsEnemyTargetedItem(activeDragItemId))
+            {
+                activeItemDropIsOnPath = false;
+                activeItemDropIsValid = TryResolveEnemyDrop(
+                    screenPosition,
+                    out activeItemDropTargetId,
+                    out var targetCenter,
+                    out var targetSize);
+                UpdateTargetedItemPreview(screenPosition, targetCenter, targetSize);
+                return;
+            }
+
             if (IsUnitTargetedItem(activeDragItemId))
             {
                 activeItemDropIsOnPath = false;
@@ -1027,6 +1128,8 @@ namespace DragonBound.Presentation
                 out var snappedScreenPosition,
                 out var pixelsPerCell,
                 out var containsEnemy);
+            activeItemDropScreenPosition = snappedScreenPosition;
+            activeItemDropPixelsPerCell = pixelsPerCell;
             activeItemDropIsValid = activeItemDropIsOnPath && containsEnemy;
 
             if (activeItemAreaPreview != null)
@@ -1041,6 +1144,82 @@ namespace DragonBound.Presentation
                     : new Color(0.95f, 0.25f, 0.18f, 0.24f);
                 activeItemAreaPreview.gameObject.SetActive(pixelsPerCell > 0f);
             }
+        }
+
+        private bool TryResolveEnemyDrop(
+            Vector2 screenPosition,
+            out string runtimeId,
+            out Vector2 targetCenter,
+            out Vector2 targetSize)
+        {
+            runtimeId = null;
+            targetCenter = screenPosition;
+            targetSize = Vector2.zero;
+            var lane = GetComponentInParent<DragonBoundScreenView>()?
+                .PlayerBattlefieldView?.LaneView;
+            var canvas = activeItemDragRoot != null
+                ? activeItemDragRoot.GetComponentInParent<Canvas>()?.rootCanvas
+                : null;
+            var eventCamera = canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null
+                : canvas.worldCamera;
+            if (lane == null ||
+                !lane.TryGetEnemyAtScreenPoint(
+                    screenPosition,
+                    eventCamera,
+                    out runtimeId,
+                    out var enemyRect) ||
+                itemRuntime?.PlayerEnemyRegistry == null ||
+                !itemRuntime.PlayerEnemyRegistry.TryGet(runtimeId, out var enemy) ||
+                enemy.Team != TeamSide.Player || !enemy.IsAttackable)
+            {
+                runtimeId = null;
+                return false;
+            }
+
+            GetScreenRect(enemyRect, eventCamera, out targetCenter, out targetSize);
+            return true;
+        }
+
+        private void UpdateTargetedItemPreview(
+            Vector2 screenPosition,
+            Vector2 targetCenter,
+            Vector2 targetSize)
+        {
+            if (activeItemAreaPreview == null)
+            {
+                return;
+            }
+
+            SetDragVisualScreenPosition(
+                activeItemAreaPreview.rectTransform,
+                activeItemDropIsValid ? targetCenter : screenPosition);
+            var canvas = activeItemDragRoot.GetComponentInParent<Canvas>()?.rootCanvas;
+            var scaleFactor = canvas != null ? Mathf.Max(0.0001f, canvas.scaleFactor) : 1f;
+            activeItemAreaPreview.preserveAspect = false;
+            activeItemAreaPreview.rectTransform.sizeDelta = activeItemDropIsValid
+                ? targetSize / scaleFactor
+                : Vector2.one * 80f;
+            activeItemAreaPreview.color = activeItemDropIsValid
+                ? new Color(0.30f, 0.95f, 0.42f, 0.32f)
+                : new Color(0.95f, 0.25f, 0.18f, 0.24f);
+            activeItemAreaPreview.gameObject.SetActive(true);
+        }
+
+        private static void GetScreenRect(
+            RectTransform rect,
+            Camera eventCamera,
+            out Vector2 centre,
+            out Vector2 size)
+        {
+            var corners = new Vector3[4];
+            rect.GetWorldCorners(corners);
+            var bottomLeft = RectTransformUtility.WorldToScreenPoint(eventCamera, corners[0]);
+            var topRight = RectTransformUtility.WorldToScreenPoint(eventCamera, corners[2]);
+            centre = (bottomLeft + topRight) * 0.5f;
+            size = new Vector2(
+                Mathf.Abs(topRight.x - bottomLeft.x),
+                Mathf.Abs(topRight.y - bottomLeft.y));
         }
 
         private bool TryResolveBasicUnitDrop(
@@ -1150,7 +1329,7 @@ namespace DragonBound.Presentation
 
             foreach (var enemy in itemRuntime.PlayerEnemyRegistry.Enemies)
             {
-                if (enemy.Team == TeamSide.Player && enemy.IsAlive &&
+                if (enemy.Team == TeamSide.Player && enemy.IsAttackable &&
                     enemy.CombatPosition.DistanceSquared(combatPoint) <=
                     RuneburstMineEffect.AreaRadius * RuneburstMineEffect.AreaRadius + 0.0001f)
                 {
@@ -1189,6 +1368,8 @@ namespace DragonBound.Presentation
             activeDragItemId = null;
             activeItemDropIsOnPath = false;
             activeItemDropIsValid = false;
+            activeItemDropScreenPosition = Vector2.zero;
+            activeItemDropPixelsPerCell = 0f;
             activeItemDropTargetId = null;
             if (activeItemDragRoot != null)
             {
@@ -1197,6 +1378,182 @@ namespace DragonBound.Presentation
             activeItemDragRoot = null;
             activeItemDragGhost = null;
             activeItemAreaPreview = null;
+        }
+
+        private void HoldArcaneThunderburstEnemyVisuals(CombatPoint center)
+        {
+            ReleaseArcaneThunderburstEnemyVisuals();
+            var lane = GetComponentInParent<DragonBoundScreenView>()?
+                .PlayerBattlefieldView?.LaneView;
+            var registry = itemRuntime?.PlayerEnemyRegistry;
+            if (lane == null || registry == null)
+            {
+                return;
+            }
+
+            var radiusSquared =
+                RuneburstMineEffect.AreaRadius * RuneburstMineEffect.AreaRadius + 0.0001f;
+            foreach (var enemy in registry.Enemies)
+            {
+                if (enemy.Team != TeamSide.Player || !enemy.IsAttackable ||
+                    enemy.CombatPosition.DistanceSquared(center) > radiusSquared)
+                {
+                    continue;
+                }
+
+                lane.HoldEnemyHealthVisual(enemy.RuntimeId);
+                arcaneThunderburstHeldEnemyIds.Add(enemy.RuntimeId);
+            }
+        }
+
+        private void ReleaseArcaneThunderburstEnemyVisuals()
+        {
+            if (arcaneThunderburstHeldEnemyIds.Count == 0)
+            {
+                return;
+            }
+
+            var lane = GetComponentInParent<DragonBoundScreenView>()?
+                .PlayerBattlefieldView?.LaneView;
+            if (lane != null)
+            {
+                foreach (var runtimeId in arcaneThunderburstHeldEnemyIds)
+                {
+                    // This publishes the pending health ratio, applies hit feedback and
+                    // starts DieBoom for enemies removed by the lethal item hit.
+                    lane.ReleaseEnemyHealthVisual(runtimeId);
+                }
+            }
+
+            arcaneThunderburstHeldEnemyIds.Clear();
+        }
+
+        private void PlayArcaneThunderburstAnimation(
+            Vector2 screenPosition,
+            float pixelsPerCell)
+        {
+            var controller =
+                Resources.Load<RuntimeAnimatorController>(ArcaneThunderburstControllerPath);
+            var canvas = GetComponentInParent<Canvas>()?.rootCanvas;
+            if (controller == null || canvas == null || pixelsPerCell <= 0f)
+            {
+                Debug.LogWarning(
+                    $"Arcane Thunderburst presentation requires Resources/{ArcaneThunderburstControllerPath} " +
+                    "and a valid route scale.",
+                    this);
+                ReleaseArcaneThunderburstEnemyVisuals();
+                return;
+            }
+
+            var rootObject = new GameObject(
+                "ArcaneThunderburstVFX",
+                typeof(RectTransform),
+                typeof(Canvas),
+                typeof(CanvasGroup));
+            var root = rootObject.GetComponent<RectTransform>();
+            root.SetParent(canvas.transform, false);
+            root.anchorMin = Vector2.zero;
+            root.anchorMax = Vector2.one;
+            root.offsetMin = Vector2.zero;
+            root.offsetMax = Vector2.zero;
+
+            var effectCanvas = rootObject.GetComponent<Canvas>();
+            effectCanvas.overrideSorting = true;
+            effectCanvas.sortingOrder = ActiveItemSortingOrder - 1;
+            var canvasGroup = rootObject.GetComponent<CanvasGroup>();
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.interactable = false;
+
+            var effectObject = new GameObject(
+                "Image",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image),
+                typeof(Animator));
+            var effectRect = effectObject.GetComponent<RectTransform>();
+            effectRect.SetParent(root, false);
+            effectRect.anchorMin = new Vector2(0.5f, 0.5f);
+            effectRect.anchorMax = new Vector2(0.5f, 0.5f);
+            effectRect.pivot = new Vector2(0.5f, 0.5f);
+            var eventCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null
+                : canvas.worldCamera;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                root,
+                screenPosition,
+                eventCamera,
+                out var localPoint);
+            effectRect.anchoredPosition = localPoint;
+            var scaleFactor = Mathf.Max(0.0001f, canvas.scaleFactor);
+            var diameter = RuneburstMineEffect.AreaRadius * 2f * pixelsPerCell / scaleFactor;
+            effectRect.sizeDelta = Vector2.one * diameter;
+
+            var image = effectObject.GetComponent<Image>();
+            image.color = Color.white;
+            image.preserveAspect = false;
+            image.raycastTarget = false;
+            var animator = effectObject.GetComponent<Animator>();
+            animator.runtimeAnimatorController = controller;
+            // Controller state Speed is authored at 0.2; keep Animator at one to avoid
+            // multiplying the presentation speed down to 0.04.
+            animator.speed = 1f;
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            animator.Rebind();
+            animator.Play(0, 0, 0f);
+            animator.Update(0f);
+
+            activeArcaneThunderburstVfxRoots.Add(rootObject);
+            StartCoroutine(CompleteArcaneThunderburstAnimation(rootObject, controller));
+        }
+
+        private IEnumerator CompleteArcaneThunderburstAnimation(
+            GameObject effectRoot,
+            RuntimeAnimatorController controller)
+        {
+            var clipLength = 0f;
+            var frameRate = 60f;
+            var clips = controller.animationClips;
+            for (var index = 0; index < clips.Length; index++)
+            {
+                if (clips[index] == null)
+                {
+                    continue;
+                }
+
+                if (clips[index].length >= clipLength)
+                {
+                    clipLength = clips[index].length;
+                    frameRate = Mathf.Max(1f, clips[index].frameRate);
+                }
+            }
+
+            var totalDuration =
+                (clipLength > 0f ? clipLength : 0.1f) / ArcaneThunderburstPlaybackSpeed;
+            var impactDelay = Mathf.Min(
+                totalDuration,
+                ArcaneThunderburstImpactFrame / frameRate / ArcaneThunderburstPlaybackSpeed);
+            var elapsed = 0f;
+            while (elapsed < impactDelay)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Frame two is the first full explosion frame. Release health and lethal
+            // presentation here so damage, hit reaction and DieBoom read as one impact.
+            ReleaseArcaneThunderburstEnemyVisuals();
+
+            while (elapsed < totalDuration)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            if (effectRoot != null)
+            {
+                activeArcaneThunderburstVfxRoots.Remove(effectRoot);
+                Destroy(effectRoot);
+            }
         }
 
         private void SuppressClickAfterDrag(int slot)
@@ -1218,15 +1575,7 @@ namespace DragonBound.Presentation
 
         private void RefreshActiveItemSlots()
         {
-            var playerItems = itemRuntime?.PlayerItems;
-            var initialItemCooldownDuration = playerItems?.InitialCooldownDurationSeconds ?? 0f;
-            var initialItemCooldownRemaining = playerItems?.InitialCooldownRemainingSeconds ?? 0f;
-            bool initialCooldownVisible = playerItems != null && playerItems.IsInitialCooldownActive &&
-                                          initialItemCooldownDuration > 0.0001f;
-            float initialFill = initialCooldownVisible
-                ? Mathf.Clamp01(initialItemCooldownRemaining / initialItemCooldownDuration)
-                : 0f;
-            SetPassiveInitialCooldownVisual(initialFill, initialCooldownVisible);
+            RefreshPassiveItemSlots();
             RefreshActiveItemSlot(
                 activeItemSlotOne,
                 activeItemSlotOneLabel,
@@ -1249,6 +1598,7 @@ namespace DragonBound.Presentation
             var snapshot = itemRuntime?.PlayerItems?.Snapshot;
             if (snapshot == null || slot >= snapshot.ActiveItems.Count)
             {
+                ApplyItemIcon(button.targetGraphic as Image ?? button.GetComponent<Image>(), null);
                 if (label != null) label.text = string.Empty;
                 button.interactable = false;
                 SetCooldownMask(cooldownMask, 0f, false);
@@ -1258,11 +1608,12 @@ namespace DragonBound.Presentation
 
             if (!button.gameObject.activeSelf) button.gameObject.SetActive(true);
             var itemId = snapshot.ActiveItems[slot];
+            ApplyItemIcon(button.targetGraphic as Image ?? button.GetComponent<Image>(), itemId);
             var cooldown = itemRuntime.PlayerItems.GetCooldownRemainingSeconds(itemId);
             var cooldownDuration = itemRuntime.PlayerItems.GetCooldownDurationSeconds(itemId);
-            var initialItemCooldownDuration = itemRuntime.PlayerItems.InitialCooldownDurationSeconds;
-            var initialItemCooldownRemaining = itemRuntime.PlayerItems.InitialCooldownRemainingSeconds;
-            bool initialCooldownVisible = itemRuntime.PlayerItems.IsInitialCooldownActive &&
+            var initialItemCooldownDuration = itemRuntime.PlayerItems.GetInitialCooldownDurationSeconds(itemId);
+            var initialItemCooldownRemaining = itemRuntime.PlayerItems.GetInitialCooldownRemainingSeconds(itemId);
+            bool initialCooldownVisible = itemRuntime.PlayerItems.IsInitialCooldownActiveFor(itemId) &&
                                           initialItemCooldownDuration > 0.0001f;
             button.interactable = !initialCooldownVisible &&
                                   cooldown <= 0.0001f &&
@@ -1284,6 +1635,144 @@ namespace DragonBound.Presentation
             }
         }
 
+        private void RefreshPassiveItemSlots()
+        {
+            var snapshot = itemRuntime?.PlayerItems?.Snapshot;
+            for (int index = 0; index < passiveItemSlots.Length; index++)
+            {
+                Transform slot = passiveItemSlots[index];
+                if (slot == null) continue;
+
+                bool hasItem = snapshot != null && index < snapshot.PassiveItems.Count;
+                string itemId = hasItem ? snapshot.PassiveItems[index] : null;
+                Image slotImage = slot.GetComponent<Image>();
+                ApplyItemIcon(slotImage, itemId);
+                Image cooldownMask = passiveItemCooldownMasks[index];
+                float cooldown = hasItem
+                    ? itemRuntime.PlayerItems.GetCooldownRemainingSeconds(itemId)
+                    : 0f;
+                float cooldownDuration = hasItem
+                    ? itemRuntime.PlayerItems.GetCooldownDurationSeconds(itemId)
+                    : 0f;
+                bool showCooldown = hasItem && cooldown > 0.0001f && cooldownDuration > 0.0001f;
+                SetCooldownMask(
+                    cooldownMask,
+                    showCooldown ? Mathf.Clamp01(cooldown / cooldownDuration) : 0f,
+                    showCooldown);
+                bool consumed = hasItem &&
+                                itemRuntime.PlayerItems.IsItemConsumed(itemId);
+                Button slotButton = slot.GetComponent<Button>();
+                if (slotButton != null)
+                {
+                    slotButton.interactable = hasItem && !consumed;
+                }
+
+                // CanvasGroup dimming remains visible even if the Button's ColorTint
+                // transition uses an authored white Disabled Color.
+                CanvasGroup group = slot.GetComponent<CanvasGroup>();
+                if (consumed || group != null)
+                {
+                    if (group == null) group = slot.gameObject.AddComponent<CanvasGroup>();
+                    if (consumed && !passiveItemConsumedVisualized[index])
+                    {
+                        passiveItemConsumedVisualized[index] = true;
+                        passiveItemConsumedEffects[index] = StartCoroutine(
+                            PlayPassiveItemConsumedEffect(index, group));
+                    }
+                    else if (passiveItemConsumedEffects[index] == null)
+                    {
+                        group.alpha = consumed ? 0.55f : 1f;
+                    }
+                    group.interactable = hasItem && !consumed;
+                    group.blocksRaycasts = hasItem && !consumed;
+                }
+                if (!hasItem)
+                {
+                    StopPassiveItemConsumedEffect(index);
+                    passiveItemConsumedVisualized[index] = false;
+                }
+                if (slot.gameObject.activeSelf != hasItem) slot.gameObject.SetActive(hasItem);
+            }
+        }
+
+        private IEnumerator PlayPassiveItemConsumedEffect(int index, CanvasGroup group)
+        {
+            for (int flash = 0; flash < 2; flash++)
+            {
+                group.alpha = 0.25f;
+                yield return new WaitForSecondsRealtime(0.1f);
+                group.alpha = 1f;
+                yield return new WaitForSecondsRealtime(0.1f);
+            }
+
+            group.alpha = 0.55f;
+            passiveItemConsumedEffects[index] = null;
+        }
+
+        private void ResetPassiveItemConsumedEffects()
+        {
+            for (int index = 0; index < passiveItemConsumedEffects.Length; index++)
+            {
+                StopPassiveItemConsumedEffect(index);
+                passiveItemConsumedVisualized[index] = false;
+            }
+        }
+
+        private void StopPassiveItemConsumedEffect(int index)
+        {
+            Coroutine effect = passiveItemConsumedEffects[index];
+            if (effect == null) return;
+            StopCoroutine(effect);
+            passiveItemConsumedEffects[index] = null;
+        }
+
+        private void ApplyItemIcon(Image image, string itemId)
+        {
+            if (image == null) return;
+            RememberItemSlotFallback(image);
+
+            ItemDefinition definition = ItemCatalog.Get(itemId);
+            Sprite icon = LoadItemIcon(definition);
+            if (icon != null)
+            {
+                image.sprite = icon;
+                image.color = Color.white;
+                image.preserveAspect = true;
+                return;
+            }
+
+            image.sprite = itemSlotFallbackSprites[image];
+            image.color = itemSlotFallbackColors[image];
+        }
+
+        private void RememberItemSlotFallback(Image image)
+        {
+            if (itemSlotFallbackSprites.ContainsKey(image)) return;
+            itemSlotFallbackSprites.Add(image, image.sprite);
+            itemSlotFallbackColors.Add(image, image.color);
+        }
+
+        private static Sprite LoadItemIcon(ItemDefinition definition)
+        {
+            if (definition == null || string.IsNullOrWhiteSpace(definition.IconKey)) return null;
+            if (ItemIconCache.TryGetValue(definition.IconKey, out Sprite cached)) return cached;
+
+            Sprite sprite = Resources.Load<Sprite>(definition.IconKey);
+            if (sprite != null)
+            {
+                ItemIconCache[definition.IconKey] = sprite;
+                return sprite;
+            }
+
+            if (MissingItemIconKeys.Add(definition.IconKey))
+            {
+                Debug.LogWarning(
+                    $"Gameplay item icon is missing at Resources/{definition.IconKey}. " +
+                    $"The authored placeholder will be used for {definition.ItemId}.");
+            }
+            return null;
+        }
+
         private static void HideObsoleteItemLabel(Text label)
         {
             if (label == null) return;
@@ -1293,97 +1782,8 @@ namespace DragonBound.Presentation
 
         private void ShowTip(string message)
         {
-            if (tipText == null || string.IsNullOrWhiteSpace(message)) return;
-            if (tipHideCoroutine != null) StopCoroutine(tipHideCoroutine);
-            tipText.text = message;
-            tipText.gameObject.SetActive(true);
-            tipHideCoroutine = StartCoroutine(HideTipAfterDelay());
-        }
-
-        private void ShowBossTip(string message)
-        {
-            ShowTip($"Boss : {message}");
-        }
-
-        private void HandleBasicMergeBlocked()
-        {
-            ShowBossTip("Merge blocked");
-        }
-
-        private void HandleSoulChainCast(TeamSide side, SoulChainCastEvent value)
-        {
-            if (side != TeamSide.Player) return;
-            if (value.Kind == SoulChainCastEventKind.CastStarted)
-            {
-                ShowBossTip("Soul Chain incoming");
-            }
-            else if (value.Kind == SoulChainCastEventKind.EffectApplied)
-            {
-                ShowBossTip(value.AffectedCount > 0
-                    ? $"Soul Chain locked {value.AffectedCount} unit(s)"
-                    : "Soul Chain found no target");
-            }
-            else if (value.Kind == SoulChainCastEventKind.CastFailed)
-            {
-                ShowBossTip("Soul Chain interrupted");
-            }
-        }
-
-        private void HandleStormcallerCast(TeamSide side, StormcallerCastEvent value)
-        {
-            if (side != TeamSide.Player) return;
-            if (value.Kind == StormcallerCastEventKind.CastStarted)
-            {
-                ShowBossTip("Storm Call incoming");
-            }
-            else if (value.Kind == StormcallerCastEventKind.EffectApplied)
-            {
-                ShowBossTip($"Storm Call shielded and hastened {value.AffectedCount} enemy unit(s)");
-            }
-            else if (value.Kind == StormcallerCastEventKind.CastFailed)
-            {
-                ShowBossTip("Storm Call interrupted");
-            }
-        }
-
-        private void HandleBloodcrownLifecycle(TeamSide side, BossSkillLifecycleEvent value)
-        {
-            if (side != TeamSide.Player) return;
-            if (value.Lifecycle == BossSkillLifecycle.Start)
-            {
-                ShowBossTip("Bloodcrown Decree incoming");
-            }
-            else if (value.Lifecycle == BossSkillLifecycle.Resolve)
-            {
-                ShowBossTip("All Basic units are treated as Lv1 and cannot merge");
-            }
-            else if (value.Lifecycle == BossSkillLifecycle.Blocked)
-            {
-                ShowBossTip("Bloodcrown Decree interrupted");
-            }
-        }
-
-        private void HandleWorldeaterCast(TeamSide side, WorldeaterCastEvent value)
-        {
-            if (side != TeamSide.Player) return;
-            if (value.Outcome == WorldeaterCastOutcome.Started)
-            {
-                ShowBossTip(value.Kind == WorldeaterCastKind.Devour
-                    ? "Worldeater is targeting Devour"
-                    : "Worldeater is summoning");
-            }
-            else if (value.Outcome == WorldeaterCastOutcome.Blocked)
-            {
-                ShowBossTip("Worldeater skill interrupted");
-            }
-            else if (value.Outcome == WorldeaterCastOutcome.Resolved)
-            {
-                ShowBossTip(value.Kind == WorldeaterCastKind.Devour
-                    ? "Devoured a target and increased HP"
-                    : value.Kind == WorldeaterCastKind.SummonSubBoss
-                        ? "Summoned a SubBoss"
-                        : $"Summoned {value.AffectedCount} minions");
-            }
+            if (string.IsNullOrWhiteSpace(message)) return;
+            TipTextService.Show(message, 3f);
         }
 
         private void ResolvePassiveItemCooldownMasks(Transform screen)
@@ -1406,31 +1806,6 @@ namespace DragonBound.Presentation
                 passiveItemCooldownMasks[index] = EnsureCooldownMask(slot);
                 passiveItemSlots[index] = slot;
             }
-        }
-
-        private void SetPassiveInitialCooldownVisual(float fillAmount, bool visible)
-        {
-            fillAmount = Mathf.Clamp01(fillAmount);
-            var equippedCount = itemRuntime?.PlayerItems?.Snapshot?.PassiveItems.Count ?? 0;
-            for (int index = 0; index < passiveItemCooldownMasks.Length; index++)
-            {
-                Image mask = passiveItemCooldownMasks[index];
-                if (mask == null) continue;
-                bool hasItem = index < equippedCount && passiveItemSlots[index] != null &&
-                               passiveItemSlots[index].gameObject.activeSelf;
-                bool show = visible && hasItem;
-                mask.fillAmount = show ? fillAmount : 0f;
-                if (mask.gameObject.activeSelf != show) mask.gameObject.SetActive(show);
-            }
-        }
-
-        private IEnumerator HideTipAfterDelay()
-        {
-            yield return new WaitForSecondsRealtime(1.5f);
-            tipHideCoroutine = null;
-            if (tipText == null) yield break;
-            tipText.text = string.Empty;
-            tipText.gameObject.SetActive(false);
         }
 
         private static Image EnsureCooldownMask(Transform slot)

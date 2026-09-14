@@ -4,23 +4,6 @@ using System.Threading;
 using DragonBound.Bootstrap;
 using DragonBound.Items;
 using UnityEngine;
-using UnityEngine.UI;
-
-public interface IGameplayItemVisualProvider
-{
-    Sprite LoadIcon(MerchantProduct product);
-}
-
-public sealed class ResourcesGameplayItemVisualProvider : IGameplayItemVisualProvider
-{
-    private readonly IMerchantItemIconProvider merchantIconProvider =
-        new ResourcesMerchantItemIconProvider();
-
-    public Sprite LoadIcon(MerchantProduct product)
-    {
-        return product == null ? null : merchantIconProvider.Load(product.IconKey);
-    }
-}
 
 /// <summary>
 /// Loads the player's Main-scene Merchant inventory into the authored gameplay
@@ -32,24 +15,10 @@ public sealed class GreyboxMerchantLoadoutController : MonoBehaviour
 {
     private const int ActiveSlotCount = 2;
     private const int PassiveSlotCount = 6;
-
-    private sealed class SlotView
-    {
-        public Transform Transform;
-        public Image Image;
-        public Image CooldownMask;
-        public Sprite EmptySprite;
-        public Color EmptyColor;
-        public MerchantProduct Product;
-    }
-
-    private readonly SlotView[] activeSlots = new SlotView[ActiveSlotCount];
-    private readonly SlotView[] passiveSlots = new SlotView[PassiveSlotCount];
     private readonly List<MerchantProduct> activeItems = new List<MerchantProduct>();
     private readonly List<MerchantProduct> passiveItems = new List<MerchantProduct>();
 
     private CancellationTokenSource lifetimeCancellation;
-    private IGameplayItemVisualProvider visualProvider;
     private DragonBoundBootstrap bootstrap;
 
     public IReadOnlyList<MerchantProduct> ActiveItems => activeItems;
@@ -58,21 +27,8 @@ public sealed class GreyboxMerchantLoadoutController : MonoBehaviour
 
     private void Awake()
     {
-        visualProvider = new ResourcesGameplayItemVisualProvider();
         lifetimeCancellation = new CancellationTokenSource();
         bootstrap = FindObjectOfType<DragonBoundBootstrap>();
-
-        if (!ResolveSlots())
-        {
-            InitializeBootstrap(
-                new EmptyItemRunSnapshotProvider(),
-                Array.Empty<ExternalRuneLoadoutAssignment>(),
-                1);
-            enabled = false;
-            return;
-        }
-
-        ClearAllSlots();
     }
 
     private async void Start()
@@ -193,167 +149,41 @@ public sealed class GreyboxMerchantLoadoutController : MonoBehaviour
         lifetimeCancellation = null;
     }
 
-    /// <summary>
-    /// Reserved visual hook for replacing Resources icons with Addressables,
-    /// AssetBundles, downloaded sprites, or another production UI provider.
-    /// </summary>
-    public void SetVisualProvider(IGameplayItemVisualProvider provider)
-    {
-        visualProvider = provider ?? throw new ArgumentNullException(nameof(provider));
-        RefreshBoundIcons(activeSlots);
-        RefreshBoundIcons(passiveSlots);
-    }
-
     public MerchantProduct GetActiveItem(int index)
     {
-        return index >= 0 && index < activeSlots.Length ? activeSlots[index].Product : null;
+        return index >= 0 && index < activeItems.Count ? activeItems[index] : null;
     }
 
     public MerchantProduct GetPassiveItem(int index)
     {
-        return index >= 0 && index < passiveSlots.Length ? passiveSlots[index].Product : null;
-    }
-
-    private bool ResolveSlots()
-    {
-        Transform activeContainer = transform.Find("Active");
-        Transform passiveContainer = transform.Find("Passtive") ?? transform.Find("Passive");
-        if (activeContainer == null || passiveContainer == null)
-        {
-            Debug.LogError(
-                "Greybox ItemContainer requires Active and Passtive child containers.",
-                this);
-            return false;
-        }
-
-        for (int index = 0; index < activeSlots.Length; index++)
-        {
-            activeSlots[index] = ResolveSlot(activeContainer, "Active" + index);
-        }
-
-        for (int index = 0; index < passiveSlots.Length; index++)
-        {
-            passiveSlots[index] = ResolveSlot(passiveContainer, "Passtive" + index);
-        }
-
-        return AllSlotsResolved(activeSlots) && AllSlotsResolved(passiveSlots);
-    }
-
-    private SlotView ResolveSlot(Transform container, string slotName)
-    {
-        Transform slotTransform = container.Find(slotName);
-        Image slotImage = slotTransform != null ? slotTransform.GetComponent<Image>() : null;
-        Image cooldownMask = slotTransform != null
-            ? slotTransform.Find("CooldownMask")?.GetComponent<Image>()
-            : null;
-
-        if (slotTransform == null || slotImage == null)
-        {
-            Debug.LogError(
-                $"Gameplay item slot '{container.name}/{slotName}' requires an Image.",
-                this);
-            return null;
-        }
-
-        return new SlotView
-        {
-            Transform = slotTransform,
-            Image = slotImage,
-            CooldownMask = cooldownMask,
-            EmptySprite = slotImage.sprite,
-            EmptyColor = slotImage.color
-        };
-    }
-
-    private static bool AllSlotsResolved(SlotView[] slots)
-    {
-        for (int index = 0; index < slots.Length; index++)
-        {
-            if (slots[index] == null) return false;
-        }
-
-        return true;
+        return index >= 0 && index < passiveItems.Count ? passiveItems[index] : null;
     }
 
     private void ApplyInventory(MerchantInventory inventory)
     {
-        ClearAllSlots();
-        if (inventory?.Products == null) return;
+        // This component owns only the loadout data. GreyboxHudView is the single writer
+        // for gameplay slot sprites, visibility and cooldown masks. Keeping that boundary
+        // prevents a late empty Merchant response from erasing a development snapshot UI.
+        activeItems.Clear();
+        passiveItems.Clear();
+        if (inventory?.LoadoutProducts == null) return;
 
-        foreach (MerchantProduct product in inventory.Products)
+        foreach (MerchantProduct product in inventory.LoadoutProducts)
         {
             if (product == null) continue;
 
             if (string.Equals(product.ItemType, "Active", StringComparison.OrdinalIgnoreCase))
             {
-                if (activeItems.Count >= activeSlots.Length) continue;
-                Bind(activeSlots[activeItems.Count], product);
+                if (activeItems.Count >= ActiveSlotCount) continue;
                 activeItems.Add(product);
                 continue;
             }
 
             if (string.Equals(product.ItemType, "Passive", StringComparison.OrdinalIgnoreCase))
             {
-                if (passiveItems.Count >= passiveSlots.Length) continue;
-                Bind(passiveSlots[passiveItems.Count], product);
+                if (passiveItems.Count >= PassiveSlotCount) continue;
                 passiveItems.Add(product);
             }
         }
-    }
-
-    private void ClearAllSlots()
-    {
-        activeItems.Clear();
-        passiveItems.Clear();
-        ClearSlots(activeSlots);
-        ClearSlots(passiveSlots);
-    }
-
-    private static void ClearSlots(SlotView[] slots)
-    {
-        foreach (SlotView slot in slots)
-        {
-            if (slot == null) continue;
-            slot.Product = null;
-            if (slot.CooldownMask != null)
-            {
-                slot.CooldownMask.fillAmount = 0f;
-                slot.CooldownMask.gameObject.SetActive(false);
-            }
-            slot.Image.sprite = slot.EmptySprite;
-            slot.Image.color = slot.EmptyColor;
-            slot.Transform.gameObject.SetActive(false);
-        }
-    }
-
-    private void Bind(SlotView slot, MerchantProduct product)
-    {
-        slot.Product = product;
-        slot.Transform.gameObject.SetActive(true);
-        ApplyIcon(slot);
-    }
-
-    private void RefreshBoundIcons(SlotView[] slots)
-    {
-        foreach (SlotView slot in slots)
-        {
-            if (slot?.Product != null) ApplyIcon(slot);
-        }
-    }
-
-    private void ApplyIcon(SlotView slot)
-    {
-        Sprite icon = visualProvider?.LoadIcon(slot.Product);
-        if (icon == null)
-        {
-            // Item art is optional during frontend development. Keep the authored
-            // placeholder until the visual provider can supply the final icon.
-            slot.Image.sprite = slot.EmptySprite;
-            slot.Image.color = slot.EmptyColor;
-            return;
-        }
-
-        slot.Image.sprite = icon;
-        slot.Image.color = Color.white;
     }
 }

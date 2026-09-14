@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using DragonBound.Presentation;
+using DragonBound.Runes;
+using DragonBound.UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -98,7 +100,18 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
 
     private void OnEnable()
     {
+        LocalRuneProgressionSettings.AccountDayChanged += HandleAccountDayChanged;
         _ = RenderAllAsync();
+    }
+
+    private void OnDisable()
+    {
+        LocalRuneProgressionSettings.AccountDayChanged -= HandleAccountDayChanged;
+    }
+
+    private void HandleAccountDayChanged()
+    {
+        if (isActiveAndEnabled) _ = RenderAllAsync();
     }
 
     private async Task RenderAllAsync()
@@ -124,7 +137,8 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
                 playerId,
                 lifetimeCancellation.Token);
             if (!isActiveAndEnabled) return;
-            if (currentProfile == null || currentProfile.AccountDay < 3)
+            if (currentProfile == null ||
+                currentProfile.AccountDay < RuneFeatureGate.UnlockAccountDay)
             {
                 ClearContainer();
                 displayEntries.Clear();
@@ -432,7 +446,8 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     public bool RequestUnequipRune(string heroId)
     {
         if (string.IsNullOrEmpty(heroId) || string.IsNullOrEmpty(playerId) ||
-            currentProfile == null || currentProfile.AccountDay < 3 ||
+            currentProfile == null ||
+            currentProfile.AccountDay < RuneFeatureGate.UnlockAccountDay ||
             pendingInventoryChange != null || runeOperationInProgress)
         {
             return false;
@@ -446,7 +461,8 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
     {
         if (string.IsNullOrEmpty(heroId) || string.IsNullOrEmpty(runeId) ||
             string.IsNullOrEmpty(playerId) || currentProfile == null ||
-            currentProfile.AccountDay < 3 || pendingInventoryChange != null ||
+            currentProfile.AccountDay < RuneFeatureGate.UnlockAccountDay ||
+            pendingInventoryChange != null ||
             runeOperationInProgress)
         {
             return false;
@@ -474,25 +490,118 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
 
     private async Task CompleteEquipAsync(string heroId, string runeId)
     {
+        RuneProfile rollbackProfile = JsonUtility.FromJson<RuneProfile>(
+            JsonUtility.ToJson(currentProfile));
+        if (!TryApplyOptimisticEquip(heroId, runeId))
+        {
+            if (isActiveAndEnabled)
+            {
+                RefreshHeroRuneNames();
+                RefreshInventoryPages();
+            }
+            return;
+        }
+
+        RefreshHeroRuneNames();
+        RefreshInventoryPages();
         if (await TryEquipRuneAsync(heroId, runeId)) return;
+
+        currentProfile = rollbackProfile;
         if (!isActiveAndEnabled || currentProfile == null) return;
         RefreshHeroRuneNames();
         RefreshInventoryPages();
+        TipTextService.Show("Unable to equip rune.", 3f);
     }
 
     private async Task CompleteUnequipAsync(string heroId)
     {
+        RuneProfile rollbackProfile = JsonUtility.FromJson<RuneProfile>(
+            JsonUtility.ToJson(currentProfile));
+        if (!TryApplyOptimisticUnequip(heroId))
+        {
+            if (isActiveAndEnabled) RestoreHeroRuneNames();
+            return;
+        }
+
+        RefreshHeroRuneNames();
+        RefreshInventoryPages();
         if (await TryUnequipRuneAsync(heroId)) return;
-        if (isActiveAndEnabled) RestoreHeroRuneNames();
+
+        currentProfile = rollbackProfile;
+        if (!isActiveAndEnabled || currentProfile == null) return;
+        RefreshHeroRuneNames();
+        RefreshInventoryPages();
+        TipTextService.Show("Unable to unequip rune.", 3f);
     }
 
-    public RectTransform SpawnUnequipProxy(string runeId)
+    private bool TryApplyOptimisticEquip(string heroId, string runeId)
+    {
+        if (currentProfile?.Inventory == null || currentProfile.Loadouts == null) return false;
+
+        RuneInventoryEntry inventory = null;
+        for (int index = 0; index < currentProfile.Inventory.Count; index++)
+        {
+            RuneInventoryEntry candidate = currentProfile.Inventory[index];
+            if (candidate != null && candidate.RuneId == runeId)
+            {
+                inventory = candidate;
+                break;
+            }
+        }
+        if (inventory == null) return false;
+
+        HeroRuneLoadoutEntry heroLoadout = null;
+        int assignedToOtherHeroes = 0;
+        for (int index = 0; index < currentProfile.Loadouts.Count; index++)
+        {
+            HeroRuneLoadoutEntry loadout = currentProfile.Loadouts[index];
+            if (loadout == null) continue;
+            if (loadout.HeroId == heroId) heroLoadout = loadout;
+            else if (loadout.RuneId == runeId) assignedToOtherHeroes++;
+        }
+        if (inventory.OwnedCount <= assignedToOtherHeroes) return false;
+
+        if (heroLoadout == null)
+        {
+            heroLoadout = new HeroRuneLoadoutEntry { HeroId = heroId };
+            currentProfile.Loadouts.Add(heroLoadout);
+        }
+        heroLoadout.RuneId = runeId;
+        return true;
+    }
+
+    private bool TryApplyOptimisticUnequip(string heroId)
+    {
+        if (currentProfile?.Loadouts == null) return false;
+        for (int index = 0; index < currentProfile.Loadouts.Count; index++)
+        {
+            HeroRuneLoadoutEntry loadout = currentProfile.Loadouts[index];
+            if (loadout == null || loadout.HeroId != heroId) continue;
+            currentProfile.Loadouts.RemoveAt(index);
+            return true;
+        }
+        return false;
+    }
+
+    public RectTransform SpawnUnequipProxy(string runeId, Image sourceImage)
     {
         RuneDefinition definition = RuneCatalog.Find(runeId);
         if (definition == null) return null;
 
-        // A lightweight proxy avoids cloning a complete inventory hierarchy into the root Canvas
-        // during an active pointer/render event.
+        Sprite sprite = sourceImage != null ? sourceImage.sprite : null;
+        if (sprite == null)
+        {
+            string runtimeRuneId = RuneGameplayLoadoutAdapter.ResolveRuntimeRuneId(runeId);
+            sprite = RuneUiSpriteCatalog.Load(runtimeRuneId);
+        }
+        if (sprite == null)
+        {
+            Debug.LogError($"Unable to create the unequip proxy for rune '{runeId}' because its UI sprite is missing.");
+            return null;
+        }
+
+        // A lightweight image-only proxy preserves the equipped artwork without cloning a
+        // complete inventory hierarchy during an active pointer/render event.
         var proxy = new GameObject(
             $"UnequipProxy_{runeId}",
             typeof(RectTransform),
@@ -501,31 +610,22 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
             typeof(CanvasGroup));
         RectTransform proxyRect = (RectTransform)proxy.transform;
         proxyRect.SetParent(GetDragRoot(), false);
-        proxyRect.sizeDelta = new Vector2(240f, 120f);
-        proxy.name = $"UnequipProxy_{runeId}";
+        proxyRect.SetAsLastSibling();
+        proxyRect.pivot = new Vector2(0.5f, 0.5f);
 
-        Image background = proxy.GetComponent<Image>();
-        background.color = new Color(0.12f, 0.16f, 0.2f, 0.9f);
-        background.raycastTarget = false;
+        Vector2 sourceSize = sourceImage != null
+            ? sourceImage.rectTransform.rect.size
+            : Vector2.zero;
+        proxyRect.sizeDelta = sourceSize.x > 0f && sourceSize.y > 0f
+            ? sourceSize
+            : new Vector2(96f, 96f);
 
-        var labelObject = new GameObject(
-            "Name",
-            typeof(RectTransform),
-            typeof(CanvasRenderer),
-            typeof(TextMeshProUGUI));
-        RectTransform labelRect = (RectTransform)labelObject.transform;
-        labelRect.SetParent(proxyRect, false);
-        labelRect.anchorMin = Vector2.zero;
-        labelRect.anchorMax = Vector2.one;
-        labelRect.offsetMin = new Vector2(12f, 8f);
-        labelRect.offsetMax = new Vector2(-12f, -8f);
-
-        TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
-        label.text = definition.DisplayName;
-        label.alignment = TextAlignmentOptions.Center;
-        label.fontSize = 28f;
-        label.color = Color.white;
-        label.raycastTarget = false;
+        Image proxyImage = proxy.GetComponent<Image>();
+        proxyImage.sprite = sprite;
+        proxyImage.type = Image.Type.Simple;
+        proxyImage.preserveAspect = true;
+        proxyImage.color = Color.white;
+        proxyImage.raycastTarget = false;
 
         CanvasGroup group = proxy.GetComponent<CanvasGroup>();
         group.blocksRaycasts = false;
@@ -566,10 +666,20 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
                 Debug.LogError($"WeaponPanel hero slot {index + 1} has no valid HeroId.", hero);
                 continue;
             }
-            TMP_Text runeName = GetText(weapon.Find("Text (TMP)"));
-            RuneDropZone zone = weapon.GetComponent<RuneDropZone>();
-            if (zone == null) zone = weapon.gameObject.AddComponent<RuneDropZone>();
-            zone.Initialize(this, heroId, runeName);
+            Image runeImage = weapon.GetComponent<Image>();
+            if (runeImage == null)
+            {
+                Debug.LogError(
+                    $"WeaponPanel hero slot {index + 1}/weapon requires an Image component.",
+                    weapon);
+                continue;
+            }
+
+            // The icon is inactive while the hero has no rune, so the always-active
+            // Hero root must own the drop zone. The weapon child is presentation only.
+            RuneDropZone zone = hero.GetComponent<RuneDropZone>();
+            if (zone == null) zone = hero.gameObject.AddComponent<RuneDropZone>();
+            zone.Initialize(this, heroId, runeImage);
 
             RuneEquippedDragItem equippedItem = weapon.GetComponent<RuneEquippedDragItem>();
             if (equippedItem == null) equippedItem = weapon.gameObject.AddComponent<RuneEquippedDragItem>();
@@ -584,9 +694,11 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         {
             string runeId = FindEquippedRuneId(zones[index].HeroId);
             RuneDefinition definition = RuneCatalog.Find(runeId);
-            zones[index].SetRuneName(definition != null ? definition.DisplayName : string.Empty);
+            zones[index].SetRune(definition);
 
-            RuneEquippedDragItem equippedItem = zones[index].GetComponent<RuneEquippedDragItem>();
+            RuneEquippedDragItem equippedItem = zones[index].RuneImage != null
+                ? zones[index].RuneImage.GetComponent<RuneEquippedDragItem>()
+                : null;
             if (equippedItem != null) equippedItem.SetRuneId(runeId);
         }
     }

@@ -14,6 +14,7 @@ public sealed class GreyboxPauseExitRewardController : MonoBehaviour
     private IAuthSessionStore authSessionStore;
     private CancellationTokenSource lifetimeCancellation;
     private bool exitInProgress;
+    private bool pauseExitBound;
 
     private void Awake()
     {
@@ -27,16 +28,49 @@ public sealed class GreyboxPauseExitRewardController : MonoBehaviour
     {
         hudView = FindObjectOfType<GreyboxHudView>();
         bootstrap = FindObjectOfType<DragonBoundBootstrap>();
-        if (hudView == null || bootstrap?.Match == null ||
-            string.IsNullOrWhiteSpace(bootstrap.GameplayRunId))
+        if (hudView == null || bootstrap == null)
         {
-            Debug.LogError("Pause exit requires GreyboxHudView, match state, and gameplay RunId.");
+            Debug.LogError("Pause exit requires GreyboxHudView and DragonBoundBootstrap.");
+            enabled = false;
+            return;
+        }
+
+        if (bootstrap.IsInitialized)
+        {
+            BindPauseExit();
+            return;
+        }
+        if (bootstrap.InitializationFailed)
+        {
+            HandleInitializationFailed(bootstrap.InitializationException);
+            return;
+        }
+
+        bootstrap.Initialized += BindPauseExit;
+        bootstrap.InitializationFailedEvent += HandleInitializationFailed;
+    }
+
+    private void BindPauseExit()
+    {
+        if (pauseExitBound) return;
+        if (bootstrap?.Match == null || string.IsNullOrWhiteSpace(bootstrap.GameplayRunId))
+        {
+            Debug.LogError("Pause exit requires initialized match state and gameplay RunId.");
             enabled = false;
             return;
         }
 
         hudView.PauseExitRequested -= HandlePauseExitRequested;
         hudView.PauseExitRequested += HandlePauseExitRequested;
+        pauseExitBound = true;
+    }
+
+    private void HandleInitializationFailed(Exception exception)
+    {
+        Debug.LogError(
+            "Pause exit is unavailable because gameplay initialization failed: " +
+            (exception?.Message ?? "Unknown error"));
+        enabled = false;
     }
 
     private void OnDestroy()
@@ -44,6 +78,11 @@ public sealed class GreyboxPauseExitRewardController : MonoBehaviour
         if (hudView != null)
         {
             hudView.PauseExitRequested -= HandlePauseExitRequested;
+        }
+        if (bootstrap != null)
+        {
+            bootstrap.Initialized -= BindPauseExit;
+            bootstrap.InitializationFailedEvent -= HandleInitializationFailed;
         }
 
         if (lifetimeCancellation == null)
@@ -89,7 +128,7 @@ public sealed class GreyboxPauseExitRewardController : MonoBehaviour
                 GameplayTerminationReason.PlayerSurrender,
                 GameplayFaultAttribution.Player,
                 bootstrap.Match.CurrentWave,
-                bootstrap.Match.Player.Resources,
+                bootstrap.Match.Player.HatchlingHealth,
                 bootstrap.Recruitment != null ? bootstrap.Recruitment.CompletedRecruitments : 0,
                 lifetimeCancellation.Token);
             await settlementCoordinator.ClaimGoldAsync(

@@ -22,7 +22,9 @@ namespace DragonBound.Tests.EditMode
         private const string BenchPath = "Assets/DragonBound/UI/Prefabs/Modules/Bench.prefab";
         private const string RecruitmentPath = "Assets/DragonBound/UI/Prefabs/Modules/Recruitment.prefab";
         private const string UnitCardPath = "Assets/DragonBound/UI/Prefabs/Components/UnitCard.prefab";
+        private const string EnemyCardPath = "Assets/DragonBound/UI/Prefabs/Components/EnemyCard.prefab";
         private const string HeroFormationPath = "Assets/DragonBound/UI/Prefabs/Components/HeroFormation.prefab";
+        private const string WeaponPanelHeroPath = "Assets/Resources/prefabs/Hero.prefab";
         private const string RangeOutlinePath = "Assets/DragonBound/UI/Art/Range/RangeOutlineThin.png";
         private const string BoardCellPath = "Assets/DragonBound/UI/Prefabs/Components/BoardCell.prefab";
         private const string BenchSlotPath = "Assets/DragonBound/UI/Prefabs/Components/BenchSlot.prefab";
@@ -147,6 +149,97 @@ namespace DragonBound.Tests.EditMode
 
         }
 
+        [TestCase(6, "BossW06")]
+        [TestCase(12, "BossW12")]
+        [TestCase(16, "BossW16")]
+        [TestCase(20, "BossW20")]
+        public void EnemyCardBindsTheAuthoredBossAnimationForItsSpawnWave(
+            int spawnWave,
+            string expectedControllerName)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EnemyCardPath);
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var view = instance.GetComponent<EnemyView>();
+                var animationImage = instance.transform
+                    .Find("ART_EnemyAnimation/Image")
+                    ?.GetComponent<Image>();
+                Assert.IsNotNull(view);
+                Assert.IsNotNull(animationImage);
+                var animator = animationImage.GetComponent<Animator>();
+                Assert.IsNotNull(animator);
+
+                view.Bind(new EnemyRuntime(
+                    "test.boss." + spawnWave,
+                    TeamSide.Player,
+                    100f,
+                    EnemyArchetype.Boss,
+                    1,
+                    "TEST_BOSS_" + spawnWave,
+                    spawnWave));
+
+                Assert.IsTrue(animationImage.enabled);
+                Assert.IsTrue(animator.enabled);
+                Assert.IsNotNull(animator.runtimeAnimatorController);
+                Assert.AreEqual(expectedControllerName, animator.runtimeAnimatorController.name);
+                Assert.IsNotEmpty(animator.runtimeAnimatorController.animationClips);
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
+
+        [TestCase("basic.axe_raider", "AXE")]
+        [TestCase("basic.twinaxe_berserker", "BERSERKER")]
+        [TestCase("basic.longbow_hunter", "BOW")]
+        [TestCase("basic.spear_raider", "SPEAR")]
+        public void UnitCardUsesOneShotPortraitAnimationForEachBasicUnit(
+            string configId,
+            string expectedControllerName)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(UnitCardPath);
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var portrait = instance.transform.Find("ART_UnitPortrait");
+                var view = instance.GetComponent<DraggableUnitView>();
+                Assert.IsNotNull(portrait);
+                Assert.IsNotNull(view);
+                Assert.AreSame(portrait.GetComponent<Animator>(), view.BasicAttackAnimator);
+
+                view.ConfigureBasicAttackAnimation(configId);
+
+                var controller = view.BasicAttackAnimator.runtimeAnimatorController;
+                Assert.IsNotNull(controller, configId);
+                Assert.AreEqual(expectedControllerName, controller.name);
+                Assert.IsNotEmpty(controller.animationClips);
+                Assert.IsTrue(controller.animationClips.All(clip => clip != null && !clip.isLooping));
+                Assert.AreEqual(0f, view.BasicAttackAnimator.speed, 0.0001f);
+                Assert.IsTrue(view.PlayBasicAttackAnimation());
+                Assert.AreEqual(1f, view.BasicAttackAnimator.speed, 0.0001f);
+                Assert.IsFalse(view.PlayBasicAttackAnimation(), "One attack must not restart twice in one frame.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
+
+        [Test]
+        public void BowAnimationReleasesAuthoredSwordProjectileAfterFrameSeventeen()
+        {
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Unit/road"));
+            var controller = Resources.Load<RuntimeAnimatorController>("Animation/UnitAni/BOW");
+            Assert.IsNotNull(controller);
+            var clip = controller.animationClips.Single(value => value.name == "BOW");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(clip)
+                .Single(value => value.functionName == "OnBowProjectileRelease");
+            Assert.AreEqual(17f / 60f, releaseEvent.time, 0.0001f);
+            Assert.IsFalse(clip.isLooping);
+        }
+
         [Test]
         public void HeroSlicePresentationUsesEditablePrefabHooks()
         {
@@ -166,7 +259,10 @@ namespace DragonBound.Tests.EditMode
             Assert.IsFalse(formationView.RuneImage.gameObject.activeSelf);
             Assert.IsNotNull(formationView.HeroAttackAnimator);
             Assert.AreEqual("ART_ComponentConnector", formationView.HeroAttackAnimator.name);
-            Assert.AreEqual(0f, formationView.HeroAttackAnimator.speed, 0.0001f);
+            var heroAnimationImage = formationView.HeroAttackAnimator.GetComponent<Image>();
+            Assert.IsNotNull(heroAnimationImage);
+            Assert.IsFalse(heroAnimationImage.raycastTarget);
+            Assert.IsTrue(heroAnimationImage.preserveAspect);
 
             var screen = AssetDatabase.LoadAssetAtPath<GameObject>(ScreenPath);
             var screenView = screen.GetComponent<DragonBoundScreenView>();
@@ -174,6 +270,32 @@ namespace DragonBound.Tests.EditMode
             {
                 Assert.IsNotNull(board.HeroPrefab);
                 Assert.IsNotNull(board.HeroFormationEffectPrefab);
+            }
+        }
+
+        [Test]
+        public void HeroFormationCanApplyAndRestoreAiHeroArtPosition()
+        {
+            var formation = AssetDatabase.LoadAssetAtPath<GameObject>(HeroFormationPath);
+            Assert.IsNotNull(formation);
+            var instance = Object.Instantiate(formation);
+            try
+            {
+                var formationView = instance.GetComponent<HeroFormationView>();
+                var heroArt = formationView.HeroAttackAnimator.GetComponent<RectTransform>();
+                var authoredPosition = heroArt.anchoredPosition;
+
+                formationView.SetHeroArtAnchoredPositionX(13f);
+                Assert.AreEqual(13f, heroArt.anchoredPosition.x, 0.001f);
+                Assert.AreEqual(authoredPosition.y, heroArt.anchoredPosition.y, 0.001f);
+
+                formationView.SetHeroArtAnchoredPositionX(null);
+                Assert.AreEqual(authoredPosition.x, heroArt.anchoredPosition.x, 0.001f);
+                Assert.AreEqual(authoredPosition.y, heroArt.anchoredPosition.y, 0.001f);
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
             }
         }
 
@@ -218,13 +340,25 @@ namespace DragonBound.Tests.EditMode
             }
         }
 
+        [Test]
+        public void WeaponPanelHeroAuthorsHiddenRuneImage()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(WeaponPanelHeroPath);
+            Assert.IsNotNull(prefab);
+
+            Transform weapon = prefab.transform.Find("weapon");
+            Assert.IsNotNull(weapon);
+            Assert.IsFalse(weapon.gameObject.activeSelf);
+            Assert.IsNotNull(weapon.GetComponent<Image>());
+        }
+
         [TestCase(DragonBoundHeroIds.WindclawRanger, "Animation/Windclaw Ranger")]
         [TestCase(DragonBoundHeroIds.EmberShaman, "Animation/Ember Shaman")]
         [TestCase(DragonBoundHeroIds.RuneboltMage, "Animation/Runebolt Mage")]
         [TestCase(DragonBoundHeroIds.Stonebinder, "Animation/Stonebound Warlock")]
         [TestCase(DragonBoundHeroIds.CrownSwordLeader, "Animation/Oathcrown Blademaster")]
         [TestCase(DragonBoundHeroIds.CrownHunterLeader, "Animation/Frostcrown Hunter")]
-        [TestCase(DragonBoundHeroIds.DragonRider, "Animation/Flame Drake Rider ")]
+        [TestCase(DragonBoundHeroIds.DragonRider, "Animation/Flame Drake Rider")]
         [TestCase(DragonBoundHeroIds.StarfallArchmage, "Animation/Starfall Archmage")]
         [TestCase(DragonBoundHeroIds.ThunderJarl, "Animation/Thunderlord")]
         [TestCase(DragonBoundHeroIds.NightfangAssassin, "Animation/Nightfang Assassin")]
@@ -254,11 +388,338 @@ namespace DragonBound.Tests.EditMode
 
                 view.ObserveAttackSequence(1);
                 Assert.AreEqual(1f, view.HeroAttackAnimator.speed, 0.0001f);
+
+                view.SetHeroArtVisible(false);
+                Assert.IsFalse(view.HeroAttackAnimator.gameObject.activeSelf);
+                view.SetHeroArtVisible(true);
+                Assert.IsTrue(view.HeroAttackAnimator.gameObject.activeSelf);
+                Assert.AreEqual(0f, view.HeroAttackAnimator.speed, 0.0001f);
             }
             finally
             {
                 Object.DestroyImmediate(instance);
             }
+        }
+
+        [Test]
+        public void WindclawPowerShotKeepsSkillControllerWhenAttackSequenceRefreshesSameFrame()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HeroFormationPath);
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var view = instance.GetComponent<HeroFormationView>();
+                view.SetHeroAnimation(DragonBoundHeroIds.WindclawRanger);
+                view.ObserveAttackSequence(0);
+
+                Assert.IsTrue(view.PlayAttackAnimation(true));
+                var skillController = Resources.Load<RuntimeAnimatorController>(
+                    "Animation/Windclaw Ranger s");
+                Assert.AreSame(skillController, view.HeroAttackAnimator.runtimeAnimatorController);
+
+                view.ObserveAttackSequence(1);
+                Assert.AreSame(
+                    skillController,
+                    view.HeroAttackAnimator.runtimeAnimatorController,
+                    "LateUpdate attack observation must not overwrite the power-shot animation.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
+
+        [Test]
+        public void WindclawSkillAnimationExposesTenthFrameReleaseEvent()
+        {
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Windclaw Ranger/road"));
+            var controller = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Windclaw Ranger s");
+            Assert.IsNotNull(controller);
+            var clip = controller.animationClips.Single(value => value.name == "Windclaw Ranger s");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(clip)
+                .Single(value => value.functionName == "OnWindclawSkillRelease");
+            Assert.AreEqual(10f / 60f, releaseEvent.time, 0.0001f);
+            Assert.IsFalse(clip.isLooping);
+        }
+
+        [Test]
+        public void EmberShamanAttackExposesThirteenthFrameFireballEvent()
+        {
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Ember Shaman/road"));
+            var controller = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Ember Shaman");
+            Assert.IsNotNull(controller);
+            var clip = controller.animationClips.Single(value => value.name == "Ember Shaman");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(clip)
+                .Single(value => value.functionName == "OnEmberShamanFireballRelease");
+            Assert.AreEqual(13f / 60f, releaseEvent.time, 0.0001f);
+            Assert.IsFalse(clip.isLooping);
+        }
+
+        [Test]
+        public void RuneboltMageAttackExposesFourteenthFrameBoltEvent()
+        {
+            var attackController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Runebolt Mage");
+            var boltController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Runebolt MageBoom");
+            Assert.IsNotNull(attackController);
+            Assert.IsNotNull(boltController);
+            var attackClip = attackController.animationClips
+                .Single(value => value.name == "Runebolt Mage");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(attackClip)
+                .Single(value => value.functionName == "OnRuneboltMageBoltRelease");
+            Assert.AreEqual(14f / 60f, releaseEvent.time, 0.0001f);
+            Assert.IsFalse(attackClip.isLooping);
+            Assert.IsTrue(boltController.animationClips.Any(value =>
+                value != null && value.name == "Runebolt MageBoom"));
+        }
+
+        [Test]
+        public void StoneboundWarlockAttackExposesFourteenthFrameRockEvent()
+        {
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Stonebound Warlock/rood"));
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Stonebound Warlock/roodS"));
+            var controller = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Stonebound Warlock");
+            Assert.IsNotNull(controller);
+            var clip = controller.animationClips
+                .Single(value => value.name == "Stonebound Warlock");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(clip)
+                .Single(value =>
+                    value.functionName == "OnStoneboundWarlockRockRelease");
+            Assert.AreEqual(14f / 60f, releaseEvent.time, 0.0001f);
+            Assert.IsFalse(clip.isLooping);
+        }
+
+        [Test]
+        public void ThunderlordAttackExposesTenthFrameChainEventAndThreeSprites()
+        {
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Thunderlord/road/Main"));
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Thunderlord/road/Froad"));
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Thunderlord/road/Sroad"));
+            var controller = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Thunderlord");
+            Assert.IsNotNull(controller);
+            var clip = controller.animationClips.Single(value => value.name == "Thunderlord");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(clip)
+                .Single(value => value.functionName == "OnThunderlordChainRelease");
+            Assert.AreEqual(10f / 60f, releaseEvent.time, 0.0001f);
+            Assert.IsFalse(clip.isLooping);
+        }
+
+        [Test]
+        public void ThunderlordSkillExposesTenthFrameReleaseAndAuthoredExplosion()
+        {
+            var skillController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/ThunderlordStartUp");
+            Assert.IsNotNull(skillController);
+            var skillClip = skillController.animationClips
+                .Single(value => value.name == "ThunderlordStartUp");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(skillClip)
+                .Single(value => value.functionName == "OnThunderlordSkillRelease");
+            Assert.AreEqual(10f / 60f, releaseEvent.time, 0.0001f);
+            Assert.IsFalse(skillClip.isLooping);
+
+            var explosionController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/ThunderlordBoom");
+            Assert.IsNotNull(explosionController);
+            Assert.IsTrue(explosionController.animationClips
+                .Any(value => value != null && value.name == "ThunderlordBoom"));
+        }
+
+        [Test]
+        public void AbyssalHarpoonerAttackExposesSixteenthFrameHarpoonEventAndSprites()
+        {
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Abyssal Harpooner/road"));
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Abyssal Harpooner/boom"));
+
+            var controller = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Abyssal Harpooner");
+            Assert.IsNotNull(controller);
+            var clip = controller.animationClips
+                .Single(value => value.name == "Abyssal Harpooner");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(clip)
+                .Single(value => value.functionName == "OnAbyssalHarpoonRelease");
+            Assert.AreEqual(16f / 60f, releaseEvent.time, 0.0001f);
+            Assert.IsFalse(clip.isLooping);
+        }
+
+        [Test]
+        public void AbyssalHarpoonerSkillUsesOwnControllerAndReleasesAfterFifteenthFrame()
+        {
+            Assert.AreEqual(
+                "Animation/Abyssal HarpoonerStartUp",
+                HeroAnimationControllerCatalog.GetSkillResourcePath(
+                    DragonBoundHeroIds.LeviathanHunter));
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Abyssal Harpooner/start"));
+
+            var controller = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Abyssal HarpoonerStartUp");
+            Assert.IsNotNull(controller);
+            var clip = controller.animationClips
+                .Single(value => value.name == "AbyssalHarpoonerStartUp");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(clip)
+                .Single(value => value.functionName == "OnAbyssalHarpoonSkillRelease");
+            Assert.AreEqual(15f / 60f, releaseEvent.time, 0.0001f);
+            Assert.IsFalse(clip.isLooping);
+        }
+
+        [Test]
+        public void FlameDrakeRiderDiveAnimationIsAuthoredAsOneShot()
+        {
+            var controller = Resources.Load<RuntimeAnimatorController>("Animation/Flame Drake Rider S");
+            Assert.IsNotNull(controller);
+            Assert.IsNotEmpty(controller.animationClips);
+            Assert.IsTrue(controller.animationClips.All(clip => clip != null && !clip.isLooping));
+        }
+
+        [Test]
+        public void FlameDrakeFireballAndExplosionAnimationsExposeAuthoredTimingEvents()
+        {
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Flame Drake Rider/Sroad"));
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Flame Drake Rider/road"));
+
+            var attackController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Flame Drake Rider");
+            Assert.IsNotNull(attackController);
+            var attackClip = attackController.animationClips
+                .Single(clip => clip.name == "Flame Drake Rider");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(attackClip)
+                .Single(animationEvent =>
+                    animationEvent.functionName == "OnFlameDrakeFireballRelease");
+            Assert.AreEqual(0.25f, releaseEvent.time, 0.0001f);
+
+            var skillAttackController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Flame Drake Rider S");
+            Assert.IsNotNull(skillAttackController);
+            var skillAttackClip = skillAttackController.animationClips
+                .Single(clip => clip.name == "Flame Drake Rider S");
+            Assert.AreEqual(
+                0.25f,
+                AnimationUtility.GetAnimationEvents(skillAttackClip)
+                    .Single(animationEvent =>
+                        animationEvent.functionName == "OnFlameDrakeFireballRelease").time,
+                0.0001f);
+
+            var explosionController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Flame Drake Rider Boom");
+            Assert.IsNotNull(explosionController);
+            var explosionClip = explosionController.animationClips
+                .Single(clip => clip.name == "Flame Drake Rider Boom");
+            var explosionEvents = AnimationUtility.GetAnimationEvents(explosionClip);
+            CollectionAssert.AreEquivalent(
+                new[] { "OnDamageFrame", "OnAnimationEnd" },
+                explosionEvents.Select(animationEvent => animationEvent.functionName).ToArray());
+            Assert.IsFalse(explosionClip.isLooping);
+
+            var skillExplosionController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/FlameDrakeRiderBoomS");
+            Assert.IsNotNull(skillExplosionController);
+            var skillExplosionClip = skillExplosionController.animationClips
+                .Single(clip => clip.name == "FlameDrakeRiderBoomS");
+            CollectionAssert.AreEquivalent(
+                new[] { "OnDamageFrame", "OnAnimationEnd" },
+                AnimationUtility.GetAnimationEvents(skillExplosionClip)
+                    .Select(animationEvent => animationEvent.functionName).ToArray());
+            Assert.IsFalse(skillExplosionClip.isLooping);
+
+            var burningGroundController = Resources.Load<RuntimeAnimatorController>("Animation/boomBoard");
+            Assert.IsNotNull(burningGroundController);
+            Assert.IsTrue(burningGroundController.animationClips.All(clip => clip.isLooping));
+        }
+
+        [Test]
+        public void SkyborneValkyrieArrowAndExplosionExposeAuthoredTimingEvents()
+        {
+            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Skyborne Valkyrie/road"));
+
+            var attackController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Skyborne Valkyrie");
+            Assert.IsNotNull(attackController);
+            var attackClip = attackController.animationClips
+                .Single(clip => clip.name == "Skyborne Valkyrie");
+            var releaseEvent = AnimationUtility.GetAnimationEvents(attackClip)
+                .Single(animationEvent =>
+                    animationEvent.functionName == "OnSkyborneValkyrieArrowRelease");
+            Assert.AreEqual(13f / 60f, releaseEvent.time, 0.0001f);
+            Assert.IsFalse(attackClip.isLooping);
+
+            var explosionController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/SkyborneValkyrieBoom");
+            Assert.IsNotNull(explosionController);
+            var explosionClip = explosionController.animationClips
+                .Single(clip => clip.name == "SkyborneValkyrieBoom");
+            CollectionAssert.AreEquivalent(
+                new[] { "OnDamageFrame", "OnAnimationEnd" },
+                AnimationUtility.GetAnimationEvents(explosionClip)
+                    .Select(animationEvent => animationEvent.functionName).ToArray());
+            Assert.IsFalse(explosionClip.isLooping);
+        }
+
+        [Test]
+        public void StarfallArchmageGemAndSkillExplosionExposeAuthoredTimingEvents()
+        {
+            Assert.IsNotNull(Resources.Load<Sprite>(
+                "VFX/Starfall Archmage/road/微信图片_20260831170133_175_101"));
+
+            var normalController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/Starfall Archmage");
+            var skillController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/StarfallArchmageStartUP");
+            Assert.IsNotNull(normalController);
+            Assert.IsNotNull(skillController);
+            foreach (var clip in normalController.animationClips.Concat(skillController.animationClips))
+            {
+                var releaseEvent = AnimationUtility.GetAnimationEvents(clip)
+                    .Single(animationEvent =>
+                        animationEvent.functionName == "OnStarfallArchmageGemRelease");
+                Assert.AreEqual(0.25f, releaseEvent.time, 0.0001f);
+                Assert.IsFalse(clip.isLooping);
+            }
+
+            var explosionController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/StarfallArchmageBoom");
+            Assert.IsNotNull(explosionController);
+            var explosionClip = explosionController.animationClips
+                .Single(clip => clip.name == "StarfallArchmageBoom");
+            CollectionAssert.AreEquivalent(
+                new[] { "OnDamageFrame", "OnAnimationEnd" },
+                AnimationUtility.GetAnimationEvents(explosionClip)
+                    .Select(animationEvent => animationEvent.functionName).ToArray());
+            Assert.IsFalse(explosionClip.isLooping);
+        }
+
+        [Test]
+        public void NightfangSkillStartupAndExplosionExposeSynchronizedTimingEvents()
+        {
+            var startupController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/NightfangAssassinStartUp");
+            Assert.IsNotNull(startupController);
+            var startupClip = startupController.animationClips
+                .Single(clip => clip.name == "NightfangAssassinStartUp");
+            var startupEnd = AnimationUtility.GetAnimationEvents(startupClip)
+                .Single(animationEvent =>
+                    animationEvent.functionName == "OnNightfangSkillAnimationEnd");
+            Assert.AreEqual(23f / 60f, startupEnd.time, 0.0001f);
+            Assert.IsFalse(startupClip.isLooping);
+
+            var explosionController = Resources.Load<RuntimeAnimatorController>(
+                "Animation/NightfangAssassinBoom");
+            Assert.IsNotNull(explosionController);
+            var explosionClip = explosionController.animationClips
+                .Single(clip => clip.name == "NightfangAssassinBoom");
+            var explosionEvents = AnimationUtility.GetAnimationEvents(explosionClip);
+            CollectionAssert.AreEquivalent(
+                new[] { "OnDamageFrame", "OnAnimationEnd" },
+                explosionEvents.Select(animationEvent => animationEvent.functionName).ToArray());
+            Assert.AreEqual(
+                0.2f,
+                explosionEvents.Single(animationEvent =>
+                    animationEvent.functionName == "OnDamageFrame").time,
+                0.0001f);
+            Assert.IsFalse(explosionClip.isLooping);
         }
 
         [Test]
@@ -428,6 +889,25 @@ namespace DragonBound.Tests.EditMode
                 Assert.AreEqual(ScreenPath, PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(screenView.gameObject));
                 Assert.AreSame(canvas, screenView.PlayerBoardView.Canvas);
                 Assert.AreSame(canvas, screenView.AiBoardView.Canvas);
+                foreach (var battlefield in new[]
+                         {
+                             screenView.PlayerBattlefieldView,
+                             screenView.AiBattlefieldView
+                         })
+                {
+                    var combatFx = battlefield.GetComponent<CombatFxView>();
+                    Assert.IsNotNull(combatFx);
+                    var serializedCombatFx = new SerializedObject(combatFx);
+                    var diveTemplate = serializedCombatFx
+                        .FindProperty("ART_FlameDrakeRiderDive")
+                        .objectReferenceValue as Image;
+                    Assert.IsNotNull(diveTemplate);
+                    Assert.AreEqual("Flame Drake Rider S", diveTemplate.name);
+                    Assert.IsFalse(diveTemplate.gameObject.activeSelf);
+                    Assert.IsFalse(diveTemplate.raycastTarget);
+                    Assert.IsTrue(diveTemplate.preserveAspect);
+                    Assert.IsNotNull(diveTemplate.GetComponent<Animator>()?.runtimeAnimatorController);
+                }
             }
             finally
             {

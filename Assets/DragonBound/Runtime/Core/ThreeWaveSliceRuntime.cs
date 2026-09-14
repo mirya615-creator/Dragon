@@ -40,6 +40,7 @@ namespace DragonBound.Core
         private readonly PressureRaceSideRuntime ai;
         private readonly WaveDefinition[] waves;
         private float waveElapsed;
+        private float elapsedRunTime;
         private int waveIndex = -1;
         private int lastElapsedLogSecond;
         private bool finalWaveEnded;
@@ -57,6 +58,14 @@ namespace DragonBound.Core
                 "Player", "ThreeWave", TeamSide.Player, match.Player, playerDestination, Emit, RaiseCombatEvent);
             ai = new PressureRaceSideRuntime(
                 "AI", "ThreeWave", TeamSide.AI, match.AI, aiDestination, Emit, RaiseCombatEvent);
+            player.EnemyLifecycleEmitted += value => PlayerEnemyLifecycleEmitted?.Invoke(value);
+            ai.EnemyLifecycleEmitted += value => AiEnemyLifecycleEmitted?.Invoke(value);
+            player.EnemyGoalResolved += value => PlayerEnemyGoalResolved?.Invoke(value);
+            ai.EnemyGoalResolved += value => AiEnemyGoalResolved?.Invoke(value);
+            player.EnemyKillResolved += value => PlayerEnemyKillResolved?.Invoke(value);
+            ai.EnemyKillResolved += value => AiEnemyKillResolved?.Invoke(value);
+            player.HeroExperienceResolved += value => PlayerHeroExperienceResolved?.Invoke(value);
+            ai.HeroExperienceResolved += value => AiHeroExperienceResolved?.Invoke(value);
         }
 
         public bool IsComplete { get; private set; }
@@ -64,6 +73,7 @@ namespace DragonBound.Core
         public ThreeWaveEnemyDurabilityProfile DurabilityProfile { get; }
         public int CurrentWave => waveIndex < 0 ? 0 : waveIndex + 1;
         public float WaveElapsedSeconds => waveElapsed;
+        public float ElapsedRunTime => elapsedRunTime;
         public float WaveDurationSeconds => waveIndex < 0 ? 0f : waves[waveIndex].DurationSeconds;
         public float WaveRemainingSeconds => Mathf.Max(0f, WaveDurationSeconds - waveElapsed);
         public string LastEvent { get; private set; } = "NONE";
@@ -97,6 +107,16 @@ namespace DragonBound.Core
         }
 
         public event Action<CombatEvent> CombatEmitted;
+        public event Action<EnemyLifecycleEvent> PlayerEnemyLifecycleEmitted;
+        public event Action<EnemyLifecycleEvent> AiEnemyLifecycleEmitted;
+        public event Action<EnemyGoalResolvedEvent> PlayerEnemyGoalResolved;
+        public event Action<EnemyGoalResolvedEvent> AiEnemyGoalResolved;
+        public event Action<EnemyKillResolvedEvent> PlayerEnemyKillResolved;
+        public event Action<EnemyKillResolvedEvent> AiEnemyKillResolved;
+        public event Action<HeroExperienceResolvedEvent> PlayerHeroExperienceResolved;
+        public event Action<HeroExperienceResolvedEvent> AiHeroExperienceResolved;
+        public event Action<int> WaveStarted;
+        public event Action<int, float> WaveFinished;
 
         public void Tick(float deltaSeconds)
         {
@@ -111,6 +131,7 @@ namespace DragonBound.Core
             }
 
             waveElapsed += deltaSeconds;
+            elapsedRunTime += deltaSeconds;
             LogElapsedSeconds();
             player.Tick(deltaSeconds, CurrentWave);
             ai.Tick(deltaSeconds, CurrentWave);
@@ -142,6 +163,7 @@ namespace DragonBound.Core
                 definition.DurationSeconds,
                 BuildSpawns(definition, waveNumber, ai.TotalGenerated));
             match.SetCurrentWave(waveNumber);
+            WaveStarted?.Invoke(waveNumber);
             Emit(
                 $"WaveStarted Wave={waveNumber} DurationSeconds={definition.DurationSeconds:0} " +
                 $"RemainingSeconds={definition.DurationSeconds:0}");
@@ -184,6 +206,7 @@ namespace DragonBound.Core
         {
             player.RecordResidual(CurrentWave);
             ai.RecordResidual(CurrentWave);
+            WaveFinished?.Invoke(CurrentWave, waveElapsed);
             Emit(
                 $"WaveFinished Wave={CurrentWave} ElapsedSeconds={Mathf.RoundToInt(waveElapsed)} " +
                 $"RemainingSeconds=0 Residual={player.Remaining + ai.Remaining}");

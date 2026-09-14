@@ -67,3 +67,15 @@ crashlytics-build.properties
 # VS config file
 .vsconfig
 
+# Codex / CodeBuddy editor index cache (数百MB, 本地专用)
+.codely-cli/
+.codely/clipboard/
+.com-unity-codely.json
+
+# Firebase 非目标平台原生库 (macOS/Linux)
+# 本项目 Windows 开发 + Android 出货, 这两个平台用不到, 且体积逼近 GitHub 100MB 硬限
+Assets/Firebase/Plugins/x86_64/*.bundle
+Assets/Firebase/Plugins/x86_64/*.bundle.meta
+Assets/Firebase/Plugins/x86_64/*.so
+Assets/Firebase/Plugins/x86_64/*.so.meta
+

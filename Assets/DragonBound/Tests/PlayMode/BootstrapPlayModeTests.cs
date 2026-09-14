@@ -5,11 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using DragonBound.AI;
 using DragonBound.Bootstrap;
+using DragonBound.Combat;
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Presentation;
 using DragonBound.Recruitment;
 using DragonBound.Services;
+using DragonBound.UI;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -42,6 +44,89 @@ namespace DragonBound.Tests.PlayMode
                     "A rune mage whose attacks pierce through enemies in a straight line."));
         }
 
+        [Test]
+        public void FormerVerticalHeroGallerySummaryUsesLeftAndRightComponents()
+        {
+            var recipe = HeroRecipeCatalog.Get(DragonBoundHeroIds.WindclawRanger);
+
+            Assert.AreEqual(
+                "Left: Sky Ranger  Right: Baby Dragon\nWindclaw skill",
+                CampPanelView.BuildHeroSummary(
+                    recipe,
+                    "Sky Ranger",
+                    "Baby Dragon",
+                    "Windclaw skill"));
+        }
+
+        [UnityTest]
+        public IEnumerator LoginToMainKeepsOneEventSystemAndDedicatedAnalyticsHost()
+        {
+            SceneManager.LoadScene("Login", LoadSceneMode.Single);
+
+            var loginSystems = Object.FindObjectsOfType<EventSystem>(true)
+                .Where(value => value != null && value.isActiveAndEnabled)
+                .ToArray();
+            Assert.AreEqual(1, loginSystems.Length);
+            var analyticsHost = GameObject.Find("AnalyticsBootstrap");
+            Assert.IsNotNull(analyticsHost);
+            Assert.IsNull(analyticsHost.GetComponent<EventSystem>());
+            Assert.IsNotNull(analyticsHost.GetComponent("FirebaseAnalyticsBootstrap"));
+
+            SceneManager.LoadScene("Main", LoadSceneMode.Single);
+            yield return null;
+
+            var mainSystems = Object.FindObjectsOfType<EventSystem>(true)
+                .Where(value => value != null && value.isActiveAndEnabled)
+                .ToArray();
+            Assert.AreEqual(1, mainSystems.Length);
+            Assert.AreSame(analyticsHost, GameObject.Find("AnalyticsBootstrap"));
+            Assert.AreEqual("DontDestroyOnLoad", analyticsHost.scene.name);
+        }
+
+        [UnityTest]
+        public IEnumerator LoginConfirmationTipUsesSharedTipTextPrefabPresentation()
+        {
+            SceneManager.LoadScene("Login", LoadSceneMode.Single);
+            yield return null;
+
+            var canvas = GameObject.Find("Canvas");
+            Assert.IsNotNull(canvas);
+            var tip = canvas.transform.Find(
+                "SafeArea/MainPanel/GoogleConfirmPanel/TipText");
+            Assert.IsNotNull(tip);
+            Assert.IsNotNull(tip.GetComponent("TipTextController"));
+            Assert.IsNotNull(tip.GetComponent<Image>());
+            Assert.IsNotNull(tip.Find("Text"));
+        }
+
+        [UnityTest]
+        public IEnumerator MainTipsUseSharedPrefabAndDisappearAfterThreeSeconds()
+        {
+            SceneManager.LoadScene("Main", LoadSceneMode.Single);
+            yield return null;
+
+            var legacyTips = Object.FindObjectsOfType<Transform>(true)
+                .Where(value =>
+                    value != null &&
+                    value.gameObject.scene.name == "Main" &&
+                    value.name == "TipText" &&
+                    value.GetComponent<TipTextController>() == null)
+                .ToArray();
+            Assert.IsTrue(legacyTips.All(value => !value.gameObject.activeSelf));
+
+            TipTextService.Show("Main tip presentation test");
+            yield return null;
+
+            var tipController = Object.FindObjectOfType<TipTextController>(true);
+            Assert.IsNotNull(tipController);
+            Assert.IsTrue(tipController.gameObject.activeSelf);
+            Assert.IsNotNull(tipController.GetComponent<Image>());
+            Assert.IsNotNull(tipController.transform.Find("Text"));
+
+            yield return new WaitForSecondsRealtime(3.1f);
+            Assert.IsFalse(tipController.gameObject.activeSelf);
+        }
+
         [UnityTest]
         public IEnumerator CampDeckPartInitializesFromCurrentScreenHierarchy()
         {
@@ -52,6 +137,325 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsNotNull(screen.CampPanelView);
             Assert.AreEqual(4, screen.CampPanelView.UnitEntryCount);
             Assert.AreEqual(18, screen.CampPanelView.ComponentEntryCount);
+        }
+
+        [UnityTest]
+        public IEnumerator GameplayHudUsesSharedTipPrefabWithoutBossTextNotifications()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var screen = FindScreen();
+            var legacyTip = screen.transform.Find("TipText");
+            Assert.IsNotNull(legacyTip);
+            Assert.IsFalse(legacyTip.gameObject.activeSelf);
+
+            var hudType = typeof(GreyboxHudView);
+            const System.Reflection.BindingFlags privateInstance =
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic;
+            Assert.IsNull(hudType.GetMethod("ShowBossTip", privateInstance));
+            Assert.IsNull(hudType.GetMethod("HandleSoulChainCast", privateInstance));
+            Assert.IsNull(hudType.GetMethod("HandleStormcallerCast", privateInstance));
+            Assert.IsNull(hudType.GetMethod("HandleBloodcrownLifecycle", privateInstance));
+            Assert.IsNull(hudType.GetMethod("HandleWorldeaterCast", privateInstance));
+
+            var showTip = hudType.GetMethod("ShowTip", privateInstance);
+            Assert.IsNotNull(showTip);
+            showTip.Invoke(screen.OverlayController, new object[] { "Gameplay tip test" });
+            yield return null;
+
+            var sharedTip = Object.FindObjectOfType<TipTextController>(true);
+            Assert.IsNotNull(sharedTip);
+            Assert.IsTrue(sharedTip.gameObject.activeSelf);
+            TipTextService.Hide();
+        }
+
+        [UnityTest]
+        public IEnumerator RiverTracksActualBattlefieldEdgesWithoutMovingMaps()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+            yield return null;
+
+            var screen = FindScreen();
+            var safeAreaRoot = GameObject.Find("SafeAreaRoot")?.transform as RectTransform;
+            var river = GameObject.Find("RIVER")?.transform as RectTransform;
+            var topAnchor = screen.transform.Find(
+                "ART_ScreenBackground/AiBattlefield/RiverTopAnchor") as RectTransform;
+            var bottomAnchor = screen.transform.Find(
+                "ART_ScreenBackground/PlayerBattlefield/RiverBottomAnchor") as RectTransform;
+
+            Assert.IsNotNull(safeAreaRoot);
+            Assert.IsNotNull(river);
+            Assert.IsNotNull(topAnchor);
+            Assert.IsNotNull(bottomAnchor);
+            Assert.AreEqual(174f, river.rect.height, 0.1f);
+            Assert.AreEqual(1080f, river.rect.width, 0.1f);
+
+            var topBattlefield = topAnchor.parent as RectTransform;
+            var bottomBattlefield = bottomAnchor.parent as RectTransform;
+            Assert.IsNotNull(topBattlefield);
+            Assert.IsNotNull(bottomBattlefield);
+            var topPosition = topBattlefield.anchoredPosition;
+            var bottomPosition = bottomBattlefield.anchoredPosition;
+            var topScale = topBattlefield.localScale;
+            var bottomScale = bottomBattlefield.localScale;
+            river.gameObject.SendMessage("Refresh", SendMessageOptions.RequireReceiver);
+
+            var riverY = safeAreaRoot.InverseTransformPoint(river.position).y;
+            var corners = new Vector3[4];
+            topBattlefield.GetWorldCorners(corners);
+            var topBottomY = corners.Min(corner => safeAreaRoot.InverseTransformPoint(corner).y);
+            bottomBattlefield.GetWorldCorners(corners);
+            var bottomTopY = corners.Max(corner => safeAreaRoot.InverseTransformPoint(corner).y);
+            Assert.AreEqual(((topBottomY + bottomTopY) * 0.5f) + 5f, riverY, 0.1f);
+            Assert.AreEqual(topPosition, topBattlefield.anchoredPosition);
+            Assert.AreEqual(bottomPosition, bottomBattlefield.anchoredPosition);
+            Assert.AreEqual(topScale, topBattlefield.localScale);
+            Assert.AreEqual(bottomScale, bottomBattlefield.localScale);
+        }
+
+        [UnityTest]
+        public IEnumerator BeachDragShowsSourceTargetAndAuthoredRoadUntilDrop()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var bootstrap = FindBootstrap();
+            var result = bootstrap.Recruitment.TryRecruit();
+            Assert.AreEqual(RecruitmentStatus.Success, result.Status);
+            bootstrap.BoardView.RefreshUnits();
+            yield return null;
+
+            var beachContainer = FindScreen().transform.Find("ART_ScreenBackground/BeachContainer");
+            Assert.IsNotNull(beachContainer);
+            var beachSelections = beachContainer
+                .GetComponentsInChildren<Transform>(true)
+                .Where(value =>
+                    value.name == "Select" &&
+                    value.parent != null &&
+                    value.parent.name.StartsWith("ImgBg"))
+                .ToArray();
+            Assert.AreEqual(5, beachSelections.Length);
+            Assert.IsTrue(beachSelections.All(value => !value.gameObject.activeSelf));
+
+            var beachCard = result.Batch.Cards.First(card => card.Kind == RecruitItemKind.BasicUnit);
+            Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(beachCard.RuntimeId, out var origin));
+            Assert.AreEqual(CellType.Bench, GetCellType(bootstrap.PlayerBoard, origin));
+            var target = bootstrap.PlayerBoard.GetPositions(CellType.Battle)[0];
+            var targetCell = bootstrap.BoardView.GetCellView(target);
+            var targetScreenPosition = RectTransformUtility.WorldToScreenPoint(
+                null,
+                targetCell.ContentAnchor.position);
+
+            Assert.IsTrue(bootstrap.BoardView.BeginDrag(beachCard.RuntimeId));
+            Assert.AreEqual(1, bootstrap.BoardView.VisibleBeachSelectionCount);
+            Assert.IsFalse(bootstrap.BoardView.IsBoardSelectVisible);
+            var activeBeachSelection = beachSelections.Single(
+                value => value.gameObject.activeSelf);
+            Assert.AreSame(
+                Resources.Load<Sprite>("GameUI/BeachSelect"),
+                activeBeachSelection.GetComponent<Image>().sprite);
+
+            bootstrap.BoardView.UpdateDraggedUnit(beachCard.RuntimeId, targetScreenPosition);
+            Assert.IsTrue(bootstrap.BoardView.IsBoardSelectVisible);
+            var boardSelection = targetCell.ContentAnchor.Find("BoardSelect");
+            Assert.IsNotNull(boardSelection);
+            Assert.AreSame(
+                Resources.Load<Sprite>("GameUI/BoardSelect"),
+                boardSelection.GetComponent<Image>().sprite);
+            Assert.IsTrue(bootstrap.BoardView.IsDragArrowVisible);
+            Assert.IsTrue(bootstrap.BoardView.RangePreview.gameObject.activeSelf);
+            Assert.IsTrue(bootstrap.BoardView.RangePreview.enabled);
+            Assert.AreSame(
+                Resources.Load<Sprite>("GameUI/SlectRoad"),
+                bootstrap.BoardView.DragPathSprite);
+            var expectedRange = BasicUnitCatalog
+                .GetStats(beachCard.ConfigId, beachCard.Level)
+                .RangeCells;
+            var expectedDiameter = Mathf.Min(
+                                       targetCell.RectTransform.rect.width,
+                                       targetCell.RectTransform.rect.height) *
+                                   expectedRange *
+                                   2f;
+            Assert.AreEqual(
+                expectedDiameter,
+                bootstrap.BoardView.RangePreview.rectTransform.sizeDelta.x,
+                0.01f);
+            Assert.Less(
+                Vector3.Distance(
+                    targetCell.ContentAnchor.position,
+                    bootstrap.BoardView.RangePreview.rectTransform.position),
+                0.01f);
+
+            bootstrap.BoardView.UpdateDraggedUnit(
+                beachCard.RuntimeId,
+                new Vector2(-10000f, -10000f));
+            Assert.IsTrue(
+                bootstrap.BoardView.IsBoardSelectVisible,
+                "Leaving valid cells must retain the last valid map selection.");
+            Assert.AreSame(targetCell.ContentAnchor, boardSelection.parent);
+            Assert.IsFalse(bootstrap.BoardView.IsDragArrowVisible);
+            Assert.IsFalse(bootstrap.BoardView.RangePreview.gameObject.activeSelf);
+
+            bootstrap.BoardView.CompleteDrag(beachCard.RuntimeId, targetScreenPosition);
+            Assert.AreEqual(0, bootstrap.BoardView.VisibleBeachSelectionCount);
+            Assert.IsFalse(bootstrap.BoardView.IsBoardSelectVisible);
+            Assert.IsFalse(bootstrap.BoardView.IsDragArrowVisible);
+            Assert.IsFalse(bootstrap.BoardView.RangePreview.gameObject.activeSelf);
+
+            var cancelledCard = result.Batch.Cards
+                .Where(card => card.Kind == RecruitItemKind.BasicUnit)
+                .Skip(1)
+                .First();
+            Assert.IsTrue(bootstrap.BoardView.BeginDrag(cancelledCard.RuntimeId));
+            bootstrap.BoardView.UpdateDraggedUnit(
+                cancelledCard.RuntimeId,
+                new Vector2(-10000f, -10000f));
+            Assert.AreEqual(1, bootstrap.BoardView.VisibleBeachSelectionCount);
+            Assert.IsFalse(bootstrap.BoardView.IsBoardSelectVisible);
+            Assert.IsFalse(bootstrap.BoardView.IsDragArrowVisible);
+            Assert.IsFalse(bootstrap.BoardView.RangePreview.gameObject.activeSelf);
+
+            bootstrap.BoardView.CancelActiveDrag();
+            Assert.AreEqual(0, bootstrap.BoardView.VisibleBeachSelectionCount);
+            Assert.IsFalse(bootstrap.BoardView.IsBoardSelectVisible);
+            Assert.IsFalse(bootstrap.BoardView.RangePreview.gameObject.activeSelf);
+        }
+
+        [UnityTest]
+        public IEnumerator GoalHealthViewsHideLostHeartsAndCloneHealthBeyondThree()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var bootstrap = FindBootstrap();
+            var screen = FindScreen();
+            var playerView = screen.PlayerGoalHealthView;
+            var aiView = screen.AiGoalHealthView;
+
+            Assert.IsNotNull(playerView);
+            Assert.IsNotNull(aiView);
+            Assert.AreEqual(3, playerView.HeartCount);
+            Assert.AreEqual(3, playerView.VisibleHeartCount);
+            Assert.AreEqual(3, aiView.VisibleHeartCount);
+
+            var playerLayout = playerView.GetComponent<GridLayoutGroup>();
+            var aiLayout = aiView.GetComponent<GridLayoutGroup>();
+            Assert.AreEqual(GridLayoutGroup.Constraint.FixedColumnCount, playerLayout.constraint);
+            Assert.AreEqual(3, playerLayout.constraintCount);
+            Assert.AreEqual(GridLayoutGroup.Constraint.FixedColumnCount, aiLayout.constraint);
+            Assert.AreEqual(3, aiLayout.constraintCount);
+            var playerHeartRoot = (RectTransform)playerView.transform;
+            var initialHeight = playerHeartRoot.rect.height;
+            var fixedBottom = playerHeartRoot.anchoredPosition.y -
+                              (playerHeartRoot.rect.height * playerHeartRoot.pivot.y);
+
+            bootstrap.Match.Player.ApplyHatchlingDamage(1);
+            yield return null;
+            Assert.AreEqual(2, playerView.VisibleHeartCount);
+            Assert.AreEqual(3, aiView.VisibleHeartCount);
+
+            bootstrap.Match.Player.ApplyHatchlingHealthBonus(3);
+            yield return null;
+            Assert.AreEqual(5, playerView.HeartCount);
+            Assert.AreEqual(5, playerView.VisibleHeartCount);
+            Assert.Greater(playerHeartRoot.rect.height, initialHeight);
+            Assert.AreEqual(
+                fixedBottom,
+                playerHeartRoot.anchoredPosition.y -
+                (playerHeartRoot.rect.height * playerHeartRoot.pivot.y),
+                0.001f);
+
+            bootstrap.Match.Player.ApplyHatchlingDamage(2);
+            yield return null;
+            Assert.AreEqual(5, playerView.HeartCount);
+            Assert.AreEqual(3, playerView.VisibleHeartCount);
+            Assert.AreEqual(initialHeight, playerHeartRoot.rect.height, 0.001f);
+        }
+
+        [UnityTest]
+        public IEnumerator FirstRecruitButtonKeepsTheNormalRecruitmentBatch()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var bootstrap = FindBootstrap();
+            var screen = FindScreen();
+            Assert.IsNotNull(screen.RecruitmentButtonController);
+            Assert.IsFalse(bootstrap.RecruitDestination.HasActiveHero(
+                DragonBoundHeroIds.DragonRider));
+            Assert.IsFalse(bootstrap.RecruitDestination.HasActiveHero(
+                DragonBoundHeroIds.StarfallArchmage));
+
+            screen.RecruitmentButtonController.RecruitButton.onClick.Invoke();
+            yield return null;
+
+            Assert.AreEqual(1, bootstrap.Recruitment.CompletedRecruitments);
+            Assert.IsTrue(bootstrap.Recruitment.HasLastAttempt);
+            Assert.IsNotNull(bootstrap.Recruitment.LastAttempt.Batch);
+            CollectionAssert.AreEquivalent(
+                bootstrap.Recruitment.LastAttempt.Batch.Cards.Select(card => card.RuntimeId),
+                bootstrap.RecruitDestination.GetBoardCards().Select(card => card.RuntimeId));
+            Assert.IsFalse(bootstrap.RecruitDestination.HasActiveHero(
+                DragonBoundHeroIds.DragonRider));
+            Assert.IsFalse(bootstrap.RecruitDestination.HasActiveHero(
+                DragonBoundHeroIds.StarfallArchmage));
+        }
+
+        [UnityTest]
+        public IEnumerator CampTabButtonsSwapSpritesAndScaleSelectedTabByTenPercent()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var screen = FindScreen();
+            var campPanel = screen.transform.Find("campPanel");
+            Assert.IsNotNull(campPanel);
+            var deckPart = campPanel.Find("CampBg/DeckPart");
+            var collectionPart = campPanel.Find("CampBg/CollectionPart");
+            var deckButton = campPanel.Find("BtnImg/DeckBtn").GetComponent<Button>();
+            var collectionButton = campPanel.Find("BtnImg/CollectionBtn").GetComponent<Button>();
+            var deckImage = deckButton.GetComponent<Image>();
+            var collectionImage = collectionButton.GetComponent<Image>();
+            var deckSprite = Resources.Load<Sprite>("GameUI/CampUI/Deck");
+            var deckSelectedSprite = Resources.Load<Sprite>("GameUI/CampUI/DeckClick");
+            var collectionSprite = Resources.Load<Sprite>("GameUI/CampUI/Collection");
+            var collectionSelectedSprite = Resources.Load<Sprite>("GameUI/CampUI/CollectionClick");
+
+            Assert.IsTrue(deckPart.gameObject.activeSelf);
+            Assert.IsFalse(collectionPart.gameObject.activeSelf);
+            var deckPosition = deckButton.transform.localPosition;
+            var collectionPosition = collectionButton.transform.localPosition;
+            Assert.AreSame(collectionSelectedSprite, deckImage.sprite);
+            Assert.AreSame(deckSprite, collectionImage.sprite);
+            var selectedDeckScale = deckButton.transform.localScale;
+            var normalCollectionScale = collectionButton.transform.localScale;
+
+            collectionButton.onClick.Invoke();
+            Assert.IsFalse(deckPart.gameObject.activeSelf);
+            Assert.IsTrue(collectionPart.gameObject.activeSelf);
+            Assert.AreSame(collectionSprite, deckImage.sprite);
+            Assert.AreSame(deckSelectedSprite, collectionImage.sprite);
+            Assert.AreEqual(deckPosition, deckButton.transform.localPosition);
+            Assert.AreEqual(collectionPosition, collectionButton.transform.localPosition);
+            Assert.Less(
+                Vector3.Distance(selectedDeckScale / 1.10f, deckButton.transform.localScale),
+                0.0001f);
+            Assert.Less(
+                Vector3.Distance(normalCollectionScale * 1.10f, collectionButton.transform.localScale),
+                0.0001f);
+
+            deckButton.onClick.Invoke();
+            Assert.IsTrue(deckPart.gameObject.activeSelf);
+            Assert.IsFalse(collectionPart.gameObject.activeSelf);
+            Assert.AreSame(collectionSelectedSprite, deckImage.sprite);
+            Assert.AreSame(deckSprite, collectionImage.sprite);
+            Assert.AreEqual(deckPosition, deckButton.transform.localPosition);
+            Assert.AreEqual(collectionPosition, collectionButton.transform.localPosition);
+            Assert.Less(Vector3.Distance(selectedDeckScale, deckButton.transform.localScale), 0.0001f);
+            Assert.Less(Vector3.Distance(normalCollectionScale, collectionButton.transform.localScale), 0.0001f);
         }
 
         [UnityTest]
@@ -70,9 +474,14 @@ namespace DragonBound.Tests.PlayMode
             {
                 var definition = HeroComponentCatalog.Definitions[index];
                 Assert.IsTrue(provider.TryGetHeroComponentSprite(definition.Id, out var expected));
+                var slot = componentContainer.GetChild(index);
+                var componentUi = slot
+                    .GetComponentsInChildren<Image>(true)
+                    .Single(image => image.transform.parent == slot);
+                Assert.AreNotSame(slot.GetComponent<Image>(), componentUi, definition.Id + " layers");
                 Assert.AreSame(
                     expected,
-                    componentContainer.GetChild(index).GetComponent<Image>().sprite,
+                    componentUi.sprite,
                     definition.Id);
             }
 
@@ -86,6 +495,25 @@ namespace DragonBound.Tests.PlayMode
                 out var expectedBottom));
             Assert.AreSame(expectedTop, collectionPart.Find("Img1").GetComponent<Image>().sprite);
             Assert.AreSame(expectedBottom, collectionPart.Find("Img2").GetComponent<Image>().sprite);
+
+            var visibleHeroes = HeroDefinitionCatalog.Definitions
+                .Where(hero => HeroDefinitionCatalog.GetMetadata(hero.Id).GalleryVisible)
+                .ToArray();
+            var heroContainer = collectionPart.Find("HeroContainer");
+            Assert.IsNotNull(heroContainer);
+            Assert.AreEqual(visibleHeroes.Length, screen.CampPanelView.HeroEntryCount);
+            for (var index = 0; index < visibleHeroes.Length; index++)
+            {
+                var hero = visibleHeroes[index];
+                Assert.IsTrue(provider.TryGetHeroSprite(hero.Id, out var expectedHero), hero.Id);
+                var slot = heroContainer.GetChild(index);
+                var heroUi = slot
+                    .GetComponentsInChildren<Image>(true)
+                    .Single(image => image.transform.parent == slot);
+                Assert.AreNotSame(slot.GetComponent<Image>(), heroUi, hero.Id + " layers");
+                Assert.AreSame(expectedHero, heroUi.sprite, hero.Id);
+                Assert.AreEqual(Color.white, heroUi.color, hero.Id);
+            }
         }
 
         [UnityTest]
@@ -96,6 +524,16 @@ namespace DragonBound.Tests.PlayMode
 
             var bootstrap = FindBootstrap();
             Assert.AreEqual(1f, Time.timeScale, 0.0001f);
+            var initializedScreen = FindScreen();
+            Assert.IsNotNull(initializedScreen.PlayerBattlefieldView.CombatFxView);
+            Assert.IsNotNull(initializedScreen.AiBattlefieldView.CombatFxView);
+            Assert.AreEqual(
+                TeamSide.Player,
+                initializedScreen.PlayerBattlefieldView.CombatFxView.Side);
+            Assert.AreEqual(
+                TeamSide.AI,
+                initializedScreen.AiBattlefieldView.CombatFxView.Side,
+                "The authored AI CombatFxView must not retain the Player enum default.");
             while (bootstrap.Match.State == MatchState.Ready)
             {
                 Assert.AreEqual(0, bootstrap.Match.Player.RemainingEnemyCount);
@@ -386,6 +824,55 @@ namespace DragonBound.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator BenchBasicUnitTapShowsRangeAndCompactInformPanel()
+        {
+            SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
+            yield return null;
+
+            var bootstrap = FindBootstrap();
+            var recruit = bootstrap.Recruitment.TryRecruit();
+            Assert.AreEqual(RecruitmentStatus.Success, recruit.Status);
+            var basicCard = recruit.Batch.Cards.First(card => card.Kind == RecruitItemKind.BasicUnit);
+            Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(basicCard.RuntimeId, out var position));
+            Assert.AreEqual(CellType.Bench, GetCellType(bootstrap.PlayerBoard, position));
+
+            bootstrap.BoardView.RefreshUnits();
+            var benchCell = bootstrap.BoardView.GetCellView(position);
+            Assert.IsNotNull(benchCell);
+            var beachItem = benchCell.transform.Find("BeachItem")?.GetComponent<DraggableUnitView>();
+            Assert.IsNotNull(beachItem, "The occupied BeachContainer slot must expose its unit input view.");
+            Assert.IsNotNull(beachItem.GetComponent<IPointerClickHandler>(),
+                "BeachItem must consume PointerClick instead of passing it to its GridCellView.");
+            var pointer = new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left,
+                position = RectTransformUtility.WorldToScreenPoint(null, beachItem.RectTransform.position)
+            };
+            beachItem.OnPointerDown(pointer);
+            beachItem.OnPointerUp(pointer);
+            ExecuteEvents.Execute<IPointerClickHandler>(
+                beachItem.gameObject,
+                pointer,
+                ExecuteEvents.pointerClickHandler);
+            yield return null;
+
+            Assert.IsTrue(bootstrap.BoardView.RangePreview.enabled);
+            var inform = Object.FindObjectOfType<UnitInformController>(true);
+            Assert.IsNotNull(inform);
+            Assert.IsTrue(inform.gameObject.activeSelf);
+            Assert.AreEqual(115f, ((RectTransform)inform.transform).rect.height, 0.01f);
+            Assert.AreEqual(
+                $"{BasicUnitCatalog.GetDisplayName(basicCard.ConfigId)} Lv{basicCard.Level} (Unit)",
+                ReadTmpText(inform.transform.Find("Name")));
+            Assert.AreEqual(
+                $"Max Lv{BasicUnitCatalog.MaxLevel}",
+                ReadTmpText(inform.transform.Find("MaxLv")));
+            Assert.IsFalse(inform.transform.Find("EXP").gameObject.activeSelf);
+            Assert.IsFalse(inform.transform.Find("device").gameObject.activeSelf);
+            Assert.IsFalse(inform.transform.Find("Rune").gameObject.activeSelf);
+        }
+
+        [UnityTest]
         public IEnumerator ClickingAnEmptyBattleCellClearsRangePreview()
         {
             SceneManager.LoadScene("Greybox_Main", LoadSceneMode.Single);
@@ -409,6 +896,10 @@ namespace DragonBound.Tests.PlayMode
 
             var emptyCell = bootstrap.BoardView.GetCellView(battle[1]);
             Assert.IsNotNull(emptyCell);
+            var inputReceiver = emptyCell.transform.Find("InputReceiver") as RectTransform;
+            Assert.IsNotNull(inputReceiver);
+            Assert.AreEqual(new Vector2(6f, 6f), inputReceiver.offsetMin);
+            Assert.AreEqual(new Vector2(-6f, -6f), inputReceiver.offsetMax);
             var pointer = new PointerEventData(EventSystem.current)
             {
                 button = PointerEventData.InputButton.Left
@@ -507,13 +998,59 @@ namespace DragonBound.Tests.PlayMode
 
             Assert.IsTrue(bootstrap.BoardView.BeginDrag(unitId));
             Assert.IsTrue(bootstrap.RecruitDestination.IsCombatSuspended(unitId));
+            Assert.AreEqual(0, bootstrap.BoardView.VisibleBeachSelectionCount);
+            Assert.IsTrue(bootstrap.BoardView.IsSourceSelectVisible);
+            var sourceCell = bootstrap.BoardView.GetCellView(battle);
+            var sourceSelection = sourceCell.ContentAnchor.Find("BeachSourceSelect");
+            Assert.IsNotNull(sourceSelection);
+            Assert.AreSame(
+                Resources.Load<Sprite>("GameUI/BeachSelect"),
+                sourceSelection.GetComponent<Image>().sprite);
+
+            var mapTarget = bootstrap.PlayerBoard
+                .GetPositions(CellType.Battle)
+                .First(position => !position.Equals(battle));
+            var mapTargetCell = bootstrap.BoardView.GetCellView(mapTarget);
+            var mapTargetScreenPosition = RectTransformUtility.WorldToScreenPoint(
+                null,
+                mapTargetCell.ContentAnchor.position);
+            bootstrap.BoardView.UpdateDraggedUnit(unitId, mapTargetScreenPosition);
+            Assert.IsTrue(bootstrap.BoardView.IsSourceSelectVisible);
+            Assert.IsTrue(bootstrap.BoardView.IsBoardSelectVisible);
+            var mapTargetSelection = mapTargetCell.ContentAnchor.Find("BoardSelect");
+            Assert.IsNotNull(mapTargetSelection);
+            Assert.AreSame(
+                Resources.Load<Sprite>("GameUI/BoardSelect"),
+                mapTargetSelection.GetComponent<Image>().sprite);
+
             var benchCell = bootstrap.BoardView.GetCellView(basicOrigin);
             var benchScreenPosition = RectTransformUtility.WorldToScreenPoint(
                 null,
                 benchCell.ContentAnchor.position);
+            bootstrap.BoardView.UpdateDraggedUnit(unitId, benchScreenPosition);
+            Assert.AreEqual(0, bootstrap.BoardView.VisibleBeachSelectionCount);
+            Assert.IsTrue(bootstrap.BoardView.IsSourceSelectVisible);
+            Assert.IsTrue(bootstrap.BoardView.IsBoardSelectVisible);
+            var benchSelection = benchCell.ContentAnchor.Find("BoardSelect");
+            Assert.IsNotNull(benchSelection);
+            Assert.IsTrue(benchSelection.gameObject.activeSelf);
+            Assert.AreSame(
+                Resources.Load<Sprite>("GameUI/BoardSelect"),
+                benchSelection.GetComponent<Image>().sprite);
+
+            bootstrap.BoardView.UpdateDraggedUnit(
+                unitId,
+                new Vector2(-10000f, -10000f));
+            Assert.IsTrue(
+                bootstrap.BoardView.IsBoardSelectVisible,
+                "Leaving the recruit area must retain the last valid recruit selection.");
+
             bootstrap.BoardView.CompleteDrag(unitId, benchScreenPosition);
 
             Assert.IsFalse(bootstrap.RecruitDestination.IsCombatSuspended(unitId));
+            Assert.AreEqual(0, bootstrap.BoardView.VisibleBeachSelectionCount);
+            Assert.IsFalse(bootstrap.BoardView.IsSourceSelectVisible);
+            Assert.IsFalse(bootstrap.BoardView.IsBoardSelectVisible);
             Assert.IsTrue(bootstrap.PlayerBoard.TryGetPosition(unitId, out var returnedPosition));
             Assert.AreEqual(basicOrigin, returnedPosition);
             bootstrap.Match.Player.AddResources(
@@ -546,6 +1083,16 @@ namespace DragonBound.Tests.PlayMode
             bootstrap.RecruitDestination.Commit(bootstrap.RecruitDestination.Plan(5), batch);
             bootstrap.BoardView.RefreshUnits();
             yield return null;
+
+            var expectedShovelSprite = Resources.Load<Sprite>("ComponentUI/shovel");
+            Assert.IsNotNull(expectedShovelSprite);
+            var beachContainer = FindScreen().transform.Find("ART_ScreenBackground/BeachContainer");
+            Assert.IsNotNull(beachContainer);
+            var shovelView = beachContainer
+                .GetComponentsInChildren<DraggableUnitView>(true)
+                .Single(view => view.gameObject.activeSelf && view.ArtImage.sprite == expectedShovelSprite);
+            Assert.AreSame(expectedShovelSprite, shovelView.ArtImage.sprite);
+            Assert.AreEqual(Color.white, shovelView.ArtImage.color);
 
             var target = bootstrap.PlayerBoard.GetPositions(CellType.Locked)[0];
             Assert.IsTrue(bootstrap.RecruitDestination.TryGetCard(shovelId, out _));
@@ -598,6 +1145,23 @@ namespace DragonBound.Tests.PlayMode
                 5 + aiUnitViewCount,
                 Object.FindObjectsOfType<DraggableUnitView>().Length,
                 "The two battlefield views must expose five player cards plus the current AI board objects.");
+            Assert.IsTrue(
+                bootstrap.BoardView.UnitLayer
+                    .GetComponentsInChildren<DraggableUnitView>(true)
+                    .All(view => !view.IsArtMirrored),
+                "Player basic units and hero components must retain their authored orientation.");
+            Assert.IsTrue(
+                bootstrap.AiBoardView.UnitLayer
+                    .GetComponentsInChildren<DraggableUnitView>(true)
+                    .All(view => view.IsArtMirrored),
+                "AI basic units and hero components must mirror the player art orientation.");
+            Assert.IsTrue(
+                bootstrap.AiBoardView.UnitLayer
+                    .GetComponentsInChildren<DraggableUnitView>(true)
+                    .All(view => Mathf.Approximately(
+                        -45f,
+                        view.ArtImage.rectTransform.anchoredPosition.x)),
+                "Every AI ART_UnitPortrait must use anchored Pos X=-45.");
             AssertUnitCardsInsideCells(bootstrap.BoardView, bootstrap.PlayerBoard);
             AssertUnitCardsInsideCells(bootstrap.AiBoardView, bootstrap.AiBoard);
         }
@@ -647,6 +1211,16 @@ namespace DragonBound.Tests.PlayMode
         {
             Assert.IsTrue(board.TryGetCellType(position, out var type));
             return type;
+        }
+
+        private static string ReadTmpText(Transform target)
+        {
+            Assert.IsNotNull(target);
+            var component = target.GetComponent("TextMeshProUGUI");
+            Assert.IsNotNull(component);
+            var property = component.GetType().GetProperty("text");
+            Assert.IsNotNull(property);
+            return property.GetValue(component) as string;
         }
 
         private static DraggableUnitView FindUnitView(GreyboxBoardView boardView, string unitId)

@@ -1,9 +1,10 @@
-using System.Collections;
 using DragonBound.Core;
+using DragonBound.Bosses.Contracts;
+using DragonBound.Bosses.Runtime;
 using DragonBound.Grid;
 using DragonBound.Recruitment;
 using DragonBound.Runes;
-using TMPro;
+using DragonBound.UI;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -22,12 +23,13 @@ namespace DragonBound.Presentation
         [SerializeField] private CampPanelView campPanelView;
         [SerializeField] private FixedBoardCanvasView fixedBoardCanvas;
         [SerializeField] private BoardBackgroundClickReceiver rangeDismissSurface;
+        [SerializeField] private GoalHealthView playerGoalHealthView;
+        [SerializeField] private GoalHealthView aiGoalHealthView;
 
         private TwentyWavePressureRuntime runeTipRuntime;
         private TwentyWavePressureRuntime soulChainVisualRuntime;
-        private TMP_Text runeTipText;
-        private Coroutine runeTipHideCoroutine;
-        private int runeTipVersion;
+        private TwentyWavePressureRuntime bloodcrownVisualRuntime;
+        private TwentyWavePressureRuntime worldeaterVisualRuntime;
 
         public GreyboxBoardView BoardView => PlayerBoardView;
         public GreyboxBoardView PlayerBoardView => playerBattlefieldView != null ? playerBattlefieldView.BoardView : null;
@@ -39,6 +41,8 @@ namespace DragonBound.Presentation
         public RecruitmentButtonController RecruitmentButtonController => recruitmentButtonController;
         public CampPanelView CampPanelView => campPanelView;
         public FixedBoardCanvasView FixedBoardCanvas => fixedBoardCanvas;
+        public GoalHealthView PlayerGoalHealthView => playerGoalHealthView;
+        public GoalHealthView AiGoalHealthView => aiGoalHealthView;
 
         public void Configure(
             GreyboxBattlefieldSideView aiBattlefield,
@@ -81,6 +85,7 @@ namespace DragonBound.Presentation
             }
 
             ConfigureFixedBoardCanvas(playerBoard, aiBoard);
+            BindGoalHealthViews(match);
             BindRangeDismissSurface();
 
             aiBattlefieldView.Initialize(match, match.AI, aiBoard, aiRecruitDestination);
@@ -99,8 +104,7 @@ namespace DragonBound.Presentation
                 recruitmentView.Initialize(
                     match.Player,
                     recruitment,
-                    PlayerBoardView,
-                    ResolveTipText());
+                    PlayerBoardView);
             }
             else
             {
@@ -110,8 +114,7 @@ namespace DragonBound.Presentation
                     recruitment,
                     PlayerBoardView,
                     ResolveRecruitButton(),
-                    ResolveRecruitButtonLabel(),
-                    ResolveTipText());
+                    ResolveRecruitButtonLabel());
             }
             ResolveCampPanelView();
             if (campPanelView != null)
@@ -144,6 +147,8 @@ namespace DragonBound.Presentation
             ResolveOverlayController();
             overlayController.BindItemRuntime(runtime);
             BindSoulChainVisuals(runtime);
+            BindBloodcrownVisuals(runtime);
+            BindWorldeaterVisuals(runtime);
             BindRuneDropTip(runtime);
         }
 
@@ -164,6 +169,52 @@ namespace DragonBound.Presentation
             boardView?.SetSoulChainControlledUnits(value.ControlledRuntimeIds);
         }
 
+        private void BindBloodcrownVisuals(TwentyWavePressureRuntime runtime)
+        {
+            if (bloodcrownVisualRuntime != null)
+            {
+                bloodcrownVisualRuntime.BloodcrownLifecycleEmitted -= HandleBloodcrownVisual;
+            }
+
+            bloodcrownVisualRuntime = runtime;
+            bloodcrownVisualRuntime.BloodcrownLifecycleEmitted += HandleBloodcrownVisual;
+        }
+
+        private void HandleBloodcrownVisual(TeamSide side, BossSkillLifecycleEvent value)
+        {
+            if (value.Lifecycle != BossSkillLifecycle.Resolve &&
+                value.Lifecycle != BossSkillLifecycle.EffectEnded)
+            {
+                return;
+            }
+
+            var boardView = side == TeamSide.Player ? PlayerBoardView : AiBoardView;
+            boardView?.SetBloodcrownSuppression(value.Lifecycle == BossSkillLifecycle.Resolve);
+        }
+
+        private void BindWorldeaterVisuals(TwentyWavePressureRuntime runtime)
+        {
+            if (worldeaterVisualRuntime != null)
+            {
+                worldeaterVisualRuntime.WorldeaterCastEmitted -= HandleWorldeaterVisual;
+            }
+
+            worldeaterVisualRuntime = runtime;
+            worldeaterVisualRuntime.WorldeaterCastEmitted += HandleWorldeaterVisual;
+        }
+
+        private void HandleWorldeaterVisual(TeamSide side, WorldeaterCastEvent value)
+        {
+            if (value.Kind != WorldeaterCastKind.Devour ||
+                value.Outcome != WorldeaterCastOutcome.Resolved)
+            {
+                return;
+            }
+
+            var boardView = side == TeamSide.Player ? PlayerBoardView : AiBoardView;
+            boardView?.RefreshUnits();
+        }
+
         private void BindRuneDropTip(TwentyWavePressureRuntime runtime)
         {
             if (runeTipRuntime != null)
@@ -172,43 +223,18 @@ namespace DragonBound.Presentation
             }
 
             runeTipRuntime = runtime;
-            runeTipText = ResolveTipText();
             runeTipRuntime.PlayerRuneRewardGranted += HandleRuneRewardGranted;
         }
 
         private void HandleRuneRewardGranted(RuneReward reward)
         {
-            if (reward == null || runeTipText == null)
+            if (reward == null)
             {
                 return;
             }
 
             var message = ResolveRuneDisplayName(reward.RuneId);
-            runeTipVersion++;
-            if (runeTipHideCoroutine != null)
-            {
-                StopCoroutine(runeTipHideCoroutine);
-            }
-
-            runeTipText.text = message;
-            runeTipText.gameObject.SetActive(true);
-            runeTipHideCoroutine = StartCoroutine(
-                HideRuneTipAfterDelay(message, runeTipVersion));
-        }
-
-        private IEnumerator HideRuneTipAfterDelay(string displayedMessage, int version)
-        {
-            yield return new WaitForSecondsRealtime(1.5f);
-            runeTipHideCoroutine = null;
-            if (runeTipText == null ||
-                version != runeTipVersion ||
-                runeTipText.text != displayedMessage)
-            {
-                yield break;
-            }
-
-            runeTipText.text = string.Empty;
-            runeTipText.gameObject.SetActive(false);
+            TipTextService.Show(message, 3f);
         }
 
         private static string ResolveRuneDisplayName(string runeId)
@@ -324,12 +350,6 @@ namespace DragonBound.Presentation
             return label;
         }
 
-        private TMP_Text ResolveTipText()
-        {
-            var target = transform.Find("TipText");
-            return target != null ? target.GetComponent<TMP_Text>() : null;
-        }
-
         private void OnDestroy()
         {
             if (runeTipRuntime != null)
@@ -342,10 +362,14 @@ namespace DragonBound.Presentation
                 soulChainVisualRuntime.SoulChainCastEmitted -= HandleSoulChainVisual;
             }
 
-            if (runeTipHideCoroutine != null)
+            if (bloodcrownVisualRuntime != null)
             {
-                StopCoroutine(runeTipHideCoroutine);
-                runeTipHideCoroutine = null;
+                bloodcrownVisualRuntime.BloodcrownLifecycleEmitted -= HandleBloodcrownVisual;
+            }
+
+            if (worldeaterVisualRuntime != null)
+            {
+                worldeaterVisualRuntime.WorldeaterCastEmitted -= HandleWorldeaterVisual;
             }
 
             if (rangeDismissSurface != null)
@@ -393,6 +417,176 @@ namespace DragonBound.Presentation
             fixedBoardCanvas.BindAuthored((RectTransform)transform, fixedLayout);
             aiBattlefieldView.ConfigureFixedBoardCanvas(fixedBoardCanvas);
             playerBattlefieldView.ConfigureFixedBoardCanvas(fixedBoardCanvas);
+        }
+
+        private void BindGoalHealthViews(MatchController match)
+        {
+            playerGoalHealthView = BindGoalHealthView("ART_PlayerGoal_7_0", match.Player);
+            aiGoalHealthView = BindGoalHealthView("ART_AiGoal_0_9", match.AI);
+        }
+
+        private GoalHealthView BindGoalHealthView(string goalName, TeamState team)
+        {
+            Transform goal = null;
+            foreach (var candidate in GetComponentsInChildren<Transform>(true))
+            {
+                if (candidate.name == goalName)
+                {
+                    goal = candidate;
+                    break;
+                }
+            }
+
+            var heartRoot = goal?.Find("HpBg") as RectTransform;
+            if (heartRoot == null)
+            {
+                return null;
+            }
+
+            var view = heartRoot.GetComponent<GoalHealthView>();
+            if (view == null)
+            {
+                view = heartRoot.gameObject.AddComponent<GoalHealthView>();
+            }
+
+            view.Initialize(team, heartRoot);
+            return view;
+        }
+    }
+
+    [DisallowMultipleComponent]
+    public sealed class GoalHealthView : MonoBehaviour
+    {
+        private readonly System.Collections.Generic.List<GameObject> hearts =
+            new System.Collections.Generic.List<GameObject>();
+        private TeamState team;
+        private RectTransform heartRoot;
+        private GameObject heartTemplate;
+        private GridLayoutGroup heartLayout;
+        private float minimumLayoutHeight;
+        private float fixedBottomPosition;
+        private int displayedHealth = -1;
+
+        public int HeartCount => hearts.Count;
+        public int VisibleHeartCount
+        {
+            get
+            {
+                var count = 0;
+                foreach (var heart in hearts)
+                {
+                    if (heart != null && heart.activeSelf)
+                    {
+                        count++;
+                    }
+                }
+
+                return count;
+            }
+        }
+
+        public void Initialize(TeamState value, RectTransform root)
+        {
+            team = value ?? throw new System.ArgumentNullException(nameof(value));
+            heartRoot = root != null
+                ? root
+                : throw new System.ArgumentNullException(nameof(root));
+
+            hearts.Clear();
+            for (var index = 0; index < heartRoot.childCount; index++)
+            {
+                var child = heartRoot.GetChild(index);
+                if (child.name.StartsWith("heart", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    hearts.Add(child.gameObject);
+                }
+            }
+
+            if (hearts.Count == 0)
+            {
+                throw new System.InvalidOperationException(
+                    $"{heartRoot.name} must contain an authored heart UI.");
+            }
+
+            heartTemplate = hearts[0];
+            heartLayout = heartRoot.GetComponent<GridLayoutGroup>();
+            if (heartLayout == null)
+            {
+                throw new System.InvalidOperationException(
+                    $"{heartRoot.name} must contain its authored GridLayoutGroup.");
+            }
+
+            minimumLayoutHeight = Mathf.Max(0f, heartRoot.rect.height);
+            fixedBottomPosition =
+                heartRoot.anchoredPosition.y - (heartRoot.rect.height * heartRoot.pivot.y);
+            var pivot = heartRoot.pivot;
+            pivot.y = 0f;
+            heartRoot.pivot = pivot;
+            heartRoot.anchoredPosition = new Vector2(
+                heartRoot.anchoredPosition.x,
+                fixedBottomPosition);
+
+            heartLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            heartLayout.constraintCount = 3;
+            heartLayout.startCorner = GridLayoutGroup.Corner.LowerLeft;
+            heartLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
+            heartLayout.childAlignment = TextAnchor.LowerLeft;
+            displayedHealth = -1;
+            Refresh();
+        }
+
+        private void Update()
+        {
+            if (team != null && displayedHealth != team.HatchlingHealth)
+            {
+                Refresh();
+            }
+        }
+
+        private void Refresh()
+        {
+            var currentHealth = Mathf.Max(0, team.HatchlingHealth);
+            EnsureCapacity(currentHealth);
+
+            for (var index = 0; index < hearts.Count; index++)
+            {
+                hearts[index].SetActive(index < currentHealth);
+            }
+
+            RefreshLayoutSize(currentHealth);
+
+            displayedHealth = currentHealth;
+        }
+
+        private void RefreshLayoutSize(int currentHealth)
+        {
+            if (heartRoot == null || heartLayout == null)
+            {
+                return;
+            }
+
+            var columnCount = Mathf.Max(1, heartLayout.constraintCount);
+            var rowCount = Mathf.Max(1, Mathf.CeilToInt(currentHealth / (float)columnCount));
+            var requiredHeight =
+                heartLayout.padding.vertical +
+                (rowCount * heartLayout.cellSize.y) +
+                ((rowCount - 1) * heartLayout.spacing.y);
+            heartRoot.SetSizeWithCurrentAnchors(
+                RectTransform.Axis.Vertical,
+                Mathf.Max(minimumLayoutHeight, requiredHeight));
+            heartRoot.anchoredPosition = new Vector2(
+                heartRoot.anchoredPosition.x,
+                fixedBottomPosition);
+        }
+
+        private void EnsureCapacity(int requiredCount)
+        {
+            while (hearts.Count < requiredCount)
+            {
+                var clone = Instantiate(heartTemplate, heartRoot, false);
+                clone.name = $"heart{hearts.Count + 1}";
+                hearts.Add(clone);
+            }
         }
     }
 }

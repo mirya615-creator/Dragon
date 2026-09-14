@@ -18,6 +18,7 @@ namespace DragonBound.Grid
         private readonly Dictionary<GridPosition, string> occupants = new Dictionary<GridPosition, string>();
         private readonly Dictionary<string, GridPosition> unitPositions =
             new Dictionary<string, GridPosition>(StringComparer.Ordinal);
+        private readonly HashSet<GridPosition> bossLockedCells = new HashSet<GridPosition>();
         private long mutationSequence;
 
         public BoardGrid(BattlefieldLayoutDefinition layout, TeamSide side, bool includeBench = true)
@@ -204,8 +205,37 @@ namespace DragonBound.Grid
             }
 
             cells[position] = unlockedType;
+            bossLockedCells.Remove(position);
             Publish(GridMutationKind.CellUnlocked, string.Empty, null, position);
             return true;
+        }
+
+        /// <summary>
+        /// Re-locks an empty deployment cell destroyed by a Boss skill. The marker is retained so
+        /// a shovel may redevelop cells that belonged to the initial unlocked formation as well as
+        /// cells that were unlockable in the authored layout.
+        /// </summary>
+        public bool TryLockEmptyBattleCell(GridPosition position)
+        {
+            if (!cells.TryGetValue(position, out var currentType) ||
+                currentType != CellType.Battle ||
+                occupants.ContainsKey(position) ||
+                (FixedLayout != null && !FixedLayout.IsOwnedDeploymentCell(position, Side)))
+            {
+                return false;
+            }
+
+            cells[position] = CellType.Locked;
+            bossLockedCells.Add(position);
+            Publish(GridMutationKind.CellLocked, string.Empty, null, position);
+            return true;
+        }
+
+        public bool IsBossLockedCell(GridPosition position)
+        {
+            return bossLockedCells.Contains(position) &&
+                   cells.TryGetValue(position, out var type) &&
+                   type == CellType.Locked;
         }
 
         public bool TryDebugUnlockCell(GridPosition position, CellType unlockedType = CellType.Battle)

@@ -4,17 +4,20 @@ using System.Threading.Tasks;
 using DragonBound.Bootstrap;
 using DragonBound.Core;
 using DragonBound.Services;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 public sealed class GreyboxSettlementRewardController : MonoBehaviour
 {
-    private const string DoubleGoldPlacement = "game_gold_double";
+    private const string DoubleGoldPlacement = "settle_double";
+    private const string VictorySpritePath = "GameUI/SettlementUI/Victory";
+    private const string DefeatSpritePath = "GameUI/SettlementUI/Defeat";
 
-    private TMP_Text resultText;
-    private TMP_Text goldText;
+    private Image resultImage;
+    private TMPro.TMP_Text goldText;
+    private Sprite victorySprite;
+    private Sprite defeatSprite;
     private Button receiveButton;
     private Button doubleButton;
     private DragonBoundBootstrap bootstrap;
@@ -30,14 +33,18 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
 
     private void Awake()
     {
-        resultText = transform.Find("Text")?.GetComponent<TMP_Text>();
-        goldText = transform.Find("GoldText")?.GetComponent<TMP_Text>();
+        resultImage = transform.Find("SettleImg")?.GetComponent<Image>();
+        goldText = transform.Find("GoldText")?.GetComponent<TMPro.TMP_Text>();
         receiveButton = transform.Find("ReciveBtn")?.GetComponent<Button>();
         doubleButton = transform.Find("DoubleBtn")?.GetComponent<Button>();
-        if (resultText == null || goldText == null || receiveButton == null || doubleButton == null)
+        victorySprite = Resources.Load<Sprite>(VictorySpritePath);
+        defeatSprite = Resources.Load<Sprite>(DefeatSpritePath);
+        if (resultImage == null || victorySprite == null || defeatSprite == null ||
+            goldText == null || receiveButton == null || doubleButton == null)
         {
             Debug.LogError(
-                "Greybox SettlementPanel requires Text, GoldText, ReciveBtn, and DoubleBtn.");
+                "Greybox SettlementPanel requires SettleImg, GoldText, ReciveBtn, DoubleBtn, " +
+                "and the Victory/Defeat settlement sprites.");
             enabled = false;
             return;
         }
@@ -48,7 +55,7 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
         authSessionStore = services.AuthSession;
         lifetimeCancellation = new CancellationTokenSource();
         receiveButton.onClick.AddListener(OnReceiveClicked);
-        doubleButton.onClick.AddListener(OnDoubleClicked);
+        doubleButton.interactable = false;
         SetClaimBusy(true);
     }
 
@@ -84,7 +91,6 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
             bootstrap.Match.StateChanged -= HandleMatchStateChanged;
         }
         if (receiveButton != null) receiveButton.onClick.RemoveListener(OnReceiveClicked);
-        if (doubleButton != null) doubleButton.onClick.RemoveListener(OnDoubleClicked);
         if (lifetimeCancellation == null) return;
         lifetimeCancellation.Cancel();
         lifetimeCancellation.Dispose();
@@ -113,18 +119,15 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
         pendingOutcome = state == MatchState.Victory
             ? MatchOutcome.Victory
             : MatchOutcome.Defeat;
-        resultText.text = pendingOutcome == MatchOutcome.Victory ? "Victory" : "Defeat";
-        long baseReward = pendingOutcome == MatchOutcome.Victory
-            ? LocalPlayerGoldGateway.VictoryReward
-            : LocalPlayerGoldGateway.DefeatReward;
-        goldText.text = "+" + baseReward;
-        SetClaimBusy(true);
+        ApplyResultImage(pendingOutcome);
+        ShowProcessingState();
 
         AuthSession session = authSessionStore.Current;
         if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
         {
             Debug.LogError("Greybox settlement requires an authenticated PlayerId.");
             preparing = false;
+            ShowFailureState();
             return;
         }
 
@@ -139,7 +142,7 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
                 GameplayTerminationReason.Natural,
                 GameplayFaultAttribution.None,
                 bootstrap.Match.CurrentWave,
-                bootstrap.Match.Player.Resources,
+                bootstrap.Match.Player.HatchlingHealth,
                 bootstrap.Recruitment != null ? bootstrap.Recruitment.CompletedRecruitments : 0,
                 lifetimeCancellation.Token);
             ApplyPreparation(preparation);
@@ -153,6 +156,7 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
         {
             Debug.LogError($"Unable to prepare Greybox settlement: {exception.Message}");
             preparing = false;
+            ShowFailureState();
         }
     }
 
@@ -176,8 +180,16 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
     private async void OnDoubleClicked()
     {
         if (!TryBeginClaim()) return;
+        string playerId = null;
+        string adEventId = null;
         try
         {
+            AuthSession session = authSessionStore.Current;
+            if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
+                throw new InvalidOperationException(
+                    "Gold cannot be doubled without an authenticated PlayerId.");
+            playerId = session.PlayerId;
+
             RewardedAdResult result = await rewardedAdService.ShowAsync(
                 DoubleGoldPlacement,
                 lifetimeCancellation.Token);
@@ -187,9 +199,13 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
                 return;
             }
 
+            adEventId = PendingAdEventStore.GetOrCreate(
+                playerId, DoubleGoldPlacement, matchId);
             await SettleGoldAndReturnAsync(
                 GoldClaimType.RewardedAd,
-                Guid.NewGuid().ToString("N"));
+                adEventId);
+            PendingAdEventStore.Complete(
+                playerId, DoubleGoldPlacement, matchId, adEventId);
         }
         catch (OperationCanceledException)
         {
@@ -236,41 +252,55 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
     private void ApplyPreparation(GameSettlementPreparation preparation)
     {
         if (preparation?.Result == null) return;
-        if (preparation.Result.SettlementType == GameplaySettlementType.Compensation)
+        long fallbackReward = preparation.GoldOutcome == MatchOutcome.Victory
+            ? LocalPlayerGoldGateway.VictoryReward
+            : LocalPlayerGoldGateway.DefeatReward;
+        long displayedReward = preparation.CanClaimGold
+            ? preparation.Result.GoldReward > 0
+                ? preparation.Result.GoldReward
+                : fallbackReward
+            : 0;
+        goldText.text = "+" + displayedReward;
+        goldText.gameObject.SetActive(true);
+        receiveButton.gameObject.SetActive(true);
+        if (doubleButton != null)
         {
-            resultText.text = "Compensation";
+            doubleButton.gameObject.SetActive(true);
+            doubleButton.interactable = false;
         }
-        else if (preparation.Result.SettlementType == GameplaySettlementType.Retry)
-        {
-            resultText.text = "Settlement Retry";
-        }
-        else
-        {
-            switch (preparation.Result.Result)
-            {
-                case ServerMatchResult.Victory:
-                    resultText.text = "Victory";
-                    break;
-                case ServerMatchResult.Defeat:
-                    resultText.text = "Defeat";
-                    break;
-                case ServerMatchResult.NoContest:
-                    resultText.text = "No Contest";
-                    goldText.text = "+0";
-                    break;
-                default:
-                    resultText.text = "Settlement Pending";
-                    goldText.text = "+0";
-                    break;
-            }
-        }
-        if (doubleButton != null) doubleButton.gameObject.SetActive(preparation.CanClaimGold);
+    }
+
+    private void ShowProcessingState()
+    {
+        readyToClaim = false;
+        resultImage.gameObject.SetActive(true);
+        goldText.gameObject.SetActive(false);
+        receiveButton.gameObject.SetActive(false);
+        doubleButton.gameObject.SetActive(false);
+        SetClaimBusy(true);
+    }
+
+    private void ShowFailureState()
+    {
+        readyToClaim = false;
+        resultImage.gameObject.SetActive(true);
+        goldText.gameObject.SetActive(false);
+        receiveButton.gameObject.SetActive(false);
+        doubleButton.gameObject.SetActive(false);
+        SetClaimBusy(true);
+    }
+
+    private void ApplyResultImage(MatchOutcome outcome)
+    {
+        resultImage.sprite = outcome == MatchOutcome.Victory ? victorySprite : defeatSprite;
+        resultImage.preserveAspect = true;
+        resultImage.gameObject.SetActive(true);
     }
 
     private void SetClaimBusy(bool busy)
     {
         claimInProgress = busy;
         if (receiveButton != null) receiveButton.interactable = readyToClaim && !busy;
-        if (doubleButton != null) doubleButton.interactable = readyToClaim && !busy;
+        if (doubleButton != null) doubleButton.interactable = false;
     }
 }

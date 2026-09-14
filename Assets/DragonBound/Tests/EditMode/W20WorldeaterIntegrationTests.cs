@@ -1,6 +1,8 @@
 using DragonBound.Core;
 using DragonBound.Bosses.Runtime;
 using DragonBound.Foundation.Contracts;
+using DragonBound.Grid;
+using DragonBound.Recruitment;
 using NUnit.Framework;
 
 namespace DragonBound.Tests.EditMode
@@ -38,6 +40,48 @@ namespace DragonBound.Tests.EditMode
             runtime.PlayerW20Boss.ApplyDamage(100000f);
             runtime.Tick(0.01f);
             Assert.IsTrue(runtime.PlayerW20BossRuntime.IsDead);
+            Assert.AreEqual(1, CountWorldeaterSubBosses(runtime.PlayerEnemyRegistry));
+        }
+
+        [Test]
+        public void ProductionW20ConsumesOnlyDeployedBasicAndLocksItsCell()
+        {
+            var board = DragonBoundBoardLayout.CreateDefault(TeamSide.Player);
+            var destination = new BoardRecruitDestination(board);
+            var position = board.GetPositions(CellType.Battle)[0];
+            var basic = new RecruitCard(
+                "w20.basic.target",
+                RecruitItemKind.BasicUnit,
+                "axe",
+                string.Empty);
+            Assert.IsTrue(destination.TryDebugPlaceCard(basic, position));
+
+            var runtime = new TwentyWavePressureRuntime(
+                new MatchController(2004),
+                destination,
+                null,
+                2004);
+            Assert.IsTrue(runtime.StartRun());
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.WorldeaterBossWave));
+
+            runtime.Tick(11f);
+
+            Assert.IsFalse(destination.TryGetCard(basic.RuntimeId, out _));
+            Assert.IsFalse(board.TryGetOccupant(position, out _));
+            Assert.AreEqual(CellType.Locked, GetCellType(board, position));
+            Assert.IsTrue(board.IsBossLockedCell(position));
+        }
+
+        [Test]
+        public void ProductionW20NeverDevoursItsSummonedSubBoss()
+        {
+            var runtime = new TwentyWavePressureRuntime(new MatchController(2005), null, null, 2005);
+            Assert.IsTrue(runtime.StartRun());
+            Assert.IsTrue(runtime.JumpToWave(TwentyWavePressureConfiguration.WorldeaterBossWave));
+
+            runtime.Tick(12.75f);
+            Assert.AreEqual(1, CountWorldeaterSubBosses(runtime.PlayerEnemyRegistry));
+            runtime.Tick(12.25f);
             Assert.AreEqual(1, CountWorldeaterSubBosses(runtime.PlayerEnemyRegistry));
         }
 
@@ -94,6 +138,12 @@ namespace DragonBound.Tests.EditMode
             }
 
             return count;
+        }
+
+        private static CellType GetCellType(BoardGrid board, GridPosition position)
+        {
+            Assert.IsTrue(board.TryGetCellType(position, out var type));
+            return type;
         }
     }
 }

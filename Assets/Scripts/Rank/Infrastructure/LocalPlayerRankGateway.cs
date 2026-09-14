@@ -70,7 +70,9 @@ public sealed class LocalPlayerRankGateway : IPlayerRankGateway
             PromotionFromState = promoted
                 ? RankProgressionRules.CreateFullPromotionState(previousState)
                 : null,
-            Promoted = promoted
+            Promoted = promoted,
+            Demoted = false,
+            StarDelta = updatedTotal > previousState.TotalRankStars ? 1 : 0
         });
     }
 
@@ -97,12 +99,22 @@ public sealed class LocalPlayerRankGateway : IPlayerRankGateway
             ? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             : previousState.ReachedStateAtUnixMilliseconds;
         updatedState.ReachedStateAtUnixMilliseconds = reachedAt;
+        bool demoted = updatedState.Level < previousState.Level ||
+                       updatedState.Level == previousState.Level &&
+                       updatedState.Division < previousState.Division;
 
         SaveState(key, updatedState);
         PlayerPrefs.SetInt(matchKey, 1);
         PlayerPrefs.Save();
         RecordLeaderboardState(playerId, updatedState);
-        return Task.FromResult(CreateUnchangedResult(updatedState));
+        return Task.FromResult(new RankProgressResult
+        {
+            State = updatedState,
+            PromotionFromState = null,
+            Promoted = false,
+            Demoted = demoted,
+            StarDelta = updatedTotal < previousState.TotalRankStars ? -1 : 0
+        });
     }
 
     private void RecordLeaderboardState(string playerId, PlayerRankState state)
@@ -164,7 +176,10 @@ public sealed class LocalPlayerRankGateway : IPlayerRankGateway
         {
             State = state,
             PromotionFromState = null,
-            Promoted = false
+            Promoted = false,
+            Demoted = false,
+            StarDelta = 0,
+            Replayed = true
         };
     }
 

@@ -80,6 +80,27 @@ namespace DragonBound.Tests.EditMode
 
                 boardSnapshot.AssertUnchanged(canvas.BoardRect);
                 overlaySnapshot.AssertUnchanged(canvas.OverlayLayer);
+
+                var deploymentGuideLayer = canvas.EnsureDeploymentGuideLayer();
+                var deploymentFxLayer = canvas.EnsureDeploymentFxLayer();
+                Assert.IsNotNull(deploymentGuideLayer);
+                Assert.IsNotNull(deploymentFxLayer);
+                Assert.AreSame(canvas.BoardRect.parent, deploymentGuideLayer.parent);
+                Assert.AreSame(canvas.BoardRect.parent, deploymentFxLayer.parent);
+                Assert.Less(
+                    deploymentGuideLayer.GetSiblingIndex(),
+                    deploymentFxLayer.GetSiblingIndex(),
+                    "Deployment guides must render above the map but below flying units.");
+                Assert.Greater(
+                    deploymentFxLayer.GetSiblingIndex(),
+                    canvas.BoardRect.GetSiblingIndex());
+                Assert.Greater(
+                    deploymentFxLayer.GetSiblingIndex(),
+                    canvas.OverlayLayer.GetSiblingIndex());
+                Assert.AreEqual(
+                    deploymentFxLayer.parent.childCount - 1,
+                    deploymentFxLayer.GetSiblingIndex(),
+                    "Deployment effects must render above authored battlefield and beach UI roots.");
             }
             finally
             {

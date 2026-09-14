@@ -1,0 +1,1876 @@
+﻿--------- beginning of main
+I/adbd    (26665): adbd service requested 'shell,v2,raw:am force-stop com.drakeforge.mergedefense'
+--------- beginning of system
+I/ActivityManager( 1838): Force stopping com.drakeforge.mergedefense appid=10045 user=0: from pid 28437
+I/ActivityManager( 1838): Killing 28340:com.drakeforge.mergedefense/u0a45 (adj 0): stop com.drakeforge.mergedefense due to from pid 28437
+I/sensors-hal( 1120): [hal]batch_physical_sensor:319, android.sensor.accelerometer/11, period=200000000, max_latency=2000000000
+I/sensors-hal( 1120): [sensor]set_config:64, sample_period_ns is adjusted to 200000000 based on min/max delay_ns
+I/sensors-hal( 1120): [hal]batch_physical_sensor:328, android.sensor.accelerometer/11, period=200000000, max_latency=2000000000 request completed
+I/sensors-hal( 1120): [ssc_sensor]ssc_conn_resp_cb:685, resp_value = 0
+I/libprocessgroup( 1838): Successfully killed process cgroup uid 10045 pid 28340 in 5ms
+W/ActivityTaskManager( 1838): Force removing ActivityRecord{ab41b14 u0 com.drakeforge.mergedefense/com.unity3d.player.UnityPlayerActivity} t338 f}}: app died, no saved state
+W/InputManager-JNI( 1838): Input channel object 'e905136 com.drakeforge.mergedefense/com.unity3d.player.UnityPlayerActivity (client)' was disposed without first being removed with the input manager!
+D/KeyguardService( 2400): setOccluded(false)
+D/KeyguardViewMediator( 2400): setOccluded(false)
+D/KeyguardViewMediator( 2400): handleSetOccluded(false)
+D/CentralSurfaces( 2400): Received new disable state: enaihbcrso.qingr (unchanged)
+D/QuickstepModelDelegate( 2757): notifyAppTargetEvent action=1 launchLocation=workspace/1/[-1,-1]/[1,1]
+D/CarrierSvcBindHelper( 2644): onHandleForceStop: [com.drakeforge.mergedefense]
+I/Elmyra/ElmyraService( 2400): Gated by NavigationBarVisibility [mIsNavigationHidden -> true; mExceptions -> [DismissTimer [mReceiverRegistered -> true], SnoozeAlarm [mReceiverRegistered -> true], SilenceCall [mSilenceSettingEnabled -> true], SettingsAction]; mIsNavigationGestural -> true; isActiveAssistantNga() -> false]
+D/CarrierSvcBindHelper( 2644): No carrier app for: 0
+I/cndx    ( 5519): (REDACTED) onApplyWindowInsets: systemWindowInsets=%s
+I/cndx    ( 5519): (REDACTED) onApplyWindowInsets: systemWindowInsets=%s
+D/RegisteredNfcFServicesCache( 3249): Service unchanged, not updating
+D/SecureElementService( 2629): getReaders() for com.android.nfc
+I/Elmyra/ElmyraService( 2400): Gated by NavigationBarVisibility [mIsNavigationHidden -> true; mExceptions -> [DismissTimer [mReceiverRegistered -> true], SnoozeAlarm [mReceiverRegistered -> true], SilenceCall [mSilenceSettingEnabled -> true], SettingsAction]; mIsNavigationGestural -> true; isActiveAssistantNga() -> false]
+V/WindowManager( 1838): Unknown focus tokens, dropping reportFocusChanged
+I/Elmyra/ElmyraService( 2400): Unblocked; current action: LaunchOpa [mIsGestureEnabled -> true; mIsOpaEnabled -> true]
+I/DisplayDeviceRepository( 1838): Display device changed: DisplayDeviceInfo{"鍐呯疆灞忓箷": uniqueId="local:4630947150978042497", 1080 x 2280, modeId 2, defaultModeId 1, supportedModes [{id=1, width=1080, height=2280, fps=60.000004, alternativeRefreshRates=[90.0]}, {id=2, width=1080, height=2280, fps=90.0, alternativeRefreshRates=[60.000004]}], colorMode 0, supportedColorModes [0, 7, 9], hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[2, 3], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}, allmSupported false, gameContentTypeSupported false, density 440, 442.451 x 445.476 dpi, appVsyncOff 2333333, presDeadline 11500000, touch INTERNAL, rotation 0, type INTERNAL, address {port=129, model=0x40446de5e3a74a}, deviceProductInfo DeviceProductInfo{name=, manufacturerPnpId=QCM, productId=1, modelYear=null, manufactureDate=ManufactureDate{week=27, year=2006}, connectionToSinkType=0}, state ON, frameRateOverride , brightnessMinimum 0.0, brightnessMaximum 1.0, brightnessDefault 0.38188976, roundedCorners RoundedCorners{[RoundedCorner{position=TopLeft, radius=132, center=Point(132, 132)}, RoundedCorner{position=TopRight, radius=132, center=Point(948, 132)}, RoundedCorner{position=BottomRight, radius=132, center=Point(948, 2148)}, RoundedCorner{position=BottomLeft, radius=132, center=Point(132, 2148)}]}, FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, installOrientation 0}
+D/CHRE    ( 1120): @ 12625.808: Parsed nanoapp message from host: app ID 0x476f6f676c00100e, endpoint 0x8, msgType 200, payload size 10
+D/CHRE    ( 1120): @ 12625.809: Elmyra/Nanoapp Recognizer started
+I/cnkq    ( 5519): onStart
+I/cncc    ( 5519): onStart
+D/ConnectivityService( 1838): requestNetwork for uid/pid:10123/5519 activeRequest: null callbackRequest: 1347 [NetworkRequest [ REQUEST id=1348, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10123 RequestorUid: 10123 RequestorPkg: com.google.android.googlequicksearchbox UnderlyingNetworks: Null] ]] callback flags: 0 order: 2147483647 isUidTracked: false declaredMethods: AVAIL|LOST
+D/UntrustedWifiNetworkFactory( 1838): got request NetworkRequest [ REQUEST id=1348, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10123 RequestorUid: 10123 RequestorPkg: com.google.android.googlequicksearchbox UnderlyingNetworks: Null] ]
+D/OemPaidWifiNetworkFactory( 1838): got request NetworkRequest [ REQUEST id=1348, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10123 RequestorUid: 10123 RequestorPkg: com.google.android.googlequicksearchbox UnderlyingNetworks: Null] ]
+D/MultiInternetWifiNetworkFactory( 1838): got request NetworkRequest [ REQUEST id=1348, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10123 RequestorUid: 10123 RequestorPkg: com.google.android.googlequicksearchbox UnderlyingNetworks: Null] ]
+D/ConnectivityService( 1838): NetReassign [1348 : null 鈫?101] [c 0] [a 0] [i 1]
+I/clas    ( 5519): (REDACTED) [%s] onStart()
+E/NetworkErrorMessage( 5519): (REDACTED) Invalid connectivity state: %s
+I/cnkq    ( 5519): onResume
+W/efyv    ( 5519): missing event name
+I/cncc    ( 5519): onResume
+I/ASH     ( 1120): @ 12625.819: max11259: Max11259 power on reset complete at time 12605617593660.  STAT = 0x98.
+I/ASH     ( 1120): @ 12625.827: max11259: Started sampling at 50 samples per second.
+I/WallpaperService( 2448): engine resumed
+I/sensors-hal( 1120): [hal]batch_physical_sensor:319, android.sensor.gyroscope/41, period=20000000, max_latency=0
+I/sensors-hal( 1120): [sensor]set_config:64, sample_period_ns is adjusted to 20000000 based on min/max delay_ns
+I/sensors-hal( 1120): [hal]batch_physical_sensor:328, android.sensor.gyroscope/41, period=20000000, max_latency=0 request completed
+I/cndx    ( 5519): (REDACTED) onApplyWindowInsets: systemWindowInsets=%s
+I/cndx    ( 5519): (REDACTED) onApplyWindowInsets: systemWindowInsets=%s
+I/sensors-hal( 1120): [hal]activate_physical_sensor:256, android.sensor.gyroscope/41 en=1
+I/sensors-hal( 1120): [ssc_utils]get_qmi_debug_flag:243, support_qmi_debug : false
+D/Diag_Lib( 1120):  Diag_LSM_Init: Failed to open handle to diag driver, error = 13
+W/sensors@2.0-ser( 1120): type=1400 audit(0.0:3731): avc: denied { read write } for name="diag" dev="tmpfs" ino=17796 scontext=u:r:hal_sensors_default:s0 tcontext=u:object_r:diag_device:s0 tclass=chr_file permissive=0
+D/Diag_Lib( 1120):  Diag_LSM_Init: Failed to open handle to diag driver, error = 13
+W/sensors@2.0-ser( 1120): type=1400 audit(0.0:3732): avc: denied { read write } for name="diag" dev="tmpfs" ino=17796 scontext=u:r:hal_sensors_default:s0 tcontext=u:object_r:diag_device:s0 tclass=chr_file permissive=0
+I/sensors-hal( 1120): [ssc_sensor]update_handle:559, handle=331, type=33, wakeup=0, hwid=0, base=331
+I/sensors-hal( 1120): [sensor]set_config:64, sample_period_ns is adjusted to 1000000000 based on min/max delay_ns
+I/sensors-hal( 1120): [ssc_utils]get_qmi_debug_flag:243, support_qmi_debug : false
+I/GoogleInputMethodService( 8382): GoogleInputMethodService.onFinishInput():2361 
+I/GoogleInputMethodService( 8382): GoogleInputMethodService.onStartInput():1532 onStartInput(EditorInfo{EditorInfo{packageName=com.google.android.apps.nexuslauncher, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=0, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=-1, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+W/LatinIMEBase( 8382): LatinIMEBase.updateInputViewCoverNavigation():321 Null input view, cannot update padding!
+I/Module  ( 8382): DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatusInternal():119 repeatCheckTimes = 0, locked = false
+I/Module  ( 8382): DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatusInternal():119 repeatCheckTimes = 1, locked = false
+I/sensors-hal( 1120): [ssc_utils]get_qmi_debug_flag:243, support_qmi_debug : false
+E/AuthPII ( 2938): [RequestTokenManager] getToken() -> BAD_AUTHENTICATION. App: com.google.android.gms, Service: oauth2:https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/account.capabilities https://www.googleapis.com/auth/account.service_flags
+E/AuthPII ( 2938): bksu: Long live credential not available.
+E/AuthPII ( 2938): 	at aiid.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1209)
+E/AuthPII ( 2938): 	at aiik.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):26)
+E/AuthPII ( 2938): 	at aiii.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):626)
+E/AuthPII ( 2938): 	at ahra.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):59)
+E/AuthPII ( 2938): 	at ahra.h(:com.google.android.gms@263234029@26.32.34 (190400-968093310):95)
+E/AuthPII ( 2938): 	at ahra.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):654)
+E/AuthPII ( 2938): 	at ahrb.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):57)
+E/AuthPII ( 2938): 	at ahsa.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):20)
+E/AuthPII ( 2938): 	at ahru.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):225)
+E/AuthPII ( 2938): 	at ahqf.f(:com.google.android.gms@263234029@26.32.34 (190400-968093310):35)
+E/AuthPII ( 2938): 	at dctb.fy(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1)
+E/AuthPII ( 2938): 	at dctn.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):122)
+E/AuthPII ( 2938): 	at hkhu.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):23)
+E/AuthPII ( 2938): 	at blzn.d(:com.google.android.gms@263234029@26.32.34 (190400-968093310):50)
+E/AuthPII ( 2938): 	at blzn.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):6)
+E/AuthPII ( 2938): 	at blzn.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):33)
+E/AuthPII ( 2938): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1100)
+E/AuthPII ( 2938): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+E/AuthPII ( 2938): 	at bmfk.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):8)
+E/AuthPII ( 2938): 	at java.lang.Thread.run(Thread.java:1572)
+E/AuthPII ( 2938): Message is Long live credential not available.
+E/AuthPII ( 2938): bksu: Long live credential not available.
+E/AuthPII ( 2938): 	at aiid.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1209)
+E/AuthPII ( 2938): 	at aiik.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):26)
+E/AuthPII ( 2938): 	at aiii.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):626)
+E/AuthPII ( 2938): 	at ahra.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):59)
+E/AuthPII ( 2938): 	at ahra.h(:com.google.android.gms@263234029@26.32.34 (190400-968093310):95)
+E/AuthPII ( 2938): 	at ahra.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):654)
+E/AuthPII ( 2938): 	at ahrb.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):57)
+E/AuthPII ( 2938): 	at ahsa.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):20)
+E/AuthPII ( 2938): 	at ahru.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):225)
+E/AuthPII ( 2938): 	at ahqf.f(:com.google.android.gms@263234029@26.32.34 (190400-968093310):35)
+E/AuthPII ( 2938): 	at dctb.fy(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1)
+E/AuthPII ( 2938): 	at dctn.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):122)
+E/AuthPII ( 2938): 	at hkhu.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):23)
+E/AuthPII ( 2938): 	at blzn.d(:com.google.android.gms@263234029@26.32.34 (190400-968093310):50)
+E/AuthPII ( 2938): 	at blzn.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):6)
+E/AuthPII ( 2938): 	at blzn.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):33)
+E/AuthPII ( 2938): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1100)
+E/AuthPII ( 2938): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+E/AuthPII ( 2938): 	at bmfk.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):8)
+E/AuthPII ( 2938): 	at java.lang.Thread.run(Thread.java:1572)
+W/Auth    ( 2938): [AccountStateSyncher] Unable to look up account state from server: couldn't fetch accessToken [CONTEXT service_id=343 ]
+I/AiAiEcho( 3176): (REDACTED) Predicting[%d]: %s
+I/AiAiEcho( 3176): (REDACTED) EchoTargets: %s
+I/AiAiEcho( 3176): Filtered by AiAi flag check: %s
+I/AiAiEcho( 3176): (REDACTED) Ranked targets strategy: %s, count: %d, ranking metadata: %s
+I/AiAiEcho( 3176): #remoteViewsTwiddler: feature disabled.
+I/sensors-hal( 1120): [ssc_sensor]ssc_conn_resp_cb:685, resp_value = 0
+I/AiAiEcho( 3176): (REDACTED) #postPredictionTargets: Sending updates to UISurface %s with targets# %s (types=[%s])
+D/ContextHubHal( 1105): Got message from nanoapp: ID 0x476f6f676c00100e
+E/BcSmartspaceCard( 2757): No tap action can be set up
+I/sensors-hal( 1120): [hal]activate_physical_sensor:267, android.sensor.gyroscope/41 en=1 completed
+I/sensors-hal( 1120): [ssc_sensor]ssc_conn_resp_cb:685, resp_value = 0
+D/Oslo.OsloMetrics( 2529): log flick echo client com.breel.wallpapers19.view.controller.OsloController gesture 2 register true
+D/Oslo.OsloMetrics( 2529): Register 31 timestamp 12623401
+D/Oslo.OsloMetrics( 2529): log reach echo client com.breel.wallpapers19.view.controller.OsloController gesture 5 register true
+D/Oslo.OsloMetrics( 2529): Register 31 timestamp 12623401
+D/Oslo.OsloMetrics( 2529): log flick client com.breel.wallpapers19.view.controller.OsloController gesture 1 register true
+D/Oslo.OsloMetrics( 2529): Register 31 timestamp 12623401
+D/Oslo.OsloMetrics( 2529): log reach client com.breel.wallpapers19.view.controller.OsloController gesture 4 register true
+D/Oslo.OsloMetrics( 2529): Register 31 timestamp 12623401
+D/Oslo.StatusSensor( 2529): setting local audio playback to: false
+I/sensors-hal( 1120): [hal]batch_physical_sensor:319, android.sensor.accelerometer/11, period=200000000, max_latency=2000000000
+I/sensors-hal( 1120): [sensor]set_config:64, sample_period_ns is adjusted to 200000000 based on min/max delay_ns
+I/sensors-hal( 1120): [hal]batch_physical_sensor:328, android.sensor.accelerometer/11, period=200000000, max_latency=2000000000 request completed
+I/adbd    (26665): Remote process closed the socket (on MSG_PEEK)
+V/ActivityManager( 1838): Got obituary of 28340:com.drakeforge.mergedefense
+W/ActivityManager( 1838): setHasOverlayUi called on unknown pid: 28340
+I/Zygote  ( 1084): Process 28340 exited due to signal 9 (Killed)
+D/ContextHubHal( 1105): Got nanoapp list response with 14 apps
+D/CHRE    ( 1120): @ 12625.869: Nanoapp list request from client ID 1
+D/CHRE    ( 1120): @ 12625.869: Parsed nanoapp message from host: app ID 0x476f6f676c001014, endpoint 0x2, msgType 17, payload size 2
+E/BpTransactionCompletedListener(  716): Failed to transact (-32)
+E/BpTransactionCompletedListener(  716): Failed to transact (-32)
+D/ACDB-LOADER( 1100): ACDB -> send_audvoltable
+D/ACDB-LOADER( 1100): ACDB -> ACDB_CMD_GET_AUDPROC_INSTANCE_GAIN_DEP_STEP_TABLE_SIZE
+D/ACDB-LOADER( 1100): ACDB -> ACDB_CMD_GET_AUDPROC_INSTANCE_GAIN_DEP_STEP_TABLE, vol index 0
+D/ACDB-LOADER( 1100): ACDB -> AUDIO_SET_VOL_CAL cal type = 40
+W/msm8974_platform( 1100): platform_send_gain_dep_cal: Usecase list is empty
+W/msm8974_platform( 1100): platform_send_gain_dep_cal: Usecase list is empty
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+I/adbd    (26665): adbd service requested 'shell,v2,raw:am start -n com.drakeforge.mergedefense/com.unity3d.player.UnityPlayerActivity'
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 161252188; UID 10045; state: ENABLED
+I/ActivityTaskManager( 1838): START u0 {flg=0x10000000 cmp=com.drakeforge.mergedefense/com.unity3d.player.UnityPlayerActivity} from uid 2000
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 194480991; UID 10045; state: ENABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 174042980; UID 10045; state: DISABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 184838306; UID 10045; state: DISABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 185004937; UID 10045; state: DISABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 181136395; UID 10045; state: DISABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 174042936; UID 10045; state: DISABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 205907456; UID 10045; state: ENABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 168419799; UID 10045; state: DISABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 135634846; UID 10045; state: DISABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 177438394; UID 10045; state: DISABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 135772972; UID 10045; state: DISABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 135754954; UID 10045; state: ENABLED
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 143937733; UID 10045; state: ENABLED
+D/Zygote  ( 1084): Forked child process 28456
+I/ActivityManager( 1838): Start proc 28456:com.drakeforge.mergedefense/u0a45 for next-top-activity {com.drakeforge.mergedefense/com.unity3d.player.UnityPlayerActivity}
+I/ge.mergedefense(28456): Late-enabling -Xcheck:jni
+W/Parcel  ( 2400): Expecting binder but got null!
+I/ge.mergedefense(28456): Using generational CollectorTypeCC GC.
+I/adbd    (26665): jdwp connection from 28456
+D/nativeloader(28456): Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+D/CompatibilityChangeReporter(28456): Compat change id reported: 171979766; UID 10045; state: ENABLED
+I/cnkq    ( 5519): onPause
+I/cncc    ( 5519): onPause
+W/efyv    ( 5519): measuring already stopped.
+D/nativeloader(28456): Configuring clns-4 for other apk /data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/base.apk. target_sdk_version=35, uses_libraries=, library_path=/data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/lib/arm64:/data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.drakeforge.mergedefense
+D/nativeloader(28456): Load libframework-connectivity-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity.jar: ok
+V/GraphicsEnvironment(28456): ANGLE Developer option for 'com.drakeforge.mergedefense' set to: 'default'
+V/GraphicsEnvironment(28456): ANGLE GameManagerService for com.drakeforge.mergedefense: false
+V/GraphicsEnvironment(28456): Updatable production driver is not supported on the device.
+D/NetworkSecurityConfig(28456): Using Network Security Config from resource dragonbound_network_security debugBuild: true
+D/NetworkSecurityConfig(28456): Using Network Security Config from resource dragonbound_network_security debugBuild: true
+D/CompatibilityChangeReporter(28456): Compat change id reported: 183155436; UID 10045; state: ENABLED
+I/FirebaseApp(28456): Device unlocked: initializing all Firebase APIs for app [DEFAULT]
+I/FirebaseInitProvider(28456): FirebaseApp initialization successful
+I/DynamiteModule(28456): Considering local module com.google.android.gms.measurement.dynamite:185 and remote module com.google.android.gms.measurement.dynamite:205
+I/DynamiteModule(28456): Selected remote version of com.google.android.gms.measurement.dynamite, version >= 205
+V/DynamiteModule(28456): Dynamite loader version >= 2, using loadModule2NoCrashUtils
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 161145287; UID 10045; state: DISABLED
+D/nativeloader(28456): Load /data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/lib/arm64/libmain.so using class loader ns clns-4 (caller=/data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/base.apk): ok
+W/System  (28456): ClassLoader referenced unknown path: 
+D/nativeloader(28456): Configuring clns-5 for other apk . target_sdk_version=37, uses_libraries=, library_path=/data/app/~~JIX2NKdQQvim-c_86Mrmaw==/com.google.android.gms-kNdIF9jx6aXQ6wTwhg9dxg==/lib/arm64:/data/app/~~JIX2NKdQQvim-c_86Mrmaw==/com.google.android.gms-kNdIF9jx6aXQ6wTwhg9dxg==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+I/IL2CPP  (28456): JNI_OnLoad
+D/Unity   (28456): CommandLine:  
+I/Unity   (28456): onResume
+I/WallpaperService( 2448): engine paused
+I/sensors-hal( 1120): [hal]activate_physical_sensor:256, android.sensor.gyroscope/41 en=0
+D/Diag_Lib( 1120): diag: Diag_LSM_DeInit: invoked for pid: 1120
+D/Diag_Lib( 1120): diag: Diag_LSM_DeInit: done for pid: 1120
+D/Diag_Lib( 1120): diag: Diag_LSM_DeInit: invoked for pid: 1120
+D/Diag_Lib( 1120): diag: Diag_LSM_DeInit: done for pid: 1120
+I/sensors-hal( 1120): [hal]activate_physical_sensor:267, android.sensor.gyroscope/41 en=0 completed
+W/WindowManager( 1838): Failed looking up window session=Session{a0a2ec 28456:u0a10045} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:5893 com.android.server.wm.Session.updateRequestedVisibilities:699 android.view.IWindowSession$Stub.onTransact:1095 
+D/Oslo.OsloMetrics( 2529): log flick echo client com.breel.wallpapers19.view.controller.OsloController gesture 2 register false
+D/Oslo.OsloMetrics( 2529): Unregister, registered count 31 unregistered count 31 timestamp 12624693 elapsed duration 1292
+D/Oslo.OsloMetrics( 2529): log reach echo client com.breel.wallpapers19.view.controller.OsloController gesture 5 register false
+D/Oslo.OsloMetrics( 2529): Unregister, registered count 31 unregistered count 31 timestamp 12624693 elapsed duration 1292
+D/Oslo.OsloMetrics( 2529): log flick client com.breel.wallpapers19.view.controller.OsloController gesture 1 register false
+D/Oslo.OsloMetrics( 2529): Unregister, registered count 31 unregistered count 31 timestamp 12624693 elapsed duration 1292
+D/Oslo.OsloMetrics( 2529): log reach client com.breel.wallpapers19.view.controller.OsloController gesture 4 register false
+D/Oslo.OsloMetrics( 2529): Unregister, registered count 31 unregistered count 31 timestamp 12624694 elapsed duration 1293
+D/CoreBackPreview( 1838): Window{918e14a u0 com.drakeforge.mergedefense/com.unity3d.player.UnityPlayerActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@c8bc816, mPriority=-1}
+D/CoreBackPreview( 1838): Window{918e14a u0 com.drakeforge.mergedefense/com.unity3d.player.UnityPlayerActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@57f1597, mPriority=1}
+I/BpBinder(  716): onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+E/SurfaceSyncer(28456): Failed to find sync for id=0
+D/Unity   (28456): SetWindow 0 0xb400007dc0e6e4c0
+D/Unity   (28456): SetWindow 0 0xb400007dc0e6e4c0
+I/servicemanager(  660): Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+I/Elmyra/ElmyraService( 2400): Gated by NavigationBarVisibility [mIsNavigationHidden -> true; mExceptions -> [DismissTimer [mReceiverRegistered -> true], SnoozeAlarm [mReceiverRegistered -> true], SilenceCall [mSilenceSettingEnabled -> true], SettingsAction]; mIsNavigationGestural -> true; isActiveAssistantNga() -> false]
+D/CHRE    ( 1120): @ 12627.185: Parsed nanoapp message from host: app ID 0x476f6f676c00100e, endpoint 0x8, msgType 201, payload size 0
+D/CHRE    ( 1120): @ 12627.185: Elmyra/Nanoapp Recognizer stopped
+I/ASH     ( 1120): @ 12627.186: max11259: Stopped sampling.
+I/ASH     ( 1120): @ 12627.186: max11259: Max11259 power is off. rc = 0
+I/ActivityTaskManager( 1838): Displayed com.drakeforge.mergedefense/com.unity3d.player.UnityPlayerActivity: +351ms
+I/PhenotypeResourceReader( 2938): unable to find any Phenotype resource metadata for com.drakeforge.mergedefense
+I/ge.mergedefense(28456): hiddenapi: Accessing hidden method Ldalvik/system/VMStack;->getStackClass2()Ljava/lang/Class; (runtime_flags=0, domain=core-platform, api=unsupported) from Lm7/aon; (domain=app, TargetSdkVersion=35) using reflection: allowed
+E/SurfaceSyncer(28456): Failed to find sync for id=0
+I/Unity   (28456): windowFocusChanged: true
+D/CompatibilityChangeReporter( 1838): Compat change id reported: 214016041; UID 10045; state: ENABLED
+I/GoogleInputMethodService( 8382): GoogleInputMethodService.onFinishInput():2361 
+I/GoogleInputMethodService( 8382): GoogleInputMethodService.onStartInput():1532 onStartInput(EditorInfo{EditorInfo{packageName=com.drakeforge.mergedefense, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=0, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=2131034192, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+W/LatinIMEBase( 8382): LatinIMEBase.updateInputViewCoverNavigation():321 Null input view, cannot update padding!
+I/Module  ( 8382): DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatusInternal():119 repeatCheckTimes = 0, locked = false
+I/Module  ( 8382): DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatusInternal():119 repeatCheckTimes = 1, locked = false
+D/KeyguardService( 2400): setOccluded(true)
+D/KeyguardViewMediator( 2400): setOccluded(true)
+D/KeyguardViewMediator( 2400): handleSetOccluded(true)
+I/Unity   (28456): MemoryManager: Using 'Dynamic Heap' Allocator.
+D/Unity   (28456): [UnityMemory] Configuration Parameters - Can be set up in boot.config
+D/Unity   (28456):     "memorysetup-allocator-temp-initial-block-size-main=262144"
+D/Unity   (28456):     "memorysetup-allocator-temp-initial-block-size-worker=262144"
+D/Unity   (28456):     "memorysetup-bucket-allocator-granularity=16"
+D/Unity   (28456):     "memorysetup-bucket-allocator-bucket-count=8"
+D/Unity   (28456):     "memorysetup-bucket-allocator-block-size=4194304"
+D/Unity   (28456):     "memorysetup-bucket-allocator-block-count=1"
+D/Unity   (28456):     "memorysetup-main-allocator-block-size=16777216"
+D/Unity   (28456):     "memorysetup-thread-allocator-block-size=16777216"
+D/Unity   (28456):     "memorysetup-gfx-main-allocator-block-size=16777216"
+D/Unity   (28456):     "memorysetup-gfx-thread-allocator-block-size=16777216"
+D/Unity   (28456):     "memorysetup-cache-allocator-block-size=4194304"
+D/Unity   (28456):     "memorysetup-typetree-allocator-block-size=2097152"
+D/Unity   (28456):     "memorysetup-profiler-bucket-allocator-granularity=16"
+D/Unity   (28456):     "memorysetup-profiler-bucket-allocator-bucket-count=8"
+D/Unity   (28456):     "memorysetup-profiler-bucket-allocator-block-size=4194304"
+D/Unity   (28456):     "memorysetup-profiler-bucket-allocator-block-count=1"
+D/Unity   (28456):     "memorysetup-profiler-allocator-block-size=16777216"
+D/Unity   (28456):     "memorysetup-profiler-editor-allocator-block-size=1048576"
+D/Unity   (28456):     "memorysetup-temp-allocator-size-main=4194304"
+D/Unity   (28456):     "memorysetup-job-temp-allocator-block-size=2097152"
+D/Unity   (28456):     "memorysetup-job-temp-allocator-block-size-background=1048576"
+D/Unity   (28456):     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+D/Unity   (28456):     "memorysetup-temp-allocator-size-background-worker=32768"
+D/Unity   (28456):     "memorysetup-temp-allocator-size-job-worker=262144"
+D/Unity   (28456):     "memorysetup-temp-allocator-size-preload-manager=262144"
+D/Unity   (28456):     "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+D/Unity   (28456):     "memorysetup-temp-allocator-size-audio-worker=65536"
+D/Unity   (28456):     "memorysetup-temp-allocator-size-cloud-worker=32768"
+D/Unity   (28456):     "memorysetup-temp-allocator-size-gfx=262144"
+I/cnkq    ( 5519): onStop
+E/ge.mergedefense(28456): No package ID 6a found for ID 0x6a0b0013.
+I/FA      (28456): App measurement initialized, version: 181006
+I/FA      (28456): To enable debug logging run: adb shell setprop log.tag.FA VERBOSE
+I/FA      (28456): To enable faster debug mode event logging run:
+I/FA      (28456):   adb shell setprop debug.firebase.analytics.app com.drakeforge.mergedefense
+I/cncc    ( 5519): onStop
+I/Elmyra/ElmyraService( 2400): Gated by NavigationBarVisibility [mIsNavigationHidden -> true; mExceptions -> [DismissTimer [mReceiverRegistered -> true], SnoozeAlarm [mReceiverRegistered -> true], SilenceCall [mSilenceSettingEnabled -> true], SettingsAction]; mIsNavigationGestural -> true; isActiveAssistantNga() -> false]
+I/Elmyra/ElmyraService( 2400): Gated by NavigationBarVisibility [mIsNavigationHidden -> true; mExceptions -> [DismissTimer [mReceiverRegistered -> true], SnoozeAlarm [mReceiverRegistered -> true], SilenceCall [mSilenceSettingEnabled -> true], SettingsAction]; mIsNavigationGestural -> true; isActiveAssistantNga() -> false]
+I/Finsky  (25520): [2] SCH: job service start with id 9684.
+I/Finsky  (25520): [275] SCH: Satisfied jobs for 9684 are: 12-1
+I/Finsky  (25520): [274] SCH: Job 12-1 starting
+I/Finsky  (25520): [2] WM::SCH: Logging work start for 12-1
+I/Finsky  (25520): [2] [ContentSync] job started
+D/Unity   (28456): Enabling Unity systrace
+I/ge.mergedefense(28456): hiddenapi: Accessing hidden method Ljava/lang/invoke/MethodHandles$Lookup;-><init>(Ljava/lang/Class;I)V (runtime_flags=0, domain=core-platform, api=unsupported) from Lbitter/jnibridge/a; (domain=app, TargetSdkVersion=35) using reflection: allowed
+D/Unity   (28456): [VFS] Mount /data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/base.apk
+D/Unity   (28456): Loading player data from /data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/base.apk/assets/bin/Data/data.unity3d
+D/BoundBrokerSvc( 3439): onBind: Intent { act=com.google.android.gms.measurement.START pkg=com.google.android.gms }
+D/BoundBrokerSvc( 3439): Loading bound service for intent: Intent { act=com.google.android.gms.measurement.START pkg=com.google.android.gms }
+I/FA      (28456): Tag Manager is not found and thus will not be used
+D/AdvertisingIdClient( 3439): AdvertisingIdClient already created.
+I/AdvertisingIdClient( 3439): shouldSendLog 11941772
+I/AdvertisingIdClient( 3439): GetInfoInternal elapse 5ms
+D/BoundBrokerSvc( 2938): onRebind: Intent { act=com.google.android.gms.common.telemetry.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+I/Unity   (28456): SystemInfo CPU = ARM64 FP ASIMD AES, Cores = 8, Memory = 5465mb
+I/Unity   (28456): SystemInfo ARM big.LITTLE configuration: 4 big (mask: 0xf0), 4 little (mask: 0xf)
+I/Unity   (28456): ApplicationInfo com.drakeforge.mergedefense version 0.1
+I/Unity   (28456): Built from 'origin/2022.3/china_unity/release' branch, Version '2022.3.62f3c1 (1623fc0bbb97)', Build type 'Development', Scripting Backend 'il2cpp', CPU 'arm64-v8a', Stripping 'Enabled'
+D/Unity   (28456): Determine if il2cpp resources need to extracted:
+D/Unity   (28456):     il2cpp resources are up to date, not extracting
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+D/Unity   (28456): [EGL] Attaching window :0xb400007dc0e6e4c0
+D/Unity   (28456): InitializeScriptEngine OK (0x7ed473efc0)
+D/Unity   (28456): Found 1 interfaces on host :
+D/Unity   (28456):  0) 172.19.0.1
+D/Unity   (28456): 
+D/Unity   (28456): Player connection [531630111792]  Target information:
+D/Unity   (28456): 
+D/Unity   (28456): Player connection [531630111792]  * "[IP] 172.19.0.1 [Port] 55000 [Flags] 2 [Guid] 2112160907 [EditorId] 1258133191 [Version] 1048832 [Id] AndroidPlayer(11,Google_Pixel_4@172.19.0.1) [Debug] 0 [PackageName] AndroidPlayer [ProjectName] Dragon L1" 
+D/Unity   (28456): 
+D/Unity   (28456): Player connection [531630111792] Started UDP target info broadcast (1) on [225.0.0.222:54997].
+D/Unity   (28456): 
+D/Unity   (28456): [PhysX] Initialized MultithreadedTaskDispatcher with 5 workers.
+D/Unity   (28456): Loading player data from assets/bin/Data/data.unity3d
+D/Unity   (28456): PlayerInitEngineNoGraphics OK
+I/Unity   (28456): Company Name: DefaultCompany
+I/Unity   (28456): Product Name: Dragon L1
+D/Unity   (28456): AndroidGraphics::Startup window =  0xb400007dc0e6e4c0
+D/Unity   (28456): [EGL] Attaching window :0xb400007dc0e6e4c0
+D/vulkan  (28456): searching for layers in '/data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/lib/arm64'
+D/vulkan  (28456): searching for layers in '/data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/base.apk!/lib/arm64-v8a'
+D/Unity   (28456): [Vulkan init] extensions: count=12
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_debug_report [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_swapchain_colorspace [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_GOOGLE_surfaceless_query [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_android_surface [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_device_group_creation [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_fence_capabilities [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_memory_capabilities [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_semaphore_capabilities [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_get_physical_device_properties2 [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_get_surface_capabilities2 [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_surface [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_surface_protected_capabilities [enabled=0, external=0]
+I/AdrenoVK-0(28456): ===== BEGIN DUMP OF OVERRIDDEN SETTINGS =====
+I/AdrenoVK-0(28456): ===== END DUMP OF OVERRIDDEN SETTINGS =====
+I/AdrenoVK-0(28456): QUALCOMM build          : 85da404, I46ff5fc46f
+I/AdrenoVK-0(28456): Build Date              : 11/30/20
+I/AdrenoVK-0(28456): Shader Compiler Version : EV031.31.04.01
+I/AdrenoVK-0(28456): Local Branch            : promo490_3_Google
+I/AdrenoVK-0(28456): Remote Branch           : 
+I/AdrenoVK-0(28456): Remote Branch           : 
+I/AdrenoVK-0(28456): Reconstruct Branch      : 
+I/AdrenoVK-0(28456): Build Config            : S P 10.0.4 AArch64
+I/AdrenoVK-0(28456): Driver Path             : /vendor/lib64/hw/vulkan.adreno.so
+D/Unity   (28456): [Vulkan init] SelectPhysicalDevice requestedDeviceIndex=-1 xrDevice=0x0
+D/Unity   (28456): [Vulkan init] Physical Device 0xb400007c50e767d0 [0]: "Adreno (TM) 640" deviceType=1 vendorID=5143 deviceID=6040001
+D/Unity   (28456): Vulkan detection: 2
+D/Unity   (28456): GfxDevice: creating device client; threaded=1; jobified=0
+D/Unity   (28456): [Vulkan init] extensions: count=12
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_debug_report [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_swapchain_colorspace [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_GOOGLE_surfaceless_query [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_android_surface [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_device_group_creation [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_fence_capabilities [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_memory_capabilities [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_semaphore_capabilities [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_get_physical_device_properties2 [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_get_surface_capabilities2 [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_surface [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_surface_protected_capabilities [enabled=0, external=0]
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.mainline.primary.libs' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+I/AdrenoVK-0(28456): QUALCOMM build          : 85da404, I46ff5fc46f
+I/AdrenoVK-0(28456): Build Date              : 11/30/20
+I/AdrenoVK-0(28456): Shader Compiler Version : EV031.31.04.01
+I/AdrenoVK-0(28456): Local Branch            : promo490_3_Google
+I/AdrenoVK-0(28456): Remote Branch           : 
+I/AdrenoVK-0(28456): Remote Branch           : 
+I/AdrenoVK-0(28456): Reconstruct Branch      : 
+I/AdrenoVK-0(28456): Build Config            : S P 10.0.4 AArch64
+I/AdrenoVK-0(28456): Driver Path             : /vendor/lib64/hw/vulkan.adreno.so
+D/Unity   (28456): [Vulkan init] SelectPhysicalDevice requestedDeviceIndex=-1 xrDevice=0x0
+D/Unity   (28456): [Vulkan init] Physical Device 0xb400007c50e7b930 [0]: "Adreno (TM) 640" deviceType=1 vendorID=5143 deviceID=6040001
+D/Unity   (28456): [Vulkan init] Selected physical device 0xb400007c50e7b930
+D/Unity   (28456): [Vulkan init] Graphics queue count=1
+D/Unity   (28456): [Vulkan init] extensions: count=60
+D/Unity   (28456): [Vulkan init] extensions: name=VK_ANDROID_external_memory_android_hardware_buffer [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_device_memory_report [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_fragment_density_map [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_global_priority [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_hdr_metadata [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_host_query_reset [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_index_type_uint8 [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_line_rasterization [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_pipeline_creation_cache_control [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_pipeline_creation_feedback [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_provoking_vertex [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_queue_family_foreign [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_sampler_filter_minmax [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_scalar_block_layout [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_separate_stencil_usage [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_subgroup_size_control [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_texture_compression_astc_hdr [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_EXT_vertex_attribute_divisor [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_GOOGLE_display_timing [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_bind_memory2 [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_buffer_device_address [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_create_renderpass2 [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_dedicated_allocation [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_depth_stencil_resolve [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_descriptor_update_template [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_device_group [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_draw_indirect_count [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_driver_properties [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_fence [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_fence_fd [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_memory [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_memory_fd [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_semaphore [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_external_semaphore_fd [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_get_memory_requirements2 [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_image_format_list [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_incremental_present [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_maintenance1 [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_maintenance2 [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_maintenance3 [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_multiview [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_push_descriptor [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_relaxed_block_layout [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_sampler_mirror_clamp_to_edge [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_sampler_ycbcr_conversion [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_separate_depth_stencil_layouts [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_shader_draw_parameters [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_shader_float16_int8 [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_shader_float_controls [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_shader_subgroup_extended_types [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_shared_presentable_image [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_spirv_1_4 [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_storage_buffer_storage_class [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_swapchain [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_uniform_buffer_standard_layout [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_variable_pointers [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_KHR_vulkan_memory_model [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_QCOM_render_pass_shader_resolve [enabled=0, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_QCOM_render_pass_store_ops [enabled=1, external=0]
+D/Unity   (28456): [Vulkan init] extensions: name=VK_QCOM_render_pass_transform [enabled=0, external=0]
+D/Unity   (28456): Vulkan API version 1.1.0 (1.1.128 supported by driver, 1.1.0 requested)
+D/Unity   (28456): Vulkan vendor=[Qualcomm] id=[5143]
+D/Unity   (28456): Vulkan renderer=[Adreno (TM) 640] id=[6040001]
+D/Unity   (28456): Vulkan device type 1
+D/Unity   (28456): Vulkan driverversion=[512.490.0] uint=[-2145476608]
+D/Unity   (28456): VK use pretransform: 1
+D/Unity   (28456): Vulkan PSO: Cache data successfully loaded [size=116991,path=/storage/emulated/0/Android/data/com.drakeforge.mergedefense/cache/vulkan_pso_cache.bin]
+D/Unity   (28456): [EGL] Attaching window :0x0
+D/Unity   (28456): AndroidDisplayManagerVulkan::AttachWindow(0xb400007dc0e6e4c0, 0)
+D/Unity   (28456): InitializeOrResetSwapChain 1080x2280 hdr=0 samples=0
+W/AdrenoUtils(28456): <ReadGpuID_from_sysfs:197>: Failed to open /sys/class/kgsl/kgsl-3d0/gpu_model
+W/AdrenoUtils(28456): <ReadGpuID:221>: Failed to read chip ID from gpu_model. Fallback to use the GSL path
+E/qdgralloc(28456): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils(28456): <validate_memory_layout_input_parmas:1923>: Unknown Format 0
+E/AdrenoUtils(28456): <adreno_init_memory_layout:4634>: Memory Layout input parameter validation failed!
+E/qdgralloc(28456): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4(28456): isSupported(1, 1, 56, 1, ...) failed with 1
+E/qdgralloc(  720): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils(  720): <validate_memory_layout_input_parmas:1923>: Unknown Format 0
+E/AdrenoUtils(  720): <adreno_init_memory_layout:4634>: Memory Layout input parameter validation failed!
+E/qdgralloc(  720): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/GraphicBufferAllocator(28456): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 1
+E/AHardwareBuffer(28456): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -1), handle=0x0
+E/qdgralloc(28456): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils(28456): <validate_memory_layout_input_parmas:1923>: Unknown Format 0
+E/AdrenoUtils(28456): <adreno_init_memory_layout:4634>: Memory Layout input parameter validation failed!
+E/qdgralloc(28456): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4(28456): isSupported(1, 1, 56, 1, ...) failed with 1
+E/qdgralloc(  720): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils(  720): <validate_memory_layout_input_parmas:1923>: Unknown Format 0
+E/AdrenoUtils(  720): <adreno_init_memory_layout:4634>: Memory Layout input parameter validation failed!
+E/qdgralloc(  720): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/GraphicBufferAllocator(28456): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 1
+E/AHardwareBuffer(28456): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -1), handle=0x0
+D/Choreographer(28456): Attaching thread to JVM for AChoreographer
+V/SwappyVk(28456): SwappyVk initialized for VkDevice 0xb400007c50e7bc30 using VK_GOOGLE_display_timing on Android
+I/SwappyVk(28456): Returning refresh duration of 11111111 nsec (approx 90.000001 Hz)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.uwb' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+V/MediaRouter(28456): Selecting route: RouteInfo{ name=鎵嬫満, description=null, status=null, category=RouteCategory{ name=绯荤粺 types=ROUTE_TYPE_LIVE_AUDIO ROUTE_TYPE_LIVE_VIDEO  groupable=false }, supportedTypes=ROUTE_TYPE_LIVE_AUDIO ROUTE_TYPE_LIVE_VIDEO , presentationDisplay=null }
+I/MediaRouter(28456): Skip setBluetoothA2dpOn(): types=8388615, isPlaybackActive()=false, BT route=null
+D/Unity   (28456): AndroidDisplayManagerVulkan::AttachWindow(0xb400007dc0e6e4c0, 0)
+D/Unity   (28456): Initialize engine version: 2022.3.62f3c1 (1623fc0bbb97)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.tzdata4' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+D/ge.mergedefense(28456): PlayerBase::PlayerBase()
+D/ge.mergedefense(28456): TrackPlayerBase::TrackPlayerBase()
+I/libOpenSLES(28456): Emulating old channel mask behavior (ignoring positional mask 0x3, using default mask 0x3 based on channel count of 2)
+W/AudioTrack(28456): set(): notificationFrames=-42 clamped to the range -1 to -8
+D/AudioFlinger( 1172): Client defaulted notificationFrames to 96 for frameCount 768
+D/AF::TrackHandle( 1172): OpPlayAudio: track:62 usage:1 not muted
+I/AudioTrack(28456): createTrack_l(0): AUDIO_OUTPUT_FLAG_FAST successful; frameCount 0 -> 768
+D/MediaRouter(28456): onRestoreRoute() : route=RouteInfo{ name=鎵嬫満, description=null, status=null, category=RouteCategory{ name=绯荤粺 types=ROUTE_TYPE_LIVE_AUDIO ROUTE_TYPE_LIVE_VIDEO  groupable=false }, supportedTypes=ROUTE_TYPE_LIVE_AUDIO ROUTE_TYPE_LIVE_VIDEO , presentationDisplay=null }
+V/MediaRouter(28456): Selecting route: RouteInfo{ name=鎵嬫満, description=null, status=null, category=RouteCategory{ name=绯荤粺 types=ROUTE_TYPE_LIVE_AUDIO ROUTE_TYPE_LIVE_VIDEO  groupable=false }, supportedTypes=ROUTE_TYPE_LIVE_AUDIO ROUTE_TYPE_LIVE_VIDEO , presentationDisplay=null }
+D/Oslo.StatusSensor( 2529): setting local audio playback to: true
+D/ContextHubHal( 1105): Got nanoapp list response with 14 apps
+D/CHRE    ( 1120): @ 12627.532: Nanoapp list request from client ID 1
+D/CHRE    ( 1120): @ 12627.533: Parsed nanoapp message from host: app ID 0x476f6f676c001014, endpoint 0x2, msgType 17, payload size 4
+I/EffectsFactory( 1100): EffectCreate() create_effect
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.permission' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+D/ACDB-LOADER( 1100): ACDB -> send_audvoltable
+D/ACDB-LOADER( 1100): ACDB -> ACDB_CMD_GET_AUDPROC_INSTANCE_GAIN_DEP_STEP_TABLE_SIZE
+D/ACDB-LOADER( 1100): ACDB -> ACDB_CMD_GET_AUDPROC_INSTANCE_GAIN_DEP_STEP_TABLE, vol index 5
+D/ACDB-LOADER( 1100): ACDB -> AUDIO_SET_VOL_CAL cal type = 40
+W/msm8974_platform( 1100): platform_send_gain_dep_cal: Usecase list is empty
+W/InputManager-JNI( 1838): Input channel object '7886ae1 Splash Screen com.drakeforge.mergedefense (client)' was disposed without first being removed with the input manager!
+D/Unity   (28456): PlayerInitEngineGraphics OK
+D/Unity   (28456): Found 37 native sensors
+I/sensors-hal( 1120): [hal]batch_physical_sensor:319, android.sensor.accelerometer/11, period=200000000, max_latency=0
+I/sensors-hal( 1120): [sensor]set_config:64, sample_period_ns is adjusted to 200000000 based on min/max delay_ns
+I/sensors-hal( 1120): [hal]batch_physical_sensor:328, android.sensor.accelerometer/11, period=200000000, max_latency=0 request completed
+I/sensors-hal( 1120): [hal]flush_physical_sensor:360, android.sensor.accelerometer/11
+I/sensors-hal( 1120): [hal]flush_physical_sensor:366, android.sensor.accelerometer/11 completed
+D/Unity   (28456): Sensor :        Accelerometer ( 1) ; 0.004786 / 0.00s ; LSM6DSR Accelerometer / STMicro 
+I/sensors-hal( 1120): [hal]batch_physical_sensor:319, android.sensor.accelerometer/11, period=20000000, max_latency=0
+I/sensors-hal( 1120): [sensor]set_config:64, sample_period_ns is adjusted to 20000000 based on min/max delay_ns
+I/sensors-hal( 1120): [hal]batch_physical_sensor:328, android.sensor.accelerometer/11, period=20000000, max_latency=0 request completed
+D/Unity   (28456): Sensor :        Accelerometer ( 1) ; 0.004786 / 0.00s ; LSM6DSR Accelerometer / STMicro 
+D/Unity   (28456): enabled Accelerometer sensor
+I/sensors-hal( 1120): [ssc_sensor]ssc_conn_resp_cb:685, resp_value = 0
+I/sensors-hal( 1120): [ssc_sensor]ssc_conn_resp_cb:685, resp_value = 0
+I/sensors-hal( 1120): [ssc_sensor]ssc_conn_resp_cb:685, resp_value = 0
+D/Unity   (28456): InitializeOrResetSwapChain 1080x2280 hdr=0 samples=0
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+E/qdgralloc(28456): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils(28456): <validate_memory_layout_input_parmas:1923>: Unknown Format 0
+E/AdrenoUtils(28456): <adreno_init_memory_layout:4634>: Memory Layout input parameter validation failed!
+E/qdgralloc(28456): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4(28456): isSupported(1, 1, 56, 1, ...) failed with 1
+E/qdgralloc(  720): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils(  720): <validate_memory_layout_input_parmas:1923>: Unknown Format 0
+E/AdrenoUtils(  720): <adreno_init_memory_layout:4634>: Memory Layout input parameter validation failed!
+E/qdgralloc(  720): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/GraphicBufferAllocator(28456): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 1
+E/AHardwareBuffer(28456): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -1), handle=0x0
+E/qdgralloc(28456): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils(28456): <validate_memory_layout_input_parmas:1923>: Unknown Format 0
+E/AdrenoUtils(28456): <adreno_init_memory_layout:4634>: Memory Layout input parameter validation failed!
+E/qdgralloc(28456): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/Gralloc4(28456): isSupported(1, 1, 56, 1, ...) failed with 1
+E/qdgralloc(  720): GetGpuPixelFormat: No map for format: 0x38
+E/AdrenoUtils(  720): <validate_memory_layout_input_parmas:1923>: Unknown Format 0
+E/AdrenoUtils(  720): <adreno_init_memory_layout:4634>: Memory Layout input parameter validation failed!
+E/qdgralloc(  720): GetGpuResourceSizeAndDimensions Graphics metadata init failed
+E/GraphicBufferAllocator(28456): Failed to allocate (4 x 4) layerCount 1 format 56 usage b00: 1
+E/AHardwareBuffer(28456): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -1), handle=0x0
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.wifi' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+V/SwappyVk(28456): SwappyVk initialized for VkDevice 0xb400007c50e7bc30 using VK_GOOGLE_display_timing on Android
+I/SwappyVk(28456): Returning refresh duration of 11111111 nsec (approx 90.000001 Hz)
+I/IL2CPP  (28456): Locale zh-Hans-CN
+I/ActivityTaskManager( 1838): Fully drawn com.drakeforge.mergedefense/com.unity3d.player.UnityPlayerActivity: +848ms
+D/CentralSurfaces( 2400): Received new disable state: enaihbcrso.qingr (unchanged)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.appsearch' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.media.swcodec' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.art' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.mediaprovider' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.adbd' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.resolv' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.conscrypt' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.media' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.neuralnetworks' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.ipsec' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.ondevicepersonalization' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.sdkext' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.adservices' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.tethering' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.extservices' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.os.statsd' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.cellbroadcast' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+W/Finsky  (25520): [2] STU: Failed to get storage stats for package 'com.google.android.scheduling' (1601: Error getting stats: android.content.pm.PackageManager.NameNotFoundException)
+I/Finsky  (25520): [2] App states replicator found 51 unowned apps
+E/AuthPII ( 2938): [RequestTokenManager] getToken() -> BAD_AUTHENTICATION. App: com.android.vending, Service: oauth2:https://www.googleapis.com/auth/googleplay
+E/AuthPII ( 2938): bksu: Long live credential not available.
+E/AuthPII ( 2938): 	at aiid.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1209)
+E/AuthPII ( 2938): 	at aiik.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):26)
+E/AuthPII ( 2938): 	at aiii.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):626)
+E/AuthPII ( 2938): 	at aiih.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):134)
+E/AuthPII ( 2938): 	at abrh.d(:com.google.android.gms@263234029@26.32.34 (190400-968093310):789)
+E/AuthPII ( 2938): 	at aibk.getAuthToken(:com.google.android.gms@263234029@26.32.34 (190400-968093310):357)
+E/AuthPII ( 2938): 	at android.accounts.AbstractAccountAuthenticator$Transport.getAuthToken(AbstractAccountAuthenticator.java:246)
+E/AuthPII ( 2938): 	at android.accounts.IAccountAuthenticator$Stub.onTransact(IAccountAuthenticator.java:242)
+E/AuthPII ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+E/AuthPII ( 2938): 	at ctii.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):12)
+E/AuthPII ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+E/AuthPII ( 2938): 	at cfox.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):169)
+E/AuthPII ( 2938): 	at android.os.Binder.execTransactInternal(Binder.java:1285)
+E/AuthPII ( 2938): 	at android.os.Binder.execTransact(Binder.java:1244)
+E/AuthPII ( 2938): Message is Long live credential not available.
+E/AuthPII ( 2938): bksu: Long live credential not available.
+E/AuthPII ( 2938): 	at aiid.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1209)
+E/AuthPII ( 2938): 	at aiik.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):26)
+E/AuthPII ( 2938): 	at aiii.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):626)
+E/AuthPII ( 2938): 	at aiih.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):134)
+E/AuthPII ( 2938): 	at abrh.d(:com.google.android.gms@263234029@26.32.34 (190400-968093310):789)
+E/AuthPII ( 2938): 	at aibk.getAuthToken(:com.google.android.gms@263234029@26.32.34 (190400-968093310):357)
+E/AuthPII ( 2938): 	at android.accounts.AbstractAccountAuthenticator$Transport.getAuthToken(AbstractAccountAuthenticator.java:246)
+E/AuthPII ( 2938): 	at android.accounts.IAccountAuthenticator$Stub.onTransact(IAccountAuthenticator.java:242)
+E/AuthPII ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+E/AuthPII ( 2938): 	at ctii.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):12)
+E/AuthPII ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+E/AuthPII ( 2938): 	at cfox.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):169)
+E/AuthPII ( 2938): 	at android.os.Binder.execTransactInternal(Binder.java:1285)
+E/AuthPII ( 2938): 	at android.os.Binder.execTransact(Binder.java:1244)
+I/Auth    ( 2938): (REDACTED) [GetToken] GetToken failed for app=%s with userRecoverable status: %s 
+W/Auth    ( 2938): [ChimeraGetToken] exception while trying to fetch auth tokens for app=com.google.android.gsf, scope=oauth2:https://www.googleapis.com/auth/googleplay [CONTEXT service_id=153 ]
+W/Auth    ( 2938): aiic: GetToken failed with status code and recovery intent: BadAuthentication
+W/Auth    ( 2938): 	at aiih.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):322)
+W/Auth    ( 2938): 	at abrh.d(:com.google.android.gms@263234029@26.32.34 (190400-968093310):789)
+W/Auth    ( 2938): 	at aibk.getAuthToken(:com.google.android.gms@263234029@26.32.34 (190400-968093310):357)
+W/Auth    ( 2938): 	at android.accounts.AbstractAccountAuthenticator$Transport.getAuthToken(AbstractAccountAuthenticator.java:246)
+W/Auth    ( 2938): 	at android.accounts.IAccountAuthenticator$Stub.onTransact(IAccountAuthenticator.java:242)
+W/Auth    ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+W/Auth    ( 2938): 	at ctii.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):12)
+W/Auth    ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+W/Auth    ( 2938): 	at cfox.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):169)
+W/Auth    ( 2938): 	at android.os.Binder.execTransactInternal(Binder.java:1285)
+W/Auth    ( 2938): 	at android.os.Binder.execTransact(Binder.java:1244)
+W/Auth    ( 2938): [GmsAccountAuthenticatorImpl] error status while fetching token:BadAuthentication [CONTEXT service_id=343 ]
+E/AuthPII ( 2938): [RequestTokenManager] getToken() -> BAD_AUTHENTICATION. App: com.android.vending, Service: oauth2:https://www.googleapis.com/auth/googleplay
+E/AuthPII ( 2938): bksu: Long live credential not available.
+E/AuthPII ( 2938): 	at aiid.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1209)
+E/AuthPII ( 2938): 	at aiik.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):26)
+E/AuthPII ( 2938): 	at aiii.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):626)
+E/AuthPII ( 2938): 	at aiih.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):134)
+E/AuthPII ( 2938): 	at abrh.d(:com.google.android.gms@263234029@26.32.34 (190400-968093310):789)
+E/AuthPII ( 2938): 	at aibk.getAuthToken(:com.google.android.gms@263234029@26.32.34 (190400-968093310):357)
+E/AuthPII ( 2938): 	at android.accounts.AbstractAccountAuthenticator$Transport.getAuthToken(AbstractAccountAuthenticator.java:246)
+E/AuthPII ( 2938): 	at android.accounts.IAccountAuthenticator$Stub.onTransact(IAccountAuthenticator.java:242)
+E/AuthPII ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+E/AuthPII ( 2938): 	at ctii.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):12)
+E/AuthPII ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+E/AuthPII ( 2938): 	at cfox.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):169)
+E/AuthPII ( 2938): 	at android.os.Binder.execTransactInternal(Binder.java:1285)
+E/AuthPII ( 2938): 	at android.os.Binder.execTransact(Binder.java:1244)
+E/AuthPII ( 2938): Message is Long live credential not available.
+E/AuthPII ( 2938): bksu: Long live credential not available.
+E/AuthPII ( 2938): 	at aiid.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1209)
+E/AuthPII ( 2938): 	at aiik.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):26)
+E/AuthPII ( 2938): 	at aiii.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):626)
+E/AuthPII ( 2938): 	at aiih.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):134)
+E/AuthPII ( 2938): 	at abrh.d(:com.google.android.gms@263234029@26.32.34 (190400-968093310):789)
+E/AuthPII ( 2938): 	at aibk.getAuthToken(:com.google.android.gms@263234029@26.32.34 (190400-968093310):357)
+E/AuthPII ( 2938): 	at android.accounts.AbstractAccountAuthenticator$Transport.getAuthToken(AbstractAccountAuthenticator.java:246)
+E/AuthPII ( 2938): 	at android.accounts.IAccountAuthenticator$Stub.onTransact(IAccountAuthenticator.java:242)
+E/AuthPII ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+E/AuthPII ( 2938): 	at ctii.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):12)
+E/AuthPII ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+E/AuthPII ( 2938): 	at cfox.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):169)
+E/AuthPII ( 2938): 	at android.os.Binder.execTransactInternal(Binder.java:1285)
+E/AuthPII ( 2938): 	at android.os.Binder.execTransact(Binder.java:1244)
+I/Auth    ( 2938): (REDACTED) [GetToken] GetToken failed for app=%s with userRecoverable status: %s 
+W/Auth    ( 2938): [ChimeraGetToken] exception while trying to fetch auth tokens for app=com.google.android.gsf, scope=oauth2:https://www.googleapis.com/auth/googleplay [CONTEXT service_id=153 ]
+W/Auth    ( 2938): aiic: GetToken failed with status code and recovery intent: BadAuthentication
+W/Auth    ( 2938): 	at aiih.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):322)
+W/Auth    ( 2938): 	at abrh.d(:com.google.android.gms@263234029@26.32.34 (190400-968093310):789)
+W/Auth    ( 2938): 	at aibk.getAuthToken(:com.google.android.gms@263234029@26.32.34 (190400-968093310):357)
+W/Auth    ( 2938): 	at android.accounts.AbstractAccountAuthenticator$Transport.getAuthToken(AbstractAccountAuthenticator.java:246)
+W/Auth    ( 2938): 	at android.accounts.IAccountAuthenticator$Stub.onTransact(IAccountAuthenticator.java:242)
+W/Auth    ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+W/Auth    ( 2938): 	at ctii.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):12)
+W/Auth    ( 2938): 	at android.os.Binder.transact(Binder.java:1164)
+W/Auth    ( 2938): 	at cfox.onTransact(:com.google.android.gms@263234029@26.32.34 (190400-968093310):169)
+W/Auth    ( 2938): 	at android.os.Binder.execTransactInternal(Binder.java:1285)
+W/Auth    ( 2938): 	at android.os.Binder.execTransact(Binder.java:1244)
+W/Auth    ( 2938): [GmsAccountAuthenticatorImpl] error status while fetching token:BadAuthentication [CONTEXT service_id=343 ]
+I/Finsky  (25520): [276] Completed 2 account content syncs with 0 successful.
+I/Finsky  (25520): [2] [ContentSync] Installation state replication failed, parameters=Id: 12-1, CT: 1789193941185, Constraints: [{ L: 40000, D: 86400000, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }].
+I/Finsky  (25520): [2] [ContentSync] Scheduling replication attempt 2.
+I/Finsky  (25520): [2] SCH: jobFinished: 12-1. TimeElapsed: 723ms.
+I/Finsky  (25520): [2] WM::SCH: Logging work end for 12-1
+I/Finsky  (25520): [275] SCH: Attempting to reschedule job: Id: 12-1, Constraints: [{ L: 60000, D: 86400000, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+D/ClashMetaForAndroid( 3369): [DNS] hijack udp:172.19.0.2:53 from 172.19.0.1:10770
+I/Finsky  (25520): [90] SCH: Scheduling phonesky job Id: 1-1337, CT: 1789181517550, Constraints: [{ L: 14399997, D: 50967144, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+I/Finsky  (25520): [90] SCH: Scheduling phonesky job Id: 34-88, CT: 1789181671249, Constraints: [{ L: 79199063, D: 1375199063, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+D/ClashMetaForAndroid( 3369): Auth success from 127.0.0.1:39804 -> 
+D/ClashMetaForAndroid( 3369): [Rule] use default rules
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+I/Finsky  (25520): [90] SCH: Scheduling phonesky job Id: 34-89, CT: 1789181673652, Constraints: [{ L: 604800000, D: 2591997634, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 127.0.0.1:39804 --> connectivitycheck.gstatic.com:443 error: write udp [::]:37920->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:37308->136.110.109.47:51345: sendmsg: network is unreachable
+I/Finsky  (25520): [94] SCH: Scheduling 1 system job(s)
+I/Finsky  (25520): [94] SCH: Scheduling system job Id: 9688, L: 1934911, D: 38502058, C: false, I: false, N: 1
+I/Finsky  (25520): [274] SCH: job service finished with id 9684.
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 127.0.0.1:39804 --> connectivitycheck.gstatic.com:443 error: write udp [::]:40449->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:49289->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 127.0.0.1:39804 --> connectivitycheck.gstatic.com:443 error: write udp [::]:43779->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:45561->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 127.0.0.1:39804 --> connectivitycheck.gstatic.com:443 error: write udp [::]:42798->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:47442->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 127.0.0.1:39804 --> connectivitycheck.gstatic.com:443 error: write udp [::]:41344->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:44485->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 127.0.0.1:39804 --> connectivitycheck.gstatic.com:443 error: write udp [::]:39634->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:44132->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 127.0.0.1:39804 --> connectivitycheck.gstatic.com:443 error: write udp [::]:38867->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:39011->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 127.0.0.1:39804 --> connectivitycheck.gstatic.com:443 error: write udp [::]:48290->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:49140->136.110.109.47:51345: sendmsg: network is unreachable
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+I/DisplayDeviceRepository( 1838): Display device changed: DisplayDeviceInfo{"鍐呯疆灞忓箷": uniqueId="local:4630947150978042497", 1080 x 2280, modeId 1, defaultModeId 1, supportedModes [{id=1, width=1080, height=2280, fps=60.000004, alternativeRefreshRates=[90.0]}, {id=2, width=1080, height=2280, fps=90.0, alternativeRefreshRates=[60.000004]}], colorMode 0, supportedColorModes [0, 7, 9], hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[2, 3], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}, allmSupported false, gameContentTypeSupported false, density 440, 442.451 x 445.476 dpi, appVsyncOff 2333332, presDeadline 11500000, touch INTERNAL, rotation 0, type INTERNAL, address {port=129, model=0x40446de5e3a74a}, deviceProductInfo DeviceProductInfo{name=, manufacturerPnpId=QCM, productId=1, modelYear=null, manufactureDate=ManufactureDate{week=27, year=2006}, connectionToSinkType=0}, state ON, frameRateOverride , brightnessMinimum 0.0, brightnessMaximum 1.0, brightnessDefault 0.38188976, roundedCorners RoundedCorners{[RoundedCorner{position=TopLeft, radius=132, center=Point(132, 132)}, RoundedCorner{position=TopRight, radius=132, center=Point(948, 132)}, RoundedCorner{position=BottomRight, radius=132, center=Point(948, 2148)}, RoundedCorner{position=BottomLeft, radius=132, center=Point(132, 2148)}]}, FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, installOrientation 0}
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 127.0.0.1:39804 --> connectivitycheck.gstatic.com:443 error: write udp [::]:40152->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:39728->136.110.109.47:51345: sendmsg: network is unreachable
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/Unity   (28456): [PhysX] Initialized MultithreadedTaskDispatcher with 5 workers.
+D/Unity   (28456): UnloadTime: 1.486875 ms
+W/SensorService( 1838): sensor 0000000b already enabled in connection 0xb400007d00ec9eb0 (ignoring)
+I/sensors-hal( 1120): [hal]batch_physical_sensor:319, android.sensor.accelerometer/11, period=200000000, max_latency=0
+I/sensors-hal( 1120): [sensor]set_config:64, sample_period_ns is adjusted to 200000000 based on min/max delay_ns
+I/sensors-hal( 1120): [hal]batch_physical_sensor:328, android.sensor.accelerometer/11, period=200000000, max_latency=0 request completed
+I/sensors-hal( 1120): [hal]flush_physical_sensor:360, android.sensor.accelerometer/11
+I/sensors-hal( 1120): [hal]flush_physical_sensor:366, android.sensor.accelerometer/11 completed
+I/sensors-hal( 1120): [hal]batch_physical_sensor:319, android.sensor.accelerometer/11, period=20000000, max_latency=0
+I/sensors-hal( 1120): [sensor]set_config:64, sample_period_ns is adjusted to 20000000 based on min/max delay_ns
+I/sensors-hal( 1120): [ssc_sensor]ssc_conn_resp_cb:685, resp_value = 0
+I/sensors-hal( 1120): [hal]batch_physical_sensor:328, android.sensor.accelerometer/11, period=20000000, max_latency=0 request completed
+D/Unity   (28456): Sensor :        Accelerometer ( 1) ; 0.004786 / 0.00s ; LSM6DSR Accelerometer / STMicro 
+D/Unity   (28456): Choreographer available: Enabling VSYNC timing
+I/sensors-hal( 1120): [ssc_sensor]ssc_conn_resp_cb:685, resp_value = 0
+I/sensors-hal( 1120): [ssc_sensor]ssc_conn_resp_cb:685, resp_value = 0
+D/nativeloader(28456): Load /data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/lib/arm64/libFirebaseCppApp-13_14_0.so using class loader ns clns-4 (caller=/data/app/~~Gl8zkPXOSELAVq2Gvikg9w==/com.drakeforge.mergedefense-3MyEvWGkyJyj52OeXH-c5Q==/base.apk): ok
+I/firebase(28456): Firebase Analytics API Initializing
+I/firebase(28456): analytics API Initialized
+D/Unity   (28456): Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+I/firebase(28456): Firebase Analytics API Initializing
+I/firebase(28456): analytics API Initialized
+I/Unity   (28456): [Analytics] Firebase Available
+I/Unity   (28456): <Start>d__16:MoveNext()
+I/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+I/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+I/Unity   (28456): UnityEngine.WorkRequest:Invoke()
+I/Unity   (28456): UnityEngine.UnitySynchronizationContext:Exec()
+I/Unity   (28456): 
+I/Unity   (28456): Firebase Analytics API Initializing
+I/Unity   (28456): Firebase.AppUtilPINVOKE:PollCallbacks()
+I/Unity   (28456): Firebase.AppUtil:PollCallbacks()
+I/Unity   (28456): Firebase.Platform.FirebaseHandler:Update()
+I/Unity   (28456): 
+I/Unity   (28456): analytics API Initialized
+I/Unity   (28456): Firebase.AppUtilPINVOKE:PollCallbacks()
+I/Unity   (28456): Firebase.AppUtil:PollCallbacks()
+I/Unity   (28456): Firebase.Platform.FirebaseHandler:Update()
+I/Unity   (28456): 
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 127.0.0.1:39804 --> connectivitycheck.gstatic.com:443 error: write udp [::]:39930->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:38750->136.110.109.47:51345: sendmsg: network is unreachable
+D/Unity   (28456): [PhysX] Initialized MultithreadedTaskDispatcher with 5 workers.
+D/Unity   (28456): UnloadTime: 4.953282 ms
+D/ClashMetaForAndroid( 3369): Auth success from 127.0.0.1:39806 -> 
+D/ClashMetaForAndroid( 3369): [Rule] use default rules
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39806 --> 43.166.253.24:80 error: write udp [::]:45075->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:38918->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): Auth success from 127.0.0.1:39808 -> 
+D/ClashMetaForAndroid( 3369): Auth success from 127.0.0.1:39812 -> 
+D/ClashMetaForAndroid( 3369): Auth success from 127.0.0.1:39816 -> 
+D/ClashMetaForAndroid( 3369): Auth success from 127.0.0.1:39814 -> 
+D/ClashMetaForAndroid( 3369): [Rule] use default rules
+D/ClashMetaForAndroid( 3369): [Rule] use default rules
+D/ClashMetaForAndroid( 3369): [Rule] use default rules
+D/ClashMetaForAndroid( 3369): [Rule] use default rules
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39816 --> 43.166.253.24:80 error: write udp [::]:48312->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:41107->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): Auth success from 127.0.0.1:39810 -> 
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [Rule] use default rules
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39808 --> 43.166.253.24:80 error: write udp [::]:47951->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:41318->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/Unity   (28456): Unloading 33 unused Assets / (19.8 KB). Loaded Objects now: 2907.
+D/Unity   (28456): Memory consumption went from 63.2 MB to 63.1 MB.
+D/Unity   (28456): Total: 3.352969 ms (FindLiveObjects: 0.317500 ms CreateObjectMapping: 0.141562 ms MarkObjects: 2.758855 ms  DeleteObjects: 0.134167 ms)
+D/Unity   (28456): 
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39812 --> 43.166.253.24:80 error: write udp [::]:38993->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:46066->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39814 --> 43.166.253.24:80 error: write udp [::]:49981->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:39662->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39806 --> 43.166.253.24:80 error: write udp [::]:43098->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:42653->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39810 --> 43.166.253.24:80 error: write udp [::]:38349->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:49759->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39816 --> 43.166.253.24:80 error: write udp [::]:46910->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:42041->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39808 --> 43.166.253.24:80 error: write udp [::]:38737->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43471->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39812 --> 43.166.253.24:80 error: write udp [::]:48150->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:44194->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39814 --> 43.166.253.24:80 error: write udp [::]:37334->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:41160->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39806 --> 43.166.253.24:80 error: write udp [::]:43579->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:44949->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39810 --> 43.166.253.24:80 error: write udp [::]:37560->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:37025->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39816 --> 43.166.253.24:80 error: write udp [::]:37660->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:40145->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39808 --> 43.166.253.24:80 error: write udp [::]:39789->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:46617->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39812 --> 43.166.253.24:80 error: write udp [::]:39202->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:40535->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39814 --> 43.166.253.24:80 error: write udp [::]:40455->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43245->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39806 --> 43.166.253.24:80 error: write udp [::]:39681->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:38608->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39810 --> 43.166.253.24:80 error: write udp [::]:47567->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:48842->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39816 --> 43.166.253.24:80 error: write udp [::]:43775->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:41619->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39812 --> 43.166.253.24:80 error: write udp [::]:49849->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:49551->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39808 --> 43.166.253.24:80 error: write udp [::]:46988->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:37699->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39814 --> 43.166.253.24:80 error: write udp [::]:45196->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43140->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39810 --> 43.166.253.24:80 error: write udp [::]:38934->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:41691->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39816 --> 43.166.253.24:80 error: write udp [::]:39098->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:40980->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39806 --> 43.166.253.24:80 error: write udp [::]:48182->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:47960->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39810 --> 43.166.253.24:80 error: write udp [::]:39686->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43972->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39808 --> 43.166.253.24:80 error: write udp [::]:40940->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:37326->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39812 --> 43.166.253.24:80 error: write udp [::]:38136->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43848->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39814 --> 43.166.253.24:80 error: write udp [::]:38290->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:48447->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39808 --> 43.166.253.24:80 error: write udp [::]:49520->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:39416->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39806 --> 43.166.253.24:80 error: write udp [::]:47763->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43430->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39816 --> 43.166.253.24:80 error: write udp [::]:45180->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:42506->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39814 --> 43.166.253.24:80 error: write udp [::]:46162->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:45997->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39810 --> 43.166.253.24:80 error: write udp [::]:44069->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:37287->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39806 --> 43.166.253.24:80 error: write udp [::]:43609->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:39057->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39812 --> 43.166.253.24:80 error: write udp [::]:48106->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:40191->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39810 --> 43.166.253.24:80 error: write udp [::]:37405->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:47488->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39808 --> 43.166.253.24:80 error: write udp [::]:38204->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:37978->136.110.109.47:51345: sendmsg: network is unreachable
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39814 --> 43.166.253.24:80 error: write udp [::]:39357->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:46427->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39812 --> 43.166.253.24:80 error: write udp [::]:48606->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:42994->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39816 --> 43.166.253.24:80 error: write udp [::]:38188->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:39684->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39806 --> 43.166.253.24:80 error: write udp [::]:39990->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:48825->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39808 --> 43.166.253.24:80 error: write udp [::]:44822->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:49973->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39812 --> 43.166.253.24:80 error: write udp [::]:43525->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43631->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+E/AuthPII ( 2938): [RequestTokenManager] getToken() -> BAD_AUTHENTICATION. App: com.google.android.gms, Service: oauth2:https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/account.capabilities https://www.googleapis.com/auth/account.service_flags
+E/AuthPII ( 2938): bksu: Long live credential not available.
+E/AuthPII ( 2938): 	at aiid.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1209)
+E/AuthPII ( 2938): 	at aiik.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):26)
+E/AuthPII ( 2938): 	at aiii.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):626)
+E/AuthPII ( 2938): 	at ahra.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):59)
+E/AuthPII ( 2938): 	at ahra.h(:com.google.android.gms@263234029@26.32.34 (190400-968093310):95)
+E/AuthPII ( 2938): 	at ahra.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):654)
+E/AuthPII ( 2938): 	at ahrb.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):57)
+E/AuthPII ( 2938): 	at ahsa.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):20)
+E/AuthPII ( 2938): 	at ahru.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):225)
+E/AuthPII ( 2938): 	at ahqf.f(:com.google.android.gms@263234029@26.32.34 (190400-968093310):35)
+E/AuthPII ( 2938): 	at dctb.fy(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1)
+E/AuthPII ( 2938): 	at dctn.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):122)
+E/AuthPII ( 2938): 	at hkhu.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):23)
+E/AuthPII ( 2938): 	at blzn.d(:com.google.android.gms@263234029@26.32.34 (190400-968093310):50)
+E/AuthPII ( 2938): 	at blzn.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):6)
+E/AuthPII ( 2938): 	at blzn.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):33)
+E/AuthPII ( 2938): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1100)
+E/AuthPII ( 2938): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+E/AuthPII ( 2938): 	at bmfk.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):8)
+E/AuthPII ( 2938): 	at java.lang.Thread.run(Thread.java:1572)
+E/AuthPII ( 2938): Message is Long live credential not available.
+E/AuthPII ( 2938): bksu: Long live credential not available.
+E/AuthPII ( 2938): 	at aiid.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1209)
+E/AuthPII ( 2938): 	at aiik.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):26)
+E/AuthPII ( 2938): 	at aiii.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):626)
+E/AuthPII ( 2938): 	at ahra.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):59)
+E/AuthPII ( 2938): 	at ahra.h(:com.google.android.gms@263234029@26.32.34 (190400-968093310):95)
+E/AuthPII ( 2938): 	at ahra.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):654)
+E/AuthPII ( 2938): 	at ahrb.a(:com.google.android.gms@263234029@26.32.34 (190400-968093310):57)
+E/AuthPII ( 2938): 	at ahsa.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):20)
+E/AuthPII ( 2938): 	at ahru.b(:com.google.android.gms@263234029@26.32.34 (190400-968093310):225)
+E/AuthPII ( 2938): 	at ahqf.f(:com.google.android.gms@263234029@26.32.34 (190400-968093310):35)
+E/AuthPII ( 2938): 	at dctb.fy(:com.google.android.gms@263234029@26.32.34 (190400-968093310):1)
+E/AuthPII ( 2938): 	at dctn.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):122)
+E/AuthPII ( 2938): 	at hkhu.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):23)
+E/AuthPII ( 2938): 	at blzn.d(:com.google.android.gms@263234029@26.32.34 (190400-968093310):50)
+E/AuthPII ( 2938): 	at blzn.c(:com.google.android.gms@263234029@26.32.34 (190400-968093310):6)
+E/AuthPII ( 2938): 	at blzn.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):33)
+E/AuthPII ( 2938): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1100)
+E/AuthPII ( 2938): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+E/AuthPII ( 2938): 	at bmfk.run(:com.google.android.gms@263234029@26.32.34 (190400-968093310):8)
+E/AuthPII ( 2938): 	at java.lang.Thread.run(Thread.java:1572)
+W/Auth    ( 2938): [AccountStateSyncher] Unable to look up account state from server: couldn't fetch accessToken [CONTEXT service_id=343 ]
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39814 --> 43.166.253.24:80 error: write udp [::]:47098->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:48078->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39810 --> 43.166.253.24:80 error: write udp [::]:47578->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:40234->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39810 --> 43.166.253.24:80 error: write udp [::]:37993->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:45941->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [Rule] use default rules
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 172.19.0.1:40482 --> connectivitycheck.gstatic.com:443 error: write udp [::]:47602->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:41911->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 172.19.0.1:40482 --> connectivitycheck.gstatic.com:443 error: write udp [::]:48262->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:48339->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 172.19.0.1:40482 --> connectivitycheck.gstatic.com:443 error: write udp [::]:39183->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:48564->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 172.19.0.1:40482 --> connectivitycheck.gstatic.com:443 error: write udp [::]:45783->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:40629->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39816 --> 43.166.253.24:80 error: write udp [::]:43673->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:48456->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 172.19.0.1:40482 --> connectivitycheck.gstatic.com:443 error: write udp [::]:46447->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:44987->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 172.19.0.1:40482 --> connectivitycheck.gstatic.com:443 error: write udp [::]:46941->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:40108->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 172.19.0.1:40482 --> connectivitycheck.gstatic.com:443 error: write udp [::]:40520->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:48174->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39814 --> 43.166.253.24:80 error: write udp [::]:42839->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43684->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39806 --> 43.166.253.24:80 error: write udp [::]:37567->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:45953->136.110.109.47:51345: sendmsg: network is unreachable
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39808 --> 43.166.253.24:80 error: write udp [::]:39456->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:44692->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 172.19.0.1:40482 --> connectivitycheck.gstatic.com:443 error: write udp [::]:42599->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43157->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39814 --> 43.166.253.24:80 error: write udp [::]:44290->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:41312->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39812 --> 43.166.253.24:80 error: write udp [::]:39705->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:45116->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39810 --> 43.166.253.24:80 error: write udp [::]:38277->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:40098->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39816 --> 43.166.253.24:80 error: write udp [::]:37609->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:47575->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 172.19.0.1:40482 --> connectivitycheck.gstatic.com:443 error: write udp [::]:38695->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:45272->136.110.109.47:51345: sendmsg: network is unreachable
+D/BoundBrokerSvc( 2938): onUnbind: Intent { act=com.google.android.gms.common.telemetry.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+W/ProcessStats( 1838): Tracking association SourceState{c932974 system/1000 BTopFgs #37154} whose proc state 2 is better than process ProcessState{ef474e8 com.github.metacubex.clash.meta:background/10007 pkg=com.github.metacubex.clash.meta} proc state 3 (28 skipped)
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39806 --> 43.166.253.24:80 error: write udp [::]:46564->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:48129->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39816 --> 43.166.253.24:80 error: write udp [::]:42636->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43217->136.110.109.47:51345: sendmsg: network is unreachable
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39808 --> 43.166.253.24:80 error: write udp [::]:37708->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:43268->136.110.109.47:51345: sendmsg: network is unreachable
+E/Unity   (28456): Unable to load player rank: Game server request failed.
+E/Unity   (28456): <Start>d__12:MoveNext()
+E/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+E/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+E/Unity   (28456): System.Threading.Tasks.AwaitTaskContinuation:RunCallback(ContextCallback, Object, Task&)
+E/Unity   (28456): System.Threading.Tasks.Task:FinishContinuations()
+E/Unity   (28456): System.Threading.Tasks.Task:Finish(Boolean)
+E/Unity   (28456): System.Threading.Tasks.Task:TrySetException(Object)
+E/Unity   (28456): System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1:SetException(Exception)
+E/Unity   (28456): <GetRankAsync>d__3:MoveNext()
+E/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+E/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+E/Unity   (28456): System.Threading.Tasks.AwaitTaskContinuation:RunCallback(ContextCallback, Object, Task&)
+E/Unity   (28456): System.Threading.Tasks.Task:FinishContinuations()
+E/Unity   (28456): System.Threading.Tasks.Task:Finish(Boolean)
+E/Unity   (28456): System.Threading.Tasks.Task:TrySetException(Object)
+E/Unity   (28456): System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1:Set
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+E/Unity   (28456): Unable to load sign-in status: Game server request failed.
+E/Unity   (28456): <Start>d__23:MoveNext()
+E/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+E/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+E/Unity   (28456): System.Threading.Tasks.AwaitTaskContinuation:RunCallback(ContextCallback, Object, Task&)
+E/Unity   (28456): System.Threading.Tasks.Task:FinishContinuations()
+E/Unity   (28456): System.Threading.Tasks.Task:Finish(Boolean)
+E/Unity   (28456): System.Threading.Tasks.Task:TrySetException(Object)
+E/Unity   (28456): System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1:SetException(Exception)
+E/Unity   (28456): <GetStatusAsync>d__5:MoveNext()
+E/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+E/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+E/Unity   (28456): System.Threading.Tasks.AwaitTaskContinuation:RunCallback(ContextCallback, Object, Task&)
+E/Unity   (28456): System.Threading.Tasks.Task:FinishContinuations()
+E/Unity   (28456): System.Threading.Tasks.Task:Finish(Boolean)
+E/Unity   (28456): System.Threading.Tasks.Task:TrySetException(Object)
+E/Unity   (28456): System.Runtime.CompilerServices.AsyncTaskMethodBuilder`
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match Match/) 127.0.0.1:39812 --> 43.166.253.24:80 error: write udp [::]:42041->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:44547->136.110.109.47:51345: sendmsg: network is unreachable
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [35.194.115.103 136.110.109.47] A, expire at 2026-09-12 10:58:31
+D/ClashMetaForAndroid( 3369): [DNS] cache hit zdyua01.772fk.cn --> [] AAAA, expire at 2026-09-12 10:59:47
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn AAAA from udp://223.5.5.5:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://119.29.29.29:53
+D/ClashMetaForAndroid( 3369): [DNS] resolve zdyua01.772fk.cn A from udp://223.5.5.5:53
+W/ClashMetaForAndroid( 3369): [TCP] dial 杩戒簯鍔犻€?(match DomainSuffix/gstatic.com) 172.19.0.1:40482 --> connectivitycheck.gstatic.com:443 error: write udp [::]:44070->35.194.115.103:51345: sendmsg: network is unreachable
+W/ClashMetaForAndroid( 3369): write udp [::]:44858->136.110.109.47:51345: sendmsg: network is unreachable
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+E/Unity   (28456): Unable to load Rune AccountDay: Game server request failed.
+E/Unity   (28456): <RefreshGateAsync>d__19:MoveNext()
+E/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+E/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+E/Unity   (28456): System.Threading.Tasks.AwaitTaskContinuation:RunCallback(ContextCallback, Object, Task&)
+E/Unity   (28456): System.Threading.Tasks.Task:FinishContinuations()
+E/Unity   (28456): System.Threading.Tasks.Task:Finish(Boolean)
+E/Unity   (28456): System.Threading.Tasks.Task:TrySetException(Object)
+E/Unity   (28456): System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1:SetException(Exception)
+E/Unity   (28456): <GetProfileAsync>d__9:MoveNext()
+E/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+E/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+E/Unity   (28456): System.Threading.Tasks.AwaitTaskContinuation:RunCallback(ContextCallback, Object, Task&)
+E/Unity   (28456): System.Threading.Tasks.Task:FinishContinuations()
+E/Unity   (28456): System.Threading.Tasks.Task:Finish(Boolean)
+E/Unity   (28456): System.Threading.Tasks.Task:TrySetException(Object)
+E/Unity   (28456): System.Runtime.CompilerServices.AsyncTaskM
+E/Unity   (28456): Unable to load player gold: Game server request failed.
+E/Unity   (28456): <Start>d__6:MoveNext()
+E/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+E/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+E/Unity   (28456): System.Threading.Tasks.AwaitTaskContinuation:RunCallback(ContextCallback, Object, Task&)
+E/Unity   (28456): System.Threading.Tasks.Task:FinishContinuations()
+E/Unity   (28456): System.Threading.Tasks.Task:Finish(Boolean)
+E/Unity   (28456): System.Threading.Tasks.Task:TrySetException(Object)
+E/Unity   (28456): System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1:SetException(Exception)
+E/Unity   (28456): <GetGoldAsync>d__6:MoveNext()
+E/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+E/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+E/Unity   (28456): System.Threading.Tasks.AwaitTaskContinuation:RunCallback(ContextCallback, Object, Task&)
+E/Unity   (28456): System.Threading.Tasks.Task:FinishContinuations()
+E/Unity   (28456): System.Threading.Tasks.Task:Finish(Boolean)
+E/Unity   (28456): System.Threading.Tasks.Task:TrySetException(Object)
+E/Unity   (28456): System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1:SetE
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+E/Unity   (28456): Exception: HTTP/1.1 502 Bad Gateway
+E/Unity   (28456): Rethrow as ClientServiceException: Game server request failed.
+E/Unity   (28456):   at UnityWebRequestUnaryTransport.SendAsync[TRequest,TResponse] (System.String method, System.String path, TRequest request, UnaryRequestContext context, System.Threading.CancellationToken cancellationToken) [0x00000] in <00000000000000000000000000000000>:0 
+E/Unity   (28456):   at System.Threading.ExecutionContext.RunInternal (System.Threading.ExecutionContext executionContext, System.Threading.ContextCallback callback, System.Object state, System.Boolean preserveSyncCtx) [0x00000] in <00000000000000000000000000000000>:0 
+E/Unity   (28456):   at System.Runtime.CompilerServices.AsyncMethodBuilderCore+MoveNextRunner.Run () [0x00000] in <00000000000000000000000000000000>:0 
+E/Unity   (28456):   at UnityEngine.UnitySynchronizationContext+WorkRequest.Invoke () [0x00000] in <00000000000000000000000000000000>:0 
+E/Unity   (28456):   at UnityEngine.UnitySynchronizationContext.Exec () [0x00000] in <00000000000000000000000000000000>:0 
+E/Unity   (28456): --- End of stack trace from previous location where except
+E/Unity   (28456): Unable to load Merchant offer: Game server request failed.
+E/Unity   (28456): <Start>d__47:MoveNext()
+E/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+E/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+E/Unity   (28456): System.Threading.Tasks.AwaitTaskContinuation:RunCallback(ContextCallback, Object, Task&)
+E/Unity   (28456): System.Threading.Tasks.Task:FinishContinuations()
+E/Unity   (28456): System.Threading.Tasks.Task:Finish(Boolean)
+E/Unity   (28456): System.Threading.Tasks.Task:TrySetException(Object)
+E/Unity   (28456): System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1:SetException(Exception)
+E/Unity   (28456): <GetInventoryAsync>d__13:MoveNext()
+E/Unity   (28456): System.Threading.ExecutionContext:RunInternal(ExecutionContext, ContextCallback, Object, Boolean)
+E/Unity   (28456): System.Runtime.CompilerServices.MoveNextRunner:Run()
+E/Unity   (28456): System.Threading.Tasks.AwaitTaskContinuation:RunCallback(ContextCallback, Object, Task&)
+E/Unity   (28456): System.Threading.Tasks.Task:FinishContinuations()
+E/Unity   (28456): System.Threading.Tasks.Task:Finish(Boolean)
+E/Unity   (28456): System.Threading.Tasks.Task:TrySetException(Object)
+E/Unity   (28456): System.Runtime.CompilerServices.AsyncTaskMethodBuil
+I/Finsky  (25520): [85] WM::SCH: Logging work initialize for 12-1
+I/Finsky  (25520): [93] SCH: Scheduling phonesky job Id: 12-1, CT: 1789193982622, Constraints: [{ L: 60000, D: 86400000, C: CHARGING_NONE, I: IDLE_NONE, N: NET_ANY, B: BATTERY_ANY }]
+I/Finsky  (25520): [94] SCH: Scheduling 1 system job(s)
+I/Finsky  (25520): [94] SCH: Scheduling system job Id: 9688, L: 53995, D: 38496067, C: false, I: false, N: 1
+I/NearbyMediums( 2938): No BLE Fast/GATT advertisements found in the latest cycle.
+I/NearbyMediums( 2938): Current Tracked Scanning Clients are : {NearbyConnections.EnvironmentMonitor, NearbySharing}
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+I/AiAiEcho( 3176): SmartspaceNotificationPredictor no parser can handle this notification or notification is invalid
+D/DLObserver( 2400): onReceive(); android.intent.action.BATTERY_CHANGED
+D/DLObserver( 2400): plugged=2
+D/Oslo.StatusSensor( 2529): Received intent android.intent.action.BATTERY_CHANGED
+D/PowerNotificationWarningsGoogleImpl( 2400): onReceive: android.intent.action.BATTERY_CHANGED
+D/BatteryInfoBroadcast( 2400): onReceive: android.intent.action.BATTERY_CHANGED isPowerSaveMode: false
+D/BatteryDefenderNotification( 2400): isPlugged: true | isOverheated: false | defenderEnabled: false | isCharged: false
+D/PowerUI ( 2400): can't show warning due to - plugged: true status unknown: false
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+D/LocalImageResolver( 2400): Couldn't use ImageDecoder for drawable, falling back to non-resized load.
+I/adbd    (26665): adbd service requested 'shell,v2:export ANDROID_LOG_TAGS="''"; exec logcat '-d' '-v' 'brief''

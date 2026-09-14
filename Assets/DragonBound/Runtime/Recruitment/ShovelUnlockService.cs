@@ -93,7 +93,9 @@ namespace DragonBound.Recruitment
             if (!IsSelecting ||
                 !board.TryGetCellType(position, out var cellType) ||
                 cellType != CellType.Locked ||
-                (board.Layout != null && !board.Layout.IsUnlockable(position, board.Side)))
+                (board.Layout != null &&
+                 !board.Layout.IsUnlockable(position, board.Side) &&
+                 !board.IsBossLockedCell(position)))
             {
                 return false;
             }

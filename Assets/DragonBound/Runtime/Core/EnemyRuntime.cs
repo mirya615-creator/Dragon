@@ -79,16 +79,27 @@ namespace DragonBound.Core
         public bool HasResolved { get; internal set; }
         public CombatDamageOwner LastDamageOwner { get; private set; } = CombatDamageOwner.None;
         public bool IsAlive => !HasResolved && HitPoints > 0;
+        /// <summary>
+        /// Path-bound enemies are protected on their spawn tile. Protection is
+        /// released permanently after the enemy first reaches path node 1.
+        /// Enemies not placed on an EnemyPath remain attackable for isolated combat use.
+        /// </summary>
+        public bool IsAttackable => IsAlive && (!spawnProtectionEnabled || hasReachedSecondPathNode);
         public float StunRemainingSeconds { get; private set; }
         public float StunImmunityRemainingSeconds { get; private set; }
         public bool IsStunned => IsAlive && StunRemainingSeconds > 0.0001f;
         public float MovementSpeedMultiplier { get; private set; } = 1f;
+        public bool IsFrostMireAffected { get; private set; }
+        public float WinterveilSlowRemainingSeconds { get; private set; }
+        public bool IsWinterveilAffected => IsAlive && WinterveilSlowRemainingSeconds > 0.0001f;
         public float StormcallerShieldHitPoints { get; private set; }
         public float StormcallerMovementSpeedMultiplier { get; private set; } = 1f;
         public float StormcallerSpeedBuffRemainingSeconds { get; private set; }
         public float BaseMovementSpeedMultiplier { get; private set; } = 1f;
         public float MovementSlowRemainingSeconds { get; private set; }
         private float pendingPostStunImmunitySeconds;
+        private bool spawnProtectionEnabled;
+        private bool hasReachedSecondPathNode;
 
         public void SetCombatPosition(CombatPoint position)
         {
@@ -108,7 +119,7 @@ namespace DragonBound.Core
 
         public EnemyDamageApplication ApplyDamage(float damage)
         {
-            if (damage <= 0f || !IsAlive)
+            if (damage <= 0f || !IsAttackable)
             {
                 return new EnemyDamageApplication(Math.Max(0f, damage), 0f, 0f, !IsAlive);
             }
@@ -202,6 +213,30 @@ namespace DragonBound.Core
             return true;
         }
 
+        public bool ApplyFrostMireSlow(float slowFraction, float durationSeconds)
+        {
+            if (!ApplyMovementSlow(slowFraction, durationSeconds))
+            {
+                return false;
+            }
+
+            IsFrostMireAffected = true;
+            return true;
+        }
+
+        public bool ApplyWinterveilSlow(float slowFraction, float durationSeconds)
+        {
+            if (!ApplyMovementSlow(slowFraction, durationSeconds))
+            {
+                return false;
+            }
+
+            WinterveilSlowRemainingSeconds = Math.Max(
+                WinterveilSlowRemainingSeconds,
+                durationSeconds);
+            return true;
+        }
+
         public void SetBaseMovementSpeedMultiplier(float multiplier)
         {
             if (multiplier <= 0f)
@@ -236,9 +271,13 @@ namespace DragonBound.Core
                 0f,
                 StunImmunityRemainingSeconds - deltaSeconds);
             MovementSlowRemainingSeconds = Math.Max(0f, MovementSlowRemainingSeconds - deltaSeconds);
+            WinterveilSlowRemainingSeconds = Math.Max(
+                0f,
+                WinterveilSlowRemainingSeconds - deltaSeconds);
             if (MovementSlowRemainingSeconds <= 0.0001f)
             {
                 MovementSpeedMultiplier = 1f;
+                IsFrostMireAffected = false;
             }
             StormcallerSpeedBuffRemainingSeconds = Math.Max(0f, StormcallerSpeedBuffRemainingSeconds - deltaSeconds);
             if (StormcallerSpeedBuffRemainingSeconds <= 0.0001f)
@@ -265,6 +304,18 @@ namespace DragonBound.Core
             SegmentProgress = segmentProgress;
             PathProgress = normalizedPathProgress;
             CombatPosition = position;
+            if (spawnProtectionEnabled && pathIndex >= 1)
+            {
+                // This is intentionally latched. Knockback into the spawn tile must
+                // not restore protection after the enemy entered combat.
+                hasReachedSecondPathNode = true;
+            }
+        }
+
+        internal void BeginSpawnProtection()
+        {
+            spawnProtectionEnabled = true;
+            hasReachedSecondPathNode = false;
         }
     }
 

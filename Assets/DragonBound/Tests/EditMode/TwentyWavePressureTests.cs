@@ -292,7 +292,7 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void CompletingWaveTwentyOnlyCompletesTheRegularSchedule()
+        public void CompletingWaveTwentyCompletesTheRunAsVictory()
         {
             var match = new MatchController(341);
             var runtime = new TwentyWavePressureRuntime(
@@ -307,8 +307,8 @@ namespace DragonBound.Tests.EditMode
             runtime.Tick(0.11f);
 
             Assert.IsTrue(runtime.RegularWaveScheduleCompleted);
-            Assert.IsFalse(runtime.IsComplete);
-            Assert.AreEqual(MatchState.Running, match.State);
+            Assert.IsTrue(runtime.IsComplete);
+            Assert.AreEqual(MatchState.Victory, match.State);
         }
 
         [Test]
@@ -323,6 +323,20 @@ namespace DragonBound.Tests.EditMode
 
             Assert.IsTrue(runtime.IsComplete);
             Assert.AreEqual(MatchState.Defeat, match.State);
+        }
+
+        [Test]
+        public void AiBaseDeathBeforeWaveTwentyCompletesAsVictory()
+        {
+            var match = new MatchController(343);
+            var runtime = new TwentyWavePressureRuntime(match, null, null, 343);
+
+            Assert.IsTrue(runtime.StartRun());
+            match.AI.ApplyHatchlingDamage(match.AI.HatchlingHealth);
+            runtime.Tick(0.01f);
+
+            Assert.IsTrue(runtime.IsComplete);
+            Assert.AreEqual(MatchState.Victory, match.State);
         }
 
         private static TwentyWavePressureRuntime CreateRuntime(

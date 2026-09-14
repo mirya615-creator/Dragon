@@ -1,23 +1,26 @@
-using TMPro;
+using DragonBound.Presentation;
+using DragonBound.Runes;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 public sealed class RuneDropZone : MonoBehaviour, IDropHandler
 {
     private RuneWeaponPanelController controller;
-    private TMP_Text runeNameText;
+    private Image runeImage;
 
     public string HeroId { get; private set; }
+    public Image RuneImage => runeImage;
 
     public void Initialize(
         RuneWeaponPanelController owner,
         string heroId,
-        TMP_Text targetText)
+        Image targetImage)
     {
         controller = owner;
         HeroId = heroId;
-        runeNameText = targetText;
+        runeImage = targetImage;
     }
 
     public void OnDrop(PointerEventData eventData)
@@ -33,8 +36,38 @@ public sealed class RuneDropZone : MonoBehaviour, IDropHandler
         }
     }
 
-    public void SetRuneName(string displayName)
+    public void SetRune(RuneDefinition definition)
     {
-        if (runeNameText != null) runeNameText.text = displayName ?? string.Empty;
+        if (runeImage == null) return;
+
+        if (definition == null)
+        {
+            runeImage.sprite = null;
+            runeImage.enabled = true;
+            runeImage.gameObject.SetActive(false);
+            return;
+        }
+
+        string runtimeRuneId = RuneGameplayLoadoutAdapter.ResolveRuntimeRuneId(definition.RuneId);
+        Sprite sprite = RuneUiSpriteCatalog.Load(runtimeRuneId);
+        runeImage.sprite = sprite;
+        runeImage.type = Image.Type.Simple;
+        runeImage.preserveAspect = true;
+        runeImage.color = Color.white;
+        runeImage.enabled = true;
+        runeImage.gameObject.SetActive(sprite != null);
+
+        if (sprite == null)
+        {
+            Debug.LogError(
+                $"WeaponPanel could not load the rune UI for '{definition.RuneId}' " +
+                $"(runtime id '{runtimeRuneId}').",
+                this);
+        }
+    }
+
+    public void SetRuneImageVisible(bool visible)
+    {
+        if (runeImage != null) runeImage.enabled = visible;
     }
 }

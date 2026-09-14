@@ -1,7 +1,8 @@
+using DragonBound.Services;
+using DragonBound.UI;
 using System;
 using System.Collections;
 using System.Threading;
-using DragonBound.Services;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,7 +16,7 @@ public sealed class MainEnergyController : MonoBehaviour
     private const string GameplaySceneName = "Greybox_Main";
     private const int RewardedAdEnergy = 10;
     private const int RewardedAdDailyLimit = 3;
-    private const string EnergyRewardPlacement = "energy_reward";
+    private const string EnergyRewardPlacement = "energy_restore";
     private const int ShareRewardEnergy = 5;
     private const int ShareDailyLimit = 4;
     private const string EnergySharePlacement = "energy_share";
@@ -28,17 +29,14 @@ public sealed class MainEnergyController : MonoBehaviour
     private Button shareButton;
     private TMP_Text currentAmountText;
     private TMP_Text maximumAmountText;
-    private TMP_Text mainTipText;
-    private TMP_Text tipText;
-    private TMP_Text rewardAmountText;
     private IPlayerEnergyGateway energyGateway;
     private IPlayerRankGateway rankGateway;
     private IAuthSessionStore authSessionStore;
     private IRewardedAdService rewardedAdService;
     private IShareService shareService;
+    private ActiveRunLifecycleCoordinator activeRunLifecycle;
     private CancellationTokenSource lifetimeCancellation;
     private Coroutine recoveryRefreshCoroutine;
-    private Coroutine tipHideCoroutine;
     private PlayerEnergyState currentEnergyState;
     private bool requestInProgress;
     private bool refreshInProgress;
@@ -60,6 +58,7 @@ public sealed class MainEnergyController : MonoBehaviour
         authSessionStore = services.AuthSession;
         rewardedAdService = services.RewardedAds;
         shareService = services.Share;
+        activeRunLifecycle = ActiveRunLifecycleCoordinator.EnsureCreated();
         lifetimeCancellation = new CancellationTokenSource();
 
         if (!ResolveView())
@@ -68,11 +67,10 @@ public sealed class MainEnergyController : MonoBehaviour
             return;
         }
 
-        mainTipText.text = string.Empty;
-        ShowTip(string.Empty);
-        rewardAmountText.text = "+" + RewardedAdEnergy;
+        TipTextService.Hide();
         maximumAmountText.text = "/" + LocalPlayerEnergyGateway.MaximumEnergy;
         addEnergyPanel.SetActive(false);
+        startButton.interactable = false;
         startButton.onClick.AddListener(OnStartClicked);
         addEnergyButton.onClick.AddListener(ShowAddEnergyPanel);
         closeEnergyPanelButton.onClick.AddListener(HideAddEnergyPanel);
@@ -92,6 +90,12 @@ public sealed class MainEnergyController : MonoBehaviour
 
         try
         {
+            bool recovered = await activeRunLifecycle.RecoverPendingRunAsync(
+                playerId,
+                lifetimeCancellation.Token);
+            if (recovered)
+                Debug.Log("Closed the previous active server Run before enabling Start.");
+
             PlayerEnergyState state = await energyGateway.GetEnergyAsync(
                 playerId, lifetimeCancellation.Token);
             RefreshEnergy(state);
@@ -106,6 +110,7 @@ public sealed class MainEnergyController : MonoBehaviour
                 lifetimeCancellation.Token);
             RefreshShareStatus(shareStatus);
             recoveryRefreshCoroutine = StartCoroutine(RecoveryRefreshRoutine(playerId));
+            startButton.interactable = true;
         }
         catch (OperationCanceledException)
         {
@@ -113,6 +118,7 @@ public sealed class MainEnergyController : MonoBehaviour
         catch (Exception exception)
         {
             Debug.LogException(exception);
+            ShowMainTip("Unable to close previous game. Check network and retry.");
             startButton.interactable = false;
         }
     }
@@ -125,7 +131,7 @@ public sealed class MainEnergyController : MonoBehaviour
         if (videoButton != null) videoButton.onClick.RemoveListener(OnVideoClicked);
         if (shareButton != null) shareButton.onClick.RemoveListener(OnShareClicked);
         if (recoveryRefreshCoroutine != null) StopCoroutine(recoveryRefreshCoroutine);
-        if (tipHideCoroutine != null) StopCoroutine(tipHideCoroutine);
+        TipTextService.Hide();
         lifetimeCancellation?.Cancel();
         lifetimeCancellation?.Dispose();
     }
@@ -197,7 +203,26 @@ public sealed class MainEnergyController : MonoBehaviour
                 GameplayLaunchContext.Complete(launchNonce);
                 ShowMainTip("Not enough");
                 return;
+
             }
+
+            var startRequest = new StartGameplayRunRequest
+            {
+                PlayerId = playerId,
+                GameMode = "TwentyWave",
+                ClientRunNonce = launchNonce,
+                ClientVersion = Application.version,
+                PlayerRankLevel = rankLevel
+            };
+            StartGameplayRunResult preparedRun = await StartRunWithConflictRecoveryAsync(
+                playerId,
+                startRequest,
+                lifetimeCancellation.Token);
+            if (preparedRun == null || string.IsNullOrWhiteSpace(preparedRun.RunId))
+            {
+                throw new InvalidOperationException("Game server returned no Run ID.");
+            }
+            GameplayLaunchContext.StorePrepared(launchNonce, preparedRun);
 
             ShowMainTip(string.Empty);
             transitionRequested = true;
@@ -206,9 +231,30 @@ public sealed class MainEnergyController : MonoBehaviour
         catch (OperationCanceledException)
         {
         }
+        catch (ClientServiceException exception)
+        {
+            Debug.LogException(exception);
+            if (string.Equals(exception.Code, "INSUFFICIENT_ENERGY", StringComparison.Ordinal))
+            {
+                if (GameplayLaunchContext.TryGet(out _, out string nonce))
+                    GameplayLaunchContext.Complete(nonce);
+                ShowMainTip("Not enough");
+            }
+            else if (string.Equals(exception.Code, "RUN_ALREADY_ACTIVE", StringComparison.Ordinal))
+            {
+                ShowMainTip("Previous game is still active.");
+            }
+            else
+            {
+                ShowMainTip(exception.Retryable
+                    ? "Server busy. Tap Start to retry."
+                    : "Unable to start game.");
+            }
+        }
         catch (Exception exception)
         {
             Debug.LogException(exception);
+            ShowMainTip("Unable to start game.");
         }
         finally
         {
@@ -217,6 +263,26 @@ public sealed class MainEnergyController : MonoBehaviour
             {
                 startButton.interactable = true;
             }
+        }
+    }
+
+    private async System.Threading.Tasks.Task<StartGameplayRunResult> StartRunWithConflictRecoveryAsync(
+        string playerId,
+        StartGameplayRunRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await GameplayRunGatewayRegistry.Current.StartRunAsync(request, cancellationToken);
+        }
+        catch (ClientServiceException exception) when (
+            string.Equals(exception.Code, "RUN_ALREADY_ACTIVE", StringComparison.Ordinal))
+        {
+            bool recovered = await activeRunLifecycle.RecoverPendingRunAsync(
+                playerId,
+                cancellationToken);
+            if (!recovered) throw;
+            return await GameplayRunGatewayRegistry.Current.StartRunAsync(request, cancellationToken);
         }
     }
 
@@ -324,7 +390,7 @@ public sealed class MainEnergyController : MonoBehaviour
         adInProgress = true;
         requestInProgress = true;
         SetRewardControlsInteractable(false);
-        string transactionId = Guid.NewGuid().ToString("N");
+        string transactionId = null;
 
         try
         {
@@ -332,12 +398,16 @@ public sealed class MainEnergyController : MonoBehaviour
                 EnergyRewardPlacement, lifetimeCancellation.Token);
             if (result != RewardedAdResult.Completed) return;
 
+            transactionId = PendingAdEventStore.GetOrCreate(
+                playerId, EnergyRewardPlacement);
             RewardedAdEnergyClaimResult claim = await energyGateway.ClaimRewardedAdEnergyAsync(
                 playerId,
                 RewardedAdEnergy,
                 RewardedAdDailyLimit,
                 transactionId,
                 lifetimeCancellation.Token);
+            PendingAdEventStore.Complete(
+                playerId, EnergyRewardPlacement, string.Empty, transactionId);
             rewardedAdClaimsUsed = claim.ClaimsUsed;
             RefreshEnergy(claim.State);
             if (!claim.Succeeded)
@@ -359,6 +429,7 @@ public sealed class MainEnergyController : MonoBehaviour
         catch (Exception exception)
         {
             Debug.LogException(exception);
+            ShowTip("Unable to claim video reward. Tap Video to retry.");
         }
         finally
         {
@@ -398,8 +469,7 @@ public sealed class MainEnergyController : MonoBehaviour
         shareInProgress = true;
         requestInProgress = true;
         SetRewardControlsInteractable(false);
-        string transactionId = Guid.NewGuid().ToString("N");
-
+        string transactionId = null;
         try
         {
             ShareResult result = await shareService.ShareAsync(
@@ -411,12 +481,17 @@ public sealed class MainEnergyController : MonoBehaviour
                 lifetimeCancellation.Token);
             if (result != ShareResult.Completed) return;
 
+            // Retain the event ID across ambiguous failures and application restarts.
+            transactionId = PendingShareEventStore.GetOrCreate(
+                playerId, EnergySharePlacement);
+
             ShareEnergyClaimResult claim = await energyGateway.ClaimShareEnergyAsync(
                 playerId,
                 ShareRewardEnergy,
                 ShareDailyLimit,
                 transactionId,
                 lifetimeCancellation.Token);
+            PendingShareEventStore.Complete(playerId, EnergySharePlacement, transactionId);
             sharesUsed = claim.SharesUsed;
             RefreshEnergy(claim.State);
             if (!claim.Succeeded)
@@ -435,9 +510,30 @@ public sealed class MainEnergyController : MonoBehaviour
         catch (OperationCanceledException)
         {
         }
+        catch (ClientServiceException exception)
+        {
+            // Retryable and idempotency-conflict outcomes intentionally keep the
+            // persisted event so the next click cannot become a second reward event.
+            Debug.LogException(exception);
+            if (string.Equals(exception.Code, "SHARE_LIMIT_REACHED", StringComparison.Ordinal) ||
+                string.Equals(exception.Code, "SHARE_ALREADY_CLAIMED", StringComparison.Ordinal))
+            {
+                PendingShareEventStore.Complete(playerId, EnergySharePlacement, transactionId);
+                shareDailyLimitReached = true;
+                ShowTip("Not enough");
+                await RefreshShareStatusAsync(playerId);
+            }
+            else
+            {
+                ShowTip(exception.Retryable
+                    ? "Server busy. Tap Share to retry."
+                    : "Unable to claim share reward.");
+            }
+        }
         catch (Exception exception)
         {
             Debug.LogException(exception);
+            ShowTip("Unable to claim share reward.");
         }
         finally
         {
@@ -451,6 +547,23 @@ public sealed class MainEnergyController : MonoBehaviour
         }
     }
 
+    private async System.Threading.Tasks.Task RefreshShareStatusAsync(string playerId)
+    {
+        try
+        {
+            DailyShareStatus latest = await energyGateway.GetShareStatusAsync(
+                playerId, ShareDailyLimit, lifetimeCancellation.Token);
+            RefreshShareStatus(latest);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning("Unable to refresh share status: " + exception.Message);
+        }
+    }
+
     private bool ResolveView()
     {
         startButton = transform.Find("StartBtn")?.GetComponent<Button>();
@@ -460,48 +573,16 @@ public sealed class MainEnergyController : MonoBehaviour
         closeEnergyPanelButton = addEnergyRoot?.Find("BG/CloseBtn")?.GetComponent<Button>();
         videoButton = addEnergyRoot?.Find("BG/VideoBtn")?.GetComponent<Button>();
         shareButton = addEnergyRoot?.Find("BG/ShareBtn")?.GetComponent<Button>();
-        rewardAmountText = addEnergyRoot?.Find("BG/Text/Image/REnergy")?.GetComponent<TMP_Text>();
         currentAmountText = transform.Find("EnergyBg/RAmount")?.GetComponent<TMP_Text>();
         maximumAmountText = transform.Find("EnergyBg/MaxAmount")?.GetComponent<TMP_Text>();
-        mainTipText = transform.Find("TipText")?.GetComponent<TMP_Text>();
-        tipText = FindDescendant(addEnergyRoot, "TipText")?.GetComponent<TMP_Text>();
-
-        if (mainTipText == null && currentAmountText != null)
-        {
-            mainTipText = CreateTipText(currentAmountText);
-        }
-
         bool complete = startButton != null && addEnergyButton != null && addEnergyPanel != null &&
                         closeEnergyPanelButton != null && videoButton != null && shareButton != null &&
-                        rewardAmountText != null &&
-                        currentAmountText != null && maximumAmountText != null &&
-                        mainTipText != null && tipText != null;
+                        currentAmountText != null && maximumAmountText != null;
         if (!complete)
         {
-            Debug.LogError("MainEnergyController is missing energy, reward, share, or TipText UI.");
+            Debug.LogError("MainEnergyController is missing energy or share UI.");
         }
         return complete;
-    }
-
-    private TMP_Text CreateTipText(TMP_Text styleSource)
-    {
-        GameObject tipObject = new GameObject("TipText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        tipObject.layer = gameObject.layer;
-        RectTransform rect = tipObject.GetComponent<RectTransform>();
-        rect.SetParent(transform, false);
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = new Vector2(0f, -190f);
-        rect.sizeDelta = new Vector2(600f, 80f);
-
-        TextMeshProUGUI createdText = tipObject.GetComponent<TextMeshProUGUI>();
-        createdText.font = styleSource.font;
-        createdText.fontSize = styleSource.fontSize;
-        createdText.alignment = TextAlignmentOptions.Center;
-        createdText.color = new Color32(220, 65, 65, 255);
-        createdText.raycastTarget = false;
-        return createdText;
     }
 
     private void RefreshEnergy(PlayerEnergyState state)
@@ -510,11 +591,6 @@ public sealed class MainEnergyController : MonoBehaviour
         currentEnergyState = state;
         currentAmountText.text = state.Current.ToString();
         maximumAmountText.text = "/" + state.Maximum;
-        if (state.Current >= LocalPlayerEnergyGateway.GameStartCost &&
-            mainTipText.text == "Not enough")
-        {
-            ShowMainTip(string.Empty);
-        }
         UpdateEnergyPanelButtons();
     }
 
@@ -557,37 +633,12 @@ public sealed class MainEnergyController : MonoBehaviour
 
     private void ShowTip(string message)
     {
-        if (tipText == null) return;
-        if (tipHideCoroutine != null)
-        {
-            StopCoroutine(tipHideCoroutine);
-            tipHideCoroutine = null;
-        }
-
-        if (string.IsNullOrEmpty(message))
-        {
-            tipText.text = string.Empty;
-            tipText.gameObject.SetActive(false);
-            return;
-        }
-
-        tipText.text = message;
-        tipText.gameObject.SetActive(true);
-        tipHideCoroutine = StartCoroutine(HideTipAfterDelay());
-    }
-
-    private IEnumerator HideTipAfterDelay()
-    {
-        yield return new WaitForSecondsRealtime(3f);
-        tipHideCoroutine = null;
-        if (tipText == null) yield break;
-        tipText.text = string.Empty;
-        tipText.gameObject.SetActive(false);
+        TipTextService.Show(message);
     }
 
     private void ShowMainTip(string message)
     {
-        if (mainTipText != null) mainTipText.text = message;
+        TipTextService.Show(message);
     }
 
     private string GetPlayerId()

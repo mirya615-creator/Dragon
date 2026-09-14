@@ -22,6 +22,7 @@ public sealed class LeaderboardPeriod
 public sealed class LeaderboardPlayer
 {
     public string PlayerId;
+    public string AvatarId;
     public string DisplayName;
     public int RankLevel;
     public int Division;

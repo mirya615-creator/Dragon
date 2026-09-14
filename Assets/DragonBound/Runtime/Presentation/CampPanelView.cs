@@ -13,6 +13,11 @@ namespace DragonBound.Presentation
     public sealed class CampPanelView : MonoBehaviour
     {
         private const float SkillTextMaxWidth = 590f;
+        private const float SelectedTabScaleMultiplier = 1.10f;
+        private const string DeckSpritePath = "GameUI/CampUI/Deck";
+        private const string DeckSelectedSpritePath = "GameUI/CampUI/DeckClick";
+        private const string CollectionSpritePath = "GameUI/CampUI/Collection";
+        private const string CollectionSelectedSpritePath = "GameUI/CampUI/CollectionClick";
 
         private static readonly string[] BasicUnitIds =
         {
@@ -35,6 +40,18 @@ namespace DragonBound.Presentation
         private Image secondComponentImage;
         private TMP_Text heroNameText;
         private TMP_Text skillText;
+        private Transform deckPart;
+        private Transform collectionPart;
+        private Button deckButton;
+        private Button collectionButton;
+        private Image deckButtonImage;
+        private Image collectionButtonImage;
+        private Sprite deckSprite;
+        private Sprite deckSelectedSprite;
+        private Sprite collectionSprite;
+        private Sprite collectionSelectedSprite;
+        private Vector3 deckButtonBaseScale;
+        private Vector3 collectionButtonBaseScale;
         private string selectedHeroId;
         private bool initialized;
 
@@ -63,6 +80,7 @@ namespace DragonBound.Presentation
             BuildUnitEntries();
             BuildComponentEntries();
             BuildHeroEntries();
+            BindTabButtons();
             recruitment.Attempted += HandleRecruitmentAttempted;
             initialized = true;
             Refresh();
@@ -117,15 +135,14 @@ namespace DragonBound.Presentation
             {
                 throw new ArgumentException("Hero summary requires component names and an English description.");
             }
+            if (recipe.FormationOrientation != HeroFormationOrientation.Horizontal)
+            {
+                throw new InvalidOperationException(
+                    "Camp hero summaries only support horizontal hero formations.");
+            }
 
-            var firstLabel = recipe.FormationOrientation == HeroFormationOrientation.Horizontal
-                ? "Left"
-                : "Top";
-            var secondLabel = recipe.FormationOrientation == HeroFormationOrientation.Horizontal
-                ? "Right"
-                : "Bottom";
-            return firstLabel + ": " + firstComponentName +
-                   "  " + secondLabel + ": " + secondComponentName +
+            return "Left: " + firstComponentName +
+                   "  Right: " + secondComponentName +
                    "\n" + descriptionEn.Trim();
         }
 
@@ -140,6 +157,14 @@ namespace DragonBound.Presentation
             {
                 recruitment.Attempted -= HandleRecruitmentAttempted;
             }
+            if (deckButton != null)
+            {
+                deckButton.onClick.RemoveListener(ShowDeck);
+            }
+            if (collectionButton != null)
+            {
+                collectionButton.onClick.RemoveListener(ShowCollection);
+            }
         }
 
         private void HandleRecruitmentAttempted(RecruitmentAttempt attempt)
@@ -150,8 +175,8 @@ namespace DragonBound.Presentation
         private void ResolveUi()
         {
             var campBg = Require(transform, "CampBg");
-            var deckPart = Require(campBg, "DeckPart");
-            var collectionPart = Require(campBg, "CollectionPart");
+            deckPart = Require(campBg, "DeckPart");
+            collectionPart = Require(campBg, "CollectionPart");
 
             unitEntries.Clear();
             componentEntries.Clear();
@@ -173,6 +198,49 @@ namespace DragonBound.Presentation
             skillRect.SetSizeWithCurrentAnchors(
                 RectTransform.Axis.Horizontal,
                 currentWidth > 0f ? Mathf.Min(currentWidth, SkillTextMaxWidth) : SkillTextMaxWidth);
+        }
+
+        private void BindTabButtons()
+        {
+            var buttonRoot = Require(transform, "BtnImg");
+            deckButton = RequireComponent<Button>(buttonRoot, "DeckBtn");
+            collectionButton = RequireComponent<Button>(buttonRoot, "CollectionBtn");
+            deckButtonImage = RequireButtonImage(deckButton);
+            collectionButtonImage = RequireButtonImage(collectionButton);
+            // Keep each button's position and click destination, but intentionally exchange
+            // the Deck and Collection visual sets.
+            deckSprite = RequireResourceSprite(CollectionSpritePath);
+            deckSelectedSprite = RequireResourceSprite(CollectionSelectedSpritePath);
+            collectionSprite = RequireResourceSprite(DeckSpritePath);
+            collectionSelectedSprite = RequireResourceSprite(DeckSelectedSpritePath);
+            deckButtonBaseScale = deckButton.transform.localScale;
+            collectionButtonBaseScale = collectionButton.transform.localScale;
+
+            deckButton.onClick.AddListener(ShowDeck);
+            collectionButton.onClick.AddListener(ShowCollection);
+            SetSelectedTab(deckPart.gameObject.activeSelf || !collectionPart.gameObject.activeSelf);
+        }
+
+        private void ShowDeck()
+        {
+            SetSelectedTab(true);
+        }
+
+        private void ShowCollection()
+        {
+            SetSelectedTab(false);
+        }
+
+        private void SetSelectedTab(bool deckSelected)
+        {
+            deckPart.gameObject.SetActive(deckSelected);
+            collectionPart.gameObject.SetActive(!deckSelected);
+            deckButtonImage.sprite = deckSelected ? deckSelectedSprite : deckSprite;
+            collectionButtonImage.sprite = deckSelected ? collectionSprite : collectionSelectedSprite;
+            deckButton.transform.localScale = deckButtonBaseScale *
+                                              (deckSelected ? SelectedTabScaleMultiplier : 1f);
+            collectionButton.transform.localScale = collectionButtonBaseScale *
+                                                    (deckSelected ? 1f : SelectedTabScaleMultiplier);
         }
 
         private Transform unitContainer;
@@ -212,14 +280,17 @@ namespace DragonBound.Presentation
             {
                 var slot = slots[i];
                 slot.gameObject.SetActive(true);
-                // Image0-17 are authored slots. Do not instantiate or resize UI at runtime,
-                // so scene layout and manual edits remain authoritative.
-                var icon = slot.GetComponent<Image>();
-                var count = slot.GetComponentInChildren<TMP_Text>(true);
-                if (icon == null || count == null)
+                // Keep the root Image as the authored slot background. Component artwork is
+                // rendered by the direct ComUI child so refreshing it cannot replace the
+                // background or interfere with the Text (TMP) count overlay.
+                var background = slot.GetComponent<Image>();
+                var icon = FindDirectChildComponent<Image>(slot, "ComUI");
+                var count = FindDirectChildComponent<TMP_Text>(slot, "Text (TMP)");
+                if (background == null || icon == null || count == null)
                 {
                     throw new InvalidOperationException(
-                        slot.name + " requires a root Image and child Text (TMP).");
+                        slot.name +
+                        " requires a root Image, child ComUI Image, and child Text (TMP).");
                 }
 
                 componentEntries.Add(new ComponentEntry(definitions[i], icon, count));
@@ -247,10 +318,12 @@ namespace DragonBound.Presentation
             for (var i = 0; i < visibleHeroes.Count; i++)
             {
                 var hero = visibleHeroes[i];
-                var image = slots[i].GetComponent<Image>();
-                if (image == null)
+                var slotImage = slots[i].GetComponent<Image>();
+                var heroImage = FindDirectChildComponent<Image>(slots[i], "HeroUI");
+                if (slotImage == null || heroImage == null)
                 {
-                    throw new InvalidOperationException(slots[i].name + " is missing an Image component.");
+                    throw new InvalidOperationException(
+                        slots[i].name + " requires a root Image and child HeroUI Image.");
                 }
 
                 var button = slots[i].GetComponent<Button>();
@@ -258,10 +331,10 @@ namespace DragonBound.Presentation
                 {
                     button = slots[i].gameObject.AddComponent<Button>();
                 }
-                button.targetGraphic = image;
+                button.targetGraphic = slotImage;
                 var heroId = hero.Id;
                 button.onClick.AddListener(() => SelectHero(heroId));
-                heroEntries.Add(new HeroEntry(hero, image));
+                heroEntries.Add(new HeroEntry(hero, heroImage, slotImage));
             }
 
             selectedHeroId = visibleHeroes.Count > 0 ? visibleHeroes[0].Id : string.Empty;
@@ -312,26 +385,20 @@ namespace DragonBound.Presentation
         {
             foreach (var entry in heroEntries)
             {
-                var rarityColor = GetRarityColor(entry.Definition.Rarity);
                 if (artProvider != null && artProvider.TryGetHeroSprite(entry.Definition.Id, out var sprite))
                 {
                     entry.Image.sprite = sprite;
                     entry.Image.color = Color.white;
                 }
-                else
-                {
-                    entry.Image.color = rarityColor;
-                }
 
-                var outline = entry.Image.GetComponent<Outline>();
+                var outline = entry.SlotImage.GetComponent<Outline>();
                 if (outline == null)
                 {
-                    outline = entry.Image.gameObject.AddComponent<Outline>();
+                    outline = entry.SlotImage.gameObject.AddComponent<Outline>();
                 }
-                outline.effectColor = entry.Definition.Id == selectedHeroId ? Color.white : rarityColor;
-                outline.effectDistance = entry.Definition.Id == selectedHeroId
-                    ? new Vector2(3f, -3f)
-                    : new Vector2(1.5f, -1.5f);
+                outline.enabled = entry.Definition.Id == selectedHeroId;
+                outline.effectColor = Color.white;
+                outline.effectDistance = new Vector2(3f, -3f);
             }
         }
 
@@ -373,16 +440,12 @@ namespace DragonBound.Presentation
 
         private static string GetFirstComponentId(HeroRecipeDefinition recipe)
         {
-            return recipe.FormationOrientation == HeroFormationOrientation.Horizontal
-                ? recipe.LeftComponentId
-                : recipe.TopComponentId;
+            return recipe.LeftComponentId;
         }
 
         private static string GetSecondComponentId(HeroRecipeDefinition recipe)
         {
-            return recipe.FormationOrientation == HeroFormationOrientation.Horizontal
-                ? recipe.RightComponentId
-                : recipe.BottomComponentId;
+            return recipe.RightComponentId;
         }
 
         private static Transform Require(Transform parent, string path)
@@ -404,6 +467,50 @@ namespace DragonBound.Presentation
                 throw new InvalidOperationException(target.name + " is missing " + typeof(T).Name + ".");
             }
             return result;
+        }
+
+        private static Image RequireButtonImage(Button button)
+        {
+            var image = button.targetGraphic as Image ?? button.GetComponent<Image>();
+            if (image == null)
+            {
+                throw new InvalidOperationException(button.name + " is missing an Image component.");
+            }
+
+            button.targetGraphic = image;
+            return image;
+        }
+
+        private static Sprite RequireResourceSprite(string resourcePath)
+        {
+            var sprite = Resources.Load<Sprite>(resourcePath);
+            if (sprite == null)
+            {
+                throw new InvalidOperationException(
+                    "Camp tab sprite is missing at Resources/" + resourcePath + ".png.");
+            }
+
+            return sprite;
+        }
+
+        private static T FindDirectChildComponent<T>(Transform parent, string childName)
+            where T : Component
+        {
+            for (var i = 0; i < parent.childCount; i++)
+            {
+                var child = parent.GetChild(i);
+                if (child.name == childName ||
+                    child.name.StartsWith(childName + " (", StringComparison.Ordinal))
+                {
+                    var component = child.GetComponent<T>();
+                    if (component != null)
+                    {
+                        return component;
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static TMP_Text FindHeroNameText(Transform collectionPart)
@@ -452,13 +559,6 @@ namespace DragonBound.Presentation
             }
         }
 
-        private static Color GetRarityColor(HeroRecipeRarity rarity)
-        {
-            return rarity == HeroRecipeRarity.Purple
-                ? new Color(0.64f, 0.42f, 0.90f, 1f)
-                : new Color(0.92f, 0.72f, 0.24f, 1f);
-        }
-
         private static Color GetComponentCategoryColor(HeroComponentCategory category)
         {
             switch (category)
@@ -504,14 +604,16 @@ namespace DragonBound.Presentation
 
         private sealed class HeroEntry
         {
-            public HeroEntry(HeroDefinition definition, Image image)
+            public HeroEntry(HeroDefinition definition, Image image, Image slotImage)
             {
                 Definition = definition;
                 Image = image;
+                SlotImage = slotImage;
             }
 
             public HeroDefinition Definition { get; }
             public Image Image { get; }
+            public Image SlotImage { get; }
         }
     }
 }
