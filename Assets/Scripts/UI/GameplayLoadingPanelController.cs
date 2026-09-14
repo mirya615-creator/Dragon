@@ -1,4 +1,5 @@
 using System.Collections;
+using DragonBound.Presentation;
 using DragonBound.Bootstrap;
 using DragonBound.Core;
 using TMPro;
@@ -128,7 +129,7 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
         {
             Transform root = scene.GetRootGameObjects()[i].transform;
             if (root.name != CanvasRootName) continue;
-            loadingPanel = root.Find(LoadingPanelNode)?.gameObject;
+            loadingPanel = root.FindUi(LoadingPanelNode)?.gameObject;
             if (loadingPanel != null) return;
         }
     }
@@ -216,12 +217,12 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
         }
 
         Transform root = loadingPanel.transform;
-        playerRateText = (root.Find("BG/MyPart/MyItem/Text (TMP)/RateText") ??
-                          root.Find("MyPart/MyItem/Text (TMP)/RateText") ??
-                          root.Find("BG/PlayerPart/PlayerItem/Text (TMP)/RateText"))?
+        playerRateText = (root.FindUi("BG/MyPart/MyItem/Text (TMP)/RateText") ??
+                          root.FindUi("MyPart/MyItem/Text (TMP)/RateText") ??
+                          root.FindUi("BG/PlayerPart/PlayerItem/Text (TMP)/RateText"))?
             .GetComponent<TMP_Text>();
-        aiRateText = (root.Find("BG/EnemyPart/EnemyItem/Text (TMP)/RateText") ??
-                      root.Find("EnemyPart/EnemyItem/Text (TMP)/RateText"))?
+        aiRateText = (root.FindUi("BG/EnemyPart/EnemyItem/Text (TMP)/RateText") ??
+                      root.FindUi("EnemyPart/EnemyItem/Text (TMP)/RateText"))?
             .GetComponent<TMP_Text>();
 
         if (playerRateText == null || aiRateText == null)

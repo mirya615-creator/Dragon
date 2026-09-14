@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using DragonBound.Grid;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -49,13 +50,13 @@ namespace DragonBound.Presentation
             EnsureInputReceiver();
             if (lockOverlay == null)
             {
-                var overlay = transform.Find("ART_LockOverlay");
+                var overlay = transform.FindUi("ART_LockOverlay");
                 lockOverlay = overlay != null ? overlay.gameObject : null;
             }
 
             if (debugRangeBandLabel == null)
             {
-                var label = transform.Find("DebugRangeBandLabel");
+                var label = transform.FindUi("DebugRangeBandLabel");
                 debugRangeBandLabel = label != null ? label.GetComponent<Text>() : null;
             }
 
@@ -94,12 +95,12 @@ namespace DragonBound.Presentation
             EnsureInputReceiver();
             if (lockOverlay == null)
             {
-                var overlay = transform.Find("ART_LockOverlay");
+                var overlay = transform.FindUi("ART_LockOverlay");
                 lockOverlay = overlay != null ? overlay.gameObject : null;
             }
             if (debugRangeBandLabel == null)
             {
-                var label = transform.Find("DebugRangeBandLabel");
+                var label = transform.FindUi("DebugRangeBandLabel");
                 debugRangeBandLabel = label != null ? label.GetComponent<Text>() : null;
             }
 
@@ -125,7 +126,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var surface = artImage != null ? artImage.transform : transform.Find("ART_CellSurface");
+            var surface = artImage != null ? artImage.transform : transform.FindUi("ART_CellSurface");
             if (surface != null)
             {
                 surface.name = surfaceArtSlotId;
@@ -139,7 +140,7 @@ namespace DragonBound.Presentation
             EnsureLockMarker(locked);
             if (usesDevelopmentStateArt)
             {
-                var marker = transform.Find(FixedBoardArtContract.LockMarker);
+                var marker = transform.FindUi(FixedBoardArtContract.LockMarker);
                 if (marker != null)
                 {
                     marker.gameObject.SetActive(false);
@@ -157,7 +158,7 @@ namespace DragonBound.Presentation
             cellType = type;
             if (lockOverlay == null)
             {
-                var overlay = transform.Find("ART_LockOverlay");
+                var overlay = transform.FindUi("ART_LockOverlay");
                 lockOverlay = overlay != null ? overlay.gameObject : null;
             }
 
@@ -169,7 +170,7 @@ namespace DragonBound.Presentation
             var usesDevelopmentStateArt = ApplyDevelopmentVisual(type);
             if (usesFixedBoardVisual && artImage != null && fixedRole == FixedBoardCellRole.Deployment)
             {
-                var marker = transform.Find(FixedBoardArtContract.LockMarker);
+                var marker = transform.FindUi(FixedBoardArtContract.LockMarker);
                 if (marker != null)
                 {
                     marker.gameObject.SetActive(type == CellType.Locked && !usesDevelopmentStateArt);
@@ -267,7 +268,7 @@ namespace DragonBound.Presentation
                 lockOverlay.SetActive(false);
             }
 
-            var marker = transform.Find(FixedBoardArtContract.LockMarker);
+            var marker = transform.FindUi(FixedBoardArtContract.LockMarker);
             if (marker != null)
             {
                 marker.gameObject.SetActive(false);
@@ -287,7 +288,7 @@ namespace DragonBound.Presentation
             {
                 if (cachedLockedSprite == null)
                 {
-                    cachedLockedSprite = Resources.Load<Sprite>("GameUI/Lock");
+                    cachedLockedSprite = DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/Lock");
                 }
 
                 lockedSprite = cachedLockedSprite;
@@ -297,7 +298,7 @@ namespace DragonBound.Presentation
             {
                 if (cachedUnlockedSprite == null)
                 {
-                    cachedUnlockedSprite = Resources.Load<Sprite>("GameUI/UnLock");
+                    cachedUnlockedSprite = DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/UnLock");
                 }
 
                 unlockedSprite = cachedUnlockedSprite;
@@ -326,7 +327,7 @@ namespace DragonBound.Presentation
 
         private void EnsureBorder()
         {
-            var existing = transform.Find(FixedBoardArtContract.CellBorder);
+            var existing = transform.FindUi(FixedBoardArtContract.CellBorder);
             if (existing != null)
             {
                 return;
@@ -354,7 +355,7 @@ namespace DragonBound.Presentation
 
         private void EnsureInputReceiver()
         {
-            var receiver = transform.Find("InputReceiver");
+            var receiver = transform.FindUi("InputReceiver");
             RectTransform rect;
             Image image;
             if (receiver == null)
@@ -390,7 +391,7 @@ namespace DragonBound.Presentation
 
         private void EnsureLockMarker(bool visible)
         {
-            var marker = transform.Find(FixedBoardArtContract.LockMarker);
+            var marker = transform.FindUi(FixedBoardArtContract.LockMarker);
             if (!visible)
             {
                 if (marker != null)

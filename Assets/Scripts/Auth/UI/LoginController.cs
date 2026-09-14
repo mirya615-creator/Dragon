@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections;
 using System.Threading;
 using DragonBound.UI;
@@ -86,7 +87,7 @@ public sealed class LoginController : MonoBehaviour
         }
 
         loginPanel = FindRequired(mainPanel, "LoginPanel")?.gameObject;
-        signUpPanel = mainPanel.Find("SignUpPanel")?.gameObject;
+        signUpPanel = mainPanel.FindUi("SignUpPanel")?.gameObject;
         googleConfirmPanel = FindRequired(mainPanel, "GoogleConfirmPanel")?.gameObject;
         Transform loginRoot = loginPanel != null ? loginPanel.transform : null;
         guestLoginButton = GetRequired<Button>(loginRoot, "GuestLoginBtn");
@@ -407,7 +408,7 @@ public sealed class LoginController : MonoBehaviour
 
     private static TipTextController ResolveConfirmationTip(Transform googleRoot)
     {
-        var authoredTip = googleRoot != null ? googleRoot.Find("TipText") : null;
+        var authoredTip = googleRoot != null ? googleRoot.FindUi("TipText") : null;
         var existingController = authoredTip != null
             ? authoredTip.GetComponent<TipTextController>()
             : null;
@@ -417,7 +418,7 @@ public sealed class LoginController : MonoBehaviour
             return existingController;
         }
 
-        var prefab = Resources.Load<GameObject>(TipTextPrefabPath);
+        var prefab = DragonBound.Presentation.UiAssets.Load<GameObject>(TipTextPrefabPath);
         if (prefab == null)
         {
             Debug.LogError("Login requires Resources/" + TipTextPrefabPath + ".prefab.");
@@ -450,7 +451,7 @@ public sealed class LoginController : MonoBehaviour
 
     private static void SetChildActive(Transform parent, string childName, bool active)
     {
-        Transform child = parent != null ? parent.Find(childName) : null;
+        Transform child = parent != null ? parent.FindUi(childName) : null;
         if (child != null) child.gameObject.SetActive(active);
     }
 
@@ -464,7 +465,7 @@ public sealed class LoginController : MonoBehaviour
             Transform current = root.transform;
             for (int index = 1; index < segments.Length && current != null; index++)
             {
-                current = current.Find(segments[index]);
+                current = current.FindUi(segments[index]);
             }
             return current;
         }
@@ -473,7 +474,7 @@ public sealed class LoginController : MonoBehaviour
 
     private static Transform FindRequired(Transform parent, string childName)
     {
-        Transform child = parent != null ? parent.Find(childName) : null;
+        Transform child = parent != null ? parent.FindUi(childName) : null;
         if (child == null) Debug.LogError($"Missing UI object '{childName}' under '{parent?.name}'.");
         return child;
     }

@@ -110,7 +110,7 @@ namespace DragonBound.Editor
                     throw new InvalidOperationException("Battlefield prefab is missing CombatFxView.");
                 }
 
-                var warningTransform = root.transform.Find("ART_StarfallWarning");
+                var warningTransform = root.transform.FindUi("ART_StarfallWarning");
                 var warning = warningTransform != null
                     ? warningTransform.GetComponent<Image>()
                     : CreateCircleImage(
@@ -584,7 +584,7 @@ namespace DragonBound.Editor
             var size = Vector2.one * PortraitLayoutMetrics.FormationCellReferenceSize;
             SetCentered(view.RectTransform, new Vector2(centerX, centerY), size);
 
-            var lockOverlay = view.transform.Find("ART_LockOverlay");
+            var lockOverlay = view.transform.FindUi("ART_LockOverlay");
             if (lockOverlay != null)
             {
                 lockOverlay.gameObject.SetActive(type == CellType.Locked);
@@ -597,7 +597,7 @@ namespace DragonBound.Editor
         private static void ConfigureBattlefieldInstance(GameObject instance, TeamSide side)
         {
             instance.name = side == TeamSide.Player ? "PlayerBattlefield" : "AiBattlefield";
-            var background = instance.transform.Find("ART_Background").GetComponent<Image>();
+            var background = instance.transform.FindUi("ART_Background").GetComponent<Image>();
             background.color = side == TeamSide.Player ? PlayerFieldColor : AiFieldColor;
 
             foreach (var cell in instance.GetComponentsInChildren<GridCellView>(true))
@@ -607,7 +607,7 @@ namespace DragonBound.Editor
 
             var lane = instance.GetComponent<GreyboxLaneView>();
             var combatFx = instance.GetComponent<CombatFxView>();
-            var points = instance.transform.Find("RouteWaypoints").GetComponentsInChildren<RectTransform>(true);
+            var points = instance.transform.FindUi("RouteWaypoints").GetComponentsInChildren<RectTransform>(true);
             var route = new List<RectTransform>();
             foreach (var point in points)
             {
@@ -643,7 +643,7 @@ namespace DragonBound.Editor
 
                 return string.CompareOrdinal(first.name, second.name);
             });
-            var marker = instance.transform.Find("ART_EnemyMarker").GetComponent<RectTransform>();
+            var marker = instance.transform.FindUi("ART_EnemyMarker").GetComponent<RectTransform>();
             lane.Configure(marker, route.ToArray(), 12f, false);
             var enemyCard = AssetDatabase.LoadAssetAtPath<GameObject>(EnemyCardPrefabPath);
             if (enemyCard != null)
@@ -653,16 +653,16 @@ namespace DragonBound.Editor
 
             var board = instance.GetComponent<GreyboxBoardView>();
             var sideView = instance.GetComponent<GreyboxBattlefieldSideView>();
-            var sideLabel = instance.transform.Find("SideLabel").GetComponent<Text>();
+            var sideLabel = instance.transform.FindUi("SideLabel").GetComponent<Text>();
             sideLabel.text = side == TeamSide.Player ? "PLAYER" : "AI";
             sideView.Configure(
                 side,
                 board,
                 lane,
                 sideLabel,
-                instance.transform.Find("HatchlingLabel").GetComponent<Text>(),
-                instance.transform.Find("EnemyProgressLabel").GetComponent<Text>(),
-                instance.transform.Find("ART_BossTrack/ART_BossFill").GetComponent<Image>(),
+                instance.transform.FindUi("HatchlingLabel").GetComponent<Text>(),
+                instance.transform.FindUi("EnemyProgressLabel").GetComponent<Text>(),
+                instance.transform.FindUi("ART_BossTrack/ART_BossFill").GetComponent<Image>(),
                 combatFx);
             RecordInstanceOverrides(instance);
         }
@@ -702,7 +702,7 @@ namespace DragonBound.Editor
                 var minX = rowMin + (x * (width + gap));
                 SetAnchors(instance.GetComponent<RectTransform>(), new Vector2(minX, 0.14f), new Vector2(minX + width, 0.86f));
                 var view = instance.GetComponent<GridCellView>();
-                var lockOverlay = instance.transform.Find("ART_LockOverlay");
+                var lockOverlay = instance.transform.FindUi("ART_LockOverlay");
                 if (lockOverlay != null)
                 {
                     lockOverlay.gameObject.SetActive(false);
@@ -794,19 +794,19 @@ namespace DragonBound.Editor
             var playerCells = new List<GridCellView>();
             playerCells.AddRange(playerBattlefieldObject.GetComponentsInChildren<GridCellView>(true));
             playerCells.AddRange(benchObject.GetComponentsInChildren<GridCellView>(true));
-            var aiDragArrow = aiBattlefieldObject.transform.Find("ART_DragArrow").GetComponent<DragArrowPreviewView>();
-            var playerDragArrow = playerBattlefieldObject.transform.Find("ART_DragArrow").GetComponent<DragArrowPreviewView>();
+            var aiDragArrow = aiBattlefieldObject.transform.FindUi("ART_DragArrow").GetComponent<DragArrowPreviewView>();
+            var playerDragArrow = playerBattlefieldObject.transform.FindUi("ART_DragArrow").GetComponent<DragArrowPreviewView>();
             aiBoard.Configure(null, aiCells, aiUnitLayer, unitCardPrefab.GetComponent<DraggableUnitView>(), aiRange, false, aiDragArrow);
             playerBoard.Configure(null, playerCells.ToArray(), playerUnitLayer, unitCardPrefab.GetComponent<DraggableUnitView>(), playerRange, true, playerDragArrow);
 
             var hud = hudObject.GetComponent<GreyboxHudView>();
             hud.Configure(
-                hudObject.transform.Find("ART_PauseButton").GetComponent<Button>(),
-                hudObject.transform.Find("ART_PauseButton/PauseLabel").GetComponent<Text>(),
-                hudObject.transform.Find("ResourceLabel").GetComponent<Text>(),
-                hudObject.transform.Find("WaveLabel").GetComponent<Text>(),
-                hudObject.transform.Find("DebugLabel").GetComponent<Text>(),
-                hudObject.transform.Find("EnemyDebugLabel").GetComponent<Text>());
+                hudObject.transform.FindUi("ART_PauseButton").GetComponent<Button>(),
+                hudObject.transform.FindUi("ART_PauseButton/PauseLabel").GetComponent<Text>(),
+                hudObject.transform.FindUi("ResourceLabel").GetComponent<Text>(),
+                hudObject.transform.FindUi("WaveLabel").GetComponent<Text>(),
+                hudObject.transform.FindUi("DebugLabel").GetComponent<Text>(),
+                hudObject.transform.FindUi("EnemyDebugLabel").GetComponent<Text>());
 
             var screenView = root.AddComponent<DragonBoundScreenView>();
             screenView.Configure(
@@ -859,19 +859,19 @@ namespace DragonBound.Editor
             aiBoard.Configure(
                 canvas,
                 CopyCells(aiBoard.CellViews),
-                screenObject.transform.Find("AiUnitLayer").GetComponent<RectTransform>(),
+                screenObject.transform.FindUi("AiUnitLayer").GetComponent<RectTransform>(),
                 unitCardPrefab.GetComponent<DraggableUnitView>(),
-                screenObject.transform.Find("AiUnitLayer/ART_AiRangePreview").GetComponent<Image>(),
+                screenObject.transform.FindUi("AiUnitLayer/ART_AiRangePreview").GetComponent<Image>(),
                 false,
-                screenView.AiBattlefieldView.transform.Find("ART_DragArrow").GetComponent<DragArrowPreviewView>());
+                screenView.AiBattlefieldView.transform.FindUi("ART_DragArrow").GetComponent<DragArrowPreviewView>());
             playerBoard.Configure(
                 canvas,
                 CopyCells(playerBoard.CellViews),
-                screenObject.transform.Find("PlayerUnitLayer").GetComponent<RectTransform>(),
+                screenObject.transform.FindUi("PlayerUnitLayer").GetComponent<RectTransform>(),
                 unitCardPrefab.GetComponent<DraggableUnitView>(),
-                screenObject.transform.Find("PlayerUnitLayer/ART_PlayerRangePreview").GetComponent<Image>(),
+                screenObject.transform.FindUi("PlayerUnitLayer/ART_PlayerRangePreview").GetComponent<Image>(),
                 true,
-                screenView.PlayerBattlefieldView.transform.Find("ART_DragArrow").GetComponent<DragArrowPreviewView>());
+                screenView.PlayerBattlefieldView.transform.FindUi("ART_DragArrow").GetComponent<DragArrowPreviewView>());
             bootstrap.Configure(screenView);
             RecordInstanceOverrides(screenObject);
 
@@ -973,7 +973,7 @@ namespace DragonBound.Editor
 
         private static DragArrowPreviewView EnsureDragArrow(Transform battlefield)
         {
-            var existing = battlefield.Find("ART_DragArrow");
+            var existing = battlefield.FindUi("ART_DragArrow");
             if (existing != null)
             {
                 var existingView = existing.GetComponent<DragArrowPreviewView>();
@@ -1139,7 +1139,7 @@ namespace DragonBound.Editor
             {
                 foreach (var path in paths)
                 {
-                    var target = root.transform.Find(path);
+                    var target = root.transform.FindUi(path);
                     if (target == null)
                     {
                         throw new InvalidOperationException($"Range preview was not found in {prefabPath}: {path}");
@@ -1160,7 +1160,7 @@ namespace DragonBound.Editor
                         UnityEngine.Object.DestroyImmediate(oldOutline);
                     }
 
-                    var outlineTransform = target.Find("ART_RangeOutline");
+                    var outlineTransform = target.FindUi("ART_RangeOutline");
                     var outline = outlineTransform != null
                         ? outlineTransform.GetComponent<Image>()
                         : CreateImage("ART_RangeOutline", target, RangeOutlineColor);

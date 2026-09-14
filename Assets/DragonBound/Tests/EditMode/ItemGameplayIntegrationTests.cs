@@ -284,7 +284,7 @@ namespace DragonBound.Tests.EditMode
             first.onClick.Invoke();
             Assert.Greater(runtime.PlayerItems.GetCooldownRemainingSeconds(ItemIds.WinterveilRune), 29.9f);
             Assert.AreEqual(string.Empty, firstLabel.text);
-            var cooldownMask = first.transform.Find("CooldownMask").GetComponent<Image>();
+            var cooldownMask = first.transform.FindUi("CooldownMask").GetComponent<Image>();
             Assert.IsTrue(cooldownMask.gameObject.activeSelf);
             Assert.Greater(cooldownMask.fillAmount, 0.99f);
             Assert.IsNotNull(cooldownMask.sprite);

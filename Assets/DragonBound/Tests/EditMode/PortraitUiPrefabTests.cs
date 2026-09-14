@@ -142,7 +142,7 @@ namespace DragonBound.Tests.EditMode
             Assert.Greater(rect.sizeDelta.x, 0f);
             Assert.Greater(rect.sizeDelta.y, 0f);
 
-            var soulChainOverlay = unitCard.transform.Find("ART_SoulChainOverlay")?.GetComponent<Image>();
+            var soulChainOverlay = unitCard.transform.FindUi("ART_SoulChainOverlay")?.GetComponent<Image>();
             Assert.IsNotNull(soulChainOverlay);
             Assert.IsFalse(soulChainOverlay.raycastTarget);
             Assert.AreEqual(0f, soulChainOverlay.color.a, 0.0001f);
@@ -163,7 +163,7 @@ namespace DragonBound.Tests.EditMode
             {
                 var view = instance.GetComponent<EnemyView>();
                 var animationImage = instance.transform
-                    .Find("ART_EnemyAnimation/Image")
+                    .FindUi("ART_EnemyAnimation/Image")
                     ?.GetComponent<Image>();
                 Assert.IsNotNull(view);
                 Assert.IsNotNull(animationImage);
@@ -203,7 +203,7 @@ namespace DragonBound.Tests.EditMode
             var instance = Object.Instantiate(prefab);
             try
             {
-                var portrait = instance.transform.Find("ART_UnitPortrait");
+                var portrait = instance.transform.FindUi("ART_UnitPortrait");
                 var view = instance.GetComponent<DraggableUnitView>();
                 Assert.IsNotNull(portrait);
                 Assert.IsNotNull(view);
@@ -230,8 +230,8 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void BowAnimationReleasesAuthoredSwordProjectileAfterFrameSeventeen()
         {
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Unit/road"));
-            var controller = Resources.Load<RuntimeAnimatorController>("Animation/UnitAni/BOW");
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Unit/road"));
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/UnitAni/BOW");
             Assert.IsNotNull(controller);
             var clip = controller.animationClips.Single(value => value.name == "BOW");
             var releaseEvent = AnimationUtility.GetAnimationEvents(clip)
@@ -346,7 +346,7 @@ namespace DragonBound.Tests.EditMode
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(WeaponPanelHeroPath);
             Assert.IsNotNull(prefab);
 
-            Transform weapon = prefab.transform.Find("weapon");
+            Transform weapon = prefab.transform.FindUi("weapon");
             Assert.IsNotNull(weapon);
             Assert.IsFalse(weapon.gameObject.activeSelf);
             Assert.IsNotNull(weapon.GetComponent<Image>());
@@ -413,7 +413,7 @@ namespace DragonBound.Tests.EditMode
                 view.ObserveAttackSequence(0);
 
                 Assert.IsTrue(view.PlayAttackAnimation(true));
-                var skillController = Resources.Load<RuntimeAnimatorController>(
+                var skillController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                     "Animation/Windclaw Ranger s");
                 Assert.AreSame(skillController, view.HeroAttackAnimator.runtimeAnimatorController);
 
@@ -432,8 +432,8 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void WindclawSkillAnimationExposesTenthFrameReleaseEvent()
         {
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Windclaw Ranger/road"));
-            var controller = Resources.Load<RuntimeAnimatorController>(
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Windclaw Ranger/road"));
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Windclaw Ranger s");
             Assert.IsNotNull(controller);
             var clip = controller.animationClips.Single(value => value.name == "Windclaw Ranger s");
@@ -446,8 +446,8 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void EmberShamanAttackExposesThirteenthFrameFireballEvent()
         {
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Ember Shaman/road"));
-            var controller = Resources.Load<RuntimeAnimatorController>(
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Ember Shaman/road"));
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Ember Shaman");
             Assert.IsNotNull(controller);
             var clip = controller.animationClips.Single(value => value.name == "Ember Shaman");
@@ -460,9 +460,9 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void RuneboltMageAttackExposesFourteenthFrameBoltEvent()
         {
-            var attackController = Resources.Load<RuntimeAnimatorController>(
+            var attackController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Runebolt Mage");
-            var boltController = Resources.Load<RuntimeAnimatorController>(
+            var boltController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Runebolt MageBoom");
             Assert.IsNotNull(attackController);
             Assert.IsNotNull(boltController);
@@ -479,9 +479,9 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void StoneboundWarlockAttackExposesFourteenthFrameRockEvent()
         {
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Stonebound Warlock/rood"));
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Stonebound Warlock/roodS"));
-            var controller = Resources.Load<RuntimeAnimatorController>(
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Stonebound Warlock/rood"));
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Stonebound Warlock/roodS"));
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Stonebound Warlock");
             Assert.IsNotNull(controller);
             var clip = controller.animationClips
@@ -496,10 +496,10 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void ThunderlordAttackExposesTenthFrameChainEventAndThreeSprites()
         {
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Thunderlord/road/Main"));
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Thunderlord/road/Froad"));
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Thunderlord/road/Sroad"));
-            var controller = Resources.Load<RuntimeAnimatorController>(
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Thunderlord/road/Main"));
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Thunderlord/road/Froad"));
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Thunderlord/road/Sroad"));
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Thunderlord");
             Assert.IsNotNull(controller);
             var clip = controller.animationClips.Single(value => value.name == "Thunderlord");
@@ -512,7 +512,7 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void ThunderlordSkillExposesTenthFrameReleaseAndAuthoredExplosion()
         {
-            var skillController = Resources.Load<RuntimeAnimatorController>(
+            var skillController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/ThunderlordStartUp");
             Assert.IsNotNull(skillController);
             var skillClip = skillController.animationClips
@@ -522,7 +522,7 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(10f / 60f, releaseEvent.time, 0.0001f);
             Assert.IsFalse(skillClip.isLooping);
 
-            var explosionController = Resources.Load<RuntimeAnimatorController>(
+            var explosionController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/ThunderlordBoom");
             Assert.IsNotNull(explosionController);
             Assert.IsTrue(explosionController.animationClips
@@ -532,10 +532,10 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void AbyssalHarpoonerAttackExposesSixteenthFrameHarpoonEventAndSprites()
         {
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Abyssal Harpooner/road"));
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Abyssal Harpooner/boom"));
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Abyssal Harpooner/road"));
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Abyssal Harpooner/boom"));
 
-            var controller = Resources.Load<RuntimeAnimatorController>(
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Abyssal Harpooner");
             Assert.IsNotNull(controller);
             var clip = controller.animationClips
@@ -553,9 +553,9 @@ namespace DragonBound.Tests.EditMode
                 "Animation/Abyssal HarpoonerStartUp",
                 HeroAnimationControllerCatalog.GetSkillResourcePath(
                     DragonBoundHeroIds.LeviathanHunter));
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Abyssal Harpooner/start"));
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Abyssal Harpooner/start"));
 
-            var controller = Resources.Load<RuntimeAnimatorController>(
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Abyssal HarpoonerStartUp");
             Assert.IsNotNull(controller);
             var clip = controller.animationClips
@@ -569,7 +569,7 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void FlameDrakeRiderDiveAnimationIsAuthoredAsOneShot()
         {
-            var controller = Resources.Load<RuntimeAnimatorController>("Animation/Flame Drake Rider S");
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/Flame Drake Rider S");
             Assert.IsNotNull(controller);
             Assert.IsNotEmpty(controller.animationClips);
             Assert.IsTrue(controller.animationClips.All(clip => clip != null && !clip.isLooping));
@@ -578,10 +578,10 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void FlameDrakeFireballAndExplosionAnimationsExposeAuthoredTimingEvents()
         {
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Flame Drake Rider/Sroad"));
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Flame Drake Rider/road"));
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Flame Drake Rider/Sroad"));
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Flame Drake Rider/road"));
 
-            var attackController = Resources.Load<RuntimeAnimatorController>(
+            var attackController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Flame Drake Rider");
             Assert.IsNotNull(attackController);
             var attackClip = attackController.animationClips
@@ -591,7 +591,7 @@ namespace DragonBound.Tests.EditMode
                     animationEvent.functionName == "OnFlameDrakeFireballRelease");
             Assert.AreEqual(0.25f, releaseEvent.time, 0.0001f);
 
-            var skillAttackController = Resources.Load<RuntimeAnimatorController>(
+            var skillAttackController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Flame Drake Rider S");
             Assert.IsNotNull(skillAttackController);
             var skillAttackClip = skillAttackController.animationClips
@@ -603,7 +603,7 @@ namespace DragonBound.Tests.EditMode
                         animationEvent.functionName == "OnFlameDrakeFireballRelease").time,
                 0.0001f);
 
-            var explosionController = Resources.Load<RuntimeAnimatorController>(
+            var explosionController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Flame Drake Rider Boom");
             Assert.IsNotNull(explosionController);
             var explosionClip = explosionController.animationClips
@@ -614,7 +614,7 @@ namespace DragonBound.Tests.EditMode
                 explosionEvents.Select(animationEvent => animationEvent.functionName).ToArray());
             Assert.IsFalse(explosionClip.isLooping);
 
-            var skillExplosionController = Resources.Load<RuntimeAnimatorController>(
+            var skillExplosionController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/FlameDrakeRiderBoomS");
             Assert.IsNotNull(skillExplosionController);
             var skillExplosionClip = skillExplosionController.animationClips
@@ -625,7 +625,7 @@ namespace DragonBound.Tests.EditMode
                     .Select(animationEvent => animationEvent.functionName).ToArray());
             Assert.IsFalse(skillExplosionClip.isLooping);
 
-            var burningGroundController = Resources.Load<RuntimeAnimatorController>("Animation/boomBoard");
+            var burningGroundController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/boomBoard");
             Assert.IsNotNull(burningGroundController);
             Assert.IsTrue(burningGroundController.animationClips.All(clip => clip.isLooping));
         }
@@ -633,9 +633,9 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void SkyborneValkyrieArrowAndExplosionExposeAuthoredTimingEvents()
         {
-            Assert.IsNotNull(Resources.Load<Sprite>("VFX/Skyborne Valkyrie/road"));
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Skyborne Valkyrie/road"));
 
-            var attackController = Resources.Load<RuntimeAnimatorController>(
+            var attackController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Skyborne Valkyrie");
             Assert.IsNotNull(attackController);
             var attackClip = attackController.animationClips
@@ -646,7 +646,7 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(13f / 60f, releaseEvent.time, 0.0001f);
             Assert.IsFalse(attackClip.isLooping);
 
-            var explosionController = Resources.Load<RuntimeAnimatorController>(
+            var explosionController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/SkyborneValkyrieBoom");
             Assert.IsNotNull(explosionController);
             var explosionClip = explosionController.animationClips
@@ -661,12 +661,12 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void StarfallArchmageGemAndSkillExplosionExposeAuthoredTimingEvents()
         {
-            Assert.IsNotNull(Resources.Load<Sprite>(
+            Assert.IsNotNull(DragonBound.Presentation.UiAssets.Load<Sprite>(
                 "VFX/Starfall Archmage/road/微信图片_20260831170133_175_101"));
 
-            var normalController = Resources.Load<RuntimeAnimatorController>(
+            var normalController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/Starfall Archmage");
-            var skillController = Resources.Load<RuntimeAnimatorController>(
+            var skillController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/StarfallArchmageStartUP");
             Assert.IsNotNull(normalController);
             Assert.IsNotNull(skillController);
@@ -679,7 +679,7 @@ namespace DragonBound.Tests.EditMode
                 Assert.IsFalse(clip.isLooping);
             }
 
-            var explosionController = Resources.Load<RuntimeAnimatorController>(
+            var explosionController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/StarfallArchmageBoom");
             Assert.IsNotNull(explosionController);
             var explosionClip = explosionController.animationClips
@@ -694,7 +694,7 @@ namespace DragonBound.Tests.EditMode
         [Test]
         public void NightfangSkillStartupAndExplosionExposeSynchronizedTimingEvents()
         {
-            var startupController = Resources.Load<RuntimeAnimatorController>(
+            var startupController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/NightfangAssassinStartUp");
             Assert.IsNotNull(startupController);
             var startupClip = startupController.animationClips
@@ -705,7 +705,7 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(23f / 60f, startupEnd.time, 0.0001f);
             Assert.IsFalse(startupClip.isLooping);
 
-            var explosionController = Resources.Load<RuntimeAnimatorController>(
+            var explosionController = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                 "Animation/NightfangAssassinBoom");
             Assert.IsNotNull(explosionController);
             var explosionClip = explosionController.animationClips
@@ -733,8 +733,8 @@ namespace DragonBound.Tests.EditMode
             Assert.IsNotNull(view.AiBattlefieldView);
             Assert.AreEqual(TeamSide.Player, view.PlayerBattlefieldView.Side);
             Assert.AreEqual(TeamSide.AI, view.AiBattlefieldView.Side);
-            Assert.AreEqual("AI", view.AiBattlefieldView.transform.Find("SideLabel").GetComponent<Text>().text);
-            Assert.AreEqual("PLAYER", view.PlayerBattlefieldView.transform.Find("SideLabel").GetComponent<Text>().text);
+            Assert.AreEqual("AI", view.AiBattlefieldView.transform.FindUi("SideLabel").GetComponent<Text>().text);
+            Assert.AreEqual("PLAYER", view.PlayerBattlefieldView.transform.FindUi("SideLabel").GetComponent<Text>().text);
 
             AssertBoard(view.AiBoardView, 9, 6, 3, 0, false);
             AssertBoard(view.PlayerBoardView, 14, 6, 3, 5, true);
@@ -752,26 +752,26 @@ namespace DragonBound.Tests.EditMode
             Assert.AreEqual(6, cells.Count(cell => cell.CellType == CellType.Battle));
             Assert.AreEqual(3, cells.Count(cell => cell.CellType == CellType.Locked));
 
-            Assert.IsNotNull(battlefield.transform.Find("ART_PathLeft"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_PathRight"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_PathTop"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_PathBottom"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_Spawn"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_Hatchling"));
-            Assert.IsNotNull(battlefield.transform.Find("RouteWaypoints/DragonGoal"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_EnemyMarker/ART_EnemyHpTrack/ART_EnemyHpFill"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_EnemyMarker/EnemyRuntimeLabel"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_EnemyMarker").GetComponent<EnemyView>());
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_PathLeft"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_PathRight"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_PathTop"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_PathBottom"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_Spawn"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_Hatchling"));
+            Assert.IsNotNull(battlefield.transform.FindUi("RouteWaypoints/DragonGoal"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_EnemyMarker/ART_EnemyHpTrack/ART_EnemyHpFill"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_EnemyMarker/EnemyRuntimeLabel"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_EnemyMarker").GetComponent<EnemyView>());
             Assert.IsNotNull(battlefield.GetComponent<CombatFxView>());
-            Assert.IsNotNull(battlefield.transform.Find("ART_AttackLine"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_BowProjectile"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_SpearPierceLine"));
-            Assert.IsNotNull(battlefield.transform.Find("ART_RiderSweepCircle"));
-            var starfallWarning = battlefield.transform.Find("ART_StarfallWarning")?.GetComponent<Image>();
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_AttackLine"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_BowProjectile"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_SpearPierceLine"));
+            Assert.IsNotNull(battlefield.transform.FindUi("ART_RiderSweepCircle"));
+            var starfallWarning = battlefield.transform.FindUi("ART_StarfallWarning")?.GetComponent<Image>();
             Assert.IsNotNull(starfallWarning);
             Assert.IsFalse(starfallWarning.raycastTarget);
-            Assert.IsNotNull(battlefield.transform.Find("DamageNumber"));
-            Assert.IsNotNull(battlefield.transform.Find("SuppliesGain"));
+            Assert.IsNotNull(battlefield.transform.FindUi("DamageNumber"));
+            Assert.IsNotNull(battlefield.transform.FindUi("SuppliesGain"));
             Assert.IsNotNull(battlefield.GetComponent<GreyboxBattlefieldSideView>());
             Assert.AreEqual(5, battlefield.GetComponent<GreyboxLaneView>().WaypointCount);
             Assert.AreEqual("DragonGoal", battlefield.GetComponent<GreyboxLaneView>().GoalNodeName);
@@ -790,10 +790,10 @@ namespace DragonBound.Tests.EditMode
                 .ToArray();
             var roads = new[]
             {
-                battlefield.transform.Find("ART_PathLeft").GetComponent<RectTransform>(),
-                battlefield.transform.Find("ART_PathRight").GetComponent<RectTransform>(),
-                battlefield.transform.Find("ART_PathTop").GetComponent<RectTransform>(),
-                battlefield.transform.Find("ART_PathBottom").GetComponent<RectTransform>()
+                battlefield.transform.FindUi("ART_PathLeft").GetComponent<RectTransform>(),
+                battlefield.transform.FindUi("ART_PathRight").GetComponent<RectTransform>(),
+                battlefield.transform.FindUi("ART_PathTop").GetComponent<RectTransform>(),
+                battlefield.transform.FindUi("ART_PathBottom").GetComponent<RectTransform>()
             };
 
             for (var first = 0; first < cellRects.Length; first++)
@@ -848,7 +848,7 @@ namespace DragonBound.Tests.EditMode
                 Assert.IsNull(fill.GetComponent<Outline>());
                 Assert.AreEqual(fill.rectTransform.sizeDelta.x, fill.rectTransform.sizeDelta.y, 0.01f);
 
-                var outline = fill.transform.Find("ART_RangeOutline")?.GetComponent<Image>();
+                var outline = fill.transform.FindUi("ART_RangeOutline")?.GetComponent<Image>();
                 Assert.IsNotNull(outline);
                 Assert.IsNotNull(outline.sprite);
                 Assert.AreEqual(RangeOutlinePath, AssetDatabase.GetAssetPath(outline.sprite));

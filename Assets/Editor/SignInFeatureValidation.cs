@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -54,9 +55,9 @@ public static class SignInFeatureValidation
         {
             MainSignInController controller = FindComponentInScene<MainSignInController>(scene);
             Require(controller != null, "MainPanel is missing MainSignInController.");
-            Transform panel = controller.transform.Find("SignPanel");
-            Transform imageRoot = panel != null ? panel.Find("Image") : null;
-            Transform content = imageRoot != null ? imageRoot.Find("ContentCon") : null;
+            Transform panel = controller.transform.FindUi("SignPanel");
+            Transform imageRoot = panel != null ? panel.FindUi("Image") : null;
+            Transform content = imageRoot != null ? imageRoot.FindUi("ContentCon") : null;
             Require(panel != null, "MainPanel/SignPanel is missing.");
             Require(!panel.gameObject.activeSelf, "SignPanel must be inactive before status loads.");
             RequireComponent<Button>(controller.transform, "SignBtn");
@@ -96,7 +97,7 @@ public static class SignInFeatureValidation
 
     private static void RequireComponent<T>(Transform parent, string childName) where T : Component
     {
-        Transform child = parent != null ? parent.Find(childName) : null;
+        Transform child = parent != null ? parent.FindUi(childName) : null;
         Require(child != null, childName + " is missing from the sign-in hierarchy.");
         Require(child.GetComponent<T>() != null, childName + " has the wrong component type.");
     }

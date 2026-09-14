@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -57,7 +58,7 @@ public sealed class AnalyticsConsentUiController : MonoBehaviour
             return;
         }
 
-        var existing = setupPanel.transform.Find(SettingsButtonName);
+        var existing = setupPanel.transform.FindUi(SettingsButtonName);
         if (existing != null)
         {
             settingsButtonLabel = existing.GetComponentInChildren<TMP_Text>(true);

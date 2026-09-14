@@ -247,7 +247,7 @@ public sealed class ResourcesMerchantItemIconProvider : IMerchantItemIconProvide
     {
         if (string.IsNullOrWhiteSpace(iconKey)) return null;
 
-        UnityEngine.Sprite sprite = UnityEngine.Resources.Load<UnityEngine.Sprite>(iconKey);
+        UnityEngine.Sprite sprite = DragonBound.Presentation.UiAssets.Load<UnityEngine.Sprite>(iconKey);
         if (sprite == null && MissingIconKeys.Add(iconKey))
         {
             UnityEngine.Debug.LogWarning(

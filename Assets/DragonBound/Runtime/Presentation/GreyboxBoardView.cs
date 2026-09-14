@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections;
 using System.Collections.Generic;
 using DragonBound.AI;
@@ -1401,7 +1402,7 @@ namespace DragonBound.Presentation
                 return unitInform;
             }
 
-            var prefab = Resources.Load<GameObject>(InformPrefabResourcePath);
+            var prefab = DragonBound.Presentation.UiAssets.Load<GameObject>(InformPrefabResourcePath);
             if (prefab == null)
             {
                 Debug.LogWarning($"Unit inform prefab is missing at Resources/{InformPrefabResourcePath}.");
@@ -2106,14 +2107,14 @@ namespace DragonBound.Presentation
 
             var screen = fixedBoardCanvas.GetComponentInParent<DragonBoundScreenView>();
             var beachContainer = screen != null
-                ? screen.transform.Find("ART_ScreenBackground/BeachContainer")
+                ? screen.transform.FindUi("ART_ScreenBackground/BeachContainer")
                 : null;
             if (beachContainer == null)
             {
                 return;
             }
 
-            var beachItemPrefab = Resources.Load<GameObject>("prefabs/BeachItem");
+            var beachItemPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>("prefabs/BeachItem");
             for (var childIndex = 0;
                  childIndex < beachContainer.childCount && benchCells.Count < requiredCount;
                  childIndex++)
@@ -2130,7 +2131,7 @@ namespace DragonBound.Presentation
                     cell = slot.gameObject.AddComponent<GridCellView>();
                 }
 
-                var beachItem = slot.Find("BeachItem");
+                var beachItem = slot.FindUi("BeachItem");
                 if (beachItem == null && beachItemPrefab != null)
                 {
                     beachItem = Instantiate(beachItemPrefab, slot, false).transform;
@@ -2154,9 +2155,9 @@ namespace DragonBound.Presentation
                     canvasGroup = beachItem.gameObject.AddComponent<CanvasGroup>();
                 }
 
-                var nameTransform = beachItem.Find("Text (TMP)");
-                var levelTransform = beachItem.Find("Text");
-                var artTransform = beachItem.Find("Image");
+                var nameTransform = beachItem.FindUi("Text (TMP)");
+                var levelTransform = beachItem.FindUi("Text");
+                var artTransform = beachItem.FindUi("Image");
                 itemView.ConfigureBeach(
                     artTransform != null ? artTransform.GetComponent<Image>() : null,
                     nameTransform != null ? nameTransform.GetComponent<Graphic>() : null,
@@ -2179,7 +2180,7 @@ namespace DragonBound.Presentation
                 return false;
             }
 
-            var shovelSprite = Resources.Load<Sprite>(ShovelSpriteResourcePath);
+            var shovelSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(ShovelSpriteResourcePath);
             if (shovelSprite == null)
             {
                 return false;
@@ -2267,7 +2268,7 @@ namespace DragonBound.Presentation
             }
 
             EnsureSelectionSprites();
-            var selection = cellView.transform.Find("Select")?.gameObject;
+            var selection = cellView.transform.FindUi("Select")?.gameObject;
             if (selection == null)
             {
                 selection = Instantiate(RequireBoardSelectPrefab(), cellView.transform, false);
@@ -2444,7 +2445,7 @@ namespace DragonBound.Presentation
         {
             if (boardSelectPrefab == null)
             {
-                boardSelectPrefab = Resources.Load<GameObject>(BoardSelectPrefabResourcePath);
+                boardSelectPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(BoardSelectPrefabResourcePath);
             }
 
             if (boardSelectPrefab == null)
@@ -2460,12 +2461,12 @@ namespace DragonBound.Presentation
         {
             if (beachSelectSprite == null)
             {
-                beachSelectSprite = Resources.Load<Sprite>(BeachSelectSpriteResourcePath);
+                beachSelectSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(BeachSelectSpriteResourcePath);
             }
 
             if (boardSelectSprite == null)
             {
-                boardSelectSprite = Resources.Load<Sprite>(BoardSelectSpriteResourcePath);
+                boardSelectSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(BoardSelectSpriteResourcePath);
             }
 
             if (beachSelectSprite == null || boardSelectSprite == null)

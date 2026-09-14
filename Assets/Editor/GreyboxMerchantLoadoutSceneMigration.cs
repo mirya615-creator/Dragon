@@ -1,4 +1,5 @@
 using UnityEditor;
+using DragonBound.Presentation;
 using UnityEditor.SceneManagement;
 using DragonBound.Bootstrap;
 using UnityEngine;
@@ -86,8 +87,8 @@ internal static class GreyboxMerchantLoadoutSceneMigration
             changed = true;
         }
 
-        Transform activeContainer = itemContainer.Find("Active");
-        Transform passiveContainer = itemContainer.Find("Passtive");
+        Transform activeContainer = itemContainer.FindUi("Active");
+        Transform passiveContainer = itemContainer.FindUi("Passtive");
 
         if (activeContainer == null || passiveContainer == null)
         {
@@ -99,7 +100,7 @@ internal static class GreyboxMerchantLoadoutSceneMigration
 
         for (int index = 0; index < 2; index++)
         {
-            Transform slot = activeContainer.Find("Active" + index);
+            Transform slot = activeContainer.FindUi("Active" + index);
             if (slot != null)
             {
                 if (EnsureCooldownMask(slot)) changed = true;
@@ -113,7 +114,7 @@ internal static class GreyboxMerchantLoadoutSceneMigration
 
         for (int index = 0; index < 6; index++)
         {
-            Transform slot = passiveContainer.Find("Passtive" + index);
+            Transform slot = passiveContainer.FindUi("Passtive" + index);
             if (slot != null)
             {
                 if (EnsureCooldownMask(slot)) changed = true;
@@ -144,7 +145,7 @@ internal static class GreyboxMerchantLoadoutSceneMigration
             foreach (Transform candidate in root.GetComponentsInChildren<Transform>(true))
             {
                 if (candidate.name != "ItemContainer") continue;
-                if (candidate.Find("Active") != null && candidate.Find("Passtive") != null)
+                if (candidate.FindUi("Active") != null && candidate.FindUi("Passtive") != null)
                 {
                     return candidate;
                 }
@@ -167,7 +168,7 @@ internal static class GreyboxMerchantLoadoutSceneMigration
 
     private static bool EnsureCooldownMask(Transform slot)
     {
-        Transform existing = slot.Find("CooldownMask");
+        Transform existing = slot.FindUi("CooldownMask");
         bool created = existing == null;
         GameObject maskObject;
         if (created)

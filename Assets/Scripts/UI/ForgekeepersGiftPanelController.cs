@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Threading;
 using System.Threading.Tasks;
 using DragonBound.Bootstrap;
@@ -803,14 +804,14 @@ public sealed class ForgekeepersGiftPanelController : MonoBehaviour, IItemForgeP
     {
         if (forgePanel == null)
         {
-            Transform panel = transform.Find("ForgePanel");
+            Transform panel = transform.FindUi("ForgePanel");
             if (panel != null) forgePanel = panel.gameObject;
         }
         Transform root = forgePanel != null ? forgePanel.transform : null;
         if (videoRewardButton == null)
-            videoRewardButton = root?.Find("Bg/VideoReward")?.GetComponent<Button>();
+            videoRewardButton = root?.FindUi("Bg/VideoReward")?.GetComponent<Button>();
         if (closeButton == null)
-            closeButton = root?.Find("Bg/CloseBtn")?.GetComponent<Button>();
+            closeButton = root?.FindUi("Bg/CloseBtn")?.GetComponent<Button>();
     }
 
     private static string ResolvePlatform()

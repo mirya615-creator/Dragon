@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections.Generic;
 using System.Globalization;
 using DragonBound.Combat;
@@ -259,7 +260,7 @@ namespace DragonBound.Presentation
                 var image = slot.GetComponent<Image>();
                 if (image == null)
                 {
-                    image = slot.Find("Img")?.GetComponent<Image>();
+                    image = slot.FindUi("Img")?.GetComponent<Image>();
                 }
                 if (image == null)
                 {
@@ -450,7 +451,7 @@ namespace DragonBound.Presentation
 
         private static Transform Require(Transform parent, string path)
         {
-            var result = parent.Find(path);
+            var result = parent.FindUi(path);
             if (result == null)
             {
                 throw new InvalidOperationException(parent.name + "/" + path + " is missing.");
@@ -483,7 +484,7 @@ namespace DragonBound.Presentation
 
         private static Sprite RequireResourceSprite(string resourcePath)
         {
-            var sprite = Resources.Load<Sprite>(resourcePath);
+            var sprite = DragonBound.Presentation.UiAssets.Load<Sprite>(resourcePath);
             if (sprite == null)
             {
                 throw new InvalidOperationException(

@@ -90,7 +90,7 @@ namespace DragonBound.Tests.EditMode
 
                 root.SetActive(false);
 
-                Assert.IsNull(root.transform.Find("ART_SoulChainOverlay"));
+                Assert.IsNull(root.transform.FindUi("ART_SoulChainOverlay"));
             }
             finally
             {

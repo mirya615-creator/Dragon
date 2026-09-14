@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections.Generic;
 using DragonBound.Core;
 using DragonBound.Grid;
@@ -66,7 +67,7 @@ namespace DragonBound.Presentation
                 throw new ArgumentNullException(nameof(definition));
             }
 
-            var existing = parent.Find("DEV_BoardDebugOverlay");
+            var existing = parent.FindUi("DEV_BoardDebugOverlay");
             if (existing != null && existing.TryGetComponent<BoardDebugOverlay>(out var existingOverlay))
             {
                 existingOverlay.Configure(definition);

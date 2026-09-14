@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -46,7 +47,7 @@ public sealed class MainNavTabController : MonoBehaviour
         for (int index = 0; index < roots.Length; index++)
         {
             Transform mainPanel = FindDescendant(roots[index].transform, "MainPanel");
-            if (mainPanel == null || mainPanel.Find($"{NavigationPath}/BagBtn") == null) continue;
+            if (mainPanel == null || mainPanel.FindUi($"{NavigationPath}/BagBtn") == null) continue;
             if (mainPanel.GetComponent<MainNavTabController>() == null)
             {
                 mainPanel.gameObject.AddComponent<MainNavTabController>();
@@ -57,10 +58,10 @@ public sealed class MainNavTabController : MonoBehaviour
 
     private void Awake()
     {
-        Transform navigation = transform.Find(NavigationPath);
-        bagImage = navigation?.Find("BagBtn")?.GetComponent<Image>();
-        rankingImage = navigation?.Find("RankingBtn")?.GetComponent<Image>();
-        mainImage = navigation?.Find("MainBtn")?.GetComponent<Image>();
+        Transform navigation = transform.FindUi(NavigationPath);
+        bagImage = navigation?.FindUi("BagBtn")?.GetComponent<Image>();
+        rankingImage = navigation?.FindUi("RankingBtn")?.GetComponent<Image>();
+        mainImage = navigation?.FindUi("MainBtn")?.GetComponent<Image>();
         Scene ownerScene = gameObject.scene;
         weaponPanel = FindSceneObject(ownerScene, "WeaponPanel")?.gameObject;
         leaderPanel = FindSceneObject(ownerScene, "LeaderPanel")?.gameObject;
@@ -77,8 +78,8 @@ public sealed class MainNavTabController : MonoBehaviour
             return;
         }
 
-        selectSprite = Resources.Load<Sprite>(SelectSpritePath);
-        noSelectSprite = Resources.Load<Sprite>(NoSelectSpritePath);
+        selectSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(SelectSpritePath);
+        noSelectSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(NoSelectSpritePath);
         if (selectSprite == null || noSelectSprite == null)
         {
             Debug.LogError(

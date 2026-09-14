@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Globalization;
 using System.Threading;
 using TMPro;
@@ -19,7 +20,7 @@ public sealed class GoldBalanceController : MonoBehaviour
     private void Awake()
     {
         IClientServices services = ClientCompositionRoot.Current;
-        amountText = transform.Find("CoinQua")?.GetComponent<TMP_Text>();
+        amountText = transform.FindUi("CoinQua")?.GetComponent<TMP_Text>();
         goldGateway = services.Gold;
         authSessionStore = services.AuthSession;
         lifetimeCancellation = new CancellationTokenSource();

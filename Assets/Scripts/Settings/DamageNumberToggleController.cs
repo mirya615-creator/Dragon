@@ -1,4 +1,5 @@
 using GameShared.Settings;
+using DragonBound.Presentation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +13,7 @@ public sealed class DamageNumberToggleController : MonoBehaviour
     private void Awake()
     {
         toggleButton = GetComponent<Button>();
-        Transform stateTransform = transform.Find("State");
+        Transform stateTransform = transform.FindUi("State");
         selectedState = stateTransform != null ? stateTransform.gameObject : null;
         if (selectedState == null)
         {

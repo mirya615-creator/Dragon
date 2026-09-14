@@ -1,4 +1,5 @@
 using System.Collections;
+using DragonBound.Presentation;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -162,8 +163,8 @@ public sealed class LoadingPanelEntranceAnimator : MonoBehaviour
         enemyTargets.Clear();
         playerTargets.Clear();
 
-        Transform enemyPart = transform.Find("BG/EnemyPart");
-        Transform playerPart = transform.Find("BG/MyPart");
+        Transform enemyPart = transform.FindUi("BG/EnemyPart");
+        Transform playerPart = transform.FindUi("BG/MyPart");
         AddPartTargets(enemyPart, "EnemyItem", enemyTargets);
         AddPartTargets(playerPart, "MyItem", playerTargets);
         positionsCaptured = true;
@@ -176,12 +177,12 @@ public sealed class LoadingPanelEntranceAnimator : MonoBehaviour
     {
         if (part == null) return;
 
-        Transform item = part.Find(itemName);
+        Transform item = part.FindUi(itemName);
         AddTarget(item, targets);
 
         // Only add a direct sibling named Image. Images nested under the item move
         // with their parent and must not receive the offset a second time.
-        Transform image = part.Find("Image");
+        Transform image = part.FindUi("Image");
         if (image != null && (item == null || !image.IsChildOf(item)))
         {
             AddTarget(image, targets);

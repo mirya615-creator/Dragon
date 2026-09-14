@@ -106,7 +106,7 @@ namespace DragonBound.Tests.PlayMode
                 }
             }
 
-            Assert.IsNull(screen.transform.Find("Versus"));
+            Assert.IsNull(screen.transform.FindUi("Versus"));
             AssertLegacyVisualIsAbsentOrInactive(screen.PlayerBattlefieldView.transform, "ART_Background");
             AssertLegacyVisualIsAbsentOrInactive(screen.AiBattlefieldView.transform, "ART_Background");
 
@@ -128,11 +128,11 @@ namespace DragonBound.Tests.PlayMode
             var screen = Object.FindObjectOfType<DragonBoundScreenView>();
             Assert.IsNotNull(bootstrap);
             Assert.IsNotNull(screen);
-            var background = screen.transform.Find("ART_ScreenBackground");
-            var openButton = background.Find("ART_PauseButton").GetComponent<Button>();
-            var panel = background.Find("PausePanel").gameObject;
-            var finishButton = panel.transform.Find("Bg/PauseBtn").GetComponent<Button>();
-            var continueButton = panel.transform.Find("Bg/ContinueBtn").GetComponent<Button>();
+            var background = screen.transform.FindUi("ART_ScreenBackground");
+            var openButton = background.FindUi("ART_PauseButton").GetComponent<Button>();
+            var panel = background.FindUi("PausePanel").gameObject;
+            var finishButton = panel.transform.FindUi("Bg/PauseBtn").GetComponent<Button>();
+            var continueButton = panel.transform.FindUi("Bg/ContinueBtn").GetComponent<Button>();
 
             openButton.onClick.Invoke();
             Assert.AreEqual(MatchState.Paused, bootstrap.Match.State);
@@ -149,16 +149,16 @@ namespace DragonBound.Tests.PlayMode
             Assert.AreEqual(MatchState.Defeat, bootstrap.Match.State);
             Assert.AreEqual(1f, Time.timeScale, 0.001f);
             Assert.IsFalse(panel.activeSelf);
-            var settlement = screen.transform.Find("SettlementPanel");
+            var settlement = screen.transform.FindUi("SettlementPanel");
             Assert.IsTrue(settlement.gameObject.activeSelf);
-            var settlementImage = settlement.Find("SettleImg").GetComponent<Image>();
+            var settlementImage = settlement.FindUi("SettleImg").GetComponent<Image>();
             Assert.AreSame(
-                Resources.Load<Sprite>("GameUI/SettlementUI/Defeat"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/SettlementUI/Defeat"),
                 settlementImage.sprite);
             Assert.IsTrue(settlementImage.preserveAspect);
-            Assert.IsFalse(settlement.Find("GoldText").gameObject.activeSelf);
-            Assert.IsFalse(settlement.Find("ReciveBtn").gameObject.activeSelf);
-            Assert.IsFalse(settlement.Find("DoubleBtn").gameObject.activeSelf);
+            Assert.IsFalse(settlement.FindUi("GoldText").gameObject.activeSelf);
+            Assert.IsFalse(settlement.FindUi("ReciveBtn").gameObject.activeSelf);
+            Assert.IsFalse(settlement.FindUi("DoubleBtn").gameObject.activeSelf);
         }
 
         [UnityTest]
@@ -173,16 +173,16 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsNotNull(screen);
 
             Assert.IsTrue(bootstrap.Match.TryTransition(MatchState.Victory));
-            var settlement = screen.transform.Find("SettlementPanel");
+            var settlement = screen.transform.FindUi("SettlementPanel");
             Assert.IsTrue(settlement.gameObject.activeSelf);
-            var settlementImage = settlement.Find("SettleImg").GetComponent<Image>();
+            var settlementImage = settlement.FindUi("SettleImg").GetComponent<Image>();
             Assert.AreSame(
-                Resources.Load<Sprite>("GameUI/SettlementUI/Victory"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/SettlementUI/Victory"),
                 settlementImage.sprite);
             Assert.IsTrue(settlementImage.preserveAspect);
-            Assert.IsFalse(settlement.Find("GoldText").gameObject.activeSelf);
-            Assert.IsFalse(settlement.Find("ReciveBtn").gameObject.activeSelf);
-            Assert.IsFalse(settlement.Find("DoubleBtn").gameObject.activeSelf);
+            Assert.IsFalse(settlement.FindUi("GoldText").gameObject.activeSelf);
+            Assert.IsFalse(settlement.FindUi("ReciveBtn").gameObject.activeSelf);
+            Assert.IsFalse(settlement.FindUi("DoubleBtn").gameObject.activeSelf);
         }
 
         private static void AssertEnemyTraversesOrderedPath(
@@ -207,7 +207,7 @@ namespace DragonBound.Tests.PlayMode
 
         private static void AssertLegacyVisualIsAbsentOrInactive(Transform parent, string childName)
         {
-            var child = parent.Find(childName);
+            var child = parent.FindUi(childName);
             Assert.IsTrue(child == null || !child.gameObject.activeSelf);
         }
 

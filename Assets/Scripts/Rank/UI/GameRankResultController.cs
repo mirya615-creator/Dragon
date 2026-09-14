@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Threading;
 using System.Threading.Tasks;
 using DragonBound.Bootstrap;
@@ -40,7 +41,7 @@ public sealed class GameRankResultController : MonoBehaviour
         victoryButton = FindButton("VictoryBtn");
         defeatButton = FindButton("DefaltBtn");
         returnButton = FindButton("ReturnBtn");
-        loadingPanel = transform.Find("LoadingPanel")?.gameObject;
+        loadingPanel = transform.FindUi("LoadingPanel")?.gameObject;
         settlementCoordinator = new GameSettlementCoordinator(services);
         rewardedAdService = services.RewardedAds;
         authSessionStore = services.AuthSession;
@@ -141,7 +142,7 @@ public sealed class GameRankResultController : MonoBehaviour
 
     private Button FindButton(string objectName)
     {
-        Transform buttonTransform = transform.Find(objectName);
+        Transform buttonTransform = transform.FindUi(objectName);
         return buttonTransform != null ? buttonTransform.GetComponent<Button>() : null;
     }
 
@@ -409,17 +410,17 @@ public sealed class GameRankResultController : MonoBehaviour
 
     private bool ResolveSettlementView()
     {
-        Transform panelTransform = transform.Find("SettlementPanel");
+        Transform panelTransform = transform.FindUi("SettlementPanel");
         if (panelTransform == null)
         {
             Debug.LogError("GameRankResultController expects SettlementPanel under Game/MainPanel.");
             return false;
         }
 
-        Transform resultTransform = panelTransform.Find("Text");
-        Transform goldTransform = panelTransform.Find("GoldText");
-        Transform receiveTransform = panelTransform.Find("ReciveBtn");
-        Transform doubleTransform = panelTransform.Find("DoubleBtn");
+        Transform resultTransform = panelTransform.FindUi("Text");
+        Transform goldTransform = panelTransform.FindUi("GoldText");
+        Transform receiveTransform = panelTransform.FindUi("ReciveBtn");
+        Transform doubleTransform = panelTransform.FindUi("DoubleBtn");
         if (resultTransform == null || goldTransform == null || receiveTransform == null || doubleTransform == null)
         {
             Debug.LogError("SettlementPanel requires Text, GoldText, ReciveBtn, and DoubleBtn children.");

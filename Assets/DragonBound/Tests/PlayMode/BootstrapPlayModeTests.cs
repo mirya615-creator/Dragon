@@ -91,12 +91,12 @@ namespace DragonBound.Tests.PlayMode
 
             var canvas = GameObject.Find("Canvas");
             Assert.IsNotNull(canvas);
-            var tip = canvas.transform.Find(
+            var tip = canvas.transform.FindUi(
                 "SafeArea/MainPanel/GoogleConfirmPanel/TipText");
             Assert.IsNotNull(tip);
             Assert.IsNotNull(tip.GetComponent("TipTextController"));
             Assert.IsNotNull(tip.GetComponent<Image>());
-            Assert.IsNotNull(tip.Find("Text"));
+            Assert.IsNotNull(tip.FindUi("Text"));
         }
 
         [UnityTest]
@@ -121,7 +121,7 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsNotNull(tipController);
             Assert.IsTrue(tipController.gameObject.activeSelf);
             Assert.IsNotNull(tipController.GetComponent<Image>());
-            Assert.IsNotNull(tipController.transform.Find("Text"));
+            Assert.IsNotNull(tipController.transform.FindUi("Text"));
 
             yield return new WaitForSecondsRealtime(3.1f);
             Assert.IsFalse(tipController.gameObject.activeSelf);
@@ -146,7 +146,7 @@ namespace DragonBound.Tests.PlayMode
             yield return null;
 
             var screen = FindScreen();
-            var legacyTip = screen.transform.Find("TipText");
+            var legacyTip = screen.transform.FindUi("TipText");
             Assert.IsNotNull(legacyTip);
             Assert.IsFalse(legacyTip.gameObject.activeSelf);
 
@@ -181,9 +181,9 @@ namespace DragonBound.Tests.PlayMode
             var screen = FindScreen();
             var safeAreaRoot = GameObject.Find("SafeAreaRoot")?.transform as RectTransform;
             var river = GameObject.Find("RIVER")?.transform as RectTransform;
-            var topAnchor = screen.transform.Find(
+            var topAnchor = screen.transform.FindUi(
                 "ART_ScreenBackground/AiBattlefield/RiverTopAnchor") as RectTransform;
-            var bottomAnchor = screen.transform.Find(
+            var bottomAnchor = screen.transform.FindUi(
                 "ART_ScreenBackground/PlayerBattlefield/RiverBottomAnchor") as RectTransform;
 
             Assert.IsNotNull(safeAreaRoot);
@@ -228,7 +228,7 @@ namespace DragonBound.Tests.PlayMode
             bootstrap.BoardView.RefreshUnits();
             yield return null;
 
-            var beachContainer = FindScreen().transform.Find("ART_ScreenBackground/BeachContainer");
+            var beachContainer = FindScreen().transform.FindUi("ART_ScreenBackground/BeachContainer");
             Assert.IsNotNull(beachContainer);
             var beachSelections = beachContainer
                 .GetComponentsInChildren<Transform>(true)
@@ -255,21 +255,21 @@ namespace DragonBound.Tests.PlayMode
             var activeBeachSelection = beachSelections.Single(
                 value => value.gameObject.activeSelf);
             Assert.AreSame(
-                Resources.Load<Sprite>("GameUI/BeachSelect"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/BeachSelect"),
                 activeBeachSelection.GetComponent<Image>().sprite);
 
             bootstrap.BoardView.UpdateDraggedUnit(beachCard.RuntimeId, targetScreenPosition);
             Assert.IsTrue(bootstrap.BoardView.IsBoardSelectVisible);
-            var boardSelection = targetCell.ContentAnchor.Find("BoardSelect");
+            var boardSelection = targetCell.ContentAnchor.FindUi("BoardSelect");
             Assert.IsNotNull(boardSelection);
             Assert.AreSame(
-                Resources.Load<Sprite>("GameUI/BoardSelect"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/BoardSelect"),
                 boardSelection.GetComponent<Image>().sprite);
             Assert.IsTrue(bootstrap.BoardView.IsDragArrowVisible);
             Assert.IsTrue(bootstrap.BoardView.RangePreview.gameObject.activeSelf);
             Assert.IsTrue(bootstrap.BoardView.RangePreview.enabled);
             Assert.AreSame(
-                Resources.Load<Sprite>("GameUI/SlectRoad"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/SlectRoad"),
                 bootstrap.BoardView.DragPathSprite);
             var expectedRange = BasicUnitCatalog
                 .GetStats(beachCard.ConfigId, beachCard.Level)
@@ -411,18 +411,18 @@ namespace DragonBound.Tests.PlayMode
             yield return null;
 
             var screen = FindScreen();
-            var campPanel = screen.transform.Find("campPanel");
+            var campPanel = screen.transform.FindUi("campPanel");
             Assert.IsNotNull(campPanel);
-            var deckPart = campPanel.Find("CampBg/DeckPart");
-            var collectionPart = campPanel.Find("CampBg/CollectionPart");
-            var deckButton = campPanel.Find("BtnImg/DeckBtn").GetComponent<Button>();
-            var collectionButton = campPanel.Find("BtnImg/CollectionBtn").GetComponent<Button>();
+            var deckPart = campPanel.FindUi("CampBg/DeckPart");
+            var collectionPart = campPanel.FindUi("CampBg/CollectionPart");
+            var deckButton = campPanel.FindUi("BtnImg/DeckBtn").GetComponent<Button>();
+            var collectionButton = campPanel.FindUi("BtnImg/CollectionBtn").GetComponent<Button>();
             var deckImage = deckButton.GetComponent<Image>();
             var collectionImage = collectionButton.GetComponent<Image>();
-            var deckSprite = Resources.Load<Sprite>("GameUI/CampUI/Deck");
-            var deckSelectedSprite = Resources.Load<Sprite>("GameUI/CampUI/DeckClick");
-            var collectionSprite = Resources.Load<Sprite>("GameUI/CampUI/Collection");
-            var collectionSelectedSprite = Resources.Load<Sprite>("GameUI/CampUI/CollectionClick");
+            var deckSprite = DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/CampUI/Deck");
+            var deckSelectedSprite = DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/CampUI/DeckClick");
+            var collectionSprite = DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/CampUI/Collection");
+            var collectionSelectedSprite = DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/CampUI/CollectionClick");
 
             Assert.IsTrue(deckPart.gameObject.activeSelf);
             Assert.IsFalse(collectionPart.gameObject.activeSelf);
@@ -466,7 +466,7 @@ namespace DragonBound.Tests.PlayMode
 
             DragonBoundScreenView screen = FindScreen();
             var provider = new ResourcesCampComponentArtProvider();
-            var componentContainer = screen.transform.Find(
+            var componentContainer = screen.transform.FindUi(
                 "campPanel/CampBg/DeckPart/ComponentContainer");
             Assert.IsNotNull(componentContainer);
 
@@ -485,7 +485,7 @@ namespace DragonBound.Tests.PlayMode
                     definition.Id);
             }
 
-            var collectionPart = screen.transform.Find("campPanel/CampBg/CollectionPart");
+            var collectionPart = screen.transform.FindUi("campPanel/CampBg/CollectionPart");
             Assert.IsNotNull(collectionPart);
             Assert.IsTrue(provider.TryGetHeroComponentSprite(
                 DragonBoundComponentIds.SkyRanger,
@@ -493,13 +493,13 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsTrue(provider.TryGetHeroComponentSprite(
                 DragonBoundComponentIds.ContractHatchling,
                 out var expectedBottom));
-            Assert.AreSame(expectedTop, collectionPart.Find("Img1").GetComponent<Image>().sprite);
-            Assert.AreSame(expectedBottom, collectionPart.Find("Img2").GetComponent<Image>().sprite);
+            Assert.AreSame(expectedTop, collectionPart.FindUi("Img1").GetComponent<Image>().sprite);
+            Assert.AreSame(expectedBottom, collectionPart.FindUi("Img2").GetComponent<Image>().sprite);
 
             var visibleHeroes = HeroDefinitionCatalog.Definitions
                 .Where(hero => HeroDefinitionCatalog.GetMetadata(hero.Id).GalleryVisible)
                 .ToArray();
-            var heroContainer = collectionPart.Find("HeroContainer");
+            var heroContainer = collectionPart.FindUi("HeroContainer");
             Assert.IsNotNull(heroContainer);
             Assert.AreEqual(visibleHeroes.Length, screen.CampPanelView.HeroEntryCount);
             for (var index = 0; index < visibleHeroes.Length; index++)
@@ -765,7 +765,7 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsNotNull(range.sprite);
             Assert.IsTrue(range.preserveAspect);
             Assert.LessOrEqual(range.color.a, 0.08f);
-            var rangeOutline = range.transform.Find("ART_RangeOutline").GetComponent<Image>();
+            var rangeOutline = range.transform.FindUi("ART_RangeOutline").GetComponent<Image>();
             Assert.IsNotNull(rangeOutline);
             Assert.That(rangeOutline.color.a, Is.InRange(0.5f, 0.7f));
             Assert.AreEqual(range.rectTransform.sizeDelta.x, range.rectTransform.sizeDelta.y, 0.01f);
@@ -839,7 +839,7 @@ namespace DragonBound.Tests.PlayMode
             bootstrap.BoardView.RefreshUnits();
             var benchCell = bootstrap.BoardView.GetCellView(position);
             Assert.IsNotNull(benchCell);
-            var beachItem = benchCell.transform.Find("BeachItem")?.GetComponent<DraggableUnitView>();
+            var beachItem = benchCell.transform.FindUi("BeachItem")?.GetComponent<DraggableUnitView>();
             Assert.IsNotNull(beachItem, "The occupied BeachContainer slot must expose its unit input view.");
             Assert.IsNotNull(beachItem.GetComponent<IPointerClickHandler>(),
                 "BeachItem must consume PointerClick instead of passing it to its GridCellView.");
@@ -863,13 +863,13 @@ namespace DragonBound.Tests.PlayMode
             Assert.AreEqual(115f, ((RectTransform)inform.transform).rect.height, 0.01f);
             Assert.AreEqual(
                 $"{BasicUnitCatalog.GetDisplayName(basicCard.ConfigId)} Lv{basicCard.Level} (Unit)",
-                ReadTmpText(inform.transform.Find("Name")));
+                ReadTmpText(inform.transform.FindUi("Name")));
             Assert.AreEqual(
                 $"Max Lv{BasicUnitCatalog.MaxLevel}",
-                ReadTmpText(inform.transform.Find("MaxLv")));
-            Assert.IsFalse(inform.transform.Find("EXP").gameObject.activeSelf);
-            Assert.IsFalse(inform.transform.Find("device").gameObject.activeSelf);
-            Assert.IsFalse(inform.transform.Find("Rune").gameObject.activeSelf);
+                ReadTmpText(inform.transform.FindUi("MaxLv")));
+            Assert.IsFalse(inform.transform.FindUi("EXP").gameObject.activeSelf);
+            Assert.IsFalse(inform.transform.FindUi("device").gameObject.activeSelf);
+            Assert.IsFalse(inform.transform.FindUi("Rune").gameObject.activeSelf);
         }
 
         [UnityTest]
@@ -896,7 +896,7 @@ namespace DragonBound.Tests.PlayMode
 
             var emptyCell = bootstrap.BoardView.GetCellView(battle[1]);
             Assert.IsNotNull(emptyCell);
-            var inputReceiver = emptyCell.transform.Find("InputReceiver") as RectTransform;
+            var inputReceiver = emptyCell.transform.FindUi("InputReceiver") as RectTransform;
             Assert.IsNotNull(inputReceiver);
             Assert.AreEqual(new Vector2(6f, 6f), inputReceiver.offsetMin);
             Assert.AreEqual(new Vector2(-6f, -6f), inputReceiver.offsetMax);
@@ -932,7 +932,7 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsTrue(bootstrap.BoardView.RangePreview.enabled);
 
             var receiver = FindScreen().FixedBoardCanvas.transform
-                .Find("ART_FixedBoardCellLayer/BoardBackgroundClickSurface")
+                .FindUi("ART_FixedBoardCellLayer/BoardBackgroundClickSurface")
                 ?.GetComponent<BoardBackgroundClickReceiver>();
             Assert.IsNotNull(receiver, "Fixed board must expose a transparent background click surface.");
             var pointer = new PointerEventData(EventSystem.current)
@@ -966,7 +966,7 @@ namespace DragonBound.Tests.PlayMode
             bootstrap.BoardView.SelectUnit(basicCard.RuntimeId);
             Assert.IsTrue(bootstrap.BoardView.RangePreview.enabled);
 
-            var receiver = FindScreen().transform.Find("RangeDismissSurface")
+            var receiver = FindScreen().transform.FindUi("RangeDismissSurface")
                 ?.GetComponent<BoardBackgroundClickReceiver>();
             Assert.IsNotNull(receiver, "Screen must expose a bottom-layer empty-space click surface.");
             var pointer = new PointerEventData(EventSystem.current)
@@ -1001,10 +1001,10 @@ namespace DragonBound.Tests.PlayMode
             Assert.AreEqual(0, bootstrap.BoardView.VisibleBeachSelectionCount);
             Assert.IsTrue(bootstrap.BoardView.IsSourceSelectVisible);
             var sourceCell = bootstrap.BoardView.GetCellView(battle);
-            var sourceSelection = sourceCell.ContentAnchor.Find("BeachSourceSelect");
+            var sourceSelection = sourceCell.ContentAnchor.FindUi("BeachSourceSelect");
             Assert.IsNotNull(sourceSelection);
             Assert.AreSame(
-                Resources.Load<Sprite>("GameUI/BeachSelect"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/BeachSelect"),
                 sourceSelection.GetComponent<Image>().sprite);
 
             var mapTarget = bootstrap.PlayerBoard
@@ -1017,10 +1017,10 @@ namespace DragonBound.Tests.PlayMode
             bootstrap.BoardView.UpdateDraggedUnit(unitId, mapTargetScreenPosition);
             Assert.IsTrue(bootstrap.BoardView.IsSourceSelectVisible);
             Assert.IsTrue(bootstrap.BoardView.IsBoardSelectVisible);
-            var mapTargetSelection = mapTargetCell.ContentAnchor.Find("BoardSelect");
+            var mapTargetSelection = mapTargetCell.ContentAnchor.FindUi("BoardSelect");
             Assert.IsNotNull(mapTargetSelection);
             Assert.AreSame(
-                Resources.Load<Sprite>("GameUI/BoardSelect"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/BoardSelect"),
                 mapTargetSelection.GetComponent<Image>().sprite);
 
             var benchCell = bootstrap.BoardView.GetCellView(basicOrigin);
@@ -1031,11 +1031,11 @@ namespace DragonBound.Tests.PlayMode
             Assert.AreEqual(0, bootstrap.BoardView.VisibleBeachSelectionCount);
             Assert.IsTrue(bootstrap.BoardView.IsSourceSelectVisible);
             Assert.IsTrue(bootstrap.BoardView.IsBoardSelectVisible);
-            var benchSelection = benchCell.ContentAnchor.Find("BoardSelect");
+            var benchSelection = benchCell.ContentAnchor.FindUi("BoardSelect");
             Assert.IsNotNull(benchSelection);
             Assert.IsTrue(benchSelection.gameObject.activeSelf);
             Assert.AreSame(
-                Resources.Load<Sprite>("GameUI/BoardSelect"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/BoardSelect"),
                 benchSelection.GetComponent<Image>().sprite);
 
             bootstrap.BoardView.UpdateDraggedUnit(
@@ -1084,9 +1084,9 @@ namespace DragonBound.Tests.PlayMode
             bootstrap.BoardView.RefreshUnits();
             yield return null;
 
-            var expectedShovelSprite = Resources.Load<Sprite>("ComponentUI/shovel");
+            var expectedShovelSprite = DragonBound.Presentation.UiAssets.Load<Sprite>("ComponentUI/shovel");
             Assert.IsNotNull(expectedShovelSprite);
-            var beachContainer = FindScreen().transform.Find("ART_ScreenBackground/BeachContainer");
+            var beachContainer = FindScreen().transform.FindUi("ART_ScreenBackground/BeachContainer");
             Assert.IsNotNull(beachContainer);
             var shovelView = beachContainer
                 .GetComponentsInChildren<DraggableUnitView>(true)

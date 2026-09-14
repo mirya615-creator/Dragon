@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -95,7 +96,7 @@ public static class UiImageFadeLoopInstaller
                     continue;
                 }
 
-                var imageB = canvases[canvasIndex].transform.Find("ImageA/ImageB");
+                var imageB = canvases[canvasIndex].transform.FindUi("ImageA/ImageB");
                 if (imageB == null || imageB.GetComponent<Graphic>() == null)
                 {
                     continue;

@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections.Generic;
 using DragonBound.Core;
 using DragonBound.Grid;
@@ -118,7 +119,7 @@ namespace DragonBound.Presentation
                 throw new ArgumentNullException(nameof(authoredCellTemplate));
             }
 
-            var existing = targetScreenRoot.Find("ART_FixedBoardCanvasRuntime");
+            var existing = targetScreenRoot.FindUi("ART_FixedBoardCanvasRuntime");
             if (existing != null && existing.TryGetComponent<FixedBoardCanvasView>(out var existingView))
             {
                 if (existingView.layout != definition)
@@ -285,7 +286,7 @@ namespace DragonBound.Presentation
 
             if (deploymentFxLayer == null)
             {
-                deploymentFxLayer = parent.Find("ART_DeploymentFxLayer") as RectTransform;
+                deploymentFxLayer = parent.FindUi("ART_DeploymentFxLayer") as RectTransform;
             }
             if (deploymentFxLayer == null)
             {
@@ -326,7 +327,7 @@ namespace DragonBound.Presentation
 
             if (deploymentGuideLayer == null)
             {
-                deploymentGuideLayer = parent.Find("ART_DeploymentGuideLayer") as RectTransform;
+                deploymentGuideLayer = parent.FindUi("ART_DeploymentGuideLayer") as RectTransform;
             }
             if (deploymentGuideLayer == null)
             {
@@ -559,7 +560,7 @@ namespace DragonBound.Presentation
         private void CreateOverlayLayer()
         {
             overlayLayer = CreateRuntimeLayer("ART_FixedBoardOverlay", screenRoot);
-            var campPanel = screenRoot.Find("ART_ScreenBackground/campPanel");
+            var campPanel = screenRoot.FindUi("ART_ScreenBackground/campPanel");
             if (campPanel != null)
             {
                 overlayLayer.SetSiblingIndex(campPanel.GetSiblingIndex());
@@ -756,7 +757,7 @@ namespace DragonBound.Presentation
                 : layout.AiLaneWaypoints;
             for (var index = 0; index < lane.NodeNames.Count && index < positions.Count; index++)
             {
-                var waypoint = laneLayer.Find(lane.NodeNames[index]) as RectTransform;
+                var waypoint = laneLayer.FindUi(lane.NodeNames[index]) as RectTransform;
                 if (waypoint != null) PositionAtCell(waypoint, positions[index]);
             }
         }
@@ -831,7 +832,7 @@ namespace DragonBound.Presentation
 
         private void PlaceBelowRuntimeUnits()
         {
-            var aiUnits = screenRoot.Find("AiUnitLayer");
+            var aiUnits = screenRoot.FindUi("AiUnitLayer");
             if (aiUnits != null)
             {
                 boardRect.SetSiblingIndex(aiUnits.GetSiblingIndex());
@@ -870,7 +871,7 @@ namespace DragonBound.Presentation
             overlayLayer = RequireRect(overlayLayer, screenRoot, "ART_FixedBoardOverlay");
             centerDivider = centerDivider != null
                 ? centerDivider
-                : terrainLayer.Find("ART_CenterDivider") as RectTransform;
+                : terrainLayer.FindUi("ART_CenterDivider") as RectTransform;
             backgroundClickReceiver = backgroundClickReceiver != null
                 ? backgroundClickReceiver
                 : cellLayer.GetComponentInChildren<BoardBackgroundClickReceiver>(true);
@@ -928,7 +929,7 @@ namespace DragonBound.Presentation
 
         private static RectTransform RequireRect(RectTransform current, Transform parent, string name)
         {
-            var result = current != null ? current : parent.Find(name) as RectTransform;
+            var result = current != null ? current : parent.FindUi(name) as RectTransform;
             if (result == null) throw new InvalidOperationException($"Authored fixed-board node is missing: {name}");
             return result;
         }

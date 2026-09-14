@@ -1,4 +1,5 @@
 using UnityEngine;
+using DragonBound.Presentation;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -52,7 +53,7 @@ public static class LoginSafeAreaLayoutAdapter
             scaler.matchWidthOrHeight = 1f;
         }
 
-        Transform loadingTransform = canvas.transform.Find(
+        Transform loadingTransform = canvas.transform.FindUi(
             "SafeArea/MainPanel/LoginPanel/LoadingImg");
         RectTransform loadingRect = loadingTransform as RectTransform;
         if (loadingRect == null)

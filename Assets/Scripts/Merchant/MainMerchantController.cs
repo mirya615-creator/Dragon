@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -86,24 +87,24 @@ public sealed class MainMerchantController : MonoBehaviour
         iconProvider = new ResourcesMerchantItemIconProvider();
         lifetimeCancellation = new CancellationTokenSource();
 
-        Transform panelTransform = transform.Find("MerchantPanel");
-        itemContainer = panelTransform?.Find("Bg/ChatItemCon");
-        lotteryContainer = panelTransform?.Find("Bg/LotteryContainer")?.gameObject;
-        chantButton = panelTransform?.Find("Bg/ChantBtn")?.GetComponent<Button>();
-        lotteryButton = panelTransform?.Find("Bg/LotteryBtn")?.GetComponent<Button>();
+        Transform panelTransform = transform.FindUi("MerchantPanel");
+        itemContainer = panelTransform?.FindUi("Bg/ChatItemCon");
+        lotteryContainer = panelTransform?.FindUi("Bg/LotteryContainer")?.gameObject;
+        chantButton = panelTransform?.FindUi("Bg/ChantBtn")?.GetComponent<Button>();
+        lotteryButton = panelTransform?.FindUi("Bg/LotteryBtn")?.GetComponent<Button>();
         chantTabImage = ResolveTabImage(chantButton);
         lotteryTabImage = ResolveTabImage(lotteryButton);
-        selectedTabSprite = Resources.Load<Sprite>(SelectedTabSpritePath);
-        unselectedTabSprite = Resources.Load<Sprite>(UnselectedTabSpritePath);
-        lotteryDrawButton = panelTransform?.Find("Bg/LotteryContainer/LotteryBtn")
+        selectedTabSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(SelectedTabSpritePath);
+        unselectedTabSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(UnselectedTabSpritePath);
+        lotteryDrawButton = panelTransform?.FindUi("Bg/LotteryContainer/LotteryBtn")
             ?.GetComponent<Button>();
         ResolveLotteryItems();
-        ownedItemContainer = panelTransform?.Find("Bg/ItemContainer") ??
-                             panelTransform?.Find("Bg/MyItemBg/ItemContainer");
+        ownedItemContainer = panelTransform?.FindUi("Bg/ItemContainer") ??
+                             panelTransform?.FindUi("Bg/MyItemBg/ItemContainer");
         if (ownedItemContainer != null)
         {
-            activeItemColumn = ownedItemContainer.Find("ActiveColumn");
-            passiveItemColumn = ownedItemContainer.Find("PassiveColumn");
+            activeItemColumn = ownedItemContainer.FindUi("ActiveColumn");
+            passiveItemColumn = ownedItemContainer.FindUi("PassiveColumn");
             if (activeItemColumn == null && ownedItemContainer.childCount > 0)
             {
                 activeItemColumn = ownedItemContainer.GetChild(0);
@@ -113,14 +114,14 @@ public sealed class MainMerchantController : MonoBehaviour
                 passiveItemColumn = ownedItemContainer.GetChild(1);
             }
         }
-        offerItemPrefab = Resources.Load<GameObject>(OfferItemPrefabPath);
-        ownedItemPrefab = Resources.Load<GameObject>(OwnedItemPrefabPath);
-        Transform cancelPanelTransform = panelTransform?.Find("Bg/CancleItemPanel");
+        offerItemPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(OfferItemPrefabPath);
+        ownedItemPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(OwnedItemPrefabPath);
+        Transform cancelPanelTransform = panelTransform?.FindUi("Bg/CancleItemPanel");
         cancelItemPanel = cancelPanelTransform?.gameObject;
-        cancelItemButton = (cancelPanelTransform?.Find("CancleBtn") ??
-                            cancelPanelTransform?.Find("Bg/CancleBtn"))?.GetComponent<Button>();
-        confirmItemButton = (cancelPanelTransform?.Find("ConfirmBtn") ??
-                             cancelPanelTransform?.Find("Bg/ConfirmBtn"))?.GetComponent<Button>();
+        cancelItemButton = (cancelPanelTransform?.FindUi("CancleBtn") ??
+                            cancelPanelTransform?.FindUi("Bg/CancleBtn"))?.GetComponent<Button>();
+        confirmItemButton = (cancelPanelTransform?.FindUi("ConfirmBtn") ??
+                             cancelPanelTransform?.FindUi("Bg/ConfirmBtn"))?.GetComponent<Button>();
         if (panelTransform == null || itemContainer == null || lotteryContainer == null ||
             chantButton == null || lotteryButton == null || lotteryDrawButton == null ||
             chantTabImage == null || lotteryTabImage == null ||
@@ -287,7 +288,7 @@ public sealed class MainMerchantController : MonoBehaviour
         if (image != null) return image;
         image = button.GetComponent<Image>();
         if (image != null) return image;
-        return button.transform.Find("Image")?.GetComponent<Image>();
+        return button.transform.FindUi("Image")?.GetComponent<Image>();
     }
 
     private void PopulateLottery(MerchantLotteryOffer offer)
@@ -677,9 +678,9 @@ public sealed class MainMerchantController : MonoBehaviour
                 product.ItemType + " : " +
                 MerchantItemCatalog.GetEnglishIntroduction(product.ProductId));
 
-            Transform buyTransform = itemObject.transform.Find("BuyBtn");
+            Transform buyTransform = itemObject.transform.FindUi("BuyBtn");
             Button buyButton = buyTransform?.GetComponent<Button>();
-            TMP_Text priceText = buyTransform?.Find("Text (TMP)")?.GetComponent<TMP_Text>();
+            TMP_Text priceText = buyTransform?.FindUi("Text (TMP)")?.GetComponent<TMP_Text>();
             if (buyButton == null || priceText == null)
             {
                 Debug.LogError("ItemBg prefab requires BuyBtn with a Text (TMP) child.");
@@ -689,7 +690,7 @@ public sealed class MainMerchantController : MonoBehaviour
             priceText.text = product.PaymentType == MerchantPaymentType.RewardedAd
                 ? "Video"
                 : product.GoldPrice.ToString(CultureInfo.InvariantCulture);
-            Image itemImage = itemObject.transform.Find("CItemImg")?.GetComponent<Image>();
+            Image itemImage = itemObject.transform.FindUi("CItemImg")?.GetComponent<Image>();
             Sprite icon = iconProvider.Load(product.IconKey);
             if (itemImage != null && icon != null) itemImage.sprite = icon;
 
@@ -892,7 +893,7 @@ public sealed class MainMerchantController : MonoBehaviour
         GameObject itemObject = Instantiate(ownedItemPrefab, targetColumn, false);
         itemObject.name = "Item_" + product.ProductId;
 
-        Image targetImage = itemObject.transform.Find("ItemImg")?.GetComponent<Image>();
+        Image targetImage = itemObject.transform.FindUi("ItemImg")?.GetComponent<Image>();
         Sprite icon = iconProvider.Load(product.IconKey);
         if (targetImage != null && icon != null)
         {
@@ -900,7 +901,7 @@ public sealed class MainMerchantController : MonoBehaviour
             targetImage.color = Color.white;
         }
 
-        Button deleteButton = itemObject.transform.Find("DelBtn")?.GetComponent<Button>();
+        Button deleteButton = itemObject.transform.FindUi("DelBtn")?.GetComponent<Button>();
         if (targetImage == null || deleteButton == null)
         {
             Debug.LogError("Item prefab requires ItemImg and DelBtn.");
@@ -1024,7 +1025,7 @@ public sealed class MainMerchantController : MonoBehaviour
 
     private static void SetText(Transform root, string childName, string value)
     {
-        TMP_Text text = root.Find(childName)?.GetComponent<TMP_Text>();
+        TMP_Text text = root.FindUi(childName)?.GetComponent<TMP_Text>();
         if (text != null) text.text = value;
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using DragonBound.Presentation;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -52,7 +53,7 @@ public sealed class DragFillController : MonoBehaviour, IPointerDownHandler, IDr
     {
         track = (RectTransform)transform;
 
-        Transform fillTransform = transform.Find("FillImg");
+        Transform fillTransform = transform.FindUi("FillImg");
         fillRect = fillTransform as RectTransform;
         if (fillRect == null)
         {

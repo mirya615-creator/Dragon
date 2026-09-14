@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -154,11 +155,11 @@ public sealed class MainRankController : MonoBehaviour
 
     private void ResolveView()
     {
-        Transform rankTextTransform = transform.Find("RankText");
+        Transform rankTextTransform = transform.FindUi("RankText");
         rankText = rankTextTransform != null ? rankTextTransform.GetComponent<TMP_Text>() : null;
-        threeStar = transform.Find("threeStar");
-        fourStar = transform.Find("fourStar");
-        fiveStar = transform.Find("fiveStar");
+        threeStar = transform.FindUi("threeStar");
+        fourStar = transform.FindUi("fourStar");
+        fiveStar = transform.FindUi("fiveStar");
 
         CollectStarImages(threeStar, threeStarImages);
         CollectStarImages(fourStar, fourStarImages);
@@ -182,7 +183,7 @@ public sealed class MainRankController : MonoBehaviour
         for (int index = 0; index < group.childCount; index++)
         {
             Transform star = group.GetChild(index);
-            Transform image = star.Find("Img");
+            Transform image = star.FindUi("Img");
             if (image == null) continue;
 
             int order = index;

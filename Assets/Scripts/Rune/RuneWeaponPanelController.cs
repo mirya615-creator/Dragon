@@ -54,17 +54,17 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         runeGateway = services.Runes;
         authSessionStore = services.AuthSession;
         lifetimeCancellation = new CancellationTokenSource();
-        weaponContainer = transform.Find("WeaponContainer");
+        weaponContainer = transform.FindUi("WeaponContainer");
         weaponContainerRect = weaponContainer as RectTransform;
         weaponGrid = weaponContainer != null
             ? weaponContainer.GetComponent<GridLayoutGroup>()
             : null;
-        heroContainer = transform.Find("MyHeroBg/HeroContainer");
-        pageLeftButton = GetButton(transform.Find("PageLeft"));
-        pageRightButton = GetButton(transform.Find("PageRight"));
-        pageText = GetText(transform.Find("page"));
-        weaponPrefab = Resources.Load<GameObject>(WeaponPrefabPath);
-        weapon0Prefab = Resources.Load<GameObject>(Weapon0PrefabPath);
+        heroContainer = transform.FindUi("MyHeroBg/HeroContainer");
+        pageLeftButton = GetButton(transform.FindUi("PageLeft"));
+        pageRightButton = GetButton(transform.FindUi("PageRight"));
+        pageText = GetText(transform.FindUi("page"));
+        weaponPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(WeaponPrefabPath);
+        weapon0Prefab = DragonBound.Presentation.UiAssets.Load<GameObject>(Weapon0PrefabPath);
 
         if (weaponContainer == null || heroContainer == null ||
             weaponPrefab == null || weapon0Prefab == null ||
@@ -225,12 +225,12 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
             ? $"Rune_{entry.Definition.RuneId}_Fragments"
             : $"Rune_{entry.Definition.RuneId}_Complete";
         ApplyRuneUi(instance, entry.Definition);
-        SetRuneName(instance.transform.Find("Name"), entry.Definition);
+        SetRuneName(instance.transform.FindUi("Name"), entry.Definition);
 
         if (entry.IsFragmentProgress)
         {
             SetText(
-                instance.transform.Find("count"),
+                instance.transform.FindUi("count"),
                 $"{entry.Inventory.FragmentCount}/{entry.Definition.RequiredFragments}");
             return;
         }
@@ -251,7 +251,7 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         Sprite sprite = RuneUiSpriteCatalog.Load(runtimeRuneId);
         if (sprite == null) return;
 
-        Transform background = instance.transform.Find("BG");
+        Transform background = instance.transform.FindUi("BG");
         Image runeImage = background != null ? background.GetComponent<Image>() : null;
         if (runeImage == null)
         {
@@ -355,7 +355,7 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
 
     private static void SetAvailableCount(Transform item, int availableCompleteRunes)
     {
-        Transform amountRoot = item.Find("AcText");
+        Transform amountRoot = item.FindUi("AcText");
         if (amountRoot == null)
         {
             Debug.LogError($"{item.name} requires AcText/Text (TMP).");
@@ -366,7 +366,7 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         amountRoot.gameObject.SetActive(hasCompleteRune);
         if (hasCompleteRune)
         {
-            SetText(amountRoot.Find("Text (TMP)"), availableCompleteRunes.ToString());
+            SetText(amountRoot.FindUi("Text (TMP)"), availableCompleteRunes.ToString());
         }
     }
 
@@ -650,10 +650,10 @@ public sealed class RuneWeaponPanelController : MonoBehaviour
         for (int index = 0; index < heroContainer.childCount; index++)
         {
             Transform hero = heroContainer.GetChild(index);
-            Transform weapon = hero.Find("weapon");
+            Transform weapon = hero.FindUi("weapon");
             if (weapon == null) continue;
 
-            TMP_Text heroName = GetText(hero.Find("Name"));
+            TMP_Text heroName = GetText(hero.FindUi("Name"));
             HeroRuneSlotIdentity identity = hero.GetComponent<HeroRuneSlotIdentity>();
             if (identity == null) identity = hero.gameObject.AddComponent<HeroRuneSlotIdentity>();
             string heroId = HeroRuneIdentityCatalog.ResolveSlot(

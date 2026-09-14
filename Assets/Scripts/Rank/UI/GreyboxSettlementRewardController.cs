@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Threading;
 using System.Threading.Tasks;
 using DragonBound.Bootstrap;
@@ -33,12 +34,12 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
 
     private void Awake()
     {
-        resultImage = transform.Find("SettleImg")?.GetComponent<Image>();
-        goldText = transform.Find("GoldText")?.GetComponent<TMPro.TMP_Text>();
-        receiveButton = transform.Find("ReciveBtn")?.GetComponent<Button>();
-        doubleButton = transform.Find("DoubleBtn")?.GetComponent<Button>();
-        victorySprite = Resources.Load<Sprite>(VictorySpritePath);
-        defeatSprite = Resources.Load<Sprite>(DefeatSpritePath);
+        resultImage = transform.FindUi("SettleImg")?.GetComponent<Image>();
+        goldText = transform.FindUi("GoldText")?.GetComponent<TMPro.TMP_Text>();
+        receiveButton = transform.FindUi("ReciveBtn")?.GetComponent<Button>();
+        doubleButton = transform.FindUi("DoubleBtn")?.GetComponent<Button>();
+        victorySprite = DragonBound.Presentation.UiAssets.Load<Sprite>(VictorySpritePath);
+        defeatSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(DefeatSpritePath);
         if (resultImage == null || victorySprite == null || defeatSprite == null ||
             goldText == null || receiveButton == null || doubleButton == null)
         {

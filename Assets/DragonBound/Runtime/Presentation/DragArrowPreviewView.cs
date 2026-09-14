@@ -81,7 +81,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var pathSprite = Resources.Load<Sprite>(DragPathSpriteResourcePath);
+            var pathSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(DragPathSpriteResourcePath);
             if (pathSprite == null)
             {
                 throw new System.InvalidOperationException(

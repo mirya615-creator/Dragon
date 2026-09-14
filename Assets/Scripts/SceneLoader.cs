@@ -1,4 +1,5 @@
 using System.Collections;
+using DragonBound.Presentation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -191,14 +192,14 @@ public sealed class SceneLoader : MonoBehaviour
 
         foreach (GameObject root in scene.GetRootGameObjects())
         {
-            Transform loadingTransform = root.transform.Find(
+            Transform loadingTransform = root.transform.FindUi(
                 "SafeArea/MainPanel/LoginPanel/LoadingImg");
             if (loadingTransform == null)
             {
                 continue;
             }
 
-            Transform fillTransform = loadingTransform.Find("FillImg");
+            Transform fillTransform = loadingTransform.FindUi("FillImg");
             Image fill = fillTransform != null ? fillTransform.GetComponent<Image>() : null;
             if (fill == null)
             {

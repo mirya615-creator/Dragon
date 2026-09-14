@@ -55,10 +55,10 @@ public static class PlayerAvatarProfile
             : FirstAvatarIndex;
         if (SpriteCache.TryGetValue(index, out Sprite cached) && cached != null) return cached;
 
-        Sprite sprite = Resources.Load<Sprite>(ResourceRoot + index);
+        Sprite sprite = DragonBound.Presentation.UiAssets.Load<Sprite>(ResourceRoot + index);
         if (sprite == null && index != FirstAvatarIndex)
         {
-            sprite = Resources.Load<Sprite>(ResourceRoot + FirstAvatarIndex);
+            sprite = DragonBound.Presentation.UiAssets.Load<Sprite>(ResourceRoot + FirstAvatarIndex);
         }
         if (sprite == null)
         {

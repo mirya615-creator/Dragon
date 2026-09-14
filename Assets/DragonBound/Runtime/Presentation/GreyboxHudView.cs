@@ -1,4 +1,5 @@
 using DragonBound.Core;
+using DragonBound.Presentation;
 using DragonBound.Combat;
 using DragonBound.Bosses.Runtime;
 using DragonBound.Items;
@@ -299,7 +300,7 @@ namespace DragonBound.Presentation
         {
             var screen = GetComponentInParent<DragonBoundScreenView>();
             var background = screen != null
-                ? screen.transform.Find("ART_ScreenBackground")
+                ? screen.transform.FindUi("ART_ScreenBackground")
                 : null;
             if (background == null)
             {
@@ -308,7 +309,7 @@ namespace DragonBound.Presentation
 
             ResolvePassiveItemCooldownMasks(screen.transform);
 
-            var authoredItemContainer = screen.transform.Find("ItemContainer");
+            var authoredItemContainer = screen.transform.FindUi("ItemContainer");
             if (authoredItemContainer == null)
             {
                 foreach (var candidate in screen.GetComponentsInChildren<Transform>(true))
@@ -320,14 +321,14 @@ namespace DragonBound.Presentation
                     }
                 }
             }
-            var authoredActiveContainer = authoredItemContainer?.Find("Active");
+            var authoredActiveContainer = authoredItemContainer?.FindUi("Active");
             if (authoredActiveContainer != null)
             {
                 activeItemSlotOne =
-                    authoredActiveContainer.Find("Active")?.GetComponent<Button>() ??
-                    authoredActiveContainer.Find("Active0")?.GetComponent<Button>();
+                    authoredActiveContainer.FindUi("Active")?.GetComponent<Button>() ??
+                    authoredActiveContainer.FindUi("Active0")?.GetComponent<Button>();
                 activeItemSlotTwo =
-                    authoredActiveContainer.Find("Active1")?.GetComponent<Button>();
+                    authoredActiveContainer.FindUi("Active1")?.GetComponent<Button>();
                 var activeButtons = authoredActiveContainer.GetComponentsInChildren<Button>(true);
                 if (activeItemSlotOne == null && activeButtons.Length > 0)
                 {
@@ -342,74 +343,74 @@ namespace DragonBound.Presentation
 
             if (activeItemContainer == null)
             {
-                activeItemContainer = background.Find("ActiveItemContainer") as RectTransform;
+                activeItemContainer = background.FindUi("ActiveItemContainer") as RectTransform;
             }
             if (activeItemContainer == null)
             {
                 activeItemContainer = background as RectTransform;
             }
 
-            var authoredResourceLabel = background.Find("ResourceLabel")?.GetComponent<Text>();
+            var authoredResourceLabel = background.FindUi("ResourceLabel")?.GetComponent<Text>();
             if (authoredResourceLabel != null)
             {
                 resourceLabel = authoredResourceLabel;
             }
 
-            var authoredWaveLabel = background.Find("WaveLabel")?.GetComponent<Text>();
+            var authoredWaveLabel = background.FindUi("WaveLabel")?.GetComponent<Text>();
             if (authoredWaveLabel != null)
             {
                 waveLabel = authoredWaveLabel;
             }
 
-            var authoredButton = background.Find("ART_PauseButton")?.GetComponent<Button>();
+            var authoredButton = background.FindUi("ART_PauseButton")?.GetComponent<Button>();
             if (authoredButton != null)
             {
                 pauseButton = authoredButton;
-                pauseLabel = authoredButton.transform.Find("PauseLabel")?.GetComponent<Text>();
+                pauseLabel = authoredButton.transform.FindUi("PauseLabel")?.GetComponent<Text>();
                 EnsureOverlayCanvas(authoredButton.gameObject, PauseButtonSortingOrder, true);
             }
 
             // Current authored hierarchy keeps PausePanel beside ART_ScreenBackground.
             // Retain the old nested lookup so older screen prefabs remain compatible.
-            var authoredPanel = screen.transform.Find("PausePanel") ??
-                                background.Find("PausePanel");
+            var authoredPanel = screen.transform.FindUi("PausePanel") ??
+                                background.FindUi("PausePanel");
             if (authoredPanel != null)
             {
                 pausePanel = authoredPanel.gameObject;
                 pauseRuneRewardPresenter =
                     pausePanel.GetComponent<PauseRuneRewardPresenter>() ??
                     pausePanel.AddComponent<PauseRuneRewardPresenter>();
-                finishMatchButton = authoredPanel.Find("Bg/PauseBtn")?.GetComponent<Button>();
-                continueButton = authoredPanel.Find("Bg/ContinueBtn")?.GetComponent<Button>();
+                finishMatchButton = authoredPanel.FindUi("Bg/PauseBtn")?.GetComponent<Button>();
+                continueButton = authoredPanel.FindUi("Bg/ContinueBtn")?.GetComponent<Button>();
                 EnsureOverlayCanvas(pausePanel, PausePanelSortingOrder, true);
             }
 
-            var authoredSettlement = screen.transform.Find("SettlementPanel");
+            var authoredSettlement = screen.transform.FindUi("SettlementPanel");
             if (authoredSettlement != null)
             {
                 settlementPanel = authoredSettlement.gameObject;
-                settlementResultImage = authoredSettlement.Find("SettleImg")?.GetComponent<Image>();
+                settlementResultImage = authoredSettlement.FindUi("SettleImg")?.GetComponent<Image>();
                 EnsureOverlayCanvas(settlementPanel, SettlementPanelSortingOrder, true);
             }
 
-            var authoredBossWarning = screen.transform.Find("BossWarning");
+            var authoredBossWarning = screen.transform.FindUi("BossWarning");
             if (authoredBossWarning != null)
             {
                 bossWarning = authoredBossWarning.gameObject;
-                bossWarningConfirmButton = authoredBossWarning.Find("ConfirmBtn")?.GetComponent<Button>();
+                bossWarningConfirmButton = authoredBossWarning.FindUi("ConfirmBtn")?.GetComponent<Button>();
                 EnsureOverlayCanvas(bossWarning, BossWarningSortingOrder, true);
             }
 
-            var debugRoot = background.Find("Debug");
+            var debugRoot = background.FindUi("Debug");
             if (debugRoot != null)
             {
-                var authoredDebugLabel = debugRoot.Find("DebugLabel")?.GetComponent<Text>();
+                var authoredDebugLabel = debugRoot.FindUi("DebugLabel")?.GetComponent<Text>();
                 if (authoredDebugLabel != null)
                 {
                     debugLabel = authoredDebugLabel;
                 }
 
-                var authoredEnemyDebugLabel = debugRoot.Find("EnemyDebugLabel")?.GetComponent<Text>();
+                var authoredEnemyDebugLabel = debugRoot.FindUi("EnemyDebugLabel")?.GetComponent<Text>();
                 if (authoredEnemyDebugLabel != null)
                 {
                     enemyDebugLabel = authoredEnemyDebugLabel;
@@ -591,7 +592,7 @@ namespace DragonBound.Presentation
             var resourcePath = state == MatchState.Victory
                 ? SettlementVictorySpritePath
                 : SettlementDefeatSpritePath;
-            var sprite = Resources.Load<Sprite>(resourcePath);
+            var sprite = DragonBound.Presentation.UiAssets.Load<Sprite>(resourcePath);
             if (sprite == null)
             {
                 Debug.LogError("Settlement result sprite is missing at Resources/" + resourcePath + ".png");
@@ -606,7 +607,7 @@ namespace DragonBound.Presentation
         private void SetSettlementChildActive(string childName, bool active)
         {
             Transform child = settlementPanel != null
-                ? settlementPanel.transform.Find(childName)
+                ? settlementPanel.transform.FindUi(childName)
                 : null;
             if (child != null) child.gameObject.SetActive(active);
         }
@@ -1433,7 +1434,7 @@ namespace DragonBound.Presentation
             float pixelsPerCell)
         {
             var controller =
-                Resources.Load<RuntimeAnimatorController>(ArcaneThunderburstControllerPath);
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(ArcaneThunderburstControllerPath);
             var canvas = GetComponentInParent<Canvas>()?.rootCanvas;
             if (controller == null || canvas == null || pixelsPerCell <= 0f)
             {
@@ -1757,7 +1758,7 @@ namespace DragonBound.Presentation
             if (definition == null || string.IsNullOrWhiteSpace(definition.IconKey)) return null;
             if (ItemIconCache.TryGetValue(definition.IconKey, out Sprite cached)) return cached;
 
-            Sprite sprite = Resources.Load<Sprite>(definition.IconKey);
+            Sprite sprite = DragonBound.Presentation.UiAssets.Load<Sprite>(definition.IconKey);
             if (sprite != null)
             {
                 ItemIconCache[definition.IconKey] = sprite;
@@ -1801,8 +1802,8 @@ namespace DragonBound.Presentation
             if (passiveContainer == null) return;
             for (int index = 0; index < passiveItemCooldownMasks.Length; index++)
             {
-                Transform slot = passiveContainer.Find("Passtive" + index) ??
-                                 passiveContainer.Find("Passive" + index);
+                Transform slot = passiveContainer.FindUi("Passtive" + index) ??
+                                 passiveContainer.FindUi("Passive" + index);
                 passiveItemCooldownMasks[index] = EnsureCooldownMask(slot);
                 passiveItemSlots[index] = slot;
             }
@@ -1811,7 +1812,7 @@ namespace DragonBound.Presentation
         private static Image EnsureCooldownMask(Transform slot)
         {
             if (slot == null) return null;
-            var existing = slot.Find("CooldownMask")?.GetComponent<Image>();
+            var existing = slot.FindUi("CooldownMask")?.GetComponent<Image>();
             var maskObject = existing != null
                 ? existing.gameObject
                 : new GameObject("CooldownMask", typeof(RectTransform), typeof(Image));

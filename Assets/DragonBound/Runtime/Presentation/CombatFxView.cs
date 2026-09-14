@@ -778,7 +778,7 @@ namespace DragonBound.Presentation
             if (runeboltMageBoltController == null)
             {
                 runeboltMageBoltController =
-                    Resources.Load<RuntimeAnimatorController>(RuneboltMageBoltControllerPath);
+                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(RuneboltMageBoltControllerPath);
             }
             if (runeboltMageBoltController == null)
             {
@@ -1095,12 +1095,12 @@ namespace DragonBound.Presentation
             if (isSkill)
             {
                 stoneboundWarlockSkillRockSprite ??=
-                    Resources.Load<Sprite>(StoneboundWarlockSkillRockSpritePath);
+                    DragonBound.Presentation.UiAssets.Load<Sprite>(StoneboundWarlockSkillRockSpritePath);
                 return stoneboundWarlockSkillRockSprite;
             }
 
             stoneboundWarlockNormalRockSprite ??=
-                Resources.Load<Sprite>(StoneboundWarlockNormalRockSpritePath);
+                DragonBound.Presentation.UiAssets.Load<Sprite>(StoneboundWarlockNormalRockSpritePath);
             return stoneboundWarlockNormalRockSprite;
         }
 
@@ -1344,15 +1344,15 @@ namespace DragonBound.Presentation
             {
                 case 0:
                     thunderlordMainChainSprite ??=
-                        Resources.Load<Sprite>(ThunderlordMainChainSpritePath);
+                        DragonBound.Presentation.UiAssets.Load<Sprite>(ThunderlordMainChainSpritePath);
                     return thunderlordMainChainSprite;
                 case 1:
                     thunderlordFirstChainSprite ??=
-                        Resources.Load<Sprite>(ThunderlordFirstChainSpritePath);
+                        DragonBound.Presentation.UiAssets.Load<Sprite>(ThunderlordFirstChainSpritePath);
                     return thunderlordFirstChainSprite;
                 default:
                     thunderlordSecondChainSprite ??=
-                        Resources.Load<Sprite>(ThunderlordSecondChainSpritePath);
+                        DragonBound.Presentation.UiAssets.Load<Sprite>(ThunderlordSecondChainSpritePath);
                     return thunderlordSecondChainSprite;
             }
         }
@@ -1589,7 +1589,7 @@ namespace DragonBound.Presentation
             if (thunderlordExplosionController == null)
             {
                 thunderlordExplosionController =
-                    Resources.Load<RuntimeAnimatorController>(
+                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                         ThunderlordExplosionControllerPath);
             }
 
@@ -2507,27 +2507,27 @@ namespace DragonBound.Presentation
 
         private Sprite ResolveAbyssalHarpoonChainSprite()
         {
-            abyssalHarpoonChainSprite ??= Resources.Load<Sprite>(AbyssalHarpoonChainSpritePath);
-            abyssalHarpoonHookSprite ??= Resources.Load<Sprite>(AbyssalHarpoonHookSpritePath);
-            abyssalHarpoonPortalSprite ??= Resources.Load<Sprite>(AbyssalHarpoonPortalSpritePath);
+            abyssalHarpoonChainSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(AbyssalHarpoonChainSpritePath);
+            abyssalHarpoonHookSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(AbyssalHarpoonHookSpritePath);
+            abyssalHarpoonPortalSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(AbyssalHarpoonPortalSpritePath);
             LogMissingAbyssalHarpoonResources();
             return abyssalHarpoonChainSprite;
         }
 
         private Sprite ResolveAbyssalHarpoonHookSprite()
         {
-            abyssalHarpoonChainSprite ??= Resources.Load<Sprite>(AbyssalHarpoonChainSpritePath);
-            abyssalHarpoonHookSprite ??= Resources.Load<Sprite>(AbyssalHarpoonHookSpritePath);
-            abyssalHarpoonPortalSprite ??= Resources.Load<Sprite>(AbyssalHarpoonPortalSpritePath);
+            abyssalHarpoonChainSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(AbyssalHarpoonChainSpritePath);
+            abyssalHarpoonHookSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(AbyssalHarpoonHookSpritePath);
+            abyssalHarpoonPortalSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(AbyssalHarpoonPortalSpritePath);
             LogMissingAbyssalHarpoonResources();
             return abyssalHarpoonHookSprite;
         }
 
         private Sprite ResolveAbyssalHarpoonPortalSprite()
         {
-            abyssalHarpoonChainSprite ??= Resources.Load<Sprite>(AbyssalHarpoonChainSpritePath);
-            abyssalHarpoonHookSprite ??= Resources.Load<Sprite>(AbyssalHarpoonHookSpritePath);
-            abyssalHarpoonPortalSprite ??= Resources.Load<Sprite>(AbyssalHarpoonPortalSpritePath);
+            abyssalHarpoonChainSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(AbyssalHarpoonChainSpritePath);
+            abyssalHarpoonHookSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(AbyssalHarpoonHookSpritePath);
+            abyssalHarpoonPortalSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(AbyssalHarpoonPortalSpritePath);
             LogMissingAbyssalHarpoonResources();
             return abyssalHarpoonPortalSprite;
         }
@@ -2621,7 +2621,7 @@ namespace DragonBound.Presentation
             pendingEmberShamanCasts.Remove(attackerRuntimeId);
             if (emberShamanFireballSprite == null)
             {
-                emberShamanFireballSprite = Resources.Load<Sprite>(EmberShamanFireballSpritePath);
+                emberShamanFireballSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(EmberShamanFireballSpritePath);
             }
 
             foreach (var shot in pending.Shots)
@@ -3088,7 +3088,7 @@ namespace DragonBound.Presentation
         {
             if (bowSwordProjectileSprite == null)
             {
-                bowSwordProjectileSprite = Resources.Load<Sprite>(BowSwordProjectileSpritePath);
+                bowSwordProjectileSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(BowSwordProjectileSpritePath);
             }
             if (bowSwordProjectileSprite == null)
             {
@@ -3104,7 +3104,7 @@ namespace DragonBound.Presentation
             if (windclawImpactSprite == null)
             {
                 windclawImpactSprite =
-                    Resources.Load<Sprite>(WindclawImpactSpritePath);
+                    DragonBound.Presentation.UiAssets.Load<Sprite>(WindclawImpactSpritePath);
             }
 
             if (windclawImpactSprite == null)
@@ -3368,7 +3368,7 @@ namespace DragonBound.Presentation
             if (skyborneValkyrieArrowSprite == null)
             {
                 skyborneValkyrieArrowSprite =
-                    Resources.Load<Sprite>(SkyborneValkyrieArrowSpritePath);
+                    DragonBound.Presentation.UiAssets.Load<Sprite>(SkyborneValkyrieArrowSpritePath);
             }
             if (skyborneValkyrieArrowSprite == null)
             {
@@ -3384,7 +3384,7 @@ namespace DragonBound.Presentation
             if (skyborneValkyrieExplosionController == null)
             {
                 skyborneValkyrieExplosionController =
-                    Resources.Load<RuntimeAnimatorController>(
+                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(
                         SkyborneValkyrieExplosionControllerPath);
             }
             if (skyborneValkyrieExplosionController == null)
@@ -3740,7 +3740,7 @@ namespace DragonBound.Presentation
                 if (flameDrakeSkillFireballSprite == null)
                 {
                     flameDrakeSkillFireballSprite =
-                        Resources.Load<Sprite>(FlameDrakeSkillFireballSpritePath);
+                        DragonBound.Presentation.UiAssets.Load<Sprite>(FlameDrakeSkillFireballSpritePath);
                 }
                 if (flameDrakeSkillFireballSprite == null)
                 {
@@ -3752,7 +3752,7 @@ namespace DragonBound.Presentation
             if (flameDrakeNormalFireballSprite == null)
             {
                 flameDrakeNormalFireballSprite =
-                    Resources.Load<Sprite>(FlameDrakeNormalFireballSpritePath);
+                    DragonBound.Presentation.UiAssets.Load<Sprite>(FlameDrakeNormalFireballSpritePath);
             }
             if (flameDrakeNormalFireballSprite == null)
             {
@@ -3768,7 +3768,7 @@ namespace DragonBound.Presentation
                 if (flameDrakeSkillExplosionController == null)
                 {
                     flameDrakeSkillExplosionController =
-                        Resources.Load<RuntimeAnimatorController>(FlameDrakeSkillExplosionControllerPath);
+                        DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(FlameDrakeSkillExplosionControllerPath);
                 }
                 if (flameDrakeSkillExplosionController == null)
                 {
@@ -3780,7 +3780,7 @@ namespace DragonBound.Presentation
             if (flameDrakeNormalExplosionController == null)
             {
                 flameDrakeNormalExplosionController =
-                    Resources.Load<RuntimeAnimatorController>(FlameDrakeNormalExplosionControllerPath);
+                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(FlameDrakeNormalExplosionControllerPath);
             }
             if (flameDrakeNormalExplosionController == null)
             {
@@ -3794,7 +3794,7 @@ namespace DragonBound.Presentation
             if (flameDrakeBurningGroundController == null)
             {
                 flameDrakeBurningGroundController =
-                    Resources.Load<RuntimeAnimatorController>(FlameDrakeBurningGroundControllerPath);
+                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(FlameDrakeBurningGroundControllerPath);
             }
             if (flameDrakeBurningGroundController == null)
             {
@@ -4041,7 +4041,7 @@ namespace DragonBound.Presentation
             if (nightfangExplosionController == null)
             {
                 nightfangExplosionController =
-                    Resources.Load<RuntimeAnimatorController>(NightfangExplosionControllerPath);
+                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(NightfangExplosionControllerPath);
             }
             if (nightfangExplosionController == null)
             {
@@ -4326,7 +4326,7 @@ namespace DragonBound.Presentation
             if (starfallExplosionController == null)
             {
                 starfallExplosionController =
-                    Resources.Load<RuntimeAnimatorController>(StarfallExplosionControllerPath);
+                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(StarfallExplosionControllerPath);
             }
             if (starfallExplosionController == null && !starfallSpriteWarningLogged)
             {
@@ -4456,7 +4456,7 @@ namespace DragonBound.Presentation
                 return ART_StarfallNormalSprite;
             }
 
-            ART_StarfallNormalSprite = Resources.Load<Sprite>(StarfallNormalSpritePath);
+            ART_StarfallNormalSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(StarfallNormalSpritePath);
             if (ART_StarfallNormalSprite == null && !starfallSpriteWarningLogged)
             {
                 starfallSpriteWarningLogged = true;
@@ -4580,7 +4580,7 @@ namespace DragonBound.Presentation
                 return ART_FlameDrakeRiderDive;
             }
 
-            var controller = Resources.Load<RuntimeAnimatorController>("Animation/Flame Drake Rider S");
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/Flame Drake Rider S");
             if (controller == null)
             {
                 Debug.LogWarning("Flame Drake Rider dive animation is missing at Resources/Animation/Flame Drake Rider S.");

@@ -23,12 +23,12 @@ namespace DragonBound.Tests.EditMode
             Assert.IsTrue(screen.FixedBoardCanvas.IsAuthoredLayout);
             Assert.AreEqual("ART_FixedBoardCanvas", screen.FixedBoardCanvas.name);
             Assert.AreEqual(80, screen.FixedBoardCanvas.GetComponentsInChildren<GridCellView>(true).Length);
-            Assert.IsNotNull(prefab.transform.Find("RangeDismissSurface"));
-            Assert.IsNull(prefab.transform.Find("ItemEntryButton"));
-            Assert.IsNull(prefab.transform.Find("ART_ItemLoadout"));
-            Assert.IsNull(prefab.transform.Find("ART_HeroWorkshop"));
-            Assert.IsNull(prefab.transform.Find("ART_RuneLoadout"));
-            Assert.IsNull(prefab.transform.Find("Versus"));
+            Assert.IsNotNull(prefab.transform.FindUi("RangeDismissSurface"));
+            Assert.IsNull(prefab.transform.FindUi("ItemEntryButton"));
+            Assert.IsNull(prefab.transform.FindUi("ART_ItemLoadout"));
+            Assert.IsNull(prefab.transform.FindUi("ART_HeroWorkshop"));
+            Assert.IsNull(prefab.transform.FindUi("ART_RuneLoadout"));
+            Assert.IsNull(prefab.transform.FindUi("Versus"));
         }
 
         [Test]

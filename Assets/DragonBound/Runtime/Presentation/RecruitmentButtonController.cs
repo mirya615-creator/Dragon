@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections.Generic;
 using DragonBound.Combat;
 using DragonBound.Core;
@@ -218,7 +219,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var existing = button.transform.Find(FillObjectName);
+            var existing = button.transform.FindUi(FillObjectName);
             if (existing != null)
             {
                 fillImage = existing.GetComponent<Image>();

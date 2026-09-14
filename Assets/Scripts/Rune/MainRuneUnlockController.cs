@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Threading;
 using System.Threading.Tasks;
 using DragonBound.Runes;
@@ -45,7 +46,7 @@ public sealed class MainRuneUnlockController : MonoBehaviour
         for (int index = 0; index < roots.Length; index++)
         {
             Transform mainPanel = FindDescendant(roots[index].transform, "MainPanel");
-            if (mainPanel == null || mainPanel.Find(BagButtonPath) == null) continue;
+            if (mainPanel == null || mainPanel.FindUi(BagButtonPath) == null) continue;
             if (mainPanel.GetComponent<MainRuneUnlockController>() == null)
             {
                 mainPanel.gameObject.AddComponent<MainRuneUnlockController>();
@@ -56,7 +57,7 @@ public sealed class MainRuneUnlockController : MonoBehaviour
 
     private void Awake()
     {
-        bagButton = transform.Find(BagButtonPath)?.GetComponent<Button>();
+        bagButton = transform.FindUi(BagButtonPath)?.GetComponent<Button>();
         weaponPanel = FindSceneObject(gameObject.scene, "WeaponPanel")?.gameObject;
         leaderPanel = FindSceneObject(gameObject.scene, "LeaderPanel")?.gameObject;
 

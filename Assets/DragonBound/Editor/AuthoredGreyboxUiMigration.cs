@@ -68,7 +68,7 @@ namespace DragonBound.Editor
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ScreenPrefabPath);
             if (prefab == null) return;
-            var existing = prefab.transform.Find(AuthoredBoardName);
+            var existing = prefab.transform.FindUi(AuthoredBoardName);
             if (existing != null && existing.GetComponent<FixedBoardCanvasView>()?.IsAuthoredLayout == true)
             {
                 var existingCanvas = existing.GetComponent<FixedBoardCanvasView>();
@@ -204,7 +204,7 @@ namespace DragonBound.Editor
 
         private static BoardBackgroundClickReceiver CreateRangeDismissSurface(Transform parent)
         {
-            var existing = parent.Find("RangeDismissSurface");
+            var existing = parent.FindUi("RangeDismissSurface");
             if (existing != null)
             {
                 return existing.GetComponent<BoardBackgroundClickReceiver>();

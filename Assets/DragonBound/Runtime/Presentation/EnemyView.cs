@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DragonBound.Presentation;
 using DragonBound.Core;
 using DragonBound.Bosses.Runtime;
 using UnityEngine;
@@ -169,7 +170,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var existing = transform.Find(FrostcrownMarkName);
+            var existing = transform.FindUi(FrostcrownMarkName);
             if (existing != null)
             {
                 frostcrownMarkImage = existing.GetComponent<Image>();
@@ -192,13 +193,13 @@ namespace DragonBound.Presentation
                 frostcrownMarkImage = root.GetComponent<Image>();
             }
 
-            frostcrownMarkSprite ??= Resources.Load<Sprite>(FrostcrownMarkSpritePath);
+            frostcrownMarkSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(FrostcrownMarkSpritePath);
             frostcrownMarkImage.sprite = frostcrownMarkSprite;
             frostcrownMarkImage.color = Color.white;
             frostcrownMarkImage.preserveAspect = true;
             frostcrownMarkImage.raycastTarget = false;
 
-            var healthTrack = transform.Find("ART_EnemyHpTrack");
+            var healthTrack = transform.FindUi("ART_EnemyHpTrack");
             if (healthTrack != null)
             {
                 frostcrownMarkImage.rectTransform.SetSiblingIndex(
@@ -228,7 +229,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var existing = transform.Find(FrostMireMarkName);
+            var existing = transform.FindUi(FrostMireMarkName);
             if (existing != null)
             {
                 frostMireMarkImage = existing.GetComponent<Image>();
@@ -251,13 +252,13 @@ namespace DragonBound.Presentation
                 frostMireMarkImage = root.GetComponent<Image>();
             }
 
-            frostMireMarkSprite ??= Resources.Load<Sprite>(FrostMireMarkSpritePath);
+            frostMireMarkSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(FrostMireMarkSpritePath);
             frostMireMarkImage.sprite = frostMireMarkSprite;
             frostMireMarkImage.color = Color.white;
             frostMireMarkImage.preserveAspect = true;
             frostMireMarkImage.raycastTarget = false;
 
-            var healthTrack = transform.Find("ART_EnemyHpTrack");
+            var healthTrack = transform.FindUi("ART_EnemyHpTrack");
             if (healthTrack != null)
             {
                 frostMireMarkImage.rectTransform.SetSiblingIndex(
@@ -287,7 +288,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var existing = transform.Find(WinterveilMarkName);
+            var existing = transform.FindUi(WinterveilMarkName);
             if (existing != null)
             {
                 winterveilMarkImage = existing.GetComponent<Image>();
@@ -310,13 +311,13 @@ namespace DragonBound.Presentation
                 winterveilMarkImage = root.GetComponent<Image>();
             }
 
-            winterveilMarkSprite ??= Resources.Load<Sprite>(WinterveilMarkSpritePath);
+            winterveilMarkSprite ??= DragonBound.Presentation.UiAssets.Load<Sprite>(WinterveilMarkSpritePath);
             winterveilMarkImage.sprite = winterveilMarkSprite;
             winterveilMarkImage.color = Color.white;
             winterveilMarkImage.preserveAspect = true;
             winterveilMarkImage.raycastTarget = false;
 
-            var healthTrack = transform.Find("ART_EnemyHpTrack");
+            var healthTrack = transform.FindUi("ART_EnemyHpTrack");
             if (healthTrack != null)
             {
                 winterveilMarkImage.rectTransform.SetSiblingIndex(
@@ -460,7 +461,7 @@ namespace DragonBound.Presentation
                 {
                     if (bossHpTrackSprite == null)
                     {
-                        bossHpTrackSprite = Resources.Load<Sprite>(BossHpResourcePath);
+                        bossHpTrackSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(BossHpResourcePath);
                     }
                     if (bossHpTrackSprite != null)
                     {
@@ -673,7 +674,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var existing = transform.Find(DeathVfxName);
+            var existing = transform.FindUi(DeathVfxName);
             if (existing == null)
             {
                 var root = new GameObject(
@@ -709,7 +710,7 @@ namespace DragonBound.Presentation
             if (!deathAnimationControllerLoaded)
             {
                 deathAnimationController =
-                    Resources.Load<RuntimeAnimatorController>(DeathControllerResourcePath);
+                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(DeathControllerResourcePath);
                 deathAnimationControllerLoaded = true;
             }
 
@@ -806,7 +807,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var existing = transform.Find(StormShieldVfxName);
+            var existing = transform.FindUi(StormShieldVfxName);
             if (existing == null)
             {
                 var root = new GameObject(
@@ -865,8 +866,8 @@ namespace DragonBound.Presentation
 
             stormShieldResourcesLoaded = true;
             stormShieldAnimationController =
-                Resources.Load<RuntimeAnimatorController>(StormShieldControllerResourcePath);
-            stormShieldFirstFrame = Resources.Load<Sprite>(StormShieldFirstFrameResourcePath);
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(StormShieldControllerResourcePath);
+            stormShieldFirstFrame = DragonBound.Presentation.UiAssets.Load<Sprite>(StormShieldFirstFrameResourcePath);
         }
 
         private void HideStormShieldVisual()
@@ -950,9 +951,9 @@ namespace DragonBound.Presentation
         {
             if (hpFill == null)
             {
-                var healthTrack = transform.Find("ART_EnemyHpTrack");
+                var healthTrack = transform.FindUi("ART_EnemyHpTrack");
                 var healthFillTransform = healthTrack != null
-                    ? healthTrack.Find("ART_EnemyHpFill")
+                    ? healthTrack.FindUi("ART_EnemyHpFill")
                     : null;
                 hpFill = healthFillTransform != null
                     ? healthFillTransform.GetComponent<Image>()
@@ -982,8 +983,8 @@ namespace DragonBound.Presentation
 
             if (overHp ==null )
             {
-                var track = transform.Find("ART_EnemyHpTrack");
-                var overHpTransform = track != null ? track.Find("overHp") : null;
+                var track = transform.FindUi("ART_EnemyHpTrack");
+                var overHpTransform = track != null ? track.FindUi("overHp") : null;
                 overHp =overHpTransform != null?overHpTransform .GetComponent<Image >() : null;
             }
             if (overHp !=null )
@@ -998,7 +999,7 @@ namespace DragonBound.Presentation
 
             if(hpTrack ==null )
             {
-                var track = transform.Find("ART_EnemyHpTrack");
+                var track = transform.FindUi("ART_EnemyHpTrack");
                 hpTrack =track !=null ?track .GetComponent <Image>() : null;
             }
             if (hpTrack !=null && authoredHpTrackSprite ==null )
@@ -1036,7 +1037,7 @@ namespace DragonBound.Presentation
 
         private void ResolveWaveAnimationView()
         {
-            var animationRoot = transform.Find(WaveAnimationRootName);
+            var animationRoot = transform.FindUi(WaveAnimationRootName);
             if (animationRoot == null)
             {
                 return;
@@ -1054,7 +1055,7 @@ namespace DragonBound.Presentation
                 waveAnimationPositionCaptured = true;
             }
 
-            var healthTrack = transform.Find("ART_EnemyHpTrack");
+            var healthTrack = transform.FindUi("ART_EnemyHpTrack");
             if (healthTrack != null)
             {
                 // Keep the authored RectTransform, but render the health bar above
@@ -1062,7 +1063,7 @@ namespace DragonBound.Presentation
                 healthTrack.SetAsLastSibling();
             }
 
-            var imageTransform = animationRoot.Find("Image");
+            var imageTransform = animationRoot.FindUi("Image");
             waveAnimationImage = imageTransform != null
                 ? imageTransform.GetComponent<Image>()
                 : animationRoot.GetComponent<Image>();
@@ -1079,7 +1080,7 @@ namespace DragonBound.Presentation
                 waveAnimator = waveAnimationImage.gameObject.AddComponent<Animator>();
             }
 
-            var authoredAnimatorTransform = animationRoot.Find("Animator");
+            var authoredAnimatorTransform = animationRoot.FindUi("Animator");
             var authoredAnimator = authoredAnimatorTransform != null
                 ? authoredAnimatorTransform.GetComponent<Animator>()
                 : null;
@@ -1157,7 +1158,7 @@ namespace DragonBound.Presentation
                     return null;
             }
 
-            var controller = Resources.Load<RuntimeAnimatorController>("Animation/" + controllerName);
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/" + controllerName);
             if (controller != null)
             {
                 BossAnimationControllers[spawnWave] = controller;
@@ -1179,7 +1180,7 @@ namespace DragonBound.Presentation
             {
                 waveAnimationControllersLoaded = true;
                 waveAnimationControllers = new RuntimeAnimatorController[WaveAnimationCount];
-                var controllers = Resources.LoadAll<RuntimeAnimatorController>("Animation");
+                var controllers = DragonBound.Presentation.UiAssets.LoadAll<RuntimeAnimatorController>("Animation");
                 for (var index = 0; index < controllers.Length; index++)
                 {
                     var controller = controllers[index];

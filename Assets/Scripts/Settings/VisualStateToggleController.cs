@@ -1,4 +1,5 @@
 using UnityEngine;
+using DragonBound.Presentation;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
@@ -12,7 +13,7 @@ public sealed class VisualStateToggleController : MonoBehaviour
     {
         toggleButton = GetComponent<Button>();
 
-        Transform stateTransform = transform.Find("State");
+        Transform stateTransform = transform.FindUi("State");
         state = stateTransform != null ? stateTransform.gameObject : null;
         if (state == null)
         {

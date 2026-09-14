@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections;
 using System.Collections.Generic;
 using DragonBound.Recruitment;
@@ -524,7 +525,7 @@ namespace DragonBound.Presentation
         {
             if (particalBgImage == null)
             {
-                var particalBg = transform.Find("ParticalBg");
+                var particalBg = transform.FindUi("ParticalBg");
                 if (particalBg != null)
                 {
                     particalBgImage = particalBg.GetComponent<Image>();
@@ -739,7 +740,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var existing = transform.Find(LevelUpVfxName);
+            var existing = transform.FindUi(LevelUpVfxName);
             if (existing == null)
             {
                 var root = new GameObject(
@@ -771,7 +772,7 @@ namespace DragonBound.Presentation
             if (levelUpVfxAnimator != null)
             {
                 levelUpVfxAnimator.runtimeAnimatorController =
-                    Resources.Load<RuntimeAnimatorController>(LevelUpControllerResourcePath);
+                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(LevelUpControllerResourcePath);
                 levelUpVfxAnimator.speed = 1f;
             }
 
@@ -814,7 +815,7 @@ namespace DragonBound.Presentation
             var controllerPath = rarity == HeroRecipeRarity.Gold
                 ? GoldSynthesisControllerResourcePath
                 : PurpleSynthesisControllerResourcePath;
-            var controller = Resources.Load<RuntimeAnimatorController>(controllerPath);
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(controllerPath);
             if (controller == null)
             {
                 Debug.LogWarning($"Hero synthesis animation is missing at Resources/{controllerPath}.", this);
@@ -872,7 +873,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var existing = transform.Find(SynthesisVfxName);
+            var existing = transform.FindUi(SynthesisVfxName);
             if (existing == null)
             {
                 var root = new GameObject(
@@ -1226,8 +1227,8 @@ namespace DragonBound.Presentation
             }
 
             rarityFramesLoaded = true;
-            purpleFrameSprite = Resources.Load<Sprite>("GameUI/HeroPurple");
-            goldFrameSprite = Resources.Load<Sprite>("GameUI/HeroGold");
+            purpleFrameSprite = DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/HeroPurple");
+            goldFrameSprite = DragonBound.Presentation.UiAssets.Load<Sprite>("GameUI/HeroGold");
             if (purpleFrameSprite == null || goldFrameSprite == null)
             {
                 Debug.LogError(
@@ -1384,7 +1385,7 @@ namespace DragonBound.Presentation
                 return cached;
             }
 
-            var sprite = Resources.Load<Sprite>(resourcePath);
+            var sprite = DragonBound.Presentation.UiAssets.Load<Sprite>(resourcePath);
             if (sprite != null)
             {
                 SpriteCache[resourcePath] = sprite;
@@ -1464,7 +1465,7 @@ namespace DragonBound.Presentation
                 return cached;
             }
 
-            var controller = Resources.Load<RuntimeAnimatorController>(resourcePath);
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(resourcePath);
             if (controller == null)
             {
                 var separatorIndex = resourcePath.LastIndexOf('/');
@@ -1472,7 +1473,7 @@ namespace DragonBound.Presentation
                         ? resourcePath.Substring(separatorIndex + 1)
                         : resourcePath)
                     .Trim();
-                foreach (var candidate in Resources.LoadAll<RuntimeAnimatorController>("Animation"))
+                foreach (var candidate in DragonBound.Presentation.UiAssets.LoadAll<RuntimeAnimatorController>("Animation"))
                 {
                     if (candidate != null &&
                         string.Equals(candidate.name.Trim(), expectedName, StringComparison.Ordinal))
@@ -1507,7 +1508,7 @@ namespace DragonBound.Presentation
 
             if (!SkillControllerCache.TryGetValue(resourcePath, out var controller) || controller == null)
             {
-                controller = Resources.Load<RuntimeAnimatorController>(resourcePath);
+                controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(resourcePath);
                 SkillControllerCache[resourcePath] = controller;
             }
 
@@ -1567,7 +1568,7 @@ namespace DragonBound.Presentation
                 return cached;
             }
 
-            var sprites = Resources.LoadAll<Sprite>($"Hero/{heroFolder}/ParticalBg");
+            var sprites = DragonBound.Presentation.UiAssets.LoadAll<Sprite>($"Hero/{heroFolder}/ParticalBg");
             var sprite = sprites != null && sprites.Length > 0 ? sprites[0] : null;
             if (sprite != null)
             {

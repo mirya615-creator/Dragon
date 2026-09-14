@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -113,14 +114,14 @@ public sealed class MainSignInController : MonoBehaviour
 
     private bool ResolveView()
     {
-        Transform panel = transform.Find("SignPanel");
-        Transform imageRoot = panel?.Find("Image");
-        Transform content = imageRoot?.Find("ContentCon");
+        Transform panel = transform.FindUi("SignPanel");
+        Transform imageRoot = panel?.FindUi("Image");
+        Transform content = imageRoot?.FindUi("ContentCon");
         signPanel = panel?.gameObject;
-        openButton = transform.Find("SignBtn")?.GetComponent<Button>();
-        closeButton = imageRoot?.Find("closeBtn")?.GetComponent<Button>();
-        todaySprite = Resources.Load<Sprite>(TodaySpritePath);
-        otherSprite = Resources.Load<Sprite>(OtherSpritePath);
+        openButton = transform.FindUi("SignBtn")?.GetComponent<Button>();
+        closeButton = imageRoot?.FindUi("closeBtn")?.GetComponent<Button>();
+        todaySprite = DragonBound.Presentation.UiAssets.Load<Sprite>(TodaySpritePath);
+        otherSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(OtherSpritePath);
 
         bool complete = signPanel != null && openButton != null && closeButton != null &&
                         content != null && todaySprite != null && otherSprite != null;
@@ -130,11 +131,11 @@ public sealed class MainSignInController : MonoBehaviour
             if (index < SignInDayCount - 1)
             {
                 string dayName = index == 0 ? "Image" : "Image (" + index + ")";
-                dayRoot = content?.Find(dayName);
+                dayRoot = content?.FindUi(dayName);
             }
             else
             {
-                dayRoot = imageRoot?.Find("Image (6)");
+                dayRoot = imageRoot?.FindUi("Image (6)");
             }
 
             dayButtons[index] = dayRoot?.GetComponent<Button>();

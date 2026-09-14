@@ -1,4 +1,5 @@
 using DragonBound.Combat;
+using DragonBound.Presentation;
 using DragonBound.Recruitment;
 using DragonBound.Runes;
 using TMPro;
@@ -110,7 +111,7 @@ namespace DragonBound.Presentation
             maxLevelLabel = Resolve(maxLevelLabel, "MaxLv");
             attackLabel = Resolve(attackLabel, "ATK");
             experienceLabel = Resolve(experienceLabel, "EXP");
-            divider = divider != null ? divider : transform.Find("device")?.gameObject;
+            divider = divider != null ? divider : transform.FindUi("device")?.gameObject;
             runeLabel = Resolve(runeLabel, "Rune");
             runeAttackLabel = Resolve(runeAttackLabel, "Rune ATK");
             attackRangeLabel = Resolve(attackRangeLabel, "ATKRange");
@@ -118,7 +119,7 @@ namespace DragonBound.Presentation
 
         private TMP_Text Resolve(TMP_Text current, string childName)
         {
-            return current != null ? current : transform.Find(childName)?.GetComponent<TMP_Text>();
+            return current != null ? current : transform.FindUi(childName)?.GetComponent<TMP_Text>();
         }
 
         private void NormalizeLayout()

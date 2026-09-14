@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections;
 using System.Collections.Generic;
 using DragonBound.Combat;
@@ -172,7 +173,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var existing = transform.Find(InputReceiverName);
+            var existing = transform.FindUi(InputReceiverName);
             if (existing != null)
             {
                 inputReceiver = existing.GetComponent<Graphic>();
@@ -601,7 +602,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var existing = transform.Find("ART_SoulChainOverlay");
+            var existing = transform.FindUi("ART_SoulChainOverlay");
             if (existing != null)
             {
                 soulChainOverlay = existing.GetComponent<Image>();
@@ -973,7 +974,7 @@ namespace DragonBound.Presentation
                 return null;
             }
 
-            var controller = Resources.Load<RuntimeAnimatorController>(resourcePath);
+            var controller = DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(resourcePath);
             if (controller != null)
             {
                 Cache[archetype] = controller;

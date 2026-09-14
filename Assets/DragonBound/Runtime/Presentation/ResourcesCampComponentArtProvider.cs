@@ -132,7 +132,7 @@ namespace DragonBound.Presentation
                 return true;
             }
 
-            sprite = Resources.Load<Sprite>(resourcePath);
+            sprite = DragonBound.Presentation.UiAssets.Load<Sprite>(resourcePath);
             if (sprite == null)
             {
                 if (reportedMissingPaths.Add(resourcePath))

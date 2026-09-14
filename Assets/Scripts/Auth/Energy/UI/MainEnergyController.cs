@@ -1,4 +1,5 @@
 using DragonBound.Services;
+using DragonBound.Presentation;
 using DragonBound.UI;
 using System;
 using System.Collections;
@@ -566,15 +567,15 @@ public sealed class MainEnergyController : MonoBehaviour
 
     private bool ResolveView()
     {
-        startButton = transform.Find("StartBtn")?.GetComponent<Button>();
-        addEnergyButton = transform.Find("EnergyBg/AddBtn")?.GetComponent<Button>();
-        addEnergyPanel = transform.Find("AddEnergyPanel")?.gameObject;
+        startButton = transform.FindUi("StartBtn")?.GetComponent<Button>();
+        addEnergyButton = transform.FindUi("EnergyBg/AddBtn")?.GetComponent<Button>();
+        addEnergyPanel = transform.FindUi("AddEnergyPanel")?.gameObject;
         Transform addEnergyRoot = addEnergyPanel != null ? addEnergyPanel.transform : null;
-        closeEnergyPanelButton = addEnergyRoot?.Find("BG/CloseBtn")?.GetComponent<Button>();
-        videoButton = addEnergyRoot?.Find("BG/VideoBtn")?.GetComponent<Button>();
-        shareButton = addEnergyRoot?.Find("BG/ShareBtn")?.GetComponent<Button>();
-        currentAmountText = transform.Find("EnergyBg/RAmount")?.GetComponent<TMP_Text>();
-        maximumAmountText = transform.Find("EnergyBg/MaxAmount")?.GetComponent<TMP_Text>();
+        closeEnergyPanelButton = addEnergyRoot?.FindUi("BG/CloseBtn")?.GetComponent<Button>();
+        videoButton = addEnergyRoot?.FindUi("BG/VideoBtn")?.GetComponent<Button>();
+        shareButton = addEnergyRoot?.FindUi("BG/ShareBtn")?.GetComponent<Button>();
+        currentAmountText = transform.FindUi("EnergyBg/RAmount")?.GetComponent<TMP_Text>();
+        maximumAmountText = transform.FindUi("EnergyBg/MaxAmount")?.GetComponent<TMP_Text>();
         bool complete = startButton != null && addEnergyButton != null && addEnergyPanel != null &&
                         closeEnergyPanelButton != null && videoButton != null && shareButton != null &&
                         currentAmountText != null && maximumAmountText != null;

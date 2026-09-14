@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using DragonBound.Core;
 using DragonBound.Grid;
 using DragonBound.Recruitment;
@@ -55,7 +56,7 @@ namespace DragonBound.Presentation
 
         private void HideChild(string childName)
         {
-            var child = transform.Find(childName);
+            var child = transform.FindUi(childName);
             if (child != null)
             {
                 child.gameObject.SetActive(false);

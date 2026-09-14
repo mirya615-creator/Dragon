@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,25 +55,25 @@ public sealed class MainLeaderboardController : MonoBehaviour
         authSessionStore = services.AuthSession;
         lifetimeCancellation = new CancellationTokenSource();
 
-        Transform background = transform.Find("Bg");
-        weekButton = background?.Find("WeekBtn")?.GetComponent<Button>();
-        monthButton = background?.Find("MonthBtn")?.GetComponent<Button>();
-        container = background?.Find("LeaderLimit/LeaderContainer");
-        myLeaderItem = background?.Find("MyLeaderItemBg");
-        myAvatarImage = myLeaderItem?.Find("AvatarImg")?.GetComponent<Image>();
-        myLeaderboardPositionText = myLeaderItem?.Find("LeaderImg/Text")?.GetComponent<TMP_Text>();
-        myRankText = myLeaderItem?.Find("RankText")?.GetComponent<TMP_Text>();
-        myTotalStarsText = myLeaderItem?.Find("RankText/StarAct")?.GetComponent<TMP_Text>();
-        itemPrefab = Resources.Load<GameObject>(ItemResourcePath);
+        Transform background = transform.FindUi("Bg");
+        weekButton = background?.FindUi("WeekBtn")?.GetComponent<Button>();
+        monthButton = background?.FindUi("MonthBtn")?.GetComponent<Button>();
+        container = background?.FindUi("LeaderLimit/LeaderContainer");
+        myLeaderItem = background?.FindUi("MyLeaderItemBg");
+        myAvatarImage = myLeaderItem?.FindUi("AvatarImg")?.GetComponent<Image>();
+        myLeaderboardPositionText = myLeaderItem?.FindUi("LeaderImg/Text")?.GetComponent<TMP_Text>();
+        myRankText = myLeaderItem?.FindUi("RankText")?.GetComponent<TMP_Text>();
+        myTotalStarsText = myLeaderItem?.FindUi("RankText/StarAct")?.GetComponent<TMP_Text>();
+        itemPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(ItemResourcePath);
 
         weekImage = weekButton.GetComponent<Image>();
         monthImage = monthButton.GetComponent<Image>();
-        weekSelectedSprite = Resources.Load<Sprite>(WeekSelectedSpritePath);
-        weekUnselectedSprite = Resources.Load<Sprite>(WeekUnselectedSpritePath);
-        firstPlaceSprite = Resources.Load<Sprite>(FirstPlaceSpritePath);
-        secondPlaceSprite = Resources.Load<Sprite>(SecondPlaceSpritePath);
-        thirdPlaceSprite = Resources.Load<Sprite>(ThirdPlaceSpritePath);
-        otherPlaceSprite = Resources.Load<Sprite>(OtherPlaceSpritePath);
+        weekSelectedSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(WeekSelectedSpritePath);
+        weekUnselectedSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(WeekUnselectedSpritePath);
+        firstPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(FirstPlaceSpritePath);
+        secondPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(SecondPlaceSpritePath);
+        thirdPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(ThirdPlaceSpritePath);
+        otherPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(OtherPlaceSpritePath);
 
 
         // 纯 sprite 驱动的 Tab 高亮：避免 ColorTint 给选中态叠一层透明色。
@@ -206,7 +207,7 @@ public sealed class MainLeaderboardController : MonoBehaviour
             item.name = $"LeaderItemBg_{index + 1}";
             ApplyLeaderboardPositionVisual(item.transform, index + 1);
 
-            Image avatar = item.transform.Find("AvatarImg")?.GetComponent<Image>();
+            Image avatar = item.transform.FindUi("AvatarImg")?.GetComponent<Image>();
             if (avatar != null)
             {
                 PlayerAvatarPrefabPresenter.Mount(
@@ -218,8 +219,8 @@ public sealed class MainLeaderboardController : MonoBehaviour
             string rankName = player.RankLevel >= 10
                 ? rank.RankName
                 : RankProgressionRules.GetDisplayName(rank);
-            SetText(item.transform.Find("RankText"), rankName);
-            SetText(item.transform.Find("RankText/StarAct"), player.TotalRankStars.ToString());
+            SetText(item.transform.FindUi("RankText"), rankName);
+            SetText(item.transform.FindUi("RankText/StarAct"), player.TotalRankStars.ToString());
         }
 
         Canvas.ForceUpdateCanvases();
@@ -230,9 +231,9 @@ public sealed class MainLeaderboardController : MonoBehaviour
 
     private void ApplyLeaderboardPositionVisual(Transform item, int position)
     {
-        Transform leaderImageTransform = item.Find("LeaderImg");
+        Transform leaderImageTransform = item.FindUi("LeaderImg");
         Image leaderImage = leaderImageTransform?.GetComponent<Image>();
-        Transform positionTextTransform = leaderImageTransform?.Find("Text");
+        Transform positionTextTransform = leaderImageTransform?.FindUi("Text");
 
         if (leaderImage != null)
         {

@@ -103,12 +103,12 @@ namespace DragonBound.Tests.EditMode
                 {
                     Assert.IsTrue(canvas.TryGetArtSlot(definition.Coordinate, out var slot));
                     CollectionAssert.Contains(FixedBoardArtContract.CellSlots, slot.SurfaceArtSlotId);
-                    Assert.IsNotNull(slot.transform.Find(FixedBoardArtContract.CellBorder));
+                    Assert.IsNotNull(slot.transform.FindUi(FixedBoardArtContract.CellBorder));
                     if (definition.Role == FixedBoardCellRole.Deployment &&
                         definition.DeployState == FixedBoardDeployState.LockedUnlockable)
                     {
                         Assert.IsTrue(slot.HasLockMarker);
-                        Assert.IsNotNull(slot.transform.Find(FixedBoardArtContract.LockMarker));
+                        Assert.IsNotNull(slot.transform.FindUi(FixedBoardArtContract.LockMarker));
                     }
                 }
             }

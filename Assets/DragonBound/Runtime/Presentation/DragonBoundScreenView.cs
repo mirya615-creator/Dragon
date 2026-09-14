@@ -1,4 +1,5 @@
 using DragonBound.Core;
+using DragonBound.Presentation;
 using DragonBound.Bosses.Contracts;
 using DragonBound.Bosses.Runtime;
 using DragonBound.Grid;
@@ -272,8 +273,8 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var host = transform.Find("ART_ScreenBackground/GameOverlayController") ??
-                       transform.Find("GameOverlayController");
+            var host = transform.FindUi("ART_ScreenBackground/GameOverlayController") ??
+                       transform.FindUi("GameOverlayController");
             if (host != null)
             {
                 overlayController = host.gameObject.AddComponent<GameOverlayController>();
@@ -287,8 +288,8 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var campPanel = transform.Find("campPanel") ??
-                            transform.Find("ART_ScreenBackground/campPanel");
+            var campPanel = transform.FindUi("campPanel") ??
+                            transform.FindUi("ART_ScreenBackground/campPanel");
             if (campPanel == null)
             {
                 return;
@@ -308,8 +309,8 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var host = transform.Find("ART_ScreenBackground/RecruitmentButtonController") ??
-                       transform.Find("ART_ScreenBackground/ART_RecruitButton");
+            var host = transform.FindUi("ART_ScreenBackground/RecruitmentButtonController") ??
+                       transform.FindUi("ART_ScreenBackground/ART_RecruitButton");
             if (host == null)
             {
                 throw new System.InvalidOperationException(
@@ -325,7 +326,7 @@ namespace DragonBound.Presentation
 
         private Button ResolveRecruitButton()
         {
-            var target = transform.Find("ART_ScreenBackground/ART_RecruitButton");
+            var target = transform.FindUi("ART_ScreenBackground/ART_RecruitButton");
             var button = target != null ? target.GetComponent<Button>() : null;
             if (button == null)
             {
@@ -338,7 +339,7 @@ namespace DragonBound.Presentation
 
         private Text ResolveRecruitButtonLabel()
         {
-            var target = transform.Find(
+            var target = transform.FindUi(
                 "ART_ScreenBackground/ART_RecruitButton/RecruitButtonLabel");
             var label = target != null ? target.GetComponent<Text>() : null;
             if (label == null)
@@ -437,7 +438,7 @@ namespace DragonBound.Presentation
                 }
             }
 
-            var heartRoot = goal?.Find("HpBg") as RectTransform;
+            var heartRoot = goal?.FindUi("HpBg") as RectTransform;
             if (heartRoot == null)
             {
                 return null;

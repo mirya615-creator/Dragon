@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DragonBound.Presentation;
 using DragonBound.Runes;
 using TMPro;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace DragonBound.Presentation
             ClearSpawnedViews();
             ResolvePrefabs();
 
-            var background = transform.Find("Bg");
+            var background = transform.FindUi("Bg");
             if (background == null)
             {
                 Debug.LogWarning("Pause Rune rewards require PausePanel/Bg.", this);
@@ -60,10 +61,10 @@ namespace DragonBound.Presentation
         {
             // New hierarchy: Bg/{Part}/{Reward}. The direct-child fallback keeps the
             // currently saved scene operational until its authored hierarchy is saved.
-            var part = background.Find(partName);
+            var part = background.FindUi(partName);
             var rewardContainer = part != null
-                ? part.Find(rewardName)
-                : background.Find(rewardName);
+                ? part.FindUi(rewardName)
+                : background.FindUi(rewardName);
             var noRewardParent = part != null ? part : background;
 
             if (rewardContainer == null)
@@ -130,7 +131,7 @@ namespace DragonBound.Presentation
             var instance = Instantiate(rewardItemPrefab, parent, false);
             instance.name = $"Item_Runtime_{index + 1}";
 
-            var icon = instance.transform.Find("ItemImg")?.GetComponent<Image>() ??
+            var icon = instance.transform.FindUi("ItemImg")?.GetComponent<Image>() ??
                        instance.GetComponent<Image>();
             if (icon != null)
             {
@@ -157,13 +158,13 @@ namespace DragonBound.Presentation
         {
             if (noRewardPrefab == null)
             {
-                noRewardPrefab = Resources.Load<GameObject>(NoRewardPrefabPath);
+                noRewardPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(NoRewardPrefabPath);
             }
 
             if (rewardItemPrefab == null)
             {
-                rewardItemPrefab = Resources.Load<GameObject>(AuthoredRewardPrefabPath) ??
-                                   Resources.Load<GameObject>(FallbackRewardPrefabPath);
+                rewardItemPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(AuthoredRewardPrefabPath) ??
+                                   DragonBound.Presentation.UiAssets.Load<GameObject>(FallbackRewardPrefabPath);
             }
         }
 

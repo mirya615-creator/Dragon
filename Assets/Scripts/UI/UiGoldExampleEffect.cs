@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -29,7 +30,7 @@ public sealed class UiGoldExampleEffect : MonoBehaviour
     private void BuildEffect()
     {
         targetRect = transform as RectTransform;
-        if (targetRect == null || transform.Find("GoldParticleExample") != null)
+        if (targetRect == null || transform.FindUi("GoldParticleExample") != null)
         {
             return;
         }
@@ -340,7 +341,7 @@ public static class UiGoldExampleEffectInstaller
                     continue;
                 }
 
-                var imageA = canvases[canvasIndex].transform.Find("ImageA");
+                var imageA = canvases[canvasIndex].transform.FindUi("ImageA");
                 if (imageA == null || imageA.GetComponent<Image>() == null)
                 {
                     continue;

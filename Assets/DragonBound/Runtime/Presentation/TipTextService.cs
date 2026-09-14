@@ -41,7 +41,7 @@ namespace DragonBound.UI
         private static void EnsureInstance()
         {
             if (cachedPrefab == null)
-                cachedPrefab = Resources.Load<GameObject>(PrefabPath);
+                cachedPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(PrefabPath);
 
             if (cachedPrefab == null)
             {

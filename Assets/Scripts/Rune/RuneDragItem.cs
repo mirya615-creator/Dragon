@@ -1,4 +1,5 @@
 using TMPro;
+using DragonBound.Presentation;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -26,9 +27,9 @@ public sealed class RuneDragItem : MonoBehaviour, IBeginDragHandler, IDragHandle
         canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null) canvasGroup = gameObject.AddComponent<CanvasGroup>();
 
-        amountRoot = transform.Find("AcText");
+        amountRoot = transform.FindUi("AcText");
         amountText = amountRoot != null
-            ? amountRoot.Find("Text (TMP)")?.GetComponent<TMP_Text>()
+            ? amountRoot.FindUi("Text (TMP)")?.GetComponent<TMP_Text>()
             : null;
     }
 
@@ -135,7 +136,7 @@ public sealed class RuneDragItem : MonoBehaviour, IBeginDragHandler, IDragHandle
 
     private void CloneVisualChild(string childName, RectTransform proxyParent)
     {
-        Transform source = transform.Find(childName);
+        Transform source = transform.FindUi(childName);
         if (source == null) return;
 
         GameObject clone = Instantiate(source.gameObject, proxyParent, false);

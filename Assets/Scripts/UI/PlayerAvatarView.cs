@@ -1,4 +1,5 @@
 using System;
+using DragonBound.Presentation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -100,7 +101,7 @@ public static class PlayerAvatarPrefabPresenter
     private static GameObject LoadPrefab()
     {
         if (profilePrefab != null) return profilePrefab;
-        profilePrefab = Resources.Load<GameObject>(PrefabResourcePath);
+        profilePrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(PrefabResourcePath);
         if (profilePrefab == null && !missingPrefabLogged)
         {
             missingPrefabLogged = true;
@@ -120,7 +121,7 @@ public static class PlayerAvatarPrefabPresenter
         profileRect.localRotation = Quaternion.identity;
 
         float slotSide = Mathf.Min(Mathf.Abs(slot.rect.width), Mathf.Abs(slot.rect.height));
-        RectTransform frameRect = profileRect.Find("ProfileFire") as RectTransform;
+        RectTransform frameRect = profileRect.FindUi("ProfileFire") as RectTransform;
         float authoredWidth = Mathf.Abs(profileRect.rect.width);
         float authoredHeight = Mathf.Abs(profileRect.rect.height);
         if (frameRect != null)
@@ -161,13 +162,13 @@ public static class PlayerAvatarSceneInstaller
 
             // BG/Image is the requested hierarchy. Greybox_Main's authored equivalent is
             // currently BG/MyPart/Image, so keep both layouts supported during migration.
-            Transform target = loadingPanel.Find("BG/Image") ?? loadingPanel.Find("BG/MyPart/Image");
+            Transform target = loadingPanel.FindUi("BG/Image") ?? loadingPanel.FindUi("BG/MyPart/Image");
             if (target != null)
             {
                 PlayerAvatarPrefabPresenter.Mount(target as RectTransform, avatarId);
             }
 
-            Transform enemyTarget = loadingPanel.Find("BG/EnemyPart/Image");
+            Transform enemyTarget = loadingPanel.FindUi("BG/EnemyPart/Image");
             if (enemyTarget != null)
             {
                 PlayerAvatarPrefabPresenter.Mount(

@@ -98,7 +98,7 @@ namespace DragonBound.Tests.PlayMode
                 .GetComponentsInChildren<EnemyView>(true)
                 .Single(view => view.RuntimeId == enemy.RuntimeId);
             Assert.AreEqual(
-                enemyView.transform.Find("ART_EnemyAnimation/Image").position,
+                enemyView.transform.FindUi("ART_EnemyAnimation/Image").position,
                 enemyView.VisualImpactPosition,
                 "Projectile impacts must use the authored enemy-art centre instead of the card root.");
             Assert.IsTrue(lane.TryGetEnemyVisualImpactPosition(enemy.RuntimeId, out var impactPosition));
@@ -106,7 +106,7 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsTrue(enemyView.IsFrostcrownMarked);
             Assert.IsNotNull(enemyView.FrostcrownMarkImage);
             Assert.AreSame(
-                Resources.Load<Sprite>("VFX/Frostcrown Hunter/road"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Frostcrown Hunter/road"),
                 enemyView.FrostcrownMarkImage.sprite);
             Assert.AreEqual(
                 new Vector2(22f, 33f),
@@ -141,7 +141,7 @@ namespace DragonBound.Tests.PlayMode
                 .Single(view => view.RuntimeId == enemy.RuntimeId);
             Assert.IsTrue(enemyView.IsFrostMireMarked);
             Assert.AreSame(
-                Resources.Load<Sprite>("VFX/Item/微信图片_20260909164612_605_101"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Item/微信图片_20260909164612_605_101"),
                 enemyView.FrostMireMarkImage.sprite);
             Assert.AreEqual(new Vector2(22f, 33f), enemyView.FrostMireMarkImage.rectTransform.sizeDelta);
             Assert.AreEqual(new Vector2(0f, 58f), enemyView.FrostMireMarkImage.rectTransform.anchoredPosition);
@@ -179,7 +179,7 @@ namespace DragonBound.Tests.PlayMode
                 .Single(view => view.RuntimeId == enemy.RuntimeId);
             Assert.IsTrue(enemyView.IsWinterveilMarked);
             Assert.AreSame(
-                Resources.Load<Sprite>("VFX/Item/微信图片_20260909164615_606_101"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Item/微信图片_20260909164615_606_101"),
                 enemyView.WinterveilMarkImage.sprite);
             Assert.AreEqual(new Vector2(22f, 33f), enemyView.WinterveilMarkImage.rectTransform.sizeDelta);
             Assert.AreEqual(new Vector2(-12f, 58f), enemyView.FrostMireMarkImage.rectTransform.anchoredPosition);
@@ -297,7 +297,7 @@ namespace DragonBound.Tests.PlayMode
                 "A deployed basic unit must remain combat-suspended while its landing visual is running.");
             var screen = Object.FindObjectOfType<DragonBoundScreenView>();
             var deploymentGhost = screen.FixedBoardCanvas.DeploymentFxLayer
-                .Find($"DeploymentGhost_{basic.RuntimeId}")
+                .FindUi($"DeploymentGhost_{basic.RuntimeId}")
                 ?.GetComponent<DraggableUnitView>();
             Assert.IsNotNull(deploymentGhost);
             Assert.IsFalse(
@@ -308,7 +308,7 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsFalse(bootstrap.RecruitDestination.IsCombatSuspended(basic.RuntimeId));
             Assert.IsNull(
                 screen.FixedBoardCanvas.DeploymentFxLayer
-                    .Find($"DeploymentGhost_{basic.RuntimeId}"));
+                    .FindUi($"DeploymentGhost_{basic.RuntimeId}"));
 
             var returnBench = bootstrap.PlayerBoard.GetPositions(CellType.Bench)
                 .First(position => !bootstrap.PlayerBoard.IsOccupied(position));
@@ -322,13 +322,13 @@ namespace DragonBound.Tests.PlayMode
             Assert.AreEqual(returnBench, afterReturn);
             Assert.IsNotNull(
                 screen.FixedBoardCanvas.DeploymentFxLayer
-                    .Find($"DeploymentGhost_{basic.RuntimeId}"),
+                    .FindUi($"DeploymentGhost_{basic.RuntimeId}"),
                 "A basic unit returning from the battlefield to the bench must use the deployment flight.");
 
             yield return new WaitForSecondsRealtime(0.7f);
             Assert.IsNull(
                 screen.FixedBoardCanvas.DeploymentFxLayer
-                    .Find($"DeploymentGhost_{basic.RuntimeId}"));
+                    .FindUi($"DeploymentGhost_{basic.RuntimeId}"));
         }
 
         [UnityTest]
@@ -539,7 +539,7 @@ namespace DragonBound.Tests.PlayMode
                 .Single(image => image.gameObject.activeInHierarchy &&
                                  image.gameObject.name == "Flame Drake Rider Fireball");
             Assert.AreSame(
-                Resources.Load<Sprite>("VFX/Flame Drake Rider/Sroad"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Flame Drake Rider/Sroad"),
                 skillFireball.sprite);
             Assert.AreEqual(new Vector2(92f, 58f), skillFireball.rectTransform.sizeDelta);
             var lane = screen.PlayerBattlefieldView.LaneView;
@@ -558,7 +558,7 @@ namespace DragonBound.Tests.PlayMode
                 .Single(animator => animator.gameObject.activeInHierarchy &&
                                     animator.gameObject.name == "Flame Drake Rider Skill Boom");
             Assert.AreSame(
-                Resources.Load<RuntimeAnimatorController>("Animation/FlameDrakeRiderBoomS"),
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/FlameDrakeRiderBoomS"),
                 skillExplosion.runtimeAnimatorController);
             Assert.AreEqual(
                 new Vector2(145f, 145f),
@@ -576,7 +576,7 @@ namespace DragonBound.Tests.PlayMode
             Assert.AreEqual(3, burningGround.Length);
             Assert.IsTrue(burningGround.All(animator =>
                 animator.runtimeAnimatorController ==
-                Resources.Load<RuntimeAnimatorController>("Animation/boomBoard")));
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/boomBoard")));
             Assert.IsTrue(burningGround.All(animator =>
                 ((RectTransform)animator.transform).sizeDelta == new Vector2(110f, 110f)));
             var laneWaypoints = screen.PlayerBattlefieldView.LaneView.Waypoints;
@@ -656,7 +656,7 @@ namespace DragonBound.Tests.PlayMode
                 .Single(image => image.gameObject.activeInHierarchy &&
                                  image.gameObject.name == "Flame Drake Rider Fireball");
             Assert.AreSame(
-                Resources.Load<Sprite>("VFX/Flame Drake Rider/road"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Flame Drake Rider/road"),
                 fireball.sprite);
             Assert.AreEqual(new Vector2(68f, 42f), fireball.rectTransform.sizeDelta);
             Assert.IsFalse(fireball.raycastTarget);
@@ -750,7 +750,7 @@ namespace DragonBound.Tests.PlayMode
                 .ToArray();
             Assert.AreEqual(2, fireballs.Length);
             Assert.IsTrue(fireballs.All(fireball =>
-                fireball.sprite == Resources.Load<Sprite>("VFX/Ember Shaman/road")));
+                fireball.sprite == DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Ember Shaman/road")));
             Assert.AreEqual(
                 1,
                 fireballs.Count(fireball =>
@@ -820,7 +820,7 @@ namespace DragonBound.Tests.PlayMode
                 .ToArray();
             Assert.AreEqual(1, bolts.Length);
             Assert.AreSame(
-                Resources.Load<RuntimeAnimatorController>("Animation/Runebolt MageBoom"),
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/Runebolt MageBoom"),
                 bolts[0].runtimeAnimatorController);
             var boltImage = bolts[0].GetComponent<Image>();
             var enemyPositions = screen.PlayerBattlefieldView
@@ -915,7 +915,7 @@ namespace DragonBound.Tests.PlayMode
                 .GetComponentsInChildren<Image>(true)
                 .Single(image => image.gameObject.activeInHierarchy &&
                                  image.gameObject.name == "Bow Sword Projectile");
-            Assert.AreSame(Resources.Load<Sprite>("VFX/Unit/road"), sword.sprite);
+            Assert.AreSame(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Unit/road"), sword.sprite);
             Assert.AreEqual(new Vector2(48f, 41f), sword.rectTransform.sizeDelta);
             Assert.IsTrue(sword.preserveAspect);
             Assert.IsFalse(sword.raycastTarget);
@@ -987,7 +987,7 @@ namespace DragonBound.Tests.PlayMode
                                  image.gameObject.name ==
                                  "Stonebound Warlock Normal Rock");
             Assert.AreSame(
-                Resources.Load<Sprite>("VFX/Stonebound Warlock/rood"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Stonebound Warlock/rood"),
                 normalRock.sprite);
             Assert.AreEqual(new Vector2(48f, 48f), normalRock.rectTransform.sizeDelta);
             Assert.IsTrue(normalRock.preserveAspect);
@@ -1028,7 +1028,7 @@ namespace DragonBound.Tests.PlayMode
                                  image.gameObject.name ==
                                  "Stonebound Warlock Skill Rock");
             Assert.AreSame(
-                Resources.Load<Sprite>("VFX/Stonebound Warlock/roodS"),
+                DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Stonebound Warlock/roodS"),
                 skillRock.sprite);
             Assert.AreEqual(new Vector2(88f, 88f), skillRock.rectTransform.sizeDelta);
             Assert.IsTrue(skillRock.preserveAspect);
@@ -1105,7 +1105,7 @@ namespace DragonBound.Tests.PlayMode
                 .GetComponentsInChildren<Image>(true)
                 .Single(image => image.gameObject.activeInHierarchy &&
                                  image.gameObject.name == "Thunderlord Main Chain");
-            Assert.AreSame(Resources.Load<Sprite>("VFX/Thunderlord/road/Main"), main.sprite);
+            Assert.AreSame(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Thunderlord/road/Main"), main.sprite);
             Assert.AreEqual(48f, main.rectTransform.sizeDelta.y, 0.001f);
             Assert.IsFalse(main.preserveAspect);
             Assert.IsFalse(main.raycastTarget);
@@ -1121,7 +1121,7 @@ namespace DragonBound.Tests.PlayMode
                 .GetComponentsInChildren<Image>(true)
                 .Single(image => image.gameObject.activeInHierarchy &&
                                  image.gameObject.name == "Thunderlord First Jump Chain");
-            Assert.AreSame(Resources.Load<Sprite>("VFX/Thunderlord/road/Froad"), firstJump.sprite);
+            Assert.AreSame(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Thunderlord/road/Froad"), firstJump.sprite);
             Assert.AreEqual(38f, firstJump.rectTransform.sizeDelta.y, 0.001f);
             Assert.IsFalse(enemyViews.Single(view =>
                 view.RuntimeId == enemies[1].RuntimeId).IsHealthVisualHeld);
@@ -1133,7 +1133,7 @@ namespace DragonBound.Tests.PlayMode
                 .GetComponentsInChildren<Image>(true)
                 .Single(image => image.gameObject.activeInHierarchy &&
                                  image.gameObject.name == "Thunderlord Second Jump Chain");
-            Assert.AreSame(Resources.Load<Sprite>("VFX/Thunderlord/road/Sroad"), secondJump.sprite);
+            Assert.AreSame(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Thunderlord/road/Sroad"), secondJump.sprite);
             Assert.AreEqual(30f, secondJump.rectTransform.sizeDelta.y, 0.001f);
             Assert.IsTrue(enemyViews.All(view => !view.IsHealthVisualHeld));
         }
@@ -1204,7 +1204,7 @@ namespace DragonBound.Tests.PlayMode
             Assert.IsTrue(boom.preserveAspect);
             Assert.IsFalse(boom.raycastTarget);
             Assert.AreSame(
-                Resources.Load<RuntimeAnimatorController>("Animation/ThunderlordBoom"),
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/ThunderlordBoom"),
                 boom.GetComponent<Animator>().runtimeAnimatorController);
             Assert.IsTrue(enemyViews.All(view => !view.IsHealthVisualHeld));
 
@@ -1278,14 +1278,14 @@ namespace DragonBound.Tests.PlayMode
             var hook = screen.FixedBoardCanvas.CombatFxLayer
                 .GetComponentsInChildren<Image>(true)
                 .Single(image => image.gameObject.name == "Abyssal Harpooner Hook");
-            Assert.AreSame(Resources.Load<Sprite>("VFX/Abyssal Harpooner/road"), chain.sprite);
+            Assert.AreSame(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Abyssal Harpooner/road"), chain.sprite);
             Assert.AreEqual(Image.Type.Tiled, chain.type);
             Assert.AreEqual(16f, chain.rectTransform.sizeDelta.y, 0.001f);
             Assert.AreEqual(
                 chain.sprite.rect.height / 16f,
                 chain.pixelsPerUnitMultiplier,
                 0.001f);
-            Assert.AreSame(Resources.Load<Sprite>("VFX/Abyssal Harpooner/boom"), hook.sprite);
+            Assert.AreSame(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Abyssal Harpooner/boom"), hook.sprite);
             Assert.AreEqual(new Vector2(56f, 33.25f), hook.rectTransform.sizeDelta);
             Assert.IsTrue(hook.preserveAspect);
             Assert.IsFalse(chain.raycastTarget);
@@ -1377,7 +1377,7 @@ namespace DragonBound.Tests.PlayMode
                 .ToArray();
             Assert.AreEqual(3, arrows.Length);
             Assert.IsTrue(arrows.All(arrow =>
-                arrow.sprite == Resources.Load<Sprite>("VFX/Skyborne Valkyrie/road")));
+                arrow.sprite == DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Skyborne Valkyrie/road")));
             Assert.IsTrue(arrows.All(arrow =>
                 arrow.rectTransform.sizeDelta == new Vector2(68f, 29f)));
             Assert.IsTrue(arrows.All(arrow => arrow.preserveAspect && !arrow.raycastTarget));
@@ -1431,7 +1431,7 @@ namespace DragonBound.Tests.PlayMode
                 .ToArray();
             Assert.AreEqual(1, activeStars.Length);
             Assert.AreSame(
-                Resources.Load<Sprite>(
+                DragonBound.Presentation.UiAssets.Load<Sprite>(
                     "VFX/Starfall Archmage/road/微信图片_20260831170133_175_101"),
                 activeStars[0].sprite);
             Assert.AreEqual(18f, activeStars[0].rectTransform.sizeDelta.y, 0.001f);
@@ -1500,7 +1500,7 @@ namespace DragonBound.Tests.PlayMode
                 .Single(animator => animator.gameObject.activeInHierarchy &&
                                     animator.gameObject.name == "Starfall Archmage Boom");
             Assert.AreSame(
-                Resources.Load<RuntimeAnimatorController>("Animation/StarfallArchmageBoom"),
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/StarfallArchmageBoom"),
                 impact.runtimeAnimatorController);
             Assert.AreEqual(new Vector2(145f, 145f), impact.GetComponent<RectTransform>().sizeDelta);
 
@@ -1560,7 +1560,7 @@ namespace DragonBound.Tests.PlayMode
                 .Single(animator => animator.gameObject.activeInHierarchy &&
                                     animator.gameObject.name == "Nightfang Assassin Boom");
             Assert.AreSame(
-                Resources.Load<RuntimeAnimatorController>("Animation/NightfangAssassinBoom"),
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/NightfangAssassinBoom"),
                 boom.runtimeAnimatorController);
             Assert.AreEqual(new Vector2(100f, 100f), boom.GetComponent<RectTransform>().sizeDelta);
             Assert.AreEqual(
@@ -1618,7 +1618,7 @@ namespace DragonBound.Tests.PlayMode
                 .GetComponentsInChildren<Image>(true)
                 .Single(image => image.gameObject.activeInHierarchy &&
                                  image.gameObject.name == "Windclaw Ranger Impact");
-            Assert.AreSame(Resources.Load<Sprite>("VFX/Windclaw Ranger/road"), impact.sprite);
+            Assert.AreSame(DragonBound.Presentation.UiAssets.Load<Sprite>("VFX/Windclaw Ranger/road"), impact.sprite);
             Assert.AreEqual(new Vector2(110f, 110f), impact.rectTransform.sizeDelta);
             Assert.IsTrue(impact.preserveAspect);
             Assert.IsFalse(impact.raycastTarget);
@@ -1737,14 +1737,14 @@ namespace DragonBound.Tests.PlayMode
             view.Bind(enemy);
             yield return null;
 
-            var shield = root.transform.Find("ART_StormShieldVFX");
+            var shield = root.transform.FindUi("ART_StormShieldVFX");
             Assert.IsNotNull(shield);
             Assert.IsTrue(view.IsStormShieldVisible);
             Assert.AreEqual(root.transform.childCount - 1, shield.GetSiblingIndex());
             Assert.AreEqual(authoredColor, body.color);
             Assert.IsFalse(shield.GetComponent<Image>().raycastTarget);
             Assert.AreSame(
-                Resources.Load<RuntimeAnimatorController>("Animation/ShieldShieldW"),
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/ShieldShieldW"),
                 shield.GetComponent<Animator>().runtimeAnimatorController);
 
             enemy.ApplyDamage(60f);
@@ -1781,13 +1781,13 @@ namespace DragonBound.Tests.PlayMode
             view.ShowDeathFlash();
 
             Assert.IsFalse(body.enabled);
-            var deathVfx = root.transform.Find("ART_EnemyDeathVFX");
+            var deathVfx = root.transform.FindUi("ART_EnemyDeathVFX");
             Assert.IsNotNull(deathVfx);
             Assert.AreEqual(new Vector2(110f, 110f),
                 ((RectTransform)deathVfx).sizeDelta);
             Assert.IsFalse(deathVfx.GetComponent<Image>().raycastTarget);
             Assert.AreSame(
-                Resources.Load<RuntimeAnimatorController>("Animation/DieBoom"),
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>("Animation/DieBoom"),
                 deathVfx.GetComponent<Animator>().runtimeAnimatorController);
 
             yield return new WaitForSecondsRealtime(0.13f);

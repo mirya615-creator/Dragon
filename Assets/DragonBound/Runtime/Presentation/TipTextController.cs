@@ -1,4 +1,5 @@
 using System.Collections;
+using DragonBound.Presentation;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -119,8 +120,8 @@ public sealed class TipTextController : MonoBehaviour
     private void Resolve()
     {
         label = GetComponent<TextMeshProUGUI>();
-        if (label == null && transform.Find("Text") != null)
-            label = transform.Find("Text").GetComponent<TextMeshProUGUI>();
+        if (label == null && transform.FindUi("Text") != null)
+            label = transform.FindUi("Text").GetComponent<TextMeshProUGUI>();
     }
 
     private void OnDisable()
