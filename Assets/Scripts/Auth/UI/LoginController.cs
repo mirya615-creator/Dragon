@@ -202,7 +202,7 @@ public sealed class LoginController : MonoBehaviour
     {
         if (requestInProgress) return;
 
-        bool sceneTransitionStarted = false;
+        //bool sceneTransitionStarted = false;
         try
         {
             SetBusy(true);
@@ -214,7 +214,7 @@ public sealed class LoginController : MonoBehaviour
             PlayerAvatarProfile.GetOrCreateAvatarId(session.PlayerId);
             authSessionStore.Set(session);
             LoadMainScene();
-            sceneTransitionStarted = true;
+            //sceneTransitionStarted = true;
         }
         catch (OperationCanceledException)
         {
