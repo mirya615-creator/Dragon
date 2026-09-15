@@ -23,8 +23,6 @@ public sealed class MainMerchantController : MonoBehaviour
     private const string OwnedItemPrefabPath = "prefabs/Item";
     private const string MerchantAdPlacement = "merchant_item";
     private const string MerchantLotteryAdPlacement = "lottery";
-    private const string SelectedTabSpritePath = "Main/Merchant/图层 72";
-    private const string UnselectedTabSpritePath = "Main/Merchant/图层 73";
     private const int ActiveItemLimit = 2;
     private const int PassiveItemLimit = 6;
     private const string ItemLimitMessage = "Item limit reached";
@@ -41,8 +39,10 @@ public sealed class MainMerchantController : MonoBehaviour
     private readonly List<TMP_Text> buyButtonTexts = new List<TMP_Text>();
     private readonly HashSet<Button> insufficientGoldButtons = new HashSet<Button>();
     private readonly List<Transform> lotteryItemViews = new List<Transform>();
+    private readonly List<Image> lotteryProductImages = new List<Image>();
     private readonly List<Vector3> lotteryItemBaseScales = new List<Vector3>();
     private readonly List<Color> lotteryItemBaseColors = new List<Color>();
+    private readonly List<Color> lotteryProductBaseColors = new List<Color>();
     private readonly HashSet<string> displayedProductIds = new HashSet<string>();
     private GameObject merchantPanel;
     private GameObject cancelItemPanel;
@@ -95,8 +95,11 @@ public sealed class MainMerchantController : MonoBehaviour
         lotteryButton = panelTransform?.FindUi("Bg/LotteryBtn")?.GetComponent<Button>();
         chantTabImage = ResolveTabImage(chantButton);
         lotteryTabImage = ResolveTabImage(lotteryButton);
-        selectedTabSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(SelectedTabSpritePath);
-        unselectedTabSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(UnselectedTabSpritePath);
+        // Each UI variant authors Chant as selected and Lottery as unselected.
+        // Capture those scene-owned sprites before ShowTab starts swapping them so
+        // shared navigation logic never loads or overwrites another variant's art.
+        selectedTabSprite = chantTabImage?.sprite;
+        unselectedTabSprite = lotteryTabImage?.sprite;
         lotteryDrawButton = panelTransform?.FindUi("Bg/LotteryContainer/LotteryBtn")
             ?.GetComponent<Button>();
         ResolveLotteryItems();
@@ -163,9 +166,9 @@ public sealed class MainMerchantController : MonoBehaviour
         {
             Debug.LogError(
                 "MainMerchantController requires MerchantPanel/Bg with ChantBtn, LotteryBtn, " +
-                "ChatItemCon and LotteryContainer containing LotteryBtn and 8 LotteryItems, " +
+                "ChatItemCon and LotteryContainer containing LotteryBtn and 8 LotteryItems with ItemImage, " +
                 "Bg/ItemContainer with ActiveColumn and PassiveColumn, Bg/CancleItemPanel " +
-                "with CancleBtn and ConfirmBtn, Resources/Main/Merchant/图层 72 & 73, " +
+                "with CancleBtn and ConfirmBtn, authored selected/unselected tab sprites, " +
                 "and Resources/prefabs/ItemBg and Item.");
             enabled = false;
             return;
@@ -248,6 +251,7 @@ public sealed class MainMerchantController : MonoBehaviour
     private void ResolveLotteryItems()
     {
         lotteryItemViews.Clear();
+        lotteryProductImages.Clear();
         if (lotteryContainer == null) return;
 
         Transform containerTransform = lotteryContainer.transform;
@@ -255,13 +259,16 @@ public sealed class MainMerchantController : MonoBehaviour
         {
             Transform child = containerTransform.GetChild(index);
             if (!child.name.StartsWith("LotteryItem", StringComparison.OrdinalIgnoreCase)) continue;
-            if (child.GetComponent<Image>() == null)
+            Image backgroundImage = child.GetComponent<Image>();
+            Image productImage = child.FindUi("ItemImage")?.GetComponent<Image>();
+            if (backgroundImage == null || productImage == null)
             {
-                Debug.LogError($"{child.name} requires an Image.");
+                Debug.LogError($"{child.name} requires a root Image and LotteryItem/ItemImage.");
                 continue;
             }
 
             lotteryItemViews.Add(child);
+            lotteryProductImages.Add(productImage);
         }
     }
 
@@ -331,16 +338,26 @@ public sealed class MainMerchantController : MonoBehaviour
             bool hasProduct = index < productCount && offer.Products[index] != null;
             itemView.gameObject.SetActive(hasProduct);
             itemView.localScale = Vector3.one;
-            Image image = itemView.GetComponent<Image>();
-            if (image != null) image.color = Color.white;
+            Image backgroundImage = itemView.GetComponent<Image>();
+            if (backgroundImage != null) backgroundImage.color = Color.white;
+
+            Image productImage = index < lotteryProductImages.Count
+                ? lotteryProductImages[index]
+                : null;
+            if (productImage != null)
+            {
+                productImage.sprite = null;
+                productImage.color = Color.white;
+                productImage.gameObject.SetActive(false);
+            }
             if (!hasProduct) continue;
 
             MerchantProduct product = offer.Products[index];
-            Sprite icon = iconProvider.Load(product.IconKey);
-            if (image != null && icon != null)
+            Sprite icon = TryLoadLotteryProductIcon(product.IconKey);
+            if (productImage != null && icon != null)
             {
-                image.sprite = icon;
-                image.color = Color.white;
+                productImage.sprite = icon;
+                productImage.gameObject.SetActive(true);
             }
         }
 
@@ -349,6 +366,13 @@ public sealed class MainMerchantController : MonoBehaviour
             HighlightLotteryWinner(offer.WinningProductId);
         }
         RefreshAcquisitionState();
+    }
+
+    private Sprite TryLoadLotteryProductIcon(string iconKey)
+    {
+        UiAssetRegistry registry = UiAssets.Active;
+        if (registry != null && !registry.ContainsKey(iconKey)) return null;
+        return iconProvider.Load(iconKey);
     }
 
     private async void OnLotteryDrawClicked()
@@ -586,11 +610,17 @@ public sealed class MainMerchantController : MonoBehaviour
     {
         lotteryItemBaseScales.Clear();
         lotteryItemBaseColors.Clear();
-        foreach (Transform item in lotteryItemViews)
+        lotteryProductBaseColors.Clear();
+        for (int index = 0; index < lotteryItemViews.Count; index++)
         {
+            Transform item = lotteryItemViews[index];
             lotteryItemBaseScales.Add(item != null ? item.localScale : Vector3.one);
             Image image = item != null ? item.GetComponent<Image>() : null;
             lotteryItemBaseColors.Add(image != null ? image.color : Color.white);
+            Image productImage = index < lotteryProductImages.Count
+                ? lotteryProductImages[index]
+                : null;
+            lotteryProductBaseColors.Add(productImage != null ? productImage.color : Color.white);
         }
     }
 
@@ -611,11 +641,27 @@ public sealed class MainMerchantController : MonoBehaviour
             Image image = item.GetComponent<Image>();
             if (image != null)
             {
-                image.color = active
-                    ? baseColor
-                    : new Color(baseColor.r * 0.55f, baseColor.g * 0.55f, baseColor.b * 0.55f, baseColor.a);
+                image.color = LotteryHighlightColor(baseColor, active);
+            }
+
+            Image productImage = index < lotteryProductImages.Count
+                ? lotteryProductImages[index]
+                : null;
+            if (productImage != null)
+            {
+                Color productBaseColor = index < lotteryProductBaseColors.Count
+                    ? lotteryProductBaseColors[index]
+                    : Color.white;
+                productImage.color = LotteryHighlightColor(productBaseColor, active);
             }
         }
+    }
+
+    private static Color LotteryHighlightColor(Color baseColor, bool active)
+    {
+        return active
+            ? baseColor
+            : new Color(baseColor.r * 0.55f, baseColor.g * 0.55f, baseColor.b * 0.55f, baseColor.a);
     }
 
     private void RestoreLotterySpinVisuals()
@@ -631,6 +677,14 @@ public sealed class MainMerchantController : MonoBehaviour
             if (image != null && index < lotteryItemBaseColors.Count)
             {
                 image.color = lotteryItemBaseColors[index];
+            }
+
+            Image productImage = index < lotteryProductImages.Count
+                ? lotteryProductImages[index]
+                : null;
+            if (productImage != null && index < lotteryProductBaseColors.Count)
+            {
+                productImage.color = lotteryProductBaseColors[index];
             }
         }
     }
@@ -675,6 +729,10 @@ public sealed class MainMerchantController : MonoBehaviour
             itemView.localScale = isWinner ? Vector3.one * LotteryWinnerScale : Vector3.one;
             Image image = itemView.GetComponent<Image>();
             if (image != null) image.color = Color.white;
+            Image productImage = index < lotteryProductImages.Count
+                ? lotteryProductImages[index]
+                : null;
+            if (productImage != null) productImage.color = Color.white;
         }
     }
 
