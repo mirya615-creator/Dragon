@@ -65,13 +65,13 @@ Main 场景各 Tab 面板按钮用两张成对底图表示选中/未选中态，
 - **历史重写**：本机**无** `git filter-repo`，有 `git filter-branch`。本次采用**压缩式**（`git reset --soft origin/<branch>` + 单次提交），10 个 commit 合为 `1a8ed8c`，`ca27491..1a8ed8c` fast-forward 推送成功，**未 force**。
 - **坑：Codex checkpoint ref 会"保护"大对象**。`refs/codex/turn-diffs/checkpoints/<hash>/<hash>/<ts>/<uuid>` 是插件的对话轮次快照，引用 reset 前的旧 commit，导致 `git gc --prune=now` 后 311MB db + 106MB bundle 仍可达（`git rev-list --objects --all` 仍能看到）。**只占本地空间，不影响远程/推送**。回收需删这些 ref 后 gc，但会失去 Codex 的轮次回滚能力。
 
-## Android 原生插件 / EDM 依赖约定（2026-09-14 核实，方案见 Docs/AndroidGoogleLogin_P0_实施步骤.md）
-- EDM4U 版本 **1.2.188**（`Assets/ExternalDependencyManager/Editor/1.2.188/`）。
-- **EDM 只把 `*Dependencies.xml`（文件名必须匹配此后缀）的依赖注入 `Assets/Plugins/Android/mainTemplate.gradle` = Gradle 的 `unityLibrary` 模块；它完全不处理 `*.androidlib`**（已在 `Google.JarResolver.dll` 中核实：注入正则只有 `.*\*\*DEPS\*\*.*` 与 `.*apply plugin: 'com\.android\.(application|library)'.*`）。
-- ⇒ 要加 Android 依赖：新建 `Assets/**/XxxDependencies.xml`（`<dependencies><androidPackages><androidPackage spec="group:artifact:ver"/></androidPackages></dependencies>`）→ `Assets > EDM > Android Resolver > Force Resolve`，**不要手改 mainTemplate.gradle / AndroidResolverDependencies.xml**（EDM 自动写）。
-- ⇒ 要加 Java 源码：放 `Assets/Plugins/Android/` 下（编入 unityLibrary，才有 EDM 注入的依赖），且**目录必须镜像 Java 包路径**（如 `Assets/Plugins/Android/com/drakeforge/mergedefense/googleauth/X.java`），因为 Gradle `src/main/java` 源集按包找文件。**不要**自建 `.androidlib` 放源码。
-- 现有 3 个 `.androidlib`（`FirebaseApp` / `DragonBoundNetwork` / `DragonBoundAnalytics`）均为**纯清单式**（只有 `AndroidManifest.xml` + `project.properties[+res/]`，无 build.gradle、无 java）。
-- ⚠️ `ProjectSettings.asset:262/265/266` 的 `useCustomMainGradleTemplate` / `useCustomGradlePropertiesTemplate` / `useCustomGradleSettingsTemplate` **读到 0**，但对应模板文件都存在 → 状态矛盾，动 Android 构建前先确认勾选。
+## Unity Android 原生桥接（Java）约定（2026-09-14，Google 登录 P0 定案；详见 Docs/AndroidGoogleLogin_P0S2_Java桥接实施步骤.md）
+- **唯一正确形式：`Xxx.androidlib` + 自带 `build.gradle`**（源码 `src/main/java/<包路径>/Xxx.java`，manifest 放**顶层**）。
+  Unity 官方示例、官方 Gradle 文档与本机 Unity Gradle 模板均与该结构一致。
+- **禁止两件事**：① 把 `.java` 散放 `Assets/Plugins/Android/` 指望进 unityLibrary；② 指望 **EDM4U** 注入 androidlib 依赖。它只往 `mainTemplate.gradle`（unityLibrary）注入，而 Gradle `implementation` 不跨模块传递；第三方依赖必须写在模块自己的 build.gradle。
+- 引擎 = **团结(Tuanjie) 2022.3.62t14**（等同 Unity 2022.3 LTS）。模块 build.gradle 必须硬编码 `compileSdk 35` / `minSdk 24`；依赖仓库由 `settingsTemplate.gradle` 的 `RepositoriesMode.PREFER_SETTINGS` + `google()` + `mavenCentral()` 提供。
+- 混淆：C# 侧 `AndroidJavaClass` 属 JNI 加载、Java 侧无引用，因此必须用 `consumerProguardFiles` 保留自己的包名。
+- 版本事实（2026-09 实查）：`androidx.credentials`/`-play-services-auth` 稳定版 **1.6.0**（两者须同版本）；`googleid` 用 **1.2.0**；`androidx.core:1.15.0+` 要求 **compileSdk ≥ 35**；credentials 的 minSdk 为 **23**（本项目 24 ✅）；异常类名是 **`GetCredentialCancelationException`（单 l）**。
 
 ## Google 登录接入现状（2026-09-14）
 - 唯一线上注入点：`Assets/Scripts/Services/Composition/GoUnaryServiceModule.cs:22` `new UnavailableGoogleOAuthProvider()`（`ClientServiceConfig.asset` 是 `backendMode: 1` = GoUnary）→ 当前构建点 Google 按钮必失败。
