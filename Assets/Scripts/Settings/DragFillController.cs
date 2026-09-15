@@ -3,6 +3,7 @@ using DragonBound.Presentation;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using System;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(RectTransform))]
@@ -18,6 +19,10 @@ public sealed class DragFillController : MonoBehaviour, IPointerDownHandler, IDr
 
     private const string MusicPrefsKey = "Settings.MusicVolume";
     private const string SfxPrefsKey = "Settings.SfxVolume";
+    private const string LastNonZeroPrefsSuffix = ".LastNonZero";
+    private const string SelectedToggleSpriteKey = "UIResources/Main/SetUp/图层 35";
+    private const string UnselectedToggleSpriteKey = "UIResources/Main/SetUp/图层 34";
+    private const float MutedThreshold = 0.0001f;
 
     [Header("Value")]
     [SerializeField] private VolumeChannel channel = VolumeChannel.Auto;
@@ -34,7 +39,12 @@ public sealed class DragFillController : MonoBehaviour, IPointerDownHandler, IDr
     private RectTransform fillRect;
     private string prefsKey;
     private float value;
+    private float lastNonZeroValue = 1f;
     private bool valueIsDirty;
+    private Button masterToggleButton;
+    private Image masterToggleImage;
+    private Sprite selectedToggleSprite;
+    private Sprite unselectedToggleSprite;
 
     /// <summary>The current normalized value. Setting it updates the UI and persisted setting.</summary>
     public float Value
@@ -86,9 +96,11 @@ public sealed class DragFillController : MonoBehaviour, IPointerDownHandler, IDr
         fillImage.fillClockwise = true;
 
         prefsKey = ResolvePrefsKey();
+        ResolveOptionalMasterToggle();
         float initialValue = saveValue && !string.IsNullOrEmpty(prefsKey)
             ? PlayerPrefs.GetFloat(prefsKey, defaultValue)
             : defaultValue;
+        lastNonZeroValue = ResolveLastNonZeroValue(initialValue);
         SetValueWithoutNotify(initialValue);
         NotifyValueChanged();
     }
@@ -117,6 +129,7 @@ public sealed class DragFillController : MonoBehaviour, IPointerDownHandler, IDr
         }
 
         value = newValue;
+        RememberNonZeroValue(value);
         RefreshVisuals();
 
         if (saveValue && !string.IsNullOrEmpty(prefsKey))
@@ -173,6 +186,77 @@ public sealed class DragFillController : MonoBehaviour, IPointerDownHandler, IDr
             handle.anchorMin = anchorMin;
             handle.anchorMax = anchorMax;
         }
+
+        RefreshMasterToggleVisual();
+    }
+
+    private void ResolveOptionalMasterToggle()
+    {
+        Transform part = transform.parent;
+        Transform toggleTransform = part?.FindUi("Image");
+        if (toggleTransform == null) return;
+
+        Button toggleButton = toggleTransform.GetComponent<Button>();
+        Image toggleImage = toggleTransform.GetComponent<Image>();
+        UiAssetRegistry registry = UiAssets.Active;
+        if (toggleButton == null || toggleImage == null || registry == null ||
+            !string.Equals(registry.VariantId, "V2", StringComparison.Ordinal) ||
+            !registry.ContainsKey(SelectedToggleSpriteKey) ||
+            !registry.ContainsKey(UnselectedToggleSpriteKey))
+        {
+            return;
+        }
+
+        Sprite selectedSprite = registry.Load<Sprite>(SelectedToggleSpriteKey);
+        Sprite unselectedSprite = registry.Load<Sprite>(UnselectedToggleSpriteKey);
+        if (selectedSprite == null || unselectedSprite == null)
+        {
+            Debug.LogError($"{part.name}/Image requires the V2 selected and unselected volume sprites.", toggleTransform);
+            return;
+        }
+
+        masterToggleButton = toggleButton;
+        masterToggleImage = toggleImage;
+        selectedToggleSprite = selectedSprite;
+        unselectedToggleSprite = unselectedSprite;
+        masterToggleButton.onClick.AddListener(ToggleMasterVolume);
+    }
+
+    private float ResolveLastNonZeroValue(float initialValue)
+    {
+        if (initialValue > MutedThreshold) return initialValue;
+        if (!saveValue || string.IsNullOrEmpty(prefsKey)) return Mathf.Max(defaultValue, 1f);
+
+        float savedValue = PlayerPrefs.GetFloat(
+            prefsKey + LastNonZeroPrefsSuffix,
+            Mathf.Max(defaultValue, 1f));
+        return savedValue > MutedThreshold ? Mathf.Clamp01(savedValue) : 1f;
+    }
+
+    private void RememberNonZeroValue(float newValue)
+    {
+        if (newValue <= MutedThreshold) return;
+
+        lastNonZeroValue = newValue;
+        if (saveValue && !string.IsNullOrEmpty(prefsKey))
+        {
+            PlayerPrefs.SetFloat(prefsKey + LastNonZeroPrefsSuffix, lastNonZeroValue);
+            valueIsDirty = true;
+        }
+    }
+
+    private void ToggleMasterVolume()
+    {
+        SetValue(value > MutedThreshold ? 0f : lastNonZeroValue);
+        SaveIfDirty();
+    }
+
+    private void RefreshMasterToggleVisual()
+    {
+        if (masterToggleImage == null) return;
+        masterToggleImage.sprite = value > MutedThreshold
+            ? selectedToggleSprite
+            : unselectedToggleSprite;
     }
 
     private string ResolvePrefsKey()
@@ -224,6 +308,14 @@ public sealed class DragFillController : MonoBehaviour, IPointerDownHandler, IDr
     private void OnDisable()
     {
         SaveIfDirty();
+    }
+
+    private void OnDestroy()
+    {
+        if (masterToggleButton != null)
+        {
+            masterToggleButton.onClick.RemoveListener(ToggleMasterVolume);
+        }
     }
 
     private void OnApplicationPause(bool pauseStatus)
