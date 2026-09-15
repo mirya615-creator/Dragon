@@ -15,6 +15,12 @@ namespace DragonBound.Presentation
             Bag
         }
 
+        public enum VisualMode
+        {
+            Alpha,
+            SpriteSwap
+        }
+
         [SerializeField] private Button rankingButton;
         [SerializeField] private Image rankingImage;
         [SerializeField] private Button mainButton;
@@ -22,6 +28,9 @@ namespace DragonBound.Presentation
         [SerializeField] private Button bagButton;
         [SerializeField] private Image bagImage;
         [SerializeField] private NavigationItem initialSelection = NavigationItem.Main;
+        [SerializeField] private VisualMode visualMode = VisualMode.Alpha;
+        [SerializeField] private Sprite selectedSprite;
+        [SerializeField] private Sprite unselectedSprite;
 
         private static readonly Color SelectedColor = new Color(1f, 1f, 1f, 1f);
         private static readonly Color UnselectedColor = new Color(1f, 1f, 1f, 0f);
@@ -37,6 +46,7 @@ namespace DragonBound.Presentation
         private void Awake()
         {
             ResolvePanels();
+            DisableButtonTransitions();
             ApplySelection(initialSelection);   // 首帧就对，不等 Start
         }
 
@@ -133,9 +143,9 @@ namespace DragonBound.Presentation
         public void ApplySelection(NavigationItem selected)
         {
             if (hasApplied && selected == currentSelection) return;
-            SetColor(rankingImage, selected == NavigationItem.Ranking);
-            SetColor(mainImage, selected == NavigationItem.Main);
-            SetColor(bagImage, selected == NavigationItem.Bag);
+            ApplyVisual(rankingImage, selected == NavigationItem.Ranking);
+            ApplyVisual(mainImage, selected == NavigationItem.Main);
+            ApplyVisual(bagImage, selected == NavigationItem.Bag);
             currentSelection = selected;
             hasApplied = true;
         }
@@ -146,9 +156,25 @@ namespace DragonBound.Presentation
 
         private void SelectBag() => ApplySelection(NavigationItem.Bag);
 
-        private static void SetColor(Graphic graphic, bool selected)
+        private void ApplyVisual(Image image, bool selected)
         {
-            if (graphic != null) graphic.color = selected ? SelectedColor : UnselectedColor;
+            if (image == null) return;
+
+            if (visualMode == VisualMode.SpriteSwap)
+            {
+                Sprite targetSprite = selected ? selectedSprite : unselectedSprite;
+                if (targetSprite != null) image.sprite = targetSprite;
+                return;
+            }
+
+            image.color = selected ? SelectedColor : UnselectedColor;
+        }
+
+        private void DisableButtonTransitions()
+        {
+            DisableColorTint(rankingButton);
+            DisableColorTint(mainButton);
+            DisableColorTint(bagButton);
         }
 
         private static void DisableColorTint(Selectable selectable)
