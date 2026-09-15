@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 42.749, y: 0}
-  m_SizeDelta: {x: 207.5, y: 0}
+  m_AnchoredPosition: {x: 13.008705, y: 0}
+  m_SizeDelta: {x: 148.0194, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1105633684605168457
 CanvasRenderer:
@@ -92,8 +92,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 50
-  m_fontSizeBase: 50
+  m_fontSize: 35
+  m_fontSizeBase: 35
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -128,7 +128,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 35, w: 0}
+  m_margin: {x: 0, y: 0, z: -0.24780273, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -168,8 +168,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 42, y: 2}
-  m_SizeDelta: {x: 105, y: 105}
+  m_AnchoredPosition: {x: 20, y: 0}
+  m_SizeDelta: {x: 83, y: 83}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2414310006351586371
 CanvasRenderer:
@@ -199,7 +199,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 242754c6ec1be4e4d8cb0790102d9a47, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6ee63f0a97a1920439fc15d55fbf382f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -221,6 +221,7 @@ GameObject:
   - component: {fileID: 5521758241900160762}
   - component: {fileID: 9144574702854911271}
   - component: {fileID: 3654167519058732501}
+  - component: {fileID: 1439305748925023064}
   m_Layer: 5
   m_Name: CoinBg
   m_TagString: Untagged
@@ -277,7 +278,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 7e54a62b836b72b489608c22a5a0843b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 55091c4be3df45445a0a9f9d5d986375, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -299,3 +300,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33a6e82a184c4e31ae174f63e7293a50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1439305748925023064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8309491452353886355}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adb30198aa32dd140b5750692dd48104, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  radius: 30
+  image: {fileID: 9144574702854911271}
