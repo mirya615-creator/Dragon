@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using DragonBound.Presentation;
 using UnityEditor;
 using UnityEditor.Build;
@@ -19,7 +20,11 @@ namespace DragonBound.Editor.Versioning
         private const string V1ProfilePath = V1Root + "/Config/V1BuildProfile.asset";
         private const string V2ProfilePath = V2Root + "/Config/V2BuildProfile.asset";
         private const string LegacyResourcesRoot = "Assets/Resources";
+        private const string V1ResourcePrefabsRoot = V1Root + "/Content/Resources/prefabs";
         private const string V1ResourcesRoot = V1Root + "/Content/Resources";
+        private const string V2ResourcesRoot = V2Root + "/Content/Resources";
+        private const string V1ComponentPrefabsRoot = V1Root + "/Content/UI/Prefabs/Components";
+        private const string V2ComponentPrefabsRoot = V2Root + "/Content/UI/Prefabs/Components";
         private const string LegacyUiRoot = "Assets/DragonBound/UI";
 
         [MenuItem("DragonBound/Versioning/Prepare Version Infrastructure")]
@@ -66,6 +71,48 @@ namespace DragonBound.Editor.Versioning
         {
             GenerateV1Registry();
             AssetDatabase.SaveAssets();
+        }
+
+        [MenuItem("DragonBound/Versioning/Create V2 Initial Scene And Prefab Copy")]
+        public static void CreateV2InitialSceneAndPrefabCopy()
+        {
+            EnsureFolder(V2Root + "/Config");
+            EnsureFolder(V2Root + "/Content");
+            EnsureFolder(V2Root + "/Scenes");
+
+            var guidMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var copiedPaths = new List<string>();
+            foreach (var sceneName in new[] { "Login", "Main", "Greybox_Main" })
+            {
+                CopyAssetWithIndependentGuid(
+                    UiVariantProjectPaths.V1Scene(sceneName),
+                    $"{V2Root}/Scenes/{sceneName}.unity",
+                    guidMap,
+                    copiedPaths);
+            }
+
+            CopyPrefabTree(V1ResourcePrefabsRoot, V2ResourcesRoot + "/prefabs", guidMap, copiedPaths);
+            CopyPrefabTree(V1ComponentPrefabsRoot, V2ComponentPrefabsRoot, guidMap, copiedPaths);
+            RemapCopiedAssetReferences(copiedPaths, guidMap);
+
+            var registry = GenerateRegistry("V2", V2ResourcesRoot, V2RegistryPath);
+            var scenes = new[]
+            {
+                AssetDatabase.LoadAssetAtPath<SceneAsset>($"{V2Root}/Scenes/Login.unity"),
+                AssetDatabase.LoadAssetAtPath<SceneAsset>($"{V2Root}/Scenes/Main.unity"),
+                AssetDatabase.LoadAssetAtPath<SceneAsset>($"{V2Root}/Scenes/Greybox_Main.unity")
+            };
+            var profile = LoadOrCreate<DragonBoundUiBuildProfile>(V2ProfilePath);
+            profile.Configure(
+                "V2", V2Root, V1Root, scenes, registry,
+                "Drakeforge V2", "com.drakeforge.mergedefense.v2", "0.1.0", 1,
+                "Builds/Android/V2/Drakeforge-V2.apk", true);
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log(
+                $"Created V2 initial copy: {scenes.Length} scenes, " +
+                $"{copiedPaths.Count - scenes.Length} prefabs, {guidMap.Count} independent GUID mappings.");
         }
 
         [MenuItem("DragonBound/Versioning/Migrate Current UI To V1 (Keep GUIDs)")]
@@ -365,6 +412,88 @@ namespace DragonBound.Editor.Versioning
                 ? LegacyResourcesRoot
                 : V1ResourcesRoot;
             return GenerateRegistry("V1", sourceRoot, V1RegistryPath);
+        }
+
+        private static void CopyPrefabTree(
+            string sourceRoot,
+            string destinationRoot,
+            IDictionary<string, string> guidMap,
+            ICollection<string> copiedPaths)
+        {
+            if (!AssetDatabase.IsValidFolder(sourceRoot))
+                throw new InvalidOperationException($"V1 prefab folder is missing: {sourceRoot}");
+            EnsureFolder(destinationRoot);
+            var prefabPaths = AssetDatabase.FindAssets("t:Prefab", new[] { sourceRoot })
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Where(path => IsBelow(path, sourceRoot))
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            foreach (var sourcePath in prefabPaths)
+            {
+                var relative = Normalize(sourcePath).Substring(Normalize(sourceRoot).Length).TrimStart('/');
+                CopyAssetWithIndependentGuid(
+                    sourcePath,
+                    destinationRoot + "/" + relative,
+                    guidMap,
+                    copiedPaths);
+            }
+        }
+
+        private static void CopyAssetWithIndependentGuid(
+            string sourcePath,
+            string destinationPath,
+            IDictionary<string, string> guidMap,
+            ICollection<string> copiedPaths)
+        {
+            sourcePath = Normalize(sourcePath);
+            destinationPath = Normalize(destinationPath);
+            if (AssetDatabase.LoadMainAssetAtPath(sourcePath) == null)
+                throw new InvalidOperationException($"V1 source asset is missing: {sourcePath}");
+            EnsureFolder(Normalize(Path.GetDirectoryName(destinationPath)));
+            if (AssetDatabase.LoadMainAssetAtPath(destinationPath) == null &&
+                !AssetDatabase.CopyAsset(sourcePath, destinationPath))
+            {
+                throw new InvalidOperationException($"Failed to copy {sourcePath} to {destinationPath}.");
+            }
+
+            var sourceGuid = AssetDatabase.AssetPathToGUID(sourcePath);
+            var destinationGuid = AssetDatabase.AssetPathToGUID(destinationPath);
+            if (string.IsNullOrWhiteSpace(sourceGuid) || string.IsNullOrWhiteSpace(destinationGuid) ||
+                string.Equals(sourceGuid, destinationGuid, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"V2 copy did not receive an independent GUID: {destinationPath}");
+            }
+
+            guidMap[sourceGuid] = destinationGuid;
+            copiedPaths.Add(destinationPath);
+        }
+
+        private static void RemapCopiedAssetReferences(
+            IEnumerable<string> copiedPaths,
+            IReadOnlyDictionary<string, string> guidMap)
+        {
+            var utf8 = new UTF8Encoding(false);
+            foreach (var assetPath in copiedPaths.Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                var extension = Path.GetExtension(assetPath);
+                if (!string.Equals(extension, ".unity", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(extension, ".prefab", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var fullPath = Path.GetFullPath(assetPath);
+                var content = File.ReadAllText(fullPath, utf8);
+                var remapped = content;
+                foreach (var pair in guidMap)
+                {
+                    remapped = remapped.Replace("guid: " + pair.Key, "guid: " + pair.Value);
+                }
+
+                if (string.Equals(content, remapped, StringComparison.Ordinal)) continue;
+                File.WriteAllText(fullPath, remapped, utf8);
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+            }
         }
 
         private static SceneAsset LoadScene(string sceneName)

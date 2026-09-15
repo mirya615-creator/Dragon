@@ -15,7 +15,10 @@ MonoBehaviour:
   variantId: V2
   allowedUiRoot: Assets/DragonBound/UI/Variants/V2
   forbiddenUiRoot: Assets/DragonBound/UI/Variants/V1
-  scenes: []
+  scenes:
+  - {fileID: 102900000, guid: 412be8411b5904345a6b3f16af60f4a9, type: 3}
+  - {fileID: 102900000, guid: 666ee216144b95a43acef3f05af1c11e, type: 3}
+  - {fileID: 102900000, guid: 789288e3b4da97c4d92abebb380dceee, type: 3}
   assetRegistry: {fileID: 11400000, guid: 37ee4d994dbb6fd408787117738695f1, type: 2}
   productName: Drakeforge V2
   applicationIdentifier: com.drakeforge.mergedefense.v2
