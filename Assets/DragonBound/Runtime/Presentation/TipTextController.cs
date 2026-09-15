@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 挂在 Assets/Resources/prefabs/TipText.prefab 根节点。
+/// 挂在由当前版本 UiAssetRegistry 的 prefabs/TipText 键指定的预制体根节点。
 /// 显示设定的文字，默认 3 秒后自动隐藏；重复触发时先取消上一次计时。
 /// 背景条尺寸随文案自适应：宽 clamp(自然宽 + 左右内边距, MinTipWidth, MaxTipWidth)，
 /// 高 = 行数 × RowHeightPerLine。

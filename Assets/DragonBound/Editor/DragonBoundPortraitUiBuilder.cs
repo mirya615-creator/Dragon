@@ -16,32 +16,21 @@ namespace DragonBound.Editor
 {
     public static class DragonBoundPortraitUiBuilder
     {
-        public const string ScreenPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Screens/DragonBoundPortraitScreen.prefab";
-        public const string HudPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Modules/HUD.prefab";
-        public const string BattlefieldPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Modules/Battlefield.prefab";
-        public const string BenchPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Modules/Bench.prefab";
-        public const string RecruitmentPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Modules/Recruitment.prefab";
-        public const string BoardCellPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Components/BoardCell.prefab";
-        public const string BenchSlotPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Components/BenchSlot.prefab";
-        public const string UnitCardPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Components/UnitCard.prefab";
-        public const string EnemyCardPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Components/EnemyCard.prefab";
-        public const string HeroFormationPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Components/HeroFormation.prefab";
-        public const string RangeOutlineSpritePath =
-            "Assets/DragonBound/UI/Art/Range/RangeOutlineThin.png";
-        public const string ScenePath = "Assets/Scenes/Greybox_Main.unity";
-        public const string HeroSliceScenePath = "Assets/Scenes/HeroSlice_Main.unity";
-        private const string LoginScenePath = "Assets/Scenes/Login.unity";
-        private const string MainScenePath = "Assets/Scenes/Main.unity";
+        public static readonly string ScreenPrefabPath = UiVariantProjectPaths.V1Ui("Prefabs/Screens/DragonBoundPortraitScreen.prefab");
+        public static readonly string HudPrefabPath = UiVariantProjectPaths.V1Ui("Prefabs/Modules/HUD.prefab");
+        public static readonly string BattlefieldPrefabPath = UiVariantProjectPaths.V1Ui("Prefabs/Modules/Battlefield.prefab");
+        public static readonly string BenchPrefabPath = UiVariantProjectPaths.V1Ui("Prefabs/Modules/Bench.prefab");
+        public static readonly string RecruitmentPrefabPath = UiVariantProjectPaths.V1Ui("Prefabs/Modules/Recruitment.prefab");
+        public static readonly string BoardCellPrefabPath = UiVariantProjectPaths.V1Ui("Prefabs/Components/BoardCell.prefab");
+        public static readonly string BenchSlotPrefabPath = UiVariantProjectPaths.V1Ui("Prefabs/Components/BenchSlot.prefab");
+        public static readonly string UnitCardPrefabPath = UiVariantProjectPaths.V1Ui("Prefabs/Components/UnitCard.prefab");
+        public static readonly string EnemyCardPrefabPath = UiVariantProjectPaths.V1Ui("Prefabs/Components/EnemyCard.prefab");
+        public static readonly string HeroFormationPrefabPath = UiVariantProjectPaths.V1Ui("Prefabs/Components/HeroFormation.prefab");
+        public static readonly string RangeOutlineSpritePath = UiVariantProjectPaths.V1Ui("Art/Range/RangeOutlineThin.png");
+        public static readonly string ScenePath = UiVariantProjectPaths.V1Scene("Greybox_Main");
+        public static readonly string HeroSliceScenePath = UiVariantProjectPaths.V1Scene("HeroSlice_Main");
+        private static readonly string LoginScenePath = UiVariantProjectPaths.V1Scene("Login");
+        private static readonly string MainScenePath = UiVariantProjectPaths.V1Scene("Main");
 
         private static readonly Color ScreenColor = new Color(0.055f, 0.065f, 0.07f, 1f);
         private static readonly Color HudColor = new Color(0.10f, 0.11f, 0.13f, 0.98f);
@@ -158,12 +147,10 @@ namespace DragonBound.Editor
 
         private static void EnsureFolders()
         {
-            EnsureFolder("Assets/DragonBound/UI");
-            EnsureFolder("Assets/DragonBound/UI/Prefabs");
-            EnsureFolder("Assets/DragonBound/UI/Prefabs/Screens");
-            EnsureFolder("Assets/DragonBound/UI/Prefabs/Modules");
-            EnsureFolder("Assets/DragonBound/UI/Prefabs/Components");
-            EnsureFolder("Assets/DragonBound/Scenes");
+            EnsureFolder(UiVariantProjectPaths.V1Root + "/Content/UI/Prefabs/Screens");
+            EnsureFolder(UiVariantProjectPaths.V1Root + "/Content/UI/Prefabs/Modules");
+            EnsureFolder(UiVariantProjectPaths.V1Root + "/Content/UI/Prefabs/Components");
+            EnsureFolder(UiVariantProjectPaths.V1Root + "/Scenes");
         }
 
         private static void EnsureFolder(string assetPath)

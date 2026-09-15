@@ -15,8 +15,8 @@ namespace DragonBound.Editor
     [InitializeOnLoad] // Compilation in Edit mode schedules the one-time asset conversion.
     public static class AuthoredGreyboxUiMigration
     {
-        private const string ScreenPrefabPath =
-            "Assets/DragonBound/UI/Prefabs/Screens/DragonBoundPortraitScreen.prefab";
+        private static readonly string ScreenPrefabPath =
+            UiVariantProjectPaths.V1Ui("Prefabs/Screens/DragonBoundPortraitScreen.prefab");
         private const string AuthoredBoardName = "ART_FixedBoardCanvas";
 
         static AuthoredGreyboxUiMigration()

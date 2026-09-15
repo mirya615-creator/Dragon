@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DragonBound.HandoffUi;
+using DragonBound.Presentation;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -9,8 +10,8 @@ namespace DragonBound.Tests.EditMode
 {
     public sealed class HandoffUiEditModeTests
     {
-        private const string OfferPrefabPath = "Assets/DragonBound/UI/Handoff/Prefabs/HandoffMerchantOffer.prefab";
-        private const string ScreenPrefabPath = "Assets/DragonBound/UI/Handoff/Prefabs/UI_HandoffScreen.prefab";
+        private static readonly string OfferPrefabPath = UiVariantProjectPaths.V1Ui("Handoff/Prefabs/HandoffMerchantOffer.prefab");
+        private static readonly string ScreenPrefabPath = UiVariantProjectPaths.V1Ui("Handoff/Prefabs/UI_HandoffScreen.prefab");
 
         [Test]
         public void HandoffPrefabs_UseSerializedOfferPrefabAndTmpViews()

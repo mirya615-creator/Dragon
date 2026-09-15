@@ -39,7 +39,9 @@ namespace DragonBound.Presentation
         private void OnEnable()
         {
             RebuildIndex();
+#if !UNITY_EDITOR
             UiAssets.Install(this);
+#endif
         }
 
         private void OnDisable()
@@ -68,7 +70,8 @@ namespace DragonBound.Presentation
             {
                 var entry = entries[entryIndex];
                 if (entry == null ||
-                    (!string.Equals(entry.Key, normalizedPrefix, StringComparison.Ordinal) &&
+                    (normalizedPrefix.Length > 0 &&
+                     !string.Equals(entry.Key, normalizedPrefix, StringComparison.Ordinal) &&
                      !entry.Key.StartsWith(normalizedPrefix + "/", StringComparison.Ordinal)))
                 {
                     continue;
@@ -120,6 +123,12 @@ namespace DragonBound.Presentation
 
         public static UiAssetRegistry Active => active;
 
+        public static void Activate(UiAssetRegistry registry)
+        {
+            if (registry == null) throw new ArgumentNullException(nameof(registry));
+            Install(registry);
+        }
+
         internal static void Install(UiAssetRegistry registry)
         {
             if (registry == null) return;
@@ -139,7 +148,20 @@ namespace DragonBound.Presentation
 
         public static T Load<T>(string key) where T : UnityEngine.Object
         {
-            EnsureInstalled();
+#if UNITY_EDITOR
+            TryActivateEditorRegistry();
+#endif
+            if (active == null)
+            {
+#if UNITY_EDITOR
+                // Keeps the project runnable before the one-time V1 migration has created and
+                // activated its registry. Player builds never have this fallback.
+                return Resources.Load<T>(key);
+#else
+                EnsureInstalled();
+#endif
+            }
+
             var asset = active.Load<T>(key);
             if (asset == null)
             {
@@ -151,9 +173,38 @@ namespace DragonBound.Presentation
 
         public static T[] LoadAll<T>(string prefix) where T : UnityEngine.Object
         {
-            EnsureInstalled();
+#if UNITY_EDITOR
+            TryActivateEditorRegistry();
+#endif
+            if (active == null)
+            {
+#if UNITY_EDITOR
+                return Resources.LoadAll<T>(prefix);
+#else
+                EnsureInstalled();
+#endif
+            }
+
             return active.LoadAll<T>(prefix);
         }
+
+#if UNITY_EDITOR
+        private static void TryActivateEditorRegistry()
+        {
+            if (active != null) return;
+            var preloaded = UnityEditor.PlayerSettings.GetPreloadedAssets();
+            UiAssetRegistry selected = null;
+            for (var index = 0; index < preloaded.Length; index++)
+            {
+                if (!(preloaded[index] is UiAssetRegistry registry)) continue;
+                if (selected != null && selected != registry)
+                    throw new InvalidOperationException("Multiple UI asset registries are selected in Player Settings.");
+                selected = registry;
+            }
+
+            if (selected != null) Install(selected);
+        }
+#endif
 
         private static void EnsureInstalled()
         {

@@ -16,19 +16,18 @@ namespace DragonBound.Tests.EditMode
 {
     public sealed class PortraitUiPrefabTests
     {
-        private const string ScreenPath =
-            "Assets/DragonBound/UI/Prefabs/Screens/DragonBoundPortraitScreen.prefab";
-        private const string BattlefieldPath = "Assets/DragonBound/UI/Prefabs/Modules/Battlefield.prefab";
-        private const string BenchPath = "Assets/DragonBound/UI/Prefabs/Modules/Bench.prefab";
-        private const string RecruitmentPath = "Assets/DragonBound/UI/Prefabs/Modules/Recruitment.prefab";
-        private const string UnitCardPath = "Assets/DragonBound/UI/Prefabs/Components/UnitCard.prefab";
-        private const string EnemyCardPath = "Assets/DragonBound/UI/Prefabs/Components/EnemyCard.prefab";
-        private const string HeroFormationPath = "Assets/DragonBound/UI/Prefabs/Components/HeroFormation.prefab";
-        private const string WeaponPanelHeroPath = "Assets/Resources/prefabs/Hero.prefab";
-        private const string RangeOutlinePath = "Assets/DragonBound/UI/Art/Range/RangeOutlineThin.png";
-        private const string BoardCellPath = "Assets/DragonBound/UI/Prefabs/Components/BoardCell.prefab";
-        private const string BenchSlotPath = "Assets/DragonBound/UI/Prefabs/Components/BenchSlot.prefab";
-        private const string ScenePath = "Assets/Scenes/Greybox_Main.unity";
+        private static readonly string ScreenPath = UiVariantProjectPaths.V1Ui("Prefabs/Screens/DragonBoundPortraitScreen.prefab");
+        private static readonly string BattlefieldPath = UiVariantProjectPaths.V1Ui("Prefabs/Modules/Battlefield.prefab");
+        private static readonly string BenchPath = UiVariantProjectPaths.V1Ui("Prefabs/Modules/Bench.prefab");
+        private static readonly string RecruitmentPath = UiVariantProjectPaths.V1Ui("Prefabs/Modules/Recruitment.prefab");
+        private static readonly string UnitCardPath = UiVariantProjectPaths.V1Ui("Prefabs/Components/UnitCard.prefab");
+        private static readonly string EnemyCardPath = UiVariantProjectPaths.V1Ui("Prefabs/Components/EnemyCard.prefab");
+        private static readonly string HeroFormationPath = UiVariantProjectPaths.V1Ui("Prefabs/Components/HeroFormation.prefab");
+        private static readonly string WeaponPanelHeroPath = UiVariantProjectPaths.V1Resource("prefabs/Hero.prefab");
+        private static readonly string RangeOutlinePath = UiVariantProjectPaths.V1Ui("Art/Range/RangeOutlineThin.png");
+        private static readonly string BoardCellPath = UiVariantProjectPaths.V1Ui("Prefabs/Components/BoardCell.prefab");
+        private static readonly string BenchSlotPath = UiVariantProjectPaths.V1Ui("Prefabs/Components/BenchSlot.prefab");
+        private static readonly string ScenePath = UiVariantProjectPaths.V1Scene("Greybox_Main");
 
         [Test]
         public void PortraitBandsMatchFrozenDualBattlefieldLayout()

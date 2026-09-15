@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DragonBound.Bootstrap;
+using DragonBound.Presentation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -9,8 +10,8 @@ namespace DragonBound.Editor
 {
     public static class DragonBoundHeroSliceSceneBuilder
     {
-        public const string BasicScenePath = "Assets/Scenes/Greybox_Main.unity";
-        public const string HeroScenePath = "Assets/Scenes/HeroSlice_Main.unity";
+        public static readonly string BasicScenePath = UiVariantProjectPaths.V1Scene("Greybox_Main");
+        public static readonly string HeroScenePath = UiVariantProjectPaths.V1Scene("HeroSlice_Main");
 
         [MenuItem("DragonBound/Hero Slice/Create or Update Scene")]
         public static void Build()

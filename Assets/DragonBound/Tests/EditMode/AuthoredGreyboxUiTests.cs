@@ -9,8 +9,8 @@ namespace DragonBound.Tests.EditMode
 {
     public sealed class AuthoredGreyboxUiTests
     {
-        private const string ScreenPath =
-            "Assets/DragonBound/UI/Prefabs/Screens/DragonBoundPortraitScreen.prefab";
+        private static readonly string ScreenPath =
+            UiVariantProjectPaths.V1Ui("Prefabs/Screens/DragonBoundPortraitScreen.prefab");
 
         [Test]
         public void FixedBoardAndDevelopmentUiAreAuthoredPrefabContent()

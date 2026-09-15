@@ -12,39 +12,40 @@ namespace DragonBound.Editor.Versioning
 {
     public static class DragonBoundUiVersionTools
     {
-        private const string V1Root = "Assets/DragonBound/UI/Variants/V1";
-        private const string V2Root = "Assets/DragonBound/UI/Variants/V2";
+        private const string V1Root = UiVariantProjectPaths.V1Root;
+        private const string V2Root = UiVariantProjectPaths.V2Root;
         private const string V1RegistryPath = V1Root + "/Config/UiAssetRegistryV1.asset";
         private const string V2RegistryPath = V2Root + "/Config/UiAssetRegistryV2.asset";
         private const string V1ProfilePath = V1Root + "/Config/V1BuildProfile.asset";
         private const string V2ProfilePath = V2Root + "/Config/V2BuildProfile.asset";
         private const string LegacyResourcesRoot = "Assets/Resources";
+        private const string V1ResourcesRoot = V1Root + "/Content/Resources";
+        private const string LegacyUiRoot = "Assets/DragonBound/UI";
 
         [MenuItem("DragonBound/Versioning/Prepare Version Infrastructure")]
         public static void PrepareInfrastructure()
         {
             EnsureFolder(V1Root + "/Config");
-            EnsureFolder(V1Root + "/Prefabs");
             EnsureFolder(V1Root + "/Scenes");
             EnsureFolder(V2Root + "/Config");
-            EnsureFolder(V2Root + "/Prefabs");
+            EnsureFolder(V2Root + "/Content");
             EnsureFolder(V2Root + "/Scenes");
 
-            var v1Registry = GenerateRegistry("V1", LegacyResourcesRoot, V1RegistryPath);
+            var v1Registry = GenerateV1Registry();
             var v2Registry = LoadOrCreate<UiAssetRegistry>(V2RegistryPath);
             v2Registry.Configure("V2", new List<UiAssetRegistry.Entry>());
             EditorUtility.SetDirty(v2Registry);
 
-            var login = AssetDatabase.LoadAssetAtPath<SceneAsset>("Assets/Scenes/Login.unity");
-            var main = AssetDatabase.LoadAssetAtPath<SceneAsset>("Assets/Scenes/Main.unity");
-            var gameplay = AssetDatabase.LoadAssetAtPath<SceneAsset>("Assets/Scenes/Greybox_Main.unity");
+            var login = LoadScene("Login");
+            var main = LoadScene("Main");
+            var gameplay = LoadScene("Greybox_Main");
             var currentScenes = new[] { login, main, gameplay }.Where(scene => scene != null).ToArray();
 
             var v1 = LoadOrCreate<DragonBoundUiBuildProfile>(V1ProfilePath);
             v1.Configure(
                 "V1", V1Root, V2Root, currentScenes, v1Registry,
                 "Drakeforge", "com.drakeforge.mergedefense", "0.1.0", 1,
-                "Builds/Android/V1/Drakeforge-V1.apk", false);
+                "Builds/Android/V1/Drakeforge-V1.apk", !AssetDatabase.IsValidFolder(LegacyResourcesRoot));
             EditorUtility.SetDirty(v1);
 
             var v2 = LoadOrCreate<DragonBoundUiBuildProfile>(V2ProfilePath);
@@ -63,8 +64,45 @@ namespace DragonBound.Editor.Versioning
         [MenuItem("DragonBound/Versioning/Regenerate V1 Asset Registry")]
         public static void RegenerateV1Registry()
         {
-            GenerateRegistry("V1", LegacyResourcesRoot, V1RegistryPath);
+            GenerateV1Registry();
             AssetDatabase.SaveAssets();
+        }
+
+        [MenuItem("DragonBound/Versioning/Migrate Current UI To V1 (Keep GUIDs)")]
+        public static void MigrateCurrentUiToV1()
+        {
+            EnsureFolder(V1Root + "/Config");
+            EnsureFolder(V1Root + "/Content");
+            EnsureFolder(V1Root + "/Scenes");
+
+            // Build the key-to-object map before removing the special Resources folder.
+            var registry = GenerateV1Registry();
+            MoveFolderIfPresent(LegacyResourcesRoot, V1ResourcesRoot);
+            MoveFolderIfPresent(LegacyUiRoot + "/Art", V1Root + "/Content/UI/Art");
+            MoveFolderIfPresent(LegacyUiRoot + "/Handoff", V1Root + "/Content/UI/Handoff");
+            MoveFolderIfPresent(LegacyUiRoot + "/Prefabs", V1Root + "/Content/UI/Prefabs");
+
+            foreach (var sceneName in new[] { "Game", "Greybox_Main", "HeroSlice_Main", "Login", "Main", "UI_Handoff" })
+            {
+                MoveAssetIfPresent(
+                    $"Assets/Scenes/{sceneName}.unity",
+                    $"{V1Root}/Scenes/{sceneName}.unity");
+            }
+
+            var productionScenes = new[] { LoadScene("Login"), LoadScene("Main"), LoadScene("Greybox_Main") }
+                .Where(scene => scene != null)
+                .ToArray();
+            var profile = LoadOrCreate<DragonBoundUiBuildProfile>(V1ProfilePath);
+            profile.Configure(
+                "V1", V1Root, V2Root, productionScenes, registry,
+                "Drakeforge", "com.drakeforge.mergedefense", "0.1.0", 1,
+                "Builds/Android/V1/Drakeforge-V1.apk", true);
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            SetActiveProfile(profile);
+            ValidateProfile(profile);
+            Debug.Log("Current UI migrated to isolated V1 folders. Asset GUIDs and serialized references were preserved.");
         }
 
         [MenuItem("DragonBound/Versioning/Set Active V1")]
@@ -119,6 +157,36 @@ namespace DragonBound.Editor.Versioning
             if (profile.AssetRegistry.Entries.Count == 0)
                 throw new BuildFailedException($"{profile.VariantId} asset registry is empty.");
 
+            var registryPath = AssetDatabase.GetAssetPath(profile.AssetRegistry);
+            if (!IsBelow(registryPath, profile.AllowedUiRoot))
+                throw new BuildFailedException($"{profile.VariantId} registry is outside its UI root: {registryPath}");
+
+            var externalRegistryAssets = profile.AssetRegistry.Entries
+                .SelectMany(entry => entry.Assets)
+                .Where(asset => asset != null)
+                .Select(AssetDatabase.GetAssetPath)
+                .Where(path => !IsBelow(path, profile.AllowedUiRoot))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            if (externalRegistryAssets.Length > 0)
+            {
+                throw new BuildFailedException(
+                    $"{profile.VariantId} registry references UI assets outside its isolated root:\n" +
+                    string.Join("\n", externalRegistryAssets));
+            }
+
+            var externalScenes = profile.Scenes
+                .Select(AssetDatabase.GetAssetPath)
+                .Where(path => !IsBelow(path, profile.AllowedUiRoot))
+                .ToArray();
+            if (externalScenes.Length > 0)
+            {
+                throw new BuildFailedException(
+                    $"{profile.VariantId} scenes are outside its isolated root:\n" +
+                    string.Join("\n", externalScenes));
+            }
+
             var roots = profile.Scenes.Select(AssetDatabase.GetAssetPath).ToList();
             roots.Add(AssetDatabase.GetAssetPath(profile.AssetRegistry));
             var dependencies = AssetDatabase.GetDependencies(roots.ToArray(), true)
@@ -163,6 +231,8 @@ namespace DragonBound.Editor.Versioning
             var previousVersionCode = PlayerSettings.Android.bundleVersionCode;
             var previousPreloaded = PlayerSettings.GetPreloadedAssets();
             var previousSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android);
+            var previousExportProject = EditorUserBuildSettings.exportAsGoogleAndroidProject;
+            var previousBuildAppBundle = EditorUserBuildSettings.buildAppBundle;
             try
             {
                 PlayerSettings.productName = profile.ProductName;
@@ -173,9 +243,12 @@ namespace DragonBound.Editor.Versioning
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(
                     BuildTargetGroup.Android,
                     WithVariantSymbol(previousSymbols, profile.DefineSymbol));
+                EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+                EditorUserBuildSettings.buildAppBundle = false;
 
                 var outputDirectory = Path.GetDirectoryName(profile.OutputPath);
                 if (!string.IsNullOrWhiteSpace(outputDirectory)) Directory.CreateDirectory(outputDirectory);
+                if (Directory.Exists(profile.OutputPath)) Directory.Delete(profile.OutputPath, true);
                 var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
                 {
                     scenes = profile.Scenes.Select(AssetDatabase.GetAssetPath).ToArray(),
@@ -184,7 +257,7 @@ namespace DragonBound.Editor.Versioning
                     targetGroup = BuildTargetGroup.Android,
                     options = BuildOptions.None
                 });
-                if (report.summary.result != BuildResult.Succeeded)
+                if (report.summary.result != BuildResult.Succeeded || !File.Exists(profile.OutputPath))
                     throw new BuildFailedException($"{profile.VariantId} build failed: {report.summary.result}.");
 
                 Debug.Log($"{profile.VariantId} APK created: {Path.GetFullPath(profile.OutputPath)}");
@@ -197,6 +270,9 @@ namespace DragonBound.Editor.Versioning
                 PlayerSettings.Android.bundleVersionCode = previousVersionCode;
                 PlayerSettings.SetPreloadedAssets(previousPreloaded);
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, previousSymbols);
+                EditorUserBuildSettings.exportAsGoogleAndroidProject = previousExportProject;
+                EditorUserBuildSettings.buildAppBundle = previousBuildAppBundle;
+                AssetDatabase.SaveAssets();
             }
         }
 
@@ -210,6 +286,7 @@ namespace DragonBound.Editor.Versioning
                 .Select(scene => new EditorBuildSettingsScene(AssetDatabase.GetAssetPath(scene), true))
                 .ToArray();
             EditorPrefs.SetString("DragonBound.ActiveUiVariant", profile.VariantId);
+            UiAssets.Activate(profile.AssetRegistry);
             Debug.Log($"Active DragonBound UI variant: {profile.VariantId}");
         }
 
@@ -243,21 +320,35 @@ namespace DragonBound.Editor.Versioning
                 throw new InvalidOperationException($"Resource source folder does not exist: {sourceRoot}");
             EnsureFolder(Path.GetDirectoryName(outputPath)?.Replace('\\', '/'));
             var registry = LoadOrCreate<UiAssetRegistry>(outputPath);
-            var entries = new List<UiAssetRegistry.Entry>();
-            var keys = new HashSet<string>(StringComparer.Ordinal);
+            var assetsByKey = new Dictionary<string, List<UnityEngine.Object>>(StringComparer.Ordinal);
             var guids = AssetDatabase.FindAssets(string.Empty, new[] { sourceRoot });
             foreach (var guid in guids)
             {
                 var path = Normalize(AssetDatabase.GUIDToAssetPath(guid));
                 if (AssetDatabase.IsValidFolder(path)) continue;
                 var key = ToResourceKey(sourceRoot, path);
-                if (!keys.Add(key)) throw new InvalidOperationException($"Duplicate UI resource key: {key}");
                 var objects = AssetDatabase.LoadAllAssetsAtPath(path)
                     .Where(asset => asset != null && !(asset is MonoScript))
                     .ToArray();
                 if (objects.Length == 0) continue;
+
+                if (!assetsByKey.TryGetValue(key, out var combined))
+                {
+                    combined = new List<UnityEngine.Object>();
+                    assetsByKey.Add(key, combined);
+                }
+
+                foreach (var asset in objects)
+                {
+                    if (!combined.Contains(asset)) combined.Add(asset);
+                }
+            }
+
+            var entries = new List<UiAssetRegistry.Entry>();
+            foreach (var pair in assetsByKey)
+            {
                 var entry = new UiAssetRegistry.Entry();
-                entry.Configure(key, objects);
+                entry.Configure(pair.Key, pair.Value.ToArray());
                 entries.Add(entry);
             }
 
@@ -266,6 +357,46 @@ namespace DragonBound.Editor.Versioning
             EditorUtility.SetDirty(registry);
             Debug.Log($"Generated {variant} UI registry with {entries.Count} keys at {outputPath}.");
             return registry;
+        }
+
+        private static UiAssetRegistry GenerateV1Registry()
+        {
+            var sourceRoot = AssetDatabase.IsValidFolder(LegacyResourcesRoot)
+                ? LegacyResourcesRoot
+                : V1ResourcesRoot;
+            return GenerateRegistry("V1", sourceRoot, V1RegistryPath);
+        }
+
+        private static SceneAsset LoadScene(string sceneName)
+        {
+            return AssetDatabase.LoadAssetAtPath<SceneAsset>($"{V1Root}/Scenes/{sceneName}.unity") ??
+                   AssetDatabase.LoadAssetAtPath<SceneAsset>($"Assets/Scenes/{sceneName}.unity");
+        }
+
+        private static void MoveFolderIfPresent(string source, string destination)
+        {
+            if (!AssetDatabase.IsValidFolder(source)) return;
+            var parent = Normalize(Path.GetDirectoryName(destination));
+            EnsureFolder(parent);
+            if (AssetDatabase.IsValidFolder(destination))
+                throw new InvalidOperationException($"Cannot migrate UI because destination already exists: {destination}");
+            MoveAsset(source, destination);
+        }
+
+        private static void MoveAssetIfPresent(string source, string destination)
+        {
+            if (AssetDatabase.LoadMainAssetAtPath(source) == null) return;
+            EnsureFolder(Normalize(Path.GetDirectoryName(destination)));
+            if (AssetDatabase.LoadMainAssetAtPath(destination) != null)
+                throw new InvalidOperationException($"Cannot migrate UI because destination already exists: {destination}");
+            MoveAsset(source, destination);
+        }
+
+        private static void MoveAsset(string source, string destination)
+        {
+            var error = AssetDatabase.MoveAsset(source, destination);
+            if (!string.IsNullOrWhiteSpace(error))
+                throw new InvalidOperationException($"Failed to move {source} to {destination}: {error}");
         }
 
         private static string ToResourceKey(string root, string assetPath)

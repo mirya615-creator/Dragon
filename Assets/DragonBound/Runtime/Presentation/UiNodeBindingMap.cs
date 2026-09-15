@@ -14,6 +14,14 @@ namespace DragonBound.Presentation
 
             public string Key => key;
             public Transform Target => target;
+
+#if UNITY_EDITOR
+            public void Configure(string value, Transform valueTarget)
+            {
+                key = value;
+                target = valueTarget;
+            }
+#endif
         }
 
         [SerializeField] private List<Entry> entries = new List<Entry>();
@@ -34,6 +42,26 @@ namespace DragonBound.Presentation
 
             return bindings.TryGetValue(Normalize(key), out target) && target != null;
         }
+
+#if UNITY_EDITOR
+        public void Configure(IReadOnlyList<string> keys, IReadOnlyList<Transform> targets)
+        {
+            if (keys == null) throw new ArgumentNullException(nameof(keys));
+            if (targets == null) throw new ArgumentNullException(nameof(targets));
+            if (keys.Count != targets.Count)
+                throw new ArgumentException("UI binding keys and targets must have the same count.");
+
+            entries.Clear();
+            for (var index = 0; index < keys.Count; index++)
+            {
+                var entry = new Entry();
+                entry.Configure(keys[index], targets[index]);
+                entries.Add(entry);
+            }
+
+            bindings = null;
+        }
+#endif
 
         private static string Normalize(string value)
         {
@@ -74,13 +102,6 @@ namespace DragonBound.Presentation
                 }
 
                 match = candidate;
-            }
-
-            if (match == null)
-            {
-                Debug.LogError(
-                    $"UI binding '{semanticKey}' was not found below '{root.name}'. Add an explicit UiNodeBindingMap entry.",
-                    root);
             }
 
             return match;

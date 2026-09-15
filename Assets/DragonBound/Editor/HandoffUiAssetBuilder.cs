@@ -15,10 +15,10 @@ namespace DragonBound.Editor
     /// <summary>Creates only the isolated handoff assets. It deliberately never touches existing UI or scenes.</summary>
     public static class HandoffUiAssetBuilder
     {
-        public const string Root = "Assets/DragonBound/UI/Handoff";
-        public const string OfferPrefabPath = Root + "/Prefabs/HandoffMerchantOffer.prefab";
-        public const string ScreenPrefabPath = Root + "/Prefabs/UI_HandoffScreen.prefab";
-        public const string ScenePath = "Assets/DragonBound/Scenes/UI_Handoff.unity";
+        public static readonly string Root = UiVariantProjectPaths.V1Ui("Handoff");
+        public static readonly string OfferPrefabPath = Root + "/Prefabs/HandoffMerchantOffer.prefab";
+        public static readonly string ScreenPrefabPath = Root + "/Prefabs/UI_HandoffScreen.prefab";
+        public static readonly string ScenePath = UiVariantProjectPaths.V1Scene("UI_Handoff");
         private const string TmpSettingsPath = "Assets/TextMesh Pro/Resources/TMP Settings.asset";
         private static DateTime tmpImportStartedAt;
         private static bool tmpImportPending;
@@ -120,13 +120,17 @@ namespace DragonBound.Editor
 
         private static void EnsureFolders()
         {
-            CreateFolder("Assets/DragonBound/UI", "Handoff");
-            CreateFolder(Root, "Prefabs");
+            EnsureFolder(Root + "/Prefabs");
         }
 
-        private static void CreateFolder(string parent, string name)
+        private static void EnsureFolder(string path)
         {
-            if (!AssetDatabase.IsValidFolder(parent + "/" + name)) AssetDatabase.CreateFolder(parent, name);
+            if (AssetDatabase.IsValidFolder(path)) return;
+            var parent = Path.GetDirectoryName(path)?.Replace('\\', '/');
+            if (string.IsNullOrWhiteSpace(parent))
+                throw new InvalidOperationException($"Invalid asset folder path: {path}");
+            EnsureFolder(parent);
+            AssetDatabase.CreateFolder(parent, Path.GetFileName(path));
         }
 
         private static GameObject BuildOfferPrefab()

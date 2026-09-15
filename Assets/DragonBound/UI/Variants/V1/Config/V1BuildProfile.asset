@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f87943e01e3143a0a320849a307c6a70, type: 3}
+  m_Name: V1BuildProfile
+  m_EditorClassIdentifier: 
+  variantId: V1
+  allowedUiRoot: Assets/DragonBound/UI/Variants/V1
+  forbiddenUiRoot: Assets/DragonBound/UI/Variants/V2
+  scenes:
+  - {fileID: 102900000, guid: 1ffdc8ed46c08ce4eb9a3fabe354e782, type: 3}
+  - {fileID: 102900000, guid: a693bf70af31dd8488107d5004ff2490, type: 3}
+  - {fileID: 102900000, guid: 86ff9f65f1c94aa46827064f7672c7b6, type: 3}
+  assetRegistry: {fileID: 11400000, guid: 4c5cefcb06dcaaf448befece2aecb57a, type: 2}
+  productName: Drakeforge
+  applicationIdentifier: com.drakeforge.mergedefense
+  bundleVersion: 0.1.0
+  androidVersionCode: 1
+  outputPath: Builds/Android/V1/Drakeforge-V1.apk
+  enforceNoLegacyResources: 1

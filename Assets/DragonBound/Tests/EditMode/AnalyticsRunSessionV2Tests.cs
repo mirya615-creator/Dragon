@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DragonBound.Analytics;
 using DragonBound.Core;
+using DragonBound.Presentation;
 using NUnit.Framework;
 
 namespace DragonBound.Tests.EditMode
@@ -724,7 +725,7 @@ namespace DragonBound.Tests.EditMode
                 FirebaseDesktopProjectId = "drakeforge",
                 ExpectedFirebaseProjectId = "drakeforge",
                 FirebaseSdkVersion = AnalyticsReleaseReadinessValidatorV2.RequiredFirebaseSdkVersion,
-                StartupScenePath = "Assets/Scenes/Login.unity",
+                StartupScenePath = UiVariantProjectPaths.V1Scene("Login"),
                 AnalyticsBootstrapInStartupScene = true,
                 AnalyticsBootstrapIsDedicatedRoot = true,
                 StartupEventSystemEnabled = true,

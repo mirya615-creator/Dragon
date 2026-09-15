@@ -6,12 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Login.unity
+    path: Assets/DragonBound/UI/Variants/V1/Scenes/Login.unity
     guid: 1ffdc8ed46c08ce4eb9a3fabe354e782
   - enabled: 1
-    path: Assets/Scenes/Main.unity
+    path: Assets/DragonBound/UI/Variants/V1/Scenes/Main.unity
     guid: a693bf70af31dd8488107d5004ff2490
   - enabled: 1
-    path: Assets/Scenes/Greybox_Main.unity
+    path: Assets/DragonBound/UI/Variants/V1/Scenes/Greybox_Main.unity
     guid: 86ff9f65f1c94aa46827064f7672c7b6
   m_configObjects: {}

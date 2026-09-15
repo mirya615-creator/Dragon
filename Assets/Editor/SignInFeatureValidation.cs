@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public static class SignInFeatureValidation
 {
-    private const string MainScenePath = "Assets/Scenes/Main.unity";
+    private static readonly string MainScenePath = UiVariantProjectPaths.V1Scene("Main");
 
     [MenuItem("DragonBound/Validation/Validate Sign-In Feature")]
     public static void Run()
@@ -71,12 +71,10 @@ public static class SignInFeatureValidation
             RequireComponent<Button>(imageRoot, "Image (6)");
             RequireComponent<Image>(imageRoot, "Image (6)");
             Require(
-                AssetDatabase.LoadAssetAtPath<Sprite>(
-                    "Assets/Resources/Main/Signin/Today.png") != null,
+                UiAssets.Load<Sprite>("Main/Signin/Today") != null,
                 "Today.png must be imported as a Sprite.");
             Require(
-                AssetDatabase.LoadAssetAtPath<Sprite>(
-                    "Assets/Resources/Main/Signin/other.png") != null,
+                UiAssets.Load<Sprite>("Main/Signin/other") != null,
                 "other.png must be imported as a Sprite.");
         }
         finally

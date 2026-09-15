@@ -9,7 +9,7 @@ using UnityEngine.UI;
 [InitializeOnLoad]
 internal static class GreyboxMerchantLoadoutSceneMigration
 {
-    private const string ScenePath = "Assets/Scenes/Greybox_Main.unity";
+    private static readonly string ScenePath = DragonBound.Presentation.UiVariantProjectPaths.V1Scene("Greybox_Main");
     private const string SessionKey = "dragonbound.greyboxMerchantLoadoutSceneMigration.v5";
 
     static GreyboxMerchantLoadoutSceneMigration()
