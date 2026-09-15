@@ -10,7 +10,7 @@ public static class ClientServiceCompositionValidation
     [MenuItem("DragonBound/Validation/Validate Client Services")]
     public static void Run()
     {
-        ClientServiceConfig config = DragonBound.Presentation.UiAssets.Load<ClientServiceConfig>(ConfigPath);
+        ClientServiceConfig config = Resources.Load<ClientServiceConfig>(ConfigPath);
         Require(config != null, "ClientServiceConfig is missing.");
         Require(config.BackendMode == BackendMode.Local, "Development backend must remain Local.");
 

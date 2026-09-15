@@ -54,6 +54,17 @@ namespace DragonBound.Presentation
             if (string.IsNullOrWhiteSpace(key)) return null;
             if (!entriesByKey.TryGetValue(NormalizeKey(key), out var entry)) return null;
 
+            // A prefab registry entry also contains its nested GameObjects. Unity does not
+            // guarantee LoadAllAssetsAtPath ordering, so select the prefab root explicitly.
+            if (typeof(T) == typeof(GameObject))
+            {
+                for (var index = 0; index < entry.Assets.Count; index++)
+                {
+                    if (entry.Assets[index] is GameObject candidate && candidate.transform.parent == null)
+                        return candidate as T;
+                }
+            }
+
             for (var index = 0; index < entry.Assets.Count; index++)
             {
                 if (entry.Assets[index] is T asset) return asset;
@@ -126,7 +137,8 @@ namespace DragonBound.Presentation
         public static void Activate(UiAssetRegistry registry)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
-            Install(registry);
+            // Explicit editor/build-profile selection is allowed to replace the previous variant.
+            active = registry;
         }
 
         internal static void Install(UiAssetRegistry registry)

@@ -1,82 +1,62 @@
 # Dragon 项目长期记忆
 
-## 统一提示 TipText（迁移方案已定，2026-09-09，方案见 Docs/TipText统一提示迁移方案.md）
-- 目标物：`Assets/Resources/prefabs/TipText.prefab`（根挂 `Scripts/UI/TipTextController.cs`，Show(msg, seconds=3, pos?)，WaitForSecondsRealtime）。
-- 规划：新增静态 `TipTextService`（懒加载 prefab、挂当前场景根 Canvas 顶层、单实例复用、替换式语义、跨场景自愈）；预制体需把 Image/TMP 的 RaycastTarget 关掉。
-- 迁移手法约定：各 Controller 私有 `ShowTip` 先"壳转发"到 `TipTextService.Show`（调用点零改动），再删场景 TipText 节点与旧协程。时长按语义保留：Greybox 系 1.5s、Main 商人/体力 3s、体力常驻型用 ShowPersistent。
-- 旧实现 6 套/约 60+ 调用点：MainMerchantController、MainEnergyController（含运行时 new GameObject 建 TipText，且 MainRuneUnlockController Awake 依赖该动态节点有时序隐患）、MainRuneUnlockController、GreyboxHudView（24 处）、DragonBoundScreenView、征兵两套；Greybox 三方共用节点 `DragonBoundPortraitScreen/TipText`。不迁移：Login ErrorText、GoogleConfirmPanel 静态文案、BossWarning 弹板。Main 场景有遗留静态 `MainPanel/Tip` 条（无代码引用）待删。
+## UI 版本化：V1/V2 双版本（进行中，分支 `codex/ui-v1-v2-isolation`）
+- 目标：`Resources.Load`/`Transform.Find` 字符串路径 → 「稳定资源键 + 语义节点键」，V1/V2 共用业务代码，构建期强制隔离。
+- 基础设施：
+  - `Runtime/Presentation/UiNodeBindingMap.cs`：`FindUi` 三级查找 = 显式绑定 → `Find(name)` → 子树叶子名唯一匹配。
+  - `Runtime/Presentation/UiAssetRegistry.cs`：SO(`variantId`+entries) + 门面 `UiAssets.Load/LoadAll`；激活靠 `PlayerSettings.preloadedAssets`（OnEnable → Install）。**运行时无注册表才抛异常；编辑器下 fallback `Resources.Load`**。
+  - `Runtime/Presentation/UiVariantProjectPaths.cs`：`V1Root/V2Root` 等路径常量（测试与工具用，运行时禁止）。
+  - `Editor/Versioning/DragonBoundUiVersionTools.cs`（菜单 `DragonBound/Versioning/*`）：Prepare 基础设施 / Regenerate V1|V2 Registry / Migrate Runtime Config To Shared / Create V2 Initial Scene / Migrate UI To V1 / Set Active V1|V2 / Validate V1|V2 / Configure V2 Main Navigation；`DragonBound/Build/*` 出 V1|V2|Both。
+  - `Editor/Versioning/DragonBoundUiBuildGuard.cs`：`IPreprocessBuildWithReport`，未选版本或无匹配 BuildProfile 直接 `BuildFailedException`。
+  - `Editor/Versioning/DragonBoundUiVariantSceneSelector.cs`（2026-09-15 新增）：`InitializeOnLoad`，编辑器里按当前打开场景路径自动 SetActiveV1/V2。
+  - `Runtime/Presentation/BottomNavigationSelection.cs`（2026-09-15 新增）：底部导航 Ranking/Main/Bag 选中态，用 Image alpha 1/0 + `transition=None`；配套 `Tests/EditMode/BottomNavigationSelectionTests.cs`。
+- 布局：`Assets/DragonBound/UI/Variants/{V1,V2}/{Config,Content,Scenes}`，注册表 `Config/UiAssetRegistryV1|V2.asset`；**运行时配置已外移**到 `Assets/DragonBound/Shared/Resources/Configuration/`（ClientServiceConfig + Stages）。
+- **V2 资源键规则**：key = 相对 `Variants/V2/Content/Resources` 的路径去扩展名（例：`Main/Merchant/图层 72` ← `V2/Content/Resources/Main/Merchant/图层 72.png`），放好文件后跑 `Regenerate V2 Asset Registry`。V2 注册表目前仅 42 key（V1 1305），缺全部 `Main/*`，改 V2 UI 前先补。
+- 已知待办：`FindUi` 未命中一律 LogError（可选绑定语义会红噪）+ 泛型键("Text"/"Image")会被叶子名兜底静默命中错误节点 + 无负缓存全树扫描；`DebugRangeBandLabel` 是死键（仅 `GridCellView.cs:59/103`），建议连字段删除。
 
-## Main 场景 Tab 面板"选中/未选中"双态底图切换（约定模式）
-Main 场景各 Tab 面板按钮用两张成对底图表示选中/未选中态，均放在 `Assets/Resources/Main/<面板>/`，命名形如「图层 N.png」。实现统一走「修改该面板对应的 XxxController，在其单一 Tab 切换入口切换 sprite」模式：
+## 统一提示 TipText（方案见 Docs/TipText统一提示迁移方案.md）
+- `Assets/Resources/prefabs/TipText.prefab` + `Scripts/UI/TipTextController.cs`（Show(msg, seconds=3, pos?)）；新增静态 `TipTextService`（懒加载、单实例、替换式、跨场景自愈）。
+- 迁移手法：各 Controller 私有 `ShowTip` 先"壳转发"到 `TipTextService.Show`（调用点零改动），再删场景节点与旧协程。时长：Greybox 1.5s、Main 商人/体力 3s。
+- 旧实现 6 套/60+ 调用点：`MainMerchantController`、`MainEnergyController`（运行时 new GameObject，且 `MainRuneUnlockController.Awake` 依赖该动态节点 → 时序隐患）、`MainRuneUnlockController`、`GreyboxHudView`(24)、`DragonBoundScreenView`、征兵两套。不迁移：Login ErrorText、GoogleConfirmPanel、BossWarning。
 
-- LeaderPanel 周/月榜：`MainLeaderboardController.cs`，`SelectPeriod()` 末尾加 `ApplyTabVisual()`；WeekBtn/MonthBtn 用 `Main/Rank/图层 26`(选中)/`图层 27`(未选中)。当前实现为：入口 SelectPeriod。
-- Merchant 商店/抽奖：`MainMerchantController.cs`，`ShowTab()` 末尾调 `ApplyTabVisual(showChant)`；ChantBtn/LotteryBtn 用 `Main/Merchant/图层 72`(选中)/`图层 73`(未选中)。已实现（2026-09-04）。
-- 通用要点：Image 解析顺序 targetGraphic → GetComponent<Image> → 子节点"Image"；`transition = Selectable.Transition.None`（纯 sprite 高亮，防 ColorTint 叠色）；默认打开面板的 Tab（如 Chant/Weekly）在 Awake/OnEnable 已先 ShowTab/SelectPeriod，故无需额外初始化。
+## Main 场景约定
+- Tab 双态底图：改对应 Controller 的单一切换入口切 sprite，Image 解析顺序 targetGraphic → GetComponent → 子节点"Image"，`transition=None`。已落地：LeaderPanel 周/月榜 `MainLeaderboardController.SelectPeriod()`（Main/Rank/图层 26|27）、Merchant 商店/抽奖 `MainMerchantController.ShowTab()`（Main/Merchant/图层 72|73）。
+- `Scripts/UI/MainNavTabController.cs`：BagBtn 的 onClick 运行期被 MainRuneUnlockController 整体重建；RankingBtn 的持久化 onClick 先于 AddListener 执行，需重建 onClick。勿依赖持久化监听顺序。
 
-## 面板开关/导航（Main 场景）
-- `Assets/Scripts/UI/MainNavTabController.cs`：底部导航 BagBtn/RankingBtn/MainBtn 选中态 sprite（Main/select、Main/Noselect）按面板状态轮询切换。约束：BagBtn.onClick 运行期被 MainRuneUnlockController 整体重建，勿在场景持久化 onClick 上做双向逻辑；RankingBtn 场景持久化 onClick 先于 AddListener 执行，需重建 onClick 事件。
+## 结算 / 段位 / 调试
+- `Scripts/Rank/Services/GameSettlementCoordinator.cs` 是总闸：`FinishRunAsync` → `if (result.ApplyRank && !ledger.RankApplied)` → `RecordVictory/DefeatAsync` → 升段写 `RankPromotionStore`；Ledger 存 PlayerPrefs `dragonbound.settlement-ledger.<sha256(runId)>` 保幂等。
+- 网关：`LocalPlayerRankGateway` 与 `GoServerResourceGateways.cs:439-487` 的 `GoPlayerRankGateway`（Record* 空壳，只 GET /v1/rank）；装配二选一（`GoUnaryServiceModule.cs:26` / `LocalServiceModule.cs:12`）。
+- 规则 `Rank/Rules`：Level1-3 不掉星、Level10 扣1不降段、Level4-9 扣1可降段；每段星数 3/4/5。
+- **阻断点**：在线模式 `Services/Gameplay/GoUnaryGameplayRunGateway.cs:271/397` 把 `ApplyRank` 硬编码 `false`，客户端永不加星，全依赖 Go 服务端 `/v1/runs/{id}/finish`（文档标注后端 PENDING）。
+- `Scripts/Rank/UI/DebugDirectFinishController.cs`：Greybox_Main F9/F10 强制 Victory。Greybox_Main 是 TwentyWavePressureRuntime + MatchController.TryTransition 状态机驱动，勿按普通场景写。WAVE1 直接 Victory 曾触发服务端 409。
 
-## 调试/结算链路
-- `Assets/Scripts/Rank/UI/DebugDirectFinishController.cs`：Greybox_Main 场景 F9/F10/OnGUI 按钮强制 Victory → 状态机驱动结算，由 GreyboxSettlementRewardController.Start → GameSettlementCoordinator.PrepareAsync 完成服务端 finish。
-- 注意：Greybox_Main 为 TwentyWavePressureRuntime + MatchController.TryTransition(Victory) 状态机驱动，勿按普通 Game 场景写法。WAVE 1 直接 Victory 曾触发服务端 409（Settlement conflicts with run state），需服务端确认波数/状态校验规则。
+## Greybox_Main 加载链路
+场景激活 → `DragonBoundBootstrap.InitializeRuntime`（可 defer 等 snapshot）→ Match 状态机 Ready（停 1s）→ `TwentyWave.StartRun()` → TryTransition(Running) → BeginWave(1)。API：`bootstrap.Match/State/StateChanged/IsInitialized/InitializationFailed`。
+`Scripts/UI/GameplayLoadingPanelController.cs` 自动挂 LoadingPanel（复用 `Canvas/LoadingPanel/BG`）→ Running 隐藏，20s 兜底。SceneLoader 仅 Login 解析 LoadingImg。
 
-## UI 版本化重构（V1/V2 双版本，2026-09-14 进行中·未提交）
-- 目标：拆掉 `Resources.Load` / `Transform.Find` 的字符串路径硬耦合，改「稳定资源键 + 语义节点键」，让 V1/V2 两套 UI 共用业务代码、构建期强制禁止跨版本依赖。
-- 三块新基础设施（**均 untracked**）：
-  1. `Assets/DragonBound/Runtime/Presentation/UiNodeBindingMap.cs`：`UiNodeBindingMap`(key→Transform 序列化字典) + `TransformUiBindingExtensions.FindUi`，三级查找 = **显式绑定 → `Find(name)` → 子树叶子名唯一匹配**。
-  2. `Assets/DragonBound/Runtime/Presentation/UiAssetRegistry.cs`：`UiAssetRegistry`(SO, `variantId`+entries) + 静态门面 `UiAssets.Load/LoadAll`；**`Install` 唯一入口是 `OnEnable`**，靠 `PlayerSettings.preloadedAssets` 激活。
-  3. `Assets/DragonBound/Editor/Versioning/DragonBoundUiVersionTools.cs`：菜单 `DragonBound/Versioning/*`（Prepare Infrastructure / Regenerate V1 Registry / Set Active V1|V2 / Validate V1|V2 Isolation）+ `DragonBound/Build/Build Android V1|V2|Both`；Profile 产出到 `Assets/DragonBound/UI/Variants/{V1,V2}/Config/`。
-- 进度：**代码层 ~90%，资产层 0%**。工作区已改 69 文件全未提交；`FindUi` 352 处、`UiAssets.Load` 173 处、`Resources.LoadAll` 已清零、`transform.Find` 残留 28（原 328）。
-- **当前工作区处于不可运行中间态**：`Variants/` 目录不存在、无注册表资产、无 prefab 挂 `UiNodeBindingMap`，而 `UiAssets.EnsureInstalled()` 在无注册表时**抛异常** → 任何走 `UiAssets.Load` 的路径在 Play 模式直接崩。必须先跑 `Prepare Version Infrastructure`。
-- **`FindUi` 的两个已知缺陷（改架构时须一并修）**：① 未命中一律 `Debug.LogError`，但大量调用方是"可选绑定"语义 → 红错噪声（首次暴露于 `DebugRangeBandLabel` 死键）；② 兜底的"叶子名唯一匹配"会让 `FindUi("Text")/"Image"/"Name"/"Active"/"State"` 这类泛型键**静默命中错误后代并返回非 null**，比报错更危险。另：每次调用都 `GetComponentsInChildren(true)` 分配数组且**无负缓存**，缺失键会被反复全树扫描。
-- `DebugRangeBandLabel` 是 greybox 遗留死键（**全历史从未存在于任何 prefab/场景**），仅 `GridCellView.cs:59/103` 引用，建议连字段一并删除。
+## Forgekeeper's Gift（2026-09-12 落地）
+- ID：商店 `ITEM_FORGEGIFTERS_GIFT`（typo 保留）/ 运行时 `ITEM_FORGEKEEPERS_GIFT`，`DevelopmentItemRunSnapshotProvider.cs:16` 字典兼容。120 金、Legendary、Passive、**金币可买可带入 Run**。
+- 链路已通：`ForgekeepersGiftEffect.Tick`（90s）→ `IItemForgePickPort.TryBeginForgePickClaim` → `ForgekeepersGiftPanelController`（激励视频发铲 / 关闭不发，都重置 CD）。注入：`DragonBoundBootstrap.PlayerForgePickPort` → `TwentyWavePressureRuntime` 构造参 → `ItemRunRuntime`。
+- 遗留 bug：`MerchantItemCatalog.cs:74` 末尾 `false` 应为 `true`（`Item()` 默认 `goldPurchasable=true`，此处显式传 false 与契约矛盾）。
+- 文档：`Docs/ForgekeepersGift_修改方案.md` 有效；`...具体实现.md` 已过时（旧同步接口）。
 
-## Greybox_Main 加载/就绪链路（LoadingPanel 隐藏锚点）
-- 场景激活 → `DragonBoundBootstrap`（Systems 根，可 defer 等外部 snapshot）`InitializeRuntime` → `Match` 状态机 `Ready`（固定停 `InitializationPromptSeconds=1` 秒）→ `TwentyWave.StartRun()` → `TryTransition(Running)` → `BeginWave(1)`。
-- 公开 API：`bootstrap.Match`（MatchController）、`Match.State`、`Match.StateChanged`、`bootstrap.IsInitialized/InitializationFailed`。
-- `Assets/Scripts/UI/GameplayLoadingPanelController.cs`(2026-09-07)：自动挂 Greybox_Main，复用场景内 `Canvas/LoadingPanel/BG`（默认 off），置顶打开 → Running 隐藏；20s 兜底。
-- SceneLoader 仅对 Login 场景解析 LoadingImg（`MainPanel/LoginPanel/LoadingImg`），Main↔Greybox_Main 切换期无过渡加载 UI。
+## Git / GitHub 约束
+- 远程 `https://github.com/mirya615-creator/Dragon.git`；分支 `codex/merge-dragonbound`、`codex/ui-v1-v2-isolation`、`master`；单文件硬限 100MB。
+- **必忽略**：`.codely-cli/`（Codex 索引缓存，单 .db 311MB）、`.codely/clipboard/`；保留 `.codelyignore`。`Assets/Firebase/Plugins/x86_64/*.bundle|*.so`（macOS/Linux 无用）不入库；**保留** `FirebaseCppApp-13_14_0.dll`、`Firebase/m2repository/`、`GeneratedLocalRepo/`。
+- 排查大文件：`git rev-list --objects <range> | git cat-file --batch-check`。
+- 非交互推送会报 `could not read Username`（凭据在 Windows 凭据管理器）：`U/P=$(git credential fill <<< "protocol=https\nhost=github.com")`，然后 `git -c credential.helper= push "https://$U:$P@github.com/..." <br>`，勿改 remote。
+- LFS 已启用（`*.dll` 等）：push 加 `-c lfs...locksverify=false` 静默。
+- 历史重写：本机无 `git filter-repo`，有 `filter-branch`；曾成功用 `reset --soft` 压缩 10 commit 为 1 个后 fast-forward。
+- Codex checkpoint ref（`refs/codex/turn-diffs/...`）会保护旧大对象，只占本地，不影响推送。
 
-## Rank / 段位结算链路（2026-09-12 整理）
-- 结算总闸：`Assets\Scripts\Rank\Services\GameSettlementCoordinator.cs`；`PrepareAsync` 顺序 `FinishRunAsync` → `if (result.ApplyRank && !ledger.RankApplied)` 调 `RecordVictoryAsync/RecordDefeatAsync` → 胜场升段才写 `RankPromotionStore`。Ledger 以 `dragonbound.settlement-ledger.<sha256(runId)>` 在 PlayerPrefs 持久化保证幂等。
-- 服务接口：`Assets\Scripts\Rank\Contracts\IPlayerRankGateway.cs`；本项目实现两组——`LocalPlayerRankGateway`（按 `matchId` 哈希去重，胜 `+1` 败按规则减）与 `GoServerResourceGateways.cs:439-487` 的 `GoPlayerRankGateway`（`Record*` 为空壳，只 GET `/v1/rank` 拿快照）。装配在 `GoUnaryServiceModule.cs:26` / `LocalServiceModule.cs:12` 二选一。
-- 规则：`Assets\Scripts\Rank\Infrastructure\RankProgressionRules.cs`；换算公式 L22-58；**败场扣星 L75-91**：Level 1-3（Recruit~Corporal）不掉星、Level 10（Dragon Marshal）扣 1 不降段、Level 4-9（Sergeant~General）扣 1 可能降段；每段星数 L115-120 = 1-3 级 3/段、4-6 级 4/段、7-9 级 5/段。
-- **关键阻断点（2026-09-12 发现）**：在线模式 `Assets\Scripts\Services\Gameplay\GoUnaryGameplayRunGateway.cs:271/397` 把 `FinishGameplayRunResult.ApplyRank` 硬编码 `false`，导致 `Coordinator` 永远跳过客户端加星，**完全依赖 Go 服务端 `/v1/runs/{id}/finish` 处理 rank**。文档 `Docs\DragonBound\Drakeforge_Full_Config_Baseline_V2_2026-08-14.md:370-377` + `QA\Drakeforge_QA_Master_Test_Matrix_V2.md:61` 均标注 Rank 后端 "PENDING IMPLEMENTATION"——这与"新用户首胜不加星"现象吻合。修复路径见 2026-09-12.md 排查小节。
+## Unity Android 原生桥接（Google 登录 P0，详见 Docs/AndroidGoogleLogin_P0S2_Java桥接实施步骤.md）
+- 唯一正确形式：`Xxx.androidlib` + 自带 `build.gradle`，源码 `src/main/java/<pkg>/Xxx.java`，manifest 顶层。
+- 禁止：散放 `.java` 到 `Assets/Plugins/Android/`；用 EDM4U 给 androidlib 注入依赖（只注入 unityLibrary，Gradle 不跨模块传递）。
+- 引擎 团结(Tuanjie) 2022.3.62t14；build.gradle 硬编码 `compileSdk 35`/`minSdk 24`；仓库靠 `settingsTemplate.gradle`。必须用 `consumerProguardFiles` 保留包名。
+- 依赖版本（2026-09 实查）：`androidx.credentials` + `credentials-play-services-auth` **1.6.0** 同版本、`googleid 1.2.0`、`androidx.core 1.15.0`；异常类 `GetCredentialCancelationException`（单 l）。
 
-## Forgekeeper's Gift 商品契约（2026-09-12 落地）
-- ID：商店 `ITEM_FORGEGIFTERS_GIFT`（typo 少 E，保留）/ 运行时 `ITEM_FORGEKEEPERS_GIFT`，通过 `DevelopmentItemRunSnapshotProvider.cs:16` 字典兼容。
-- 价格：120 金 / **`GoldPurchasable=true`** / Legendary / Passive ——金币可买、可带入 Run。
-- Run 内行为（已实现且联通，不要再补"接口孤岛"）：
-  - `ForgekeepersGiftEffect.Tick`（`ItemEconomyFlowEffects.cs:64-138`）每 90s 倒计时；归零 → `IItemForgePickPort.TryBeginForgePickClaim(...)`。
-  - `ForgekeepersGiftPanelController`（`Scripts/UI/`，实现 `IItemForgePickPort`）弹出 Forge Panel：videoRewardButton → 看完整激励视频 + TrySpawnRewardShovel 发铲；closeButton → Declined 不发；任意分支都重置 CD。
-  - 端口注入路径：`DragonBoundBootstrap.PlayerForgePickPort`（`ItemForgePickPortRouter`）→ `TwentyWavePressureRuntime` 构造参数 `playerForgePick: PlayerForgePickPort`（Bootstrap.cs:727）→ `TwentyWavePressureRuntime.StartItemRuntimes` 调 `new ItemRunRuntime(..., forgePick: playerForgePick)`（TwentyWavePressureRuntime.cs:667/679）。
-- 当前唯一 bug：`MerchantItemCatalog.cs:74` 末尾 `false` 应改成 `true`（2026-09-12 已出方案，待落地）。`Item()` 工厂方法签名 `bool goldPurchasable = true`（L134）—— 其他 19 件都没显式传，因为默认值就是 `true`；只有本件显式传 `false` 是**反默认**写法，与商品契约矛盾，进一步坐实是 bug 而非设计意图。
-- 文档：`Docs/ForgekeepersGift_修改方案.md` 是当前方案稿；`Docs/ForgekeepersGift_具体实现.md` 已过时（描述旧同步接口 `TryGrantForgePick`，与今天的 `TryBeginForgePickClaim(Action<>)` 不符），待整体重写。
-
-## 版本控制约束（2026-09-14，GitHub 推送踩坑 → 已修复）
-- 远程 `https://github.com/mirya615-creator/Dragon.git`，工作分支 `codex/merge-dragonbound`（`master` 另有，两者独立）；GitHub 单文件硬限 **100MB**。
-- 两个必忽略项（曾致 10 个 commit 被 `pre-receive hook declined`）：
-  1. **`.codely-cli/`** —— Codex IDE 索引缓存，单个 `.db` **311MB**，被跟踪 672 文件且持续增长。**永远不要入库**。（另有 `.codely/clipboard/` 剪贴板缓存也需忽略；但 `.codelyignore` 是插件配置，保留）。
-  2. **`Assets/Firebase/Plugins/x86_64/*.bundle`(107MB, macOS) / `*.so`(77MB, Linux)** —— 本项目 **Windows 开发 + Android 构建**，两者无用（meta 里 `Win64=0`、`Android=0`）。**必须保留** `FirebaseCppApp-13_14_0.dll`（17MB，`Editor=1`+`Win64=1`）、`Assets/Firebase/m2repository/`、`Assets/GeneratedLocalRepo/`（Android Gradle 依赖）。
-- **排查手法**：`git rev-list --objects <range> | git cat-file --batch-check` 精确枚举待推送大文件（比 `find` 准）。
-- **推送失败先分清是"文件超限"还是"凭据"**：非交互环境（Agent/脚本）`git push` 会报 `could not read Username` + `/dev/tty` 错误，但凭据其实在 Windows 凭据管理器里（`credential.helper=manager`）。解法：
-  `U/P=$(git credential fill <<< "protocol=https\nhost=github.com")` 取出后拼 URL：`git -c credential.helper= push "https://$U:$P@github.com/mirya615-creator/Dragon.git" <branch>`（不要改 `git remote` 配置）。
-- **LFS 已启用**：`.gitattributes` 覆盖部分二进制（如 `*.dll` 走 LFS，index 里存指针）；push 会报 `does not support the Git LFS locking API`，加 `-c lfs.https://github.com/mirya615-creator/Dragon.git/info/lfs.locksverify=false` 静默。一次 push 实测上传 23 个 LFS 对象 / 54MB。
-- **历史重写**：本机**无** `git filter-repo`，有 `git filter-branch`。本次采用**压缩式**（`git reset --soft origin/<branch>` + 单次提交），10 个 commit 合为 `1a8ed8c`，`ca27491..1a8ed8c` fast-forward 推送成功，**未 force**。
-- **坑：Codex checkpoint ref 会"保护"大对象**。`refs/codex/turn-diffs/checkpoints/<hash>/<hash>/<ts>/<uuid>` 是插件的对话轮次快照，引用 reset 前的旧 commit，导致 `git gc --prune=now` 后 311MB db + 106MB bundle 仍可达（`git rev-list --objects --all` 仍能看到）。**只占本地空间，不影响远程/推送**。回收需删这些 ref 后 gc，但会失去 Codex 的轮次回滚能力。
-
-## Unity Android 原生桥接（Java）约定（2026-09-14，Google 登录 P0 定案；详见 Docs/AndroidGoogleLogin_P0S2_Java桥接实施步骤.md）
-- **唯一正确形式：`Xxx.androidlib` + 自带 `build.gradle`**（源码 `src/main/java/<包路径>/Xxx.java`，manifest 放**顶层**）。
-  Unity 官方示例、官方 Gradle 文档与本机 Unity Gradle 模板均与该结构一致。
-- **禁止两件事**：① 把 `.java` 散放 `Assets/Plugins/Android/` 指望进 unityLibrary；② 指望 **EDM4U** 注入 androidlib 依赖。它只往 `mainTemplate.gradle`（unityLibrary）注入，而 Gradle `implementation` 不跨模块传递；第三方依赖必须写在模块自己的 build.gradle。
-- 引擎 = **团结(Tuanjie) 2022.3.62t14**（等同 Unity 2022.3 LTS）。模块 build.gradle 必须硬编码 `compileSdk 35` / `minSdk 24`；依赖仓库由 `settingsTemplate.gradle` 的 `RepositoriesMode.PREFER_SETTINGS` + `google()` + `mavenCentral()` 提供。
-- 混淆：C# 侧 `AndroidJavaClass` 属 JNI 加载、Java 侧无引用，因此必须用 `consumerProguardFiles` 保留自己的包名。
-- 版本事实（2026-09 实查）：`androidx.credentials`/`-play-services-auth` 稳定版 **1.6.0**（两者须同版本）；`googleid` 用 **1.2.0**；`androidx.core:1.15.0+` 要求 **compileSdk ≥ 35**；credentials 的 minSdk 为 **23**（本项目 24 ✅）；异常类名是 **`GetCredentialCancelationException`（单 l）**。
-
-## Google 登录接入现状（2026-09-14）
-- 唯一线上注入点：`Assets/Scripts/Services/Composition/GoUnaryServiceModule.cs:22` `new UnavailableGoogleOAuthProvider()`（`ClientServiceConfig.asset` 是 `backendMode: 1` = GoUnary）→ 当前构建点 Google 按钮必失败。
-- 契约 `Assets/Scripts/Auth/Contracts/IGoogleOAuthProvider.cs` 已够用（`SignInAsync(CancellationToken)` / `CancelPendingSignIn()`），P0 不用改。
-- **坑**：`LoginController.cs:248-255` 要求 `Email` 非空 + `EmailVerified==true`，而 `GoogleIdTokenCredential` 不给 email → 必须自己 Base64Url 解 ID Token 的 JWT payload 取 `email`/`email_verified`，否则被客户端自判 `INVALID_CREDENTIALS`。
-- `/v1/auth/google`、`/v1/auth/link/google`、`/v1/auth/refresh` 网关均已实现；但 **`LinkGoogleAsync` 全工程无调用方**；刷新目前仅 401 被动（`RefreshingUnaryTransport.cs:31`）。
-- 原生化：本项目**零 `AndroidJavaClass`/JNI 先例**，Google 桥接是第一处；Credential Manager 的 `serverClientId` 必须传 **Web** Client ID（Android Client ID 只用于 Cloud 侧登记包名+SHA-1）。
-
+## Google 登录接入现状
+- 线上唯一注入点 `Services/Composition/GoUnaryServiceModule.cs:22` 是 `UnavailableGoogleOAuthProvider`（`ClientServiceConfig.asset` backendMode=1）→ 当前 Google 按钮必失败。
+- 契约 `Auth/Contracts/IGoogleOAuthProvider.cs` 够用（SignInAsync / CancelPendingSignIn）。
+- 坑：`LoginController.cs:248-255` 要求 Email 非空且 verified，而 `GoogleIdTokenCredential` 不给 email → 需自行 Base64Url 解 ID Token JWT 取 `email`/`email_verified`。
+- `/v1/auth/google`、`/link/google`、`/refresh` 已实现；`LinkGoogleAsync` 无调用方；刷新仅 401 被动（`RefreshingUnaryTransport.cs:31`）。本项目零 JNI 先例，Google 桥接是第一处；Credential Manager 的 `serverClientId` 必须传 Web Client ID。

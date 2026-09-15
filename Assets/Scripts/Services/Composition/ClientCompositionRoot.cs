@@ -20,7 +20,7 @@ public static class ClientCompositionRoot
     {
         if (current != null) return;
 
-        ClientServiceConfig config = DragonBound.Presentation.UiAssets.Load<ClientServiceConfig>(ConfigResourcePath);
+        ClientServiceConfig config = Resources.Load<ClientServiceConfig>(ConfigResourcePath);
         if (config == null)
         {
             throw new InvalidOperationException(

@@ -3,19 +3,16 @@ using DragonBound.Presentation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 /// <summary>
-/// Controls the selected/unselected sprites of the bottom navigation buttons
-/// (BagBtn / RankingBtn / MainBtn) in the Main scene, based on which panel
-/// is currently open. Auto-installs onto MainPanel on scene load.
+/// Controls bottom-navigation panel switching in the Main scene.
+/// Visual state is owned by the version-specific authored UI.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class MainNavTabController : MonoBehaviour
 {
     private const string NavigationPath = "ButtonNavigation";
-    private const string SelectSpritePath = "Main/select";
-    private const string NoSelectSpritePath = "Main/Noselect";
-
     private Image bagImage;
     private Image rankingImage;
     private Image mainImage;
@@ -23,9 +20,6 @@ public sealed class MainNavTabController : MonoBehaviour
     private Button rankingButton;
     private GameObject weaponPanel;
     private GameObject leaderPanel;
-    private Sprite selectSprite;
-    private Sprite noSelectSprite;
-    private int lastState = -1; // 0 = home, 1 = bag, 2 = ranking
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void RegisterSceneLoadedHandler()
@@ -78,18 +72,6 @@ public sealed class MainNavTabController : MonoBehaviour
             return;
         }
 
-        selectSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(SelectSpritePath);
-        noSelectSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(NoSelectSpritePath);
-        if (selectSprite == null || noSelectSprite == null)
-        {
-            Debug.LogError(
-                "MainNavTabController unable to load sprites from Resources/Main/select " +
-                "and Resources/Main/Noselect.",
-                this);
-            enabled = false;
-            return;
-        }
-
         // MainBtn was given a Button component in the scene but has no persistent
         // OnClick calls wired; hook up the close-panels behavior here instead of
         // touching the scene. If the Button already existed, reuse it as-is.
@@ -110,7 +92,9 @@ public sealed class MainNavTabController : MonoBehaviour
             rankingButton = rankingImage.gameObject.AddComponent<Button>();
             rankingButton.transition = Selectable.Transition.None;
         }
-        rankingButton.onClick = new Button.ButtonClickedEvent();
+        // 只关闭场景持久化的 onClick，不能整体重建事件：那会清掉
+        // BottomNavigationSelection 已注册的选中态监听。
+        DisablePersistentCalls(rankingButton.onClick);
         rankingButton.onClick.AddListener(HandleRankingClicked);
 
     }
@@ -125,18 +109,6 @@ public sealed class MainNavTabController : MonoBehaviour
             leaderPanel.SetActive(false);
         }
 
-        // Poll panel active states instead of hooking button clicks:
-        // BagBtn's onClick is rebuilt at runtime by MainRuneUnlockController,
-        // and panels can be closed from several entry points.
-        int state = weaponPanel.activeSelf ? 1
-                  : leaderPanel.activeSelf ? 2
-                  : 0;
-        if (state == lastState) return;
-
-        lastState = state;
-        bagImage.sprite = state == 1 ? selectSprite : noSelectSprite;
-        rankingImage.sprite = state == 2 ? selectSprite : noSelectSprite;
-        mainImage.sprite = state == 0 ? selectSprite : noSelectSprite;
     }
 
     /// <summary>MainBtn click: close every overlay panel and return home.</summary>
@@ -204,4 +176,14 @@ public sealed class MainNavTabController : MonoBehaviour
         }
         return null;
     }
+
+    /// <summary>Turns off scene-persistent OnClick calls without rebuilding the event.</summary>
+    private static void DisablePersistentCalls(Button.ButtonClickedEvent clickedEvent)
+    {
+        for (int index = 0; index < clickedEvent.GetPersistentEventCount(); index++)
+        {
+            clickedEvent.SetPersistentListenerState(index, UnityEventCallState.Off);
+        }
+    }
+
 }

@@ -7,7 +7,9 @@ using DragonBound.Presentation;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace DragonBound.Editor.Versioning
 {
@@ -25,6 +27,7 @@ namespace DragonBound.Editor.Versioning
         private const string V2ResourcesRoot = V2Root + "/Content/Resources";
         private const string V1ComponentPrefabsRoot = V1Root + "/Content/UI/Prefabs/Components";
         private const string V2ComponentPrefabsRoot = V2Root + "/Content/UI/Prefabs/Components";
+        private const string SharedResourcesRoot = "Assets/DragonBound/Shared/Resources";
         private const string LegacyUiRoot = "Assets/DragonBound/UI";
 
         [MenuItem("DragonBound/Versioning/Prepare Version Infrastructure")]
@@ -71,6 +74,28 @@ namespace DragonBound.Editor.Versioning
         {
             GenerateV1Registry();
             AssetDatabase.SaveAssets();
+        }
+
+        [MenuItem("DragonBound/Versioning/Regenerate V2 Asset Registry")]
+        public static void RegenerateV2Registry()
+        {
+            GenerateRegistry("V2", V2ResourcesRoot, V2RegistryPath);
+            AssetDatabase.SaveAssets();
+        }
+
+        [MenuItem("DragonBound/Versioning/Migrate Runtime Configuration To Shared Resources")]
+        public static void MigrateRuntimeConfigurationToSharedResources()
+        {
+            EnsureFolder("Assets/DragonBound/Shared");
+            EnsureFolder(SharedResourcesRoot);
+            MoveFolderIfPresent(
+                V1ResourcesRoot + "/Configuration",
+                SharedResourcesRoot + "/Configuration");
+            GenerateV1Registry();
+            GenerateRegistry("V2", V2ResourcesRoot, V2RegistryPath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("Moved runtime Configuration to shared Resources and regenerated both UI registries.");
         }
 
         [MenuItem("DragonBound/Versioning/Create V2 Initial Scene And Prefab Copy")]
@@ -174,6 +199,37 @@ namespace DragonBound.Editor.Versioning
         public static void ValidateV2()
         {
             ValidateProfile(LoadRequiredProfile(V2ProfilePath));
+        }
+
+        [MenuItem("DragonBound/Versioning/Configure V2 Main Navigation Selection")]
+        public static void ConfigureV2MainNavigationSelection()
+        {
+            const string scenePath = V2Root + "/Scenes/Main.unity";
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            var navigation = scene.GetRootGameObjects()
+                .SelectMany(root => root.GetComponentsInChildren<Transform>(true))
+                .SingleOrDefault(item => item.name == "ButtonNavigation");
+            if (navigation == null)
+                throw new InvalidOperationException($"ButtonNavigation was not found in {scenePath}.");
+
+            var ranking = FindDirectChildButton(navigation, "RankingBtn", scenePath);
+            var main = FindDirectChildButton(navigation, "MainBtn", scenePath);
+            var bag = FindDirectChildButton(navigation, "BagBtn", scenePath);
+            var selection = navigation.GetComponent<BottomNavigationSelection>() ??
+                            navigation.gameObject.AddComponent<BottomNavigationSelection>();
+            selection.Configure(
+                ranking, RequireImage(ranking, scenePath),
+                main, RequireImage(main, scenePath),
+                bag, RequireImage(bag, scenePath),
+                BottomNavigationSelection.NavigationItem.Main);
+
+            EditorUtility.SetDirty(selection);
+            EditorUtility.SetDirty(ranking);
+            EditorUtility.SetDirty(main);
+            EditorUtility.SetDirty(bag);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log("Configured V2 Main ButtonNavigation selection colors. Initial selection=Main.");
         }
 
         [MenuItem("DragonBound/Build/Build Android V1")]
@@ -374,8 +430,11 @@ namespace DragonBound.Editor.Versioning
                 var path = Normalize(AssetDatabase.GUIDToAssetPath(guid));
                 if (AssetDatabase.IsValidFolder(path)) continue;
                 var key = ToResourceKey(sourceRoot, path);
-                var objects = AssetDatabase.LoadAllAssetsAtPath(path)
+                var mainAsset = AssetDatabase.LoadMainAssetAtPath(path);
+                var objects = new[] { mainAsset }
+                    .Concat(AssetDatabase.LoadAllAssetsAtPath(path))
                     .Where(asset => asset != null && !(asset is MonoScript))
+                    .Distinct()
                     .ToArray();
                 if (objects.Length == 0) continue;
 
@@ -500,6 +559,23 @@ namespace DragonBound.Editor.Versioning
         {
             return AssetDatabase.LoadAssetAtPath<SceneAsset>($"{V1Root}/Scenes/{sceneName}.unity") ??
                    AssetDatabase.LoadAssetAtPath<SceneAsset>($"Assets/Scenes/{sceneName}.unity");
+        }
+
+        private static Button FindDirectChildButton(Transform parent, string childName, string scenePath)
+        {
+            var child = parent.Cast<Transform>().SingleOrDefault(item => item.name == childName);
+            var button = child != null ? child.GetComponent<Button>() : null;
+            if (button == null)
+                throw new InvalidOperationException($"{childName} Button was not found under ButtonNavigation in {scenePath}.");
+            return button;
+        }
+
+        private static Image RequireImage(Button button, string scenePath)
+        {
+            var image = button.GetComponent<Image>();
+            if (image == null)
+                throw new InvalidOperationException($"{button.name} Image is missing in {scenePath}.");
+            return image;
         }
 
         private static void MoveFolderIfPresent(string source, string destination)

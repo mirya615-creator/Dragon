@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DragonBound.Presentation;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace DragonBound.Tests.EditMode
@@ -29,6 +30,28 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
+        public void RegistryReturnsPrefabRootWhenNestedGameObjectIsListedFirst()
+        {
+            var root = new GameObject("ProfileImg");
+            var child = new GameObject("ProfileFire");
+            child.transform.SetParent(root.transform, false);
+            var registry = ScriptableObject.CreateInstance<UiAssetRegistry>();
+            try
+            {
+                var entry = new UiAssetRegistry.Entry();
+                entry.Configure("prefabs/ProfileImg", new Object[] { child, root });
+                registry.Configure("V2", new List<UiAssetRegistry.Entry> { entry });
+
+                Assert.AreSame(root, registry.Load<GameObject>("prefabs/ProfileImg"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(registry);
+            }
+        }
+
+        [Test]
         public void ExplicitBindingSurvivesACompletelyDifferentLayout()
         {
             var root = new GameObject("V2Root");
@@ -50,12 +73,23 @@ namespace DragonBound.Tests.EditMode
         }
 
         [Test]
-        public void SelectedV1RegistryLoadsRepresentativeMovedAssets()
+        public void V1RegistryLoadsRepresentativeMovedAssetsIndependentlyOfActiveScene()
         {
-            Assert.IsNotNull(UiAssets.Load<Sprite>("Main/Signin/Today"));
-            Assert.IsNotNull(UiAssets.Load<GameObject>("prefabs/Hero"));
-            Assert.IsNotNull(UiAssets.Load<RuntimeAnimatorController>("Animation/BossW06"));
-            Assert.AreEqual("V1", UiAssets.Active.VariantId);
+            var registry = AssetDatabase.LoadAssetAtPath<UiAssetRegistry>(
+                UiVariantProjectPaths.V1Root + "/Config/UiAssetRegistryV1.asset");
+
+            Assert.IsNotNull(registry);
+            Assert.IsNotNull(registry.Load<Sprite>("Main/Signin/Today"));
+            Assert.IsNotNull(registry.Load<GameObject>("prefabs/Hero"));
+            Assert.IsNotNull(registry.Load<RuntimeAnimatorController>("Animation/BossW06"));
+            Assert.AreEqual("V1", registry.VariantId);
+        }
+
+        [Test]
+        public void SharedClientConfigurationLoadsOutsideVariantUiRegistries()
+        {
+            Assert.IsNotNull(Resources.Load<ScriptableObject>("Configuration/ClientServiceConfig"));
+            Assert.IsNotNull(Resources.Load<TextAsset>("Configuration/Stages/stage-001"));
         }
     }
 }

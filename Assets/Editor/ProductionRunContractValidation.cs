@@ -34,7 +34,7 @@ public static class ProductionRunContractValidation
     [MenuItem("DragonBound/Validation/Validate Production Run Contract %#p")]
     public static void Run()
     {
-        ClientServiceConfig config = DragonBound.Presentation.UiAssets.Load<ClientServiceConfig>(ClientConfigPath);
+        ClientServiceConfig config = Resources.Load<ClientServiceConfig>(ClientConfigPath);
         Require(config != null, "ClientServiceConfig is missing.");
         Require(config.RequireAuthoritativeRunContract,
             "Authoritative Run contract enforcement must be enabled.");
@@ -42,7 +42,7 @@ public static class ProductionRunContractValidation
         Require(!string.IsNullOrWhiteSpace(config.ExpectedStageSnapshotDigest),
             "Expected Stage snapshot digest is missing.");
 
-        TextAsset asset = DragonBound.Presentation.UiAssets.Load<TextAsset>(StageManifestPrefix + config.DefaultStageId);
+        TextAsset asset = Resources.Load<TextAsset>(StageManifestPrefix + config.DefaultStageId);
         Require(asset != null, "Published client Stage manifest is missing.");
         string canonicalJson = asset.text.Trim();
         StageManifest manifest = JsonUtility.FromJson<StageManifest>(canonicalJson);

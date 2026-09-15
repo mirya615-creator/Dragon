@@ -5,17 +5,18 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Owns the locally assigned player avatar and loads the authored Profile/0-12 sprites.
+/// Owns the locally assigned player avatar and resolves it through the active UI variant.
 /// </summary>
 public static class PlayerAvatarProfile
 {
-    private const string ResourceRoot = "Profile/";
+    private const string V1ResourceRoot = "Profile/";
+    private const string V2ResourceRoot = "UIResources/Main/Profile/";
     private const string PreferenceKeyPrefix = "dragonbound.player-avatar.v1.";
     private const int FirstAvatarIndex = 0;
     private const int LastAvatarIndex = 12;
     private const int AvatarCount = LastAvatarIndex - FirstAvatarIndex + 1;
 
-    private static readonly Dictionary<int, Sprite> SpriteCache = new Dictionary<int, Sprite>();
+    private static readonly Dictionary<string, Sprite> SpriteCache = new Dictionary<string, Sprite>();
 
     /// <summary>
     /// Creates the random assignment once for this player and reuses it on every later login.
@@ -53,20 +54,36 @@ public static class PlayerAvatarProfile
         int index = TryParseAvatarId(avatarId, out int parsedIndex)
             ? parsedIndex
             : FirstAvatarIndex;
-        if (SpriteCache.TryGetValue(index, out Sprite cached) && cached != null) return cached;
+        string variantId = DragonBound.Presentation.UiAssets.Active?.VariantId ?? "V1";
+        string resourceRoot = string.Equals(variantId, "V2", StringComparison.Ordinal)
+            ? V2ResourceRoot
+            : V1ResourceRoot;
+        string cacheKey = variantId + ":" + index;
+        if (SpriteCache.TryGetValue(cacheKey, out Sprite cached) && cached != null) return cached;
 
-        Sprite sprite = DragonBound.Presentation.UiAssets.Load<Sprite>(ResourceRoot + index);
+        bool isV2 = string.Equals(variantId, "V2", StringComparison.Ordinal);
+        Sprite sprite = isV2
+            ? DragonBound.Presentation.UiAssets.Active?.Load<Sprite>(resourceRoot + index)
+            : DragonBound.Presentation.UiAssets.Load<Sprite>(resourceRoot + index);
+        int resolvedIndex = index;
         if (sprite == null && index != FirstAvatarIndex)
         {
-            sprite = DragonBound.Presentation.UiAssets.Load<Sprite>(ResourceRoot + FirstAvatarIndex);
+            // Missing V2 portraits intentionally fall back only to V2's avatar 0.
+            resolvedIndex = FirstAvatarIndex;
+            sprite = isV2
+                ? DragonBound.Presentation.UiAssets.Active?.Load<Sprite>(resourceRoot + FirstAvatarIndex)
+                : DragonBound.Presentation.UiAssets.Load<Sprite>(resourceRoot + FirstAvatarIndex);
         }
         if (sprite == null)
         {
-            Debug.LogWarning($"Player avatar sprite is missing at Resources/{ResourceRoot}{index}.");
+            Debug.LogWarning(
+                $"Player avatar sprite is missing. Variant={variantId}, Key={resourceRoot}{index}.");
             return null;
         }
 
-        SpriteCache[index] = sprite;
+        // Do not cache a temporary V2 fallback under the missing avatar ID. Once that
+        // numbered portrait is added and the registry is regenerated, it takes effect.
+        SpriteCache[variantId + ":" + resolvedIndex] = sprite;
         return sprite;
     }
 

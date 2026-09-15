@@ -7,6 +7,7 @@ using DragonBound.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 [DisallowMultipleComponent]
 public sealed class MainRuneUnlockController : MonoBehaviour
@@ -73,7 +74,7 @@ public sealed class MainRuneUnlockController : MonoBehaviour
 
         // The authored BagBtn used to open WeaponPanel directly. Replace that persistent action
         // so every entry path passes through the trusted AccountDay gate.
-        bagButton.onClick = new Button.ButtonClickedEvent();
+        DisablePersistentCalls(bagButton.onClick);
         bagButton.onClick.AddListener(HandleBagClicked);
         bagButton.interactable = true;
         bagCanvasGroup = bagButton.GetComponent<CanvasGroup>();
@@ -204,4 +205,14 @@ public sealed class MainRuneUnlockController : MonoBehaviour
         }
         return null;
     }
+
+    /// <summary>Turns off scene-persistent OnClick calls without rebuilding the event.</summary>
+    private static void DisablePersistentCalls(Button.ButtonClickedEvent clickedEvent)
+    {
+        for (int index = 0; index < clickedEvent.GetPersistentEventCount(); index++)
+        {
+            clickedEvent.SetPersistentListenerState(index, UnityEventCallState.Off);
+        }
+    }
+
 }

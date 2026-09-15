@@ -169,7 +169,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 20, y: 0}
-  m_SizeDelta: {x: 83, y: 83}
+  m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2414310006351586371
 CanvasRenderer:
@@ -199,7 +199,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 6ee63f0a97a1920439fc15d55fbf382f, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c5bca2c311a65db4fab3e888babcbb86, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -221,7 +221,6 @@ GameObject:
   - component: {fileID: 5521758241900160762}
   - component: {fileID: 9144574702854911271}
   - component: {fileID: 3654167519058732501}
-  - component: {fileID: 2675374187328240126}
   m_Layer: 5
   m_Name: CoinBg
   m_TagString: Untagged
@@ -278,7 +277,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 55091c4be3df45445a0a9f9d5d986375, type: 3}
+  m_Sprite: {fileID: 21300000, guid: db2ead5386ba1254d82756ca82085fba, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -300,17 +299,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33a6e82a184c4e31ae174f63e7293a50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2675374187328240126
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8309491452353886355}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: adb30198aa32dd140b5750692dd48104, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  radius: 30
-  image: {fileID: 9144574702854911271}
