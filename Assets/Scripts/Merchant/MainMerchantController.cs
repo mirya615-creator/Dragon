@@ -51,6 +51,7 @@ public sealed class MainMerchantController : MonoBehaviour
     private Transform ownedItemContainer;
     private Transform activeItemColumn;
     private Transform passiveItemColumn;
+    private MerchantOwnedItemSlotLayout ownedItemSlotLayout;
     private GameObject offerItemPrefab;
     private GameObject ownedItemPrefab;
     private Button chantButton;
@@ -113,6 +114,33 @@ public sealed class MainMerchantController : MonoBehaviour
             {
                 passiveItemColumn = ownedItemContainer.GetChild(1);
             }
+
+            ownedItemSlotLayout = ownedItemContainer.GetComponent<MerchantOwnedItemSlotLayout>();
+            if (ownedItemSlotLayout == null &&
+                activeItemColumn != null && activeItemColumn.childCount > 0 &&
+                passiveItemColumn != null && passiveItemColumn.childCount > 0)
+            {
+                MerchantOwnedItemSlotLayout discoveredLayout =
+                    ownedItemContainer.gameObject.AddComponent<MerchantOwnedItemSlotLayout>();
+                if (discoveredLayout.ConfigureFromColumns(activeItemColumn, passiveItemColumn))
+                {
+                    ownedItemSlotLayout = discoveredLayout;
+                }
+                else
+                {
+                    Destroy(discoveredLayout);
+                }
+            }
+
+            if (ownedItemSlotLayout != null && !ownedItemSlotLayout.IsConfigured)
+            {
+                ownedItemSlotLayout.ConfigureFromColumns(activeItemColumn, passiveItemColumn);
+            }
+
+            if (ownedItemSlotLayout != null && ownedItemSlotLayout.IsConfigured)
+            {
+                ownedItemSlotLayout.ResetSlots();
+            }
         }
         offerItemPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(OfferItemPrefabPath);
         ownedItemPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(OwnedItemPrefabPath);
@@ -130,7 +158,8 @@ public sealed class MainMerchantController : MonoBehaviour
             activeItemColumn == null || passiveItemColumn == null ||
             activeItemColumn == passiveItemColumn || offerItemPrefab == null ||
             ownedItemPrefab == null || cancelItemPanel == null || cancelItemButton == null ||
-            confirmItemButton == null)
+            confirmItemButton == null ||
+            (ownedItemSlotLayout != null && !ownedItemSlotLayout.IsConfigured))
         {
             Debug.LogError(
                 "MainMerchantController requires MerchantPanel/Bg with ChantBtn, LotteryBtn, " +
@@ -855,8 +884,15 @@ public sealed class MainMerchantController : MonoBehaviour
     private void PopulateOwnedItems(MerchantInventory inventory)
     {
         displayedProductIds.Clear();
-        ClearOwnedItemColumn(activeItemColumn);
-        ClearOwnedItemColumn(passiveItemColumn);
+        if (ownedItemSlotLayout != null)
+        {
+            ownedItemSlotLayout.ResetSlots();
+        }
+        else
+        {
+            ClearOwnedItemColumn(activeItemColumn);
+            ClearOwnedItemColumn(passiveItemColumn);
+        }
         if (inventory?.Products == null) return;
 
         foreach (MerchantProduct product in inventory.Products)
@@ -872,13 +908,16 @@ public sealed class MainMerchantController : MonoBehaviour
             return;
         }
 
+        bool isActiveItem;
         Transform targetColumn;
         if (string.Equals(product.ItemType, "Active", StringComparison.OrdinalIgnoreCase))
         {
+            isActiveItem = true;
             targetColumn = activeItemColumn;
         }
         else if (string.Equals(product.ItemType, "Passive", StringComparison.OrdinalIgnoreCase))
         {
+            isActiveItem = false;
             targetColumn = passiveItemColumn;
         }
         else
@@ -890,8 +929,24 @@ public sealed class MainMerchantController : MonoBehaviour
 
         if (!displayedProductIds.Add(product.ProductId)) return;
 
-        GameObject itemObject = Instantiate(ownedItemPrefab, targetColumn, false);
+        Image slot = null;
+        Transform itemParent = targetColumn;
+        if (ownedItemSlotLayout != null)
+        {
+            slot = ownedItemSlotLayout.GetFirstAvailableSlot(isActiveItem);
+            if (slot == null)
+            {
+                Debug.LogError($"No available Merchant {product.ItemType} item slot for {product.ProductId}.");
+                displayedProductIds.Remove(product.ProductId);
+                return;
+            }
+
+            itemParent = slot.transform;
+        }
+
+        GameObject itemObject = Instantiate(ownedItemPrefab, itemParent, false);
         itemObject.name = "Item_" + product.ProductId;
+        if (slot != null) StretchToSlot(itemObject.transform as RectTransform);
 
         Image targetImage = itemObject.transform.FindUi("ItemImg")?.GetComponent<Image>();
         Sprite icon = iconProvider.Load(product.IconKey);
@@ -914,6 +969,7 @@ public sealed class MainMerchantController : MonoBehaviour
         MerchantProduct capturedProduct = product;
         deleteButton.interactable = true;
         deleteButton.onClick.AddListener(() => OnDeleteItemClicked(capturedProduct));
+        if (slot != null) slot.gameObject.SetActive(true);
     }
 
     private bool IsOwnedItemLimitReached(MerchantProduct product)
@@ -925,12 +981,18 @@ public sealed class MainMerchantController : MonoBehaviour
 
         if (string.Equals(product.ItemType, "Active", StringComparison.OrdinalIgnoreCase))
         {
-            return CountOwnedItemViews(activeItemColumn) >= ActiveItemLimit;
+            int count = ownedItemSlotLayout != null
+                ? ownedItemSlotLayout.CountOccupiedSlots(true)
+                : CountOwnedItemViews(activeItemColumn);
+            return count >= ActiveItemLimit;
         }
 
         if (string.Equals(product.ItemType, "Passive", StringComparison.OrdinalIgnoreCase))
         {
-            return CountOwnedItemViews(passiveItemColumn) >= PassiveItemLimit;
+            int count = ownedItemSlotLayout != null
+                ? ownedItemSlotLayout.CountOccupiedSlots(false)
+                : CountOwnedItemViews(passiveItemColumn);
+            return count >= PassiveItemLimit;
         }
 
         return false;
@@ -954,6 +1016,17 @@ public sealed class MainMerchantController : MonoBehaviour
         }
 
         return count;
+    }
+
+    private static void StretchToSlot(RectTransform itemTransform)
+    {
+        if (itemTransform == null) return;
+        itemTransform.anchorMin = Vector2.zero;
+        itemTransform.anchorMax = Vector2.one;
+        itemTransform.anchoredPosition = Vector2.zero;
+        itemTransform.sizeDelta = Vector2.zero;
+        itemTransform.localRotation = Quaternion.identity;
+        itemTransform.localScale = Vector3.one;
     }
 
     private static void ClearOwnedItemColumn(Transform column)
