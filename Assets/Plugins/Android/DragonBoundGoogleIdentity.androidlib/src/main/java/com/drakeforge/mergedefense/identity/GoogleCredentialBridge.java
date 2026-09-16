@@ -20,9 +20,7 @@ import androidx.credentials.exceptions.NoCredentialException;
 
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
-import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.concurrent.Executor;
@@ -165,7 +163,7 @@ public final class GoogleCredentialBridge {
             Uri picture = google.getProfilePictureUri();
             json.put("picture_url", picture == null ? "" : picture.toString());
             callback.onSuccess(json.toString());
-        } catch (GoogleIdTokenParsingException | JSONException error) {
+       } catch (Exception error) {
             callback.onError(
                     "INVALID_GOOGLE_TOKEN",
                     "Google returned an invalid ID token credential.");

@@ -47,8 +47,9 @@ public sealed class GoogleLoginConfigurationValidation : IPreprocessBuildWithRep
             PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android) == ExpectedPackage,
             "Android package name must be " + ExpectedPackage + ".");
         Require(
-            File.Exists("Assets/Plugins/Android/GoogleIdentityDependencies.xml"),
-            "Credential Manager dependency declaration is missing.");
+            File.Exists(
+                "Assets/Plugins/Android/DragonBoundGoogleIdentity.androidlib/build.gradle"),
+            "Credential Manager Android library configuration is missing.");
         Require(
             File.Exists(
                 "Assets/Plugins/Android/DragonBoundGoogleIdentity.androidlib/src/main/java/" +

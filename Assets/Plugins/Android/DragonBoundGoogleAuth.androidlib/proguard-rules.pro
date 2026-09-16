@@ -1,3 +1,0 @@
--keep class com.drakeforge.mergedefense.googleauth.** { *; }
--keep class com.google.android.libraries.identity.googleid.** { *; }
--keep class androidx.credentials.** { *; }

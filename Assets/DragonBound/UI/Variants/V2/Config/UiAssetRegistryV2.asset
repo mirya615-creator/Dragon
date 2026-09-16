@@ -18,6 +18,82 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 46e970993fbfa3f4e934e5304a6a7349, type: 3}
     - {fileID: 21300000, guid: 46e970993fbfa3f4e934e5304a6a7349, type: 3}
+  - key: ComponentUI/001
+    assets:
+    - {fileID: 2800000, guid: 4658842d8f6e98f48af8aab44bfecb30, type: 3}
+    - {fileID: 21300000, guid: 4658842d8f6e98f48af8aab44bfecb30, type: 3}
+  - key: ComponentUI/002
+    assets:
+    - {fileID: 2800000, guid: 04dcd42d47bfc0b4e8db64b0406d033f, type: 3}
+    - {fileID: 21300000, guid: 04dcd42d47bfc0b4e8db64b0406d033f, type: 3}
+  - key: ComponentUI/003
+    assets:
+    - {fileID: 2800000, guid: 3e260f3770a3bcd40822a30ec68736bf, type: 3}
+    - {fileID: 21300000, guid: 3e260f3770a3bcd40822a30ec68736bf, type: 3}
+  - key: ComponentUI/004
+    assets:
+    - {fileID: 2800000, guid: c39a41ddb9beda647a9f78ce4c70e5fa, type: 3}
+    - {fileID: 21300000, guid: c39a41ddb9beda647a9f78ce4c70e5fa, type: 3}
+  - key: ComponentUI/005
+    assets:
+    - {fileID: 2800000, guid: 70791711b2751414e91eb6408eaf8068, type: 3}
+    - {fileID: 21300000, guid: 70791711b2751414e91eb6408eaf8068, type: 3}
+  - key: ComponentUI/006
+    assets:
+    - {fileID: 2800000, guid: 2443c2fd8d73c6b48895c7436d3e9bcf, type: 3}
+    - {fileID: 21300000, guid: 2443c2fd8d73c6b48895c7436d3e9bcf, type: 3}
+  - key: ComponentUI/007
+    assets:
+    - {fileID: 2800000, guid: 522b3db4eb84ab74c99dca51486d1bcb, type: 3}
+    - {fileID: 21300000, guid: 522b3db4eb84ab74c99dca51486d1bcb, type: 3}
+  - key: ComponentUI/008
+    assets:
+    - {fileID: 2800000, guid: c0fdf9e730b12024c91d2a31a04f69d3, type: 3}
+    - {fileID: 21300000, guid: c0fdf9e730b12024c91d2a31a04f69d3, type: 3}
+  - key: ComponentUI/009
+    assets:
+    - {fileID: 2800000, guid: ac45034cc2e3f664e93b2210339a863a, type: 3}
+    - {fileID: 21300000, guid: ac45034cc2e3f664e93b2210339a863a, type: 3}
+  - key: ComponentUI/01
+    assets:
+    - {fileID: 2800000, guid: 6b0127314c6f6484b937730702a3b525, type: 3}
+    - {fileID: 21300000, guid: 6b0127314c6f6484b937730702a3b525, type: 3}
+  - key: ComponentUI/010
+    assets:
+    - {fileID: 2800000, guid: 4c3238b82107fd54a8e6f9add8a1f595, type: 3}
+    - {fileID: 21300000, guid: 4c3238b82107fd54a8e6f9add8a1f595, type: 3}
+  - key: ComponentUI/011
+    assets:
+    - {fileID: 2800000, guid: f5dc2b78dfa2edd42aa36ae24f2195b4, type: 3}
+    - {fileID: 21300000, guid: f5dc2b78dfa2edd42aa36ae24f2195b4, type: 3}
+  - key: ComponentUI/012
+    assets:
+    - {fileID: 2800000, guid: 119679ac45ddc17409eb9a7d253f3131, type: 3}
+    - {fileID: 21300000, guid: 119679ac45ddc17409eb9a7d253f3131, type: 3}
+  - key: ComponentUI/014
+    assets:
+    - {fileID: 2800000, guid: 07d5a58e95e187b4db87e0dedb320572, type: 3}
+    - {fileID: 21300000, guid: 07d5a58e95e187b4db87e0dedb320572, type: 3}
+  - key: ComponentUI/015
+    assets:
+    - {fileID: 2800000, guid: 9ff16966fd1967b4f8c8e48aa0a79590, type: 3}
+    - {fileID: 21300000, guid: 9ff16966fd1967b4f8c8e48aa0a79590, type: 3}
+  - key: ComponentUI/02
+    assets:
+    - {fileID: 2800000, guid: cb30a970e0513a84eaf20a0533f4d3d2, type: 3}
+    - {fileID: 21300000, guid: cb30a970e0513a84eaf20a0533f4d3d2, type: 3}
+  - key: ComponentUI/03
+    assets:
+    - {fileID: 2800000, guid: 4f09ad503607cd74eaf8aabf9dc59591, type: 3}
+    - {fileID: 21300000, guid: 4f09ad503607cd74eaf8aabf9dc59591, type: 3}
+  - key: ComponentUI/043
+    assets:
+    - {fileID: 2800000, guid: b3b48f3251fda5b4faf6abc62ab1845e, type: 3}
+    - {fileID: 21300000, guid: b3b48f3251fda5b4faf6abc62ab1845e, type: 3}
+  - key: ComponentUI/shovel
+    assets:
+    - {fileID: 2800000, guid: dc4bb56285711f14d865f7a1c814f785, type: 3}
+    - {fileID: 21300000, guid: dc4bb56285711f14d865f7a1c814f785, type: 3}
   - key: "UIResources/Game/Settlement/\u56FE\u5C42 70"
     assets:
     - {fileID: 2800000, guid: d7a43b744c02f2b498201f2031097fa7, type: 3}

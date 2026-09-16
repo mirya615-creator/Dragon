@@ -382,15 +382,68 @@ namespace DragonBound.Editor.Versioning
         private static void SetActiveProfile(DragonBoundUiBuildProfile profile)
         {
             ValidateBasicProfile(profile);
-            PlayerSettings.SetPreloadedAssets(
-                WithSelectedRegistry(PlayerSettings.GetPreloadedAssets(), profile.AssetRegistry));
-            EditorBuildSettings.scenes = profile.Scenes
+
+            var currentPreloadedAssets = PlayerSettings.GetPreloadedAssets();
+            var desiredPreloadedAssets = WithSelectedRegistry(
+                currentPreloadedAssets,
+                profile.AssetRegistry);
+            if (!AreSameAssets(currentPreloadedAssets, desiredPreloadedAssets))
+            {
+                PlayerSettings.SetPreloadedAssets(desiredPreloadedAssets);
+            }
+
+            var desiredScenes = profile.Scenes
                 .Where(scene => scene != null)
                 .Select(scene => new EditorBuildSettingsScene(AssetDatabase.GetAssetPath(scene), true))
                 .ToArray();
-            EditorPrefs.SetString("DragonBound.ActiveUiVariant", profile.VariantId);
-            UiAssets.Activate(profile.AssetRegistry);
-            Debug.Log($"Active DragonBound UI variant: {profile.VariantId}");
+            if (!AreSameScenes(EditorBuildSettings.scenes, desiredScenes))
+            {
+                EditorBuildSettings.scenes = desiredScenes;
+            }
+
+            const string activeVariantKey = "DragonBound.ActiveUiVariant";
+            if (EditorPrefs.GetString(activeVariantKey) != profile.VariantId)
+            {
+                EditorPrefs.SetString(activeVariantKey, profile.VariantId);
+            }
+
+            if (UiAssets.Active != profile.AssetRegistry)
+            {
+                // Static runtime state is cleared by Unity domain reloads. Restore it from the
+                // already-persisted profile without rewriting PlayerSettings or build settings.
+                UiAssets.Activate(profile.AssetRegistry);
+                Debug.Log($"Active DragonBound UI variant: {profile.VariantId}");
+            }
+        }
+
+        private static bool AreSameAssets(
+            IReadOnlyList<UnityEngine.Object> current,
+            IReadOnlyList<UnityEngine.Object> desired)
+        {
+            if (current.Count != desired.Count) return false;
+            for (var index = 0; index < current.Count; index++)
+            {
+                if (current[index] != desired[index]) return false;
+            }
+
+            return true;
+        }
+
+        private static bool AreSameScenes(
+            IReadOnlyList<EditorBuildSettingsScene> current,
+            IReadOnlyList<EditorBuildSettingsScene> desired)
+        {
+            if (current.Count != desired.Count) return false;
+            for (var index = 0; index < current.Count; index++)
+            {
+                if (current[index].enabled != desired[index].enabled ||
+                    !string.Equals(current[index].path, desired[index].path, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static void ValidateBasicProfile(DragonBoundUiBuildProfile profile)
