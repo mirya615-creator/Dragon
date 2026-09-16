@@ -1,0 +1,33 @@
+apply plugin: 'com.android.library'
+
+dependencies {
+    implementation 'androidx.credentials:credentials:1.6.0'
+    implementation 'androidx.credentials:credentials-play-services-auth:1.6.0'
+    implementation 'com.google.android.libraries.identity.googleid:googleid:1.2.0'
+}
+
+android {
+    namespace "com.drakeforge.mergedefense.identity"
+    compileSdk 35
+    buildToolsVersion '34.0.0'
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src/main/java']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    defaultConfig {
+        minSdk 24
+        targetSdk 35
+        consumerProguardFiles 'proguard-rules.pro'
+    }
+
+    lint { abortOnError false }
+}

@@ -13,6 +13,8 @@ public sealed class ClientServiceConfig : ScriptableObject
     [SerializeField] private string configVersion = string.Empty;
     [SerializeField] private string defaultStageId = string.Empty;
     [SerializeField] private string expectedStageSnapshotDigest = string.Empty;
+    [SerializeField] private string googleWebClientId = string.Empty;
+    [SerializeField] private string googleAndroidClientId = string.Empty;
     [SerializeField] private bool requireAuthoritativeRunContract = true;
     [SerializeField] private bool enableNetworkLogging;
 
@@ -24,6 +26,8 @@ public sealed class ClientServiceConfig : ScriptableObject
     public string ConfigVersion => configVersion;
     public string DefaultStageId => defaultStageId;
     public string ExpectedStageSnapshotDigest => expectedStageSnapshotDigest;
+    public string GoogleWebClientId => googleWebClientId;
+    public string GoogleAndroidClientId => googleAndroidClientId;
     public bool RequireAuthoritativeRunContract => requireAuthoritativeRunContract;
     public bool EnableNetworkLogging => enableNetworkLogging;
 }

@@ -19,5 +19,10 @@ public interface IAuthGateway
         DeviceInfoDto deviceInfo,
         CancellationToken cancellationToken);
 
+    Task<AuthSession> RefreshSessionAsync(
+        AuthSession currentSession,
+        DeviceInfoDto deviceInfo,
+        CancellationToken cancellationToken);
+
     Task LogoutAsync(CancellationToken cancellationToken);
 }

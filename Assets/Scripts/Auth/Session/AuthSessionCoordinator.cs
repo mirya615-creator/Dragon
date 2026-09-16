@@ -40,9 +40,62 @@ public sealed class AuthSessionCoordinator : MonoBehaviour
         }
         finally
         {
+            try
+            {
+                await services.GoogleOAuth.ClearCredentialStateAsync(CancellationToken.None);
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogWarning("Unable to clear Google credential state: " + exception.Message);
+            }
             services.AuthSession.Clear();
             EnsureCreated();
             instance.RedirectToLogin();
+        }
+    }
+
+    public static async Task LinkCurrentPlayerToGoogleAsync(
+        CancellationToken cancellationToken = default)
+    {
+        IClientServices services = ClientCompositionRoot.Current;
+        AuthSession session = services.AuthSession.Current;
+        if (session == null || !services.AuthSession.IsValid(session))
+            throw new AuthException("SESSION_MISSING", "Sign in before linking a Google account.");
+        if (!session.IsGuest)
+            throw new AuthException("ACCOUNT_ALREADY_LINKED", "This player is already linked.");
+
+        string originalPlayerId = session.PlayerId;
+        PendingGoogleIdentity identity = null;
+        try
+        {
+            identity = await services.GoogleOAuth.SignInAsync(cancellationToken);
+            if (identity == null || string.IsNullOrWhiteSpace(identity.IdToken))
+                throw new AuthException("INVALID_GOOGLE_TOKEN", "Google did not return an ID token.");
+
+            await services.Auth.LinkGoogleAsync(
+                identity.IdToken,
+                services.GuestIdentity.CreateDeviceInfo(),
+                cancellationToken);
+
+            AuthSession current = services.AuthSession.Current;
+            if (current == null ||
+                !string.Equals(current.PlayerId, originalPlayerId, System.StringComparison.Ordinal))
+                throw new AuthException(
+                    "PLAYER_ID_MISMATCH",
+                    "Google linking changed the active player unexpectedly.");
+
+            current.IsGuest = false;
+            current.IsNewPlayer = false;
+            services.AuthSession.Set(current);
+        }
+        finally
+        {
+            if (identity != null && identity.OwnsAvatarSprite && identity.AvatarSprite != null)
+            {
+                Texture2D texture = identity.AvatarSprite.texture;
+                Destroy(identity.AvatarSprite);
+                if (texture != null) Destroy(texture);
+            }
         }
     }
 

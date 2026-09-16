@@ -18,4 +18,10 @@ public sealed class UnavailableGoogleOAuthProvider : IGoogleOAuthProvider
     public void CancelPendingSignIn()
     {
     }
+
+    public Task ClearCredentialStateAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.CompletedTask;
+    }
 }

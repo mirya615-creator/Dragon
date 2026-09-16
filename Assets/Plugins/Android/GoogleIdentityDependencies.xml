@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <dependencies>
   <androidPackages>
     <androidPackage spec="androidx.credentials:credentials:1.6.0" />

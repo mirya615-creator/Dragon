@@ -7,6 +7,8 @@ using UnityEngine;
 /// </summary>
 public sealed class PersistentAuthSessionStore : IAuthSessionStore
 {
+    private const string SecureStoreClassName =
+        "com.drakeforge.mergedefense.identity.SecureSessionStore";
     private const int CurrentSchemaVersion = 1;
     private const string DefaultSessionKey = "dragonbound.auth.session.v1";
     private readonly string sessionKey;
@@ -29,7 +31,8 @@ public sealed class PersistentAuthSessionStore : IAuthSessionStore
     public bool TryRestore(out AuthSession session)
     {
         session = null;
-        if (!PlayerPrefs.HasKey(sessionKey))
+        string serialized = ReadSerializedSession();
+        if (string.IsNullOrWhiteSpace(serialized))
         {
             Current = null;
             return false;
@@ -38,7 +41,7 @@ public sealed class PersistentAuthSessionStore : IAuthSessionStore
         try
         {
             AuthSession restored = JsonUtility.FromJson<AuthSession>(
-                PlayerPrefs.GetString(sessionKey, string.Empty));
+                serialized);
             if (!IsValid(restored))
             {
                 Clear();
@@ -86,14 +89,93 @@ public sealed class PersistentAuthSessionStore : IAuthSessionStore
         if (!IsValid(session)) throw new ArgumentException("Auth session is invalid.", nameof(session));
 
         Current = session;
-        PlayerPrefs.SetString(sessionKey, JsonUtility.ToJson(session));
-        PlayerPrefs.Save();
+        string serialized = JsonUtility.ToJson(session);
+        if (!WriteSerializedSession(serialized))
+        {
+            Current = null;
+            throw new InvalidOperationException("Unable to save the authentication session securely.");
+        }
         Debug.Log($"Session saved for PlayerId: {session.PlayerId}, IsGuest: {session.IsGuest}");
     }
 
     public void Clear()
     {
         Current = null;
+        DeleteSerializedSession();
+    }
+
+    private string ReadSerializedSession()
+    {
+#if UNITY_ANDROID && !UNITY_EDITOR
+        try
+        {
+            using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+            using (AndroidJavaObject activity =
+                   unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+            using (var store = new AndroidJavaClass(SecureStoreClassName))
+            {
+                string secure = store.CallStatic<string>("read", activity, sessionKey);
+                if (!string.IsNullOrWhiteSpace(secure)) return secure;
+            }
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning("Unable to read the secure authentication session: " + exception.Message);
+        }
+
+        // One-time migration from the previous PlayerPrefs implementation.
+        string legacy = PlayerPrefs.GetString(sessionKey, string.Empty);
+        if (!string.IsNullOrWhiteSpace(legacy) && WriteSerializedSession(legacy))
+        {
+            PlayerPrefs.DeleteKey(sessionKey);
+            PlayerPrefs.Save();
+            return legacy;
+        }
+        return string.Empty;
+#else
+        return PlayerPrefs.GetString(sessionKey, string.Empty);
+#endif
+    }
+
+    private bool WriteSerializedSession(string serialized)
+    {
+#if UNITY_ANDROID && !UNITY_EDITOR
+        try
+        {
+            using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+            using (AndroidJavaObject activity =
+                   unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+            using (var store = new AndroidJavaClass(SecureStoreClassName))
+                return store.CallStatic<bool>("write", activity, sessionKey, serialized);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError("Unable to write the secure authentication session: " + exception.Message);
+            return false;
+        }
+#else
+        PlayerPrefs.SetString(sessionKey, serialized);
+        PlayerPrefs.Save();
+        return true;
+#endif
+    }
+
+    private void DeleteSerializedSession()
+    {
+#if UNITY_ANDROID && !UNITY_EDITOR
+        try
+        {
+            using (var unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+            using (AndroidJavaObject activity =
+                   unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
+            using (var store = new AndroidJavaClass(SecureStoreClassName))
+                store.CallStatic("delete", activity, sessionKey);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogWarning("Unable to delete the secure authentication session: " + exception.Message);
+        }
+#endif
         PlayerPrefs.DeleteKey(sessionKey);
         PlayerPrefs.Save();
     }

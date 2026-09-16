@@ -11,8 +11,8 @@ using UnityEngine.UI;
 public sealed class MainLeaderboardController : MonoBehaviour
 {
     private const string ItemResourcePath = "prefabs/LeaderItemBg";
-    private const string WeekSelectedSpritePath = "Main/Rank/图层 26";
-    private const string WeekUnselectedSpritePath = "Main/Rank/图层 27";
+    private const string V2SelectedTabSpritePath = "UIResources/Main/Rank/图层 41 拷贝";
+    private const string V2UnselectedTabSpritePath = "UIResources/Main/Rank/图层 40";
     private const string FirstPlaceSpritePath = "Main/Rank/First";
     private const string SecondPlaceSpritePath = "Main/Rank/Second";
     private const string ThirdPlaceSpritePath = "Main/Rank/Third";
@@ -32,17 +32,18 @@ public sealed class MainLeaderboardController : MonoBehaviour
     private TMP_Text myLeaderboardPositionText;
     private TMP_Text myRankText;
     private TMP_Text myTotalStarsText;
+    private readonly Transform[] podiumItems = new Transform[3];
     private LeaderboardPeriodType selectedPeriod;
     private int loadVersion;
     private bool viewReady;
+    private bool usesPodiumLayout;
+    private bool podiumReady = true;
     private Image weekImage;
     private Image monthImage;
     private Image chantTabImage;
     private Image lotteryTabImage;
     private Sprite selectedTabSprite;
     private Sprite unselectedTabSprite;
-    private Sprite weekSelectedSprite;
-    private Sprite weekUnselectedSprite;
     private Sprite firstPlaceSprite;
     private Sprite secondPlaceSprite;
     private Sprite thirdPlaceSprite;
@@ -56,36 +57,43 @@ public sealed class MainLeaderboardController : MonoBehaviour
         lifetimeCancellation = new CancellationTokenSource();
 
         Transform background = transform.FindUi("Bg");
-        weekButton = background?.FindUi("WeekBtn")?.GetComponent<Button>();
+        weekButton = FindButton(background, "WeekBtn", "WeekBtnh");
         monthButton = background?.FindUi("MonthBtn")?.GetComponent<Button>();
         container = background?.FindUi("LeaderLimit/LeaderContainer");
         myLeaderItem = background?.FindUi("MyLeaderItemBg");
         myAvatarImage = myLeaderItem?.FindUi("AvatarImg")?.GetComponent<Image>();
-        myLeaderboardPositionText = myLeaderItem?.FindUi("LeaderImg/Text")?.GetComponent<TMP_Text>();
+        Transform myPositionText = myLeaderItem?.FindUi("LeaderText") ??
+            myLeaderItem?.FindUi("LeaderImg/Text");
+        myLeaderboardPositionText = myPositionText?.GetComponent<TMP_Text>();
         myRankText = myLeaderItem?.FindUi("RankText")?.GetComponent<TMP_Text>();
         myTotalStarsText = myLeaderItem?.FindUi("RankText/StarAct")?.GetComponent<TMP_Text>();
+        ResolvePodium(background);
         itemPrefab = DragonBound.Presentation.UiAssets.Load<GameObject>(ItemResourcePath);
 
-        weekImage = weekButton.GetComponent<Image>();
-        monthImage = monthButton.GetComponent<Image>();
-        weekSelectedSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(WeekSelectedSpritePath);
-        weekUnselectedSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(WeekUnselectedSpritePath);
-        firstPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(FirstPlaceSpritePath);
-        secondPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(SecondPlaceSpritePath);
-        thirdPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(ThirdPlaceSpritePath);
-        otherPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(OtherPlaceSpritePath);
+        weekImage = weekButton != null ? weekButton.GetComponent<Image>() : null;
+        monthImage = monthButton != null ? monthButton.GetComponent<Image>() : null;
+        ResolveTabSprites();
+        if (!usesPodiumLayout)
+        {
+            firstPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(FirstPlaceSpritePath);
+            secondPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(SecondPlaceSpritePath);
+            thirdPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(ThirdPlaceSpritePath);
+            otherPlaceSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(OtherPlaceSpritePath);
+        }
 
 
         // 纯 sprite 驱动的 Tab 高亮：避免 ColorTint 给选中态叠一层透明色。
-        weekButton.transition = Selectable.Transition.None;
-        monthButton.transition = Selectable.Transition.None;
+        if (weekButton != null) weekButton.transition = Selectable.Transition.None;
+        if (monthButton != null) monthButton.transition = Selectable.Transition.None;
 
 
         viewReady = weekButton != null && monthButton != null &&
             weekImage != null && monthImage != null &&
-            weekSelectedSprite != null && weekUnselectedSprite != null &&
-            firstPlaceSprite != null && secondPlaceSprite != null &&
-            thirdPlaceSprite != null && otherPlaceSprite != null &&
+            selectedTabSprite != null && unselectedTabSprite != null &&
+            podiumReady &&
+            (usesPodiumLayout ||
+             (firstPlaceSprite != null && secondPlaceSprite != null &&
+              thirdPlaceSprite != null && otherPlaceSprite != null)) &&
             container != null && itemPrefab != null && myLeaderItem != null &&
             myAvatarImage != null && myLeaderboardPositionText != null &&
             myRankText != null && myTotalStarsText != null;
@@ -93,9 +101,10 @@ public sealed class MainLeaderboardController : MonoBehaviour
         {
             Debug.LogError(
                 "MainLeaderboardController requires Bg/WeekBtn+Image, Bg/MonthBtn+Image, " +
-                "Main/Rank/图层 26 & 27, First, Second, Third & Other, " +
+                "Main/Rank/图层 41 拷贝 & 图层 40, either Bg/OST with FirstItem, " +
+                "SecondItem and ThirdItem or the V1 rank sprites, " +
                 "Bg/LeaderLimit/LeaderContainer and " +
-                "Bg/MyLeaderItemBg with LeaderImg/Text, AvatarImg and RankText/StarAct.",
+                "Bg/MyLeaderItemBg with LeaderText or LeaderImg/Text, AvatarImg and RankText/StarAct.",
                 this);
             return;
         }
@@ -146,11 +155,61 @@ public sealed class MainLeaderboardController : MonoBehaviour
     private void ApplyTabVisual()
     {
         bool weekIsSelected = selectedPeriod == LeaderboardPeriodType.Weekly;
-        weekImage.sprite = weekIsSelected ? weekSelectedSprite : weekUnselectedSprite;
-        monthImage.sprite = weekIsSelected ? weekUnselectedSprite : weekSelectedSprite;
+        weekImage.sprite = weekIsSelected ? selectedTabSprite : unselectedTabSprite;
+        monthImage.sprite = weekIsSelected ? unselectedTabSprite : selectedTabSprite;
         // 让两张图按按钮原大小显示，不被 Image 的 Preserve Aspect 拉伸
         weekImage.preserveAspect = false;
         monthImage.preserveAspect = false;
+    }
+
+    private void ResolveTabSprites()
+    {
+        UiAssetRegistry registry = UiAssets.Active;
+        if (registry != null && string.Equals(registry.VariantId, "V2", StringComparison.Ordinal))
+        {
+            selectedTabSprite = registry.Load<Sprite>(V2SelectedTabSpritePath);
+            unselectedTabSprite = registry.Load<Sprite>(V2UnselectedTabSpritePath);
+            return;
+        }
+
+        // V1 keeps its independently authored scene sprites and never references V2 art.
+        unselectedTabSprite = weekImage != null ? weekImage.sprite : null;
+        selectedTabSprite = monthImage != null ? monthImage.sprite : null;
+    }
+
+    private static Button FindButton(Transform root, params string[] semanticKeys)
+    {
+        if (root == null || semanticKeys == null) return null;
+        for (int index = 0; index < semanticKeys.Length; index++)
+        {
+            Transform candidate = root.FindUi(semanticKeys[index]);
+            Button button = candidate != null ? candidate.GetComponent<Button>() : null;
+            if (button != null) return button;
+        }
+
+        return null;
+    }
+
+    private void ResolvePodium(Transform background)
+    {
+        Transform podium = background?.FindUi("OST");
+        usesPodiumLayout = podium != null;
+        if (!usesPodiumLayout) return;
+
+        string[] itemNames = { "FirstItem", "SecondItem", "ThirdItem" };
+        for (int index = 0; index < itemNames.Length; index++)
+        {
+            Transform item = podium.FindUi(itemNames[index]);
+            podiumItems[index] = item;
+            if (item == null || item.FindUi("AvatarImg")?.GetComponent<Image>() == null ||
+                item.FindUi("RankText/StarAct")?.GetComponent<TMP_Text>() == null)
+            {
+                podiumReady = false;
+                Debug.LogError(
+                    $"Bg/OST/{itemNames[index]} requires AvatarImg and RankText/StarAct.",
+                    this);
+            }
+        }
     }
 
     private async Task LoadLeaderboardAsync(
@@ -200,27 +259,20 @@ public sealed class MainLeaderboardController : MonoBehaviour
             Destroy(previousItem);
         }
 
-        for (int index = 0; index < players.Count; index++)
+        int firstListIndex = 0;
+        if (usesPodiumLayout)
+        {
+            RenderPodium(players);
+            firstListIndex = podiumItems.Length;
+        }
+
+        for (int index = firstListIndex; index < players.Count; index++)
         {
             LeaderboardPlayer player = players[index];
             GameObject item = Instantiate(itemPrefab, container, false);
             item.name = $"LeaderItemBg_{index + 1}";
             ApplyLeaderboardPositionVisual(item.transform, index + 1);
-
-            Image avatar = item.transform.FindUi("AvatarImg")?.GetComponent<Image>();
-            if (avatar != null)
-            {
-                PlayerAvatarPrefabPresenter.Mount(
-                    avatar.rectTransform,
-                    ResolveAvatarId(player));
-            }
-
-            PlayerRankState rank = RankProgressionRules.Calculate(player.TotalRankStars);
-            string rankName = player.RankLevel >= 10
-                ? rank.RankName
-                : RankProgressionRules.GetDisplayName(rank);
-            SetText(item.transform.FindUi("RankText"), rankName);
-            SetText(item.transform.FindUi("RankText/StarAct"), player.TotalRankStars.ToString());
+            RenderPlayer(item.transform, player, true);
         }
 
         Canvas.ForceUpdateCanvases();
@@ -229,8 +281,53 @@ public sealed class MainLeaderboardController : MonoBehaviour
         scrollRect.verticalNormalizedPosition = 1f;
     }
 
+    private void RenderPodium(IReadOnlyList<LeaderboardPlayer> players)
+    {
+        for (int index = 0; index < podiumItems.Length; index++)
+        {
+            Transform item = podiumItems[index];
+            if (item == null) continue;
+
+            LeaderboardPlayer player = index < players.Count ? players[index] : null;
+            bool hasPlayer = player != null;
+            item.gameObject.SetActive(hasPlayer);
+            if (hasPlayer) RenderPlayer(item, player, false);
+        }
+    }
+
+    private void RenderPlayer(Transform item, LeaderboardPlayer player, bool showRankName)
+    {
+        if (item == null || player == null) return;
+
+        Image avatar = item.FindUi("AvatarImg")?.GetComponent<Image>();
+        if (avatar != null)
+        {
+            PlayerAvatarPrefabPresenter.Mount(
+                avatar.rectTransform,
+                ResolveAvatarId(player));
+        }
+
+        if (showRankName)
+        {
+            PlayerRankState rank = RankProgressionRules.Calculate(player.TotalRankStars);
+            string rankName = player.RankLevel >= 10
+                ? rank.RankName
+                : RankProgressionRules.GetDisplayName(rank);
+            SetText(item.FindUi("RankText"), rankName);
+        }
+
+        SetText(item.FindUi("RankText/StarAct"), player.TotalRankStars.ToString());
+    }
+
     private void ApplyLeaderboardPositionVisual(Transform item, int position)
     {
+        Transform directPositionText = item.FindUi("LeaderText");
+        if (directPositionText != null)
+        {
+            SetText(directPositionText, position > 0 ? position.ToString() : "-");
+            return;
+        }
+
         Transform leaderImageTransform = item.FindUi("LeaderImg");
         Image leaderImage = leaderImageTransform?.GetComponent<Image>();
         Transform positionTextTransform = leaderImageTransform?.FindUi("Text");
@@ -269,7 +366,14 @@ public sealed class MainLeaderboardController : MonoBehaviour
     {
         LeaderboardPlayer player = result?.LocalPlayer;
         int position = result?.LocalPlayerPosition ?? 0;
-        ApplyLeaderboardPositionVisual(myLeaderItem, position);
+        if (usesPodiumLayout)
+        {
+            myLeaderboardPositionText.text = position > 0 ? position.ToString() : "-";
+        }
+        else
+        {
+            ApplyLeaderboardPositionVisual(myLeaderItem, position);
+        }
 
         if (player == null)
         {

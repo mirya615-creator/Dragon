@@ -18,6 +18,14 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 46e970993fbfa3f4e934e5304a6a7349, type: 3}
     - {fileID: 21300000, guid: 46e970993fbfa3f4e934e5304a6a7349, type: 3}
+  - key: "UIResources/Main/Rank/\u56FE\u5C42 40"
+    assets:
+    - {fileID: 2800000, guid: 3ebd551e23b1cf24585d58deb860e80b, type: 3}
+    - {fileID: 21300000, guid: 3ebd551e23b1cf24585d58deb860e80b, type: 3}
+  - key: "UIResources/Main/Rank/\u56FE\u5C42 41 \u62F7\u8D1D"
+    assets:
+    - {fileID: 2800000, guid: 9e668a5c72bc31e4c99abd35d0b15e8a, type: 3}
+    - {fileID: 21300000, guid: 9e668a5c72bc31e4c99abd35d0b15e8a, type: 3}
   - key: "UIResources/Main/SetUp/\u56FE\u5C42 34"
     assets:
     - {fileID: 2800000, guid: 7d918c385f1919447aa1cc3e19f9264f, type: 3}

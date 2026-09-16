@@ -19,7 +19,8 @@ public static class GoUnaryServiceModule
 
         var auth = new GoAuthGateway(rawTransport, transport, contexts);
         var guestIdentity = new GuestIdentityService();
-        var googleOAuth = new UnavailableGoogleOAuthProvider();
+        var googleOAuth = new AndroidCredentialManagerGoogleOAuthProvider(
+            config.GoogleWebClientId);
         var energy = new GoPlayerEnergyGateway(transport, contexts, bootstrap);
         var gold = new GoPlayerGoldGateway(transport, contexts, bootstrap, state);
         var leaderboard = new GoLeaderboardGateway(transport, contexts);
@@ -75,5 +76,16 @@ public static class GoUnaryServiceModule
             throw new InvalidOperationException("Go backend mode requires a run config version.");
         if (string.IsNullOrWhiteSpace(config.DefaultStageId))
             throw new InvalidOperationException("Go backend mode requires a server stage ID.");
+        if (string.IsNullOrWhiteSpace(config.GoogleWebClientId) ||
+            !config.GoogleWebClientId.EndsWith(
+                ".apps.googleusercontent.com",
+                StringComparison.Ordinal))
+            throw new InvalidOperationException("Go backend mode requires a Google Web Client ID.");
+        if (string.Equals(
+                config.GoogleWebClientId,
+                config.GoogleAndroidClientId,
+                StringComparison.Ordinal))
+            throw new InvalidOperationException(
+                "Google Web Client ID and Android Client ID must not be the same credential.");
     }
 }

@@ -68,6 +68,17 @@ public sealed class LocalAuthGateway : IAuthGateway
         return Task.CompletedTask;
     }
 
+    public Task<AuthSession> RefreshSessionAsync(
+        AuthSession currentSession,
+        DeviceInfoDto deviceInfo,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (currentSession == null)
+            throw new AuthException("SESSION_MISSING", "No local session is available.");
+        return Task.FromResult(currentSession);
+    }
+
     private static AuthSession CreateSession(string playerId, bool isGuest)
     {
         return new AuthSession
@@ -80,7 +91,8 @@ public sealed class LocalAuthGateway : IAuthGateway
             IssuedAtUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             ExpiresAtUnixTime = 0,
             IsOffline = true,
-            IsGuest = isGuest
+            IsGuest = isGuest,
+            IsNewPlayer = false
         };
     }
 

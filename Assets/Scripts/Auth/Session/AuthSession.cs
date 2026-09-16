@@ -12,4 +12,5 @@ public sealed class AuthSession
     public long ExpiresAtUnixTime;
     public bool IsOffline;
     public bool IsGuest;
+    public bool IsNewPlayer;
 }

@@ -28,6 +28,7 @@ internal sealed class GoGoogleLoginRequest
 internal sealed class GoRefreshRequest
 {
     public string refresh_token;
+    public DeviceInfoDto device_info;
 }
 
 [Serializable]

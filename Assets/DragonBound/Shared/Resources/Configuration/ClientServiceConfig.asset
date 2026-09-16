@@ -20,5 +20,7 @@ MonoBehaviour:
   configVersion: 2026081501
   defaultStageId: stage-001
   expectedStageSnapshotDigest: a555903b1f717480e79dc29c4a28c8ec09bd18fc4316a6328cfc2e672b6d05eb
+  googleWebClientId: 82952977839-ui220r26h7t4cpepl9cq7r4q3vkoqf1d.apps.googleusercontent.com
+  googleAndroidClientId: 82952977839-15c37858or2t5q4csjsp37k3tmfaqmtt.apps.googleusercontent.com
   requireAuthoritativeRunContract: 1
   enableNetworkLogging: 0

@@ -35,7 +35,7 @@ public sealed class GoAuthGateway : IAuthGateway
         }
         catch (ClientServiceException exception)
         {
-            throw new AuthException(exception.Code, exception.Message);
+            throw ConvertException(exception);
         }
     }
 
@@ -60,7 +60,7 @@ public sealed class GoAuthGateway : IAuthGateway
         }
         catch (ClientServiceException exception)
         {
-            throw new AuthException(exception.Code, exception.Message);
+            throw ConvertException(exception);
         }
     }
 
@@ -82,7 +82,43 @@ public sealed class GoAuthGateway : IAuthGateway
         }
         catch (ClientServiceException exception)
         {
-            throw new AuthException(exception.Code, exception.Message);
+            throw ConvertException(exception);
+        }
+    }
+
+    public async Task<AuthSession> RefreshSessionAsync(
+        AuthSession currentSession,
+        DeviceInfoDto deviceInfo,
+        CancellationToken cancellationToken)
+    {
+        if (currentSession == null || currentSession.IsOffline ||
+            string.IsNullOrWhiteSpace(currentSession.PlayerId) ||
+            string.IsNullOrWhiteSpace(currentSession.RefreshToken))
+            throw new AuthException("SESSION_MISSING", "No refreshable session is available.");
+
+        try
+        {
+            GoAuthResponse response = await anonymousTransport.SendAsync<GoRefreshRequest, GoAuthResponse>(
+                "POST",
+                "/v1/auth/refresh",
+                new GoRefreshRequest
+                {
+                    refresh_token = currentSession.RefreshToken,
+                    device_info = deviceInfo
+                },
+                AnonymousContext(),
+                cancellationToken);
+            AuthSession refreshed = ToSession(response, currentSession.IsGuest);
+            if (!string.Equals(refreshed.PlayerId, currentSession.PlayerId, StringComparison.Ordinal))
+                throw new AuthException(
+                    "PLAYER_ID_MISMATCH",
+                    "The refreshed session belongs to a different player.");
+            refreshed.IsNewPlayer = false;
+            return refreshed;
+        }
+        catch (ClientServiceException exception)
+        {
+            throw ConvertException(exception);
         }
     }
 
@@ -95,7 +131,7 @@ public sealed class GoAuthGateway : IAuthGateway
         }
         catch (ClientServiceException exception)
         {
-            throw new AuthException(exception.Code, exception.Message);
+            throw ConvertException(exception);
         }
     }
 
@@ -119,8 +155,20 @@ public sealed class GoAuthGateway : IAuthGateway
             IssuedAtUnixTime = now,
             ExpiresAtUnixTime = now + Math.Max(1, response.expires_in),
             IsOffline = false,
-            IsGuest = isGuest
+            IsGuest = isGuest,
+            IsNewPlayer = response.is_new_player
         };
+    }
+
+    private static AuthException ConvertException(ClientServiceException exception)
+    {
+        return new AuthException(
+            exception.Code,
+            exception.Message,
+            exception.Retryable,
+            exception.HttpStatus,
+            exception.TraceId,
+            exception);
     }
 
     private static UnaryRequestContext AnonymousContext()

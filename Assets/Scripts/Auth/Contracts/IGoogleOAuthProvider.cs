@@ -9,6 +9,8 @@ public interface IGoogleOAuthProvider
 {
     Task<PendingGoogleIdentity> SignInAsync(CancellationToken cancellationToken);
 
+    Task ClearCredentialStateAsync(CancellationToken cancellationToken);
+
     void CancelPendingSignIn();
 }
 

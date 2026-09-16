@@ -16,6 +16,7 @@ public sealed class LoginController : MonoBehaviour
     private const float StartupLoadingDurationSeconds = 3f;
     private const float LoginTipDurationSeconds = 3f;
     private const string TipTextPrefabPath = "prefabs/TipText";
+    private const string GoogleButtonPath = "Canvas/SafeArea/MainPanel/LoginPanel/GoogleBtn";
 
     private GameObject loginPanel;
     private GameObject signUpPanel;
@@ -91,7 +92,7 @@ public sealed class LoginController : MonoBehaviour
         googleConfirmPanel = FindRequired(mainPanel, "GoogleConfirmPanel")?.gameObject;
         Transform loginRoot = loginPanel != null ? loginPanel.transform : null;
         guestLoginButton = GetRequired<Button>(loginRoot, "GuestLoginBtn");
-        googleButton = GetRequired<Button>(loginRoot, "GoogleBtn");
+        googleButton = GetRequiredInScene<Button>(GoogleButtonPath);
         Transform loadingRoot = FindRequired(loginRoot, "LoadingImg");
         startupLoadingImage = loadingRoot != null ? loadingRoot.gameObject : null;
         startupLoadingFill = GetRequired<Image>(loadingRoot, "FillImg");
@@ -179,9 +180,16 @@ public sealed class LoginController : MonoBehaviour
         if (authSessionStore.TryRestore(out AuthSession restored) &&
             authSessionStore.IsValid(restored))
         {
-            PlayerAvatarProfile.GetOrCreateAvatarId(restored.PlayerId);
             startupLoadingCoroutine = null;
-            LoadMainScene();
+            if (restored.IsOffline)
+            {
+                PlayerAvatarProfile.GetOrCreateAvatarId(restored.PlayerId);
+                LoadMainScene();
+            }
+            else
+            {
+                RefreshRestoredSessionAsync(restored);
+            }
             yield break;
         }
 
@@ -190,6 +198,41 @@ public sealed class LoginController : MonoBehaviour
         googleButton.gameObject.SetActive(true);
         startupLoadingCoroutine = null;
         SetBusy(false);
+    }
+
+    private async void RefreshRestoredSessionAsync(AuthSession restored)
+    {
+        try
+        {
+            AuthSession refreshed = await authGateway.RefreshSessionAsync(
+                restored,
+                guestIdentityService.CreateDeviceInfo(),
+                lifetimeCancellation.Token);
+            authSessionStore.Set(refreshed);
+            PlayerAvatarProfile.GetOrCreateAvatarId(refreshed.PlayerId);
+            LoadMainScene();
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (AuthException exception)
+        {
+            if (!exception.Retryable) authSessionStore.Clear();
+            ShowMessage(exception.Retryable
+                ? "Unable to refresh your session. Check the network and try again."
+                : "Your session has expired. Please sign in again.");
+            guestLoginButton.gameObject.SetActive(true);
+            googleButton.gameObject.SetActive(true);
+            SetBusy(false);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            ShowMessage("Unable to refresh your session. Please try again.");
+            guestLoginButton.gameObject.SetActive(true);
+            googleButton.gameObject.SetActive(true);
+            SetBusy(false);
+        }
     }
 
     private void SetStartupLoadingProgress(float value)
@@ -222,7 +265,7 @@ public sealed class LoginController : MonoBehaviour
         }
         catch (AuthException exception)
         {
-            ShowMessage(exception.Message);
+            ShowMessage(AuthMessage(exception, "Guest login failed. Please try again."));
         }
         catch (Exception exception)
         {
@@ -268,7 +311,7 @@ public sealed class LoginController : MonoBehaviour
         }
         catch (AuthException exception)
         {
-            ShowMessage(exception.Message);
+            ShowMessage(AuthMessage(exception, "Google sign-in failed. Please try again."));
         }
         catch (Exception exception)
         {
@@ -305,7 +348,7 @@ public sealed class LoginController : MonoBehaviour
         }
         catch (AuthException exception)
         {
-            ShowMessage(exception.Message);
+            ShowMessage(AuthMessage(exception, "Google login failed. Please try again."));
         }
         catch (Exception exception)
         {
@@ -400,6 +443,33 @@ public sealed class LoginController : MonoBehaviour
         TipTextService.Show(message, LoginTipDurationSeconds);
     }
 
+    private static string AuthMessage(AuthException exception, string fallback)
+    {
+        if (exception == null) return fallback;
+        if (exception.Retryable || exception.Code == "NETWORK_ERROR")
+            return "Network unavailable. Check the connection and try again.";
+        switch (exception.Code)
+        {
+            case "NO_GOOGLE_ACCOUNT":
+                return "No Google account is available on this device.";
+            case "INVALID_GOOGLE_TOKEN":
+            case "INVALID_CREDENTIALS":
+            case "HTTP_401":
+                return "Google authentication expired. Please choose the account again.";
+            case "ACCOUNT_CONFLICT":
+            case "GOOGLE_ALREADY_LINKED":
+            case "HTTP_409":
+                return "This Google account is already linked to another player.";
+            case "GOOGLE_PROVIDER_UNAVAILABLE":
+            case "GOOGLE_PROVIDER_NOT_CONFIGURED":
+                return "Google sign-in is unavailable on this device.";
+            default:
+                return string.IsNullOrWhiteSpace(exception.Message)
+                    ? fallback
+                    : exception.Message;
+        }
+    }
+
     private void HideAllTips()
     {
         if (googleConfirmationTip != null) googleConfirmationTip.Hide();
@@ -484,6 +554,20 @@ public sealed class LoginController : MonoBehaviour
         Transform child = FindRequired(parent, childName);
         T component = child != null ? child.GetComponent<T>() : null;
         if (child != null && component == null) Debug.LogError($"'{childName}' is missing {typeof(T).Name}.");
+        return component;
+    }
+
+    private static T GetRequiredInScene<T>(string path) where T : Component
+    {
+        Transform target = FindInScene(path);
+        if (target == null)
+        {
+            Debug.LogError($"Missing UI object '{path}'.");
+            return null;
+        }
+
+        T component = target.GetComponent<T>();
+        if (component == null) Debug.LogError($"'{path}' is missing {typeof(T).Name}.");
         return component;
     }
 }

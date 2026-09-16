@@ -32,6 +32,12 @@ public sealed class MockGoogleOAuthProvider : IGoogleOAuthProvider
     {
     }
 
+    public Task ClearCredentialStateAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.CompletedTask;
+    }
+
     private static Sprite CreateDevelopmentAvatar()
     {
         const int size = 128;
