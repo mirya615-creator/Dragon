@@ -34,6 +34,14 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 3e7fa49253b532f43984efb1927fedb8, type: 3}
     - {fileID: 21300000, guid: 3e7fa49253b532f43984efb1927fedb8, type: 3}
+  - key: UIResources/Main/SignUp/Other
+    assets:
+    - {fileID: 2800000, guid: a676cc5c5573f844fbc1feeafad22bce, type: 3}
+    - {fileID: 21300000, guid: a676cc5c5573f844fbc1feeafad22bce, type: 3}
+  - key: UIResources/Main/SignUp/Today
+    assets:
+    - {fileID: 2800000, guid: 9f42482f8f716f84d9d1e550665c9047, type: 3}
+    - {fileID: 21300000, guid: 9f42482f8f716f84d9d1e550665c9047, type: 3}
   - key: UIResources/Main/main/6
     assets:
     - {fileID: 2800000, guid: 650059aa6d626064290942287dfaae1f, type: 3}

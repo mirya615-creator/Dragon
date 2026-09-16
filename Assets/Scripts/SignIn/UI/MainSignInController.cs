@@ -11,8 +11,10 @@ using UnityEngine.UI;
 public sealed class MainSignInController : MonoBehaviour
 {
     private const int SignInDayCount = 7;
-    private const string TodaySpritePath = "Main/Signin/Today";
-    private const string OtherSpritePath = "Main/Signin/other";
+    private const string V1TodaySpritePath = "Main/Signin/Today";
+    private const string V1OtherSpritePath = "Main/Signin/other";
+    private const string V2TodaySpritePath = "UIResources/Main/SignUp/Today";
+    private const string V2OtherSpritePath = "UIResources/Main/SignUp/Other";
     private const string AutoOpenDayKeyPrefix = "dragonbound.signin.auto-open.v1.";
     private const float DisabledDayAlpha = 0.55f;
 
@@ -120,8 +122,7 @@ public sealed class MainSignInController : MonoBehaviour
         signPanel = panel?.gameObject;
         openButton = transform.FindUi("SignBtn")?.GetComponent<Button>();
         closeButton = imageRoot?.FindUi("closeBtn")?.GetComponent<Button>();
-        todaySprite = DragonBound.Presentation.UiAssets.Load<Sprite>(TodaySpritePath);
-        otherSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(OtherSpritePath);
+        ResolveDaySprites();
 
         bool complete = signPanel != null && openButton != null && closeButton != null &&
                         content != null && todaySprite != null && otherSprite != null;
@@ -170,6 +171,20 @@ public sealed class MainSignInController : MonoBehaviour
                 "seven sign-in day buttons, and Today/other sprites.");
         }
         return complete;
+    }
+
+    private void ResolveDaySprites()
+    {
+        UiAssetRegistry registry = UiAssets.Active;
+        if (registry != null && string.Equals(registry.VariantId, "V2", StringComparison.Ordinal))
+        {
+            todaySprite = registry.Load<Sprite>(V2TodaySpritePath);
+            otherSprite = registry.Load<Sprite>(V2OtherSpritePath);
+            return;
+        }
+
+        todaySprite = UiAssets.Load<Sprite>(V1TodaySpritePath);
+        otherSprite = UiAssets.Load<Sprite>(V1OtherSpritePath);
     }
 
     private void OpenPanel()
