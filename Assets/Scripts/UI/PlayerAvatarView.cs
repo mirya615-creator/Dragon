@@ -160,15 +160,20 @@ public static class PlayerAvatarSceneInstaller
             Transform loadingPanel = FindDescendant(root.transform, "LoadingPanel");
             if (loadingPanel == null) continue;
 
-            // BG/Image is the requested hierarchy. Greybox_Main's authored equivalent is
-            // currently BG/MyPart/Image, so keep both layouts supported during migration.
-            Transform target = loadingPanel.FindUi("BG/Image") ?? loadingPanel.FindUi("BG/MyPart/Image");
+            // V2 keeps each avatar inside its animated item. Retain the older
+            // locations as fallbacks so V1 continues to use its authored layout.
+            Transform target = loadingPanel.FindUi("BG/MyPart/MyItem/Image") ??
+                               loadingPanel.FindUi("MyPart/MyItem/Image") ??
+                               loadingPanel.FindUi("BG/Image") ??
+                               loadingPanel.FindUi("BG/MyPart/Image");
             if (target != null)
             {
                 PlayerAvatarPrefabPresenter.Mount(target as RectTransform, avatarId);
             }
 
-            Transform enemyTarget = loadingPanel.FindUi("BG/EnemyPart/Image");
+            Transform enemyTarget = loadingPanel.FindUi("BG/EnemyPart/EnemyItem/Image") ??
+                                    loadingPanel.FindUi("EnemyPart/EnemyItem/Image") ??
+                                    loadingPanel.FindUi("BG/EnemyPart/Image");
             if (enemyTarget != null)
             {
                 PlayerAvatarPrefabPresenter.Mount(

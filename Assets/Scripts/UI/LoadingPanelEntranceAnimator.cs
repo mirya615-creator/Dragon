@@ -179,14 +179,6 @@ public sealed class LoadingPanelEntranceAnimator : MonoBehaviour
 
         Transform item = part.FindUi(itemName);
         AddTarget(item, targets);
-
-        // Only add a direct sibling named Image. Images nested under the item move
-        // with their parent and must not receive the offset a second time.
-        Transform image = part.FindUi("Image");
-        if (image != null && (item == null || !image.IsChildOf(item)))
-        {
-            AddTarget(image, targets);
-        }
     }
 
     private static void AddTarget(Transform target, List<MotionTarget> targets)

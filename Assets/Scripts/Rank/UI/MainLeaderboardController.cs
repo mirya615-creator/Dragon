@@ -11,6 +11,8 @@ using UnityEngine.UI;
 public sealed class MainLeaderboardController : MonoBehaviour
 {
     private const string ItemResourcePath = "prefabs/LeaderItemBg";
+    private const string V1SelectedTabSpritePath = "Main/Rank/图层 26";
+    private const string V1UnselectedTabSpritePath = "Main/Rank/图层 27";
     private const string V2SelectedTabSpritePath = "UIResources/Main/Rank/图层 41 拷贝";
     private const string V2UnselectedTabSpritePath = "UIResources/Main/Rank/图层 40";
     private const string FirstPlaceSpritePath = "Main/Rank/First";
@@ -172,9 +174,16 @@ public sealed class MainLeaderboardController : MonoBehaviour
             return;
         }
 
-        // V1 keeps its independently authored scene sprites and never references V2 art.
-        unselectedTabSprite = weekImage != null ? weekImage.sprite : null;
-        selectedTabSprite = monthImage != null ? monthImage.sprite : null;
+        if (registry != null && string.Equals(registry.VariantId, "V1", StringComparison.Ordinal))
+        {
+            selectedTabSprite = registry.Load<Sprite>(V1SelectedTabSpritePath);
+            unselectedTabSprite = registry.Load<Sprite>(V1UnselectedTabSpritePath);
+            return;
+        }
+
+        // Editor fallback when no registry has been selected yet.
+        selectedTabSprite = weekImage != null ? weekImage.sprite : null;
+        unselectedTabSprite = monthImage != null ? monthImage.sprite : null;
     }
 
     private static Button FindButton(Transform root, params string[] semanticKeys)

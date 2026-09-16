@@ -25,8 +25,10 @@ namespace DragonBound.Presentation
         private const string ArcaneThunderburstControllerPath = "Animation/Arcane Thunderburst";
         private const float ArcaneThunderburstPlaybackSpeed = 0.2f;
         private const float ArcaneThunderburstImpactFrame = 2f;
-        private const string SettlementVictorySpritePath = "GameUI/SettlementUI/Victory";
-        private const string SettlementDefeatSpritePath = "GameUI/SettlementUI/Defeat";
+        private const string V1SettlementVictorySpritePath = "GameUI/SettlementUI/Victory";
+        private const string V1SettlementDefeatSpritePath = "GameUI/SettlementUI/Defeat";
+        private const string V2SettlementVictorySpritePath = "UIResources/Game/Settlement/图层 70";
+        private const string V2SettlementDefeatSpritePath = "UIResources/Game/Settlement/图层 71";
         private const int RuntimeCircleTextureSize = 64;
         private static Sprite runtimeCircleSprite;
         private static readonly Dictionary<string, Sprite> ItemIconCache =
@@ -589,9 +591,17 @@ namespace DragonBound.Presentation
                 return;
             }
 
+            bool useV2Presentation = string.Equals(
+                UiAssets.Active?.VariantId,
+                "V2",
+                System.StringComparison.Ordinal);
             var resourcePath = state == MatchState.Victory
-                ? SettlementVictorySpritePath
-                : SettlementDefeatSpritePath;
+                ? useV2Presentation
+                    ? V2SettlementVictorySpritePath
+                    : V1SettlementVictorySpritePath
+                : useV2Presentation
+                    ? V2SettlementDefeatSpritePath
+                    : V1SettlementDefeatSpritePath;
             var sprite = DragonBound.Presentation.UiAssets.Load<Sprite>(resourcePath);
             if (sprite == null)
             {

@@ -12,10 +12,13 @@ using UnityEngine.UI;
 public sealed class GreyboxSettlementRewardController : MonoBehaviour
 {
     private const string DoubleGoldPlacement = "settle_double";
-    private const string VictorySpritePath = "GameUI/SettlementUI/Victory";
-    private const string DefeatSpritePath = "GameUI/SettlementUI/Defeat";
+    private const string V1VictorySpritePath = "GameUI/SettlementUI/Victory";
+    private const string V1DefeatSpritePath = "GameUI/SettlementUI/Defeat";
+    private const string V2VictorySpritePath = "UIResources/Game/Settlement/图层 70";
+    private const string V2DefeatSpritePath = "UIResources/Game/Settlement/图层 71";
 
     private Image resultImage;
+    private TMPro.TMP_Text resultText;
     private TMPro.TMP_Text goldText;
     private Sprite victorySprite;
     private Sprite defeatSprite;
@@ -31,21 +34,30 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
     private bool preparing;
     private bool readyToClaim;
     private bool claimInProgress;
+    private bool useV2Presentation;
 
     private void Awake()
     {
+        useV2Presentation = string.Equals(
+            DragonBound.Presentation.UiAssets.Active?.VariantId,
+            "V2",
+            StringComparison.Ordinal);
         resultImage = transform.FindUi("SettleImg")?.GetComponent<Image>();
+        resultText = transform.FindUi("Text")?.GetComponent<TMPro.TMP_Text>();
         goldText = transform.FindUi("GoldText")?.GetComponent<TMPro.TMP_Text>();
         receiveButton = transform.FindUi("ReciveBtn")?.GetComponent<Button>();
         doubleButton = transform.FindUi("DoubleBtn")?.GetComponent<Button>();
-        victorySprite = DragonBound.Presentation.UiAssets.Load<Sprite>(VictorySpritePath);
-        defeatSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(DefeatSpritePath);
+        victorySprite = DragonBound.Presentation.UiAssets.Load<Sprite>(
+            useV2Presentation ? V2VictorySpritePath : V1VictorySpritePath);
+        defeatSprite = DragonBound.Presentation.UiAssets.Load<Sprite>(
+            useV2Presentation ? V2DefeatSpritePath : V1DefeatSpritePath);
         if (resultImage == null || victorySprite == null || defeatSprite == null ||
-            goldText == null || receiveButton == null || doubleButton == null)
+            goldText == null || receiveButton == null || doubleButton == null ||
+            (useV2Presentation && resultText == null))
         {
             Debug.LogError(
-                "Greybox SettlementPanel requires SettleImg, GoldText, ReciveBtn, DoubleBtn, " +
-                "and the Victory/Defeat settlement sprites.");
+                "Greybox SettlementPanel requires SettleImg, Text, GoldText, ReciveBtn, " +
+                "DoubleBtn, and the Victory/Defeat settlement sprites.");
             enabled = false;
             return;
         }
@@ -293,9 +305,15 @@ public sealed class GreyboxSettlementRewardController : MonoBehaviour
 
     private void ApplyResultImage(MatchOutcome outcome)
     {
-        resultImage.sprite = outcome == MatchOutcome.Victory ? victorySprite : defeatSprite;
+        bool victory = outcome == MatchOutcome.Victory;
+        resultImage.sprite = victory ? victorySprite : defeatSprite;
         resultImage.preserveAspect = true;
         resultImage.gameObject.SetActive(true);
+        if (resultText != null)
+        {
+            resultText.text = victory ? "Victory" : useV2Presentation ? "Dafalt" : "Defeat";
+            resultText.gameObject.SetActive(true);
+        }
     }
 
     private void SetClaimBusy(bool busy)

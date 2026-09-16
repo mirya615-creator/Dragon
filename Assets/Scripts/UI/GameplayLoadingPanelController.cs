@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading;
 using DragonBound.Presentation;
 using DragonBound.Bootstrap;
 using DragonBound.Core;
@@ -37,6 +38,9 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
     private DragonBoundBootstrap bootstrap;
     private TMP_Text playerRateText;
     private TMP_Text aiRateText;
+    private TMP_Text playerRankText;
+    private TMP_Text aiRankText;
+    private CancellationTokenSource lifetimeCancellation;
     private MatchController trackedMatch;
     private string trackedPlayerId;
     private bool matchResultRecorded;
@@ -75,6 +79,7 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
 
     private void Awake()
     {
+        lifetimeCancellation = new CancellationTokenSource();
         ResolvePanel();
         if (loadingPanel == null)
         {
@@ -101,8 +106,9 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
         // every other Canvas child so no half-initialized board can flash through.
         loadingPanel.transform.SetAsLastSibling();
         loadingPanel.SetActive(true);
-        ResolveRateTexts();
+        ResolvePresentationTexts();
         RefreshRateTexts();
+        RefreshRankTexts();
     }
 
     private void Start()
@@ -113,6 +119,9 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
     private void OnDestroy()
     {
         cancelled = true;
+        lifetimeCancellation?.Cancel();
+        lifetimeCancellation?.Dispose();
+        lifetimeCancellation = null;
         if (trackedMatch != null)
         {
             trackedMatch.StateChanged -= HandleTrackedMatchStateChanged;
@@ -209,7 +218,7 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
         }
     }
 
-    private void ResolveRateTexts()
+    private void ResolvePresentationTexts()
     {
         if (loadingPanel == null)
         {
@@ -217,12 +226,22 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
         }
 
         Transform root = loadingPanel.transform;
-        playerRateText = (root.FindUi("BG/MyPart/MyItem/Text (TMP)/RateText") ??
+        playerRateText = (root.FindUi("BG/MyPart/MyItem/Rate/RateText") ??
+                          root.FindUi("MyPart/MyItem/Rate/RateText") ??
+                          root.FindUi("BG/MyPart/MyItem/Text (TMP)/RateText") ??
                           root.FindUi("MyPart/MyItem/Text (TMP)/RateText") ??
                           root.FindUi("BG/PlayerPart/PlayerItem/Text (TMP)/RateText"))?
             .GetComponent<TMP_Text>();
-        aiRateText = (root.FindUi("BG/EnemyPart/EnemyItem/Text (TMP)/RateText") ??
+        aiRateText = (root.FindUi("BG/EnemyPart/EnemyItem/Rate/RateText") ??
+                      root.FindUi("EnemyPart/EnemyItem/Rate/RateText") ??
+                      root.FindUi("BG/EnemyPart/EnemyItem/Text (TMP)/RateText") ??
                       root.FindUi("EnemyPart/EnemyItem/Text (TMP)/RateText"))?
+            .GetComponent<TMP_Text>();
+        playerRankText = (root.FindUi("BG/MyPart/MyItem/TextBg/Rank") ??
+                          root.FindUi("MyPart/MyItem/TextBg/Rank"))?
+            .GetComponent<TMP_Text>();
+        aiRankText = (root.FindUi("BG/EnemyPart/EnemyItem/TextBg/Rank") ??
+                      root.FindUi("EnemyPart/EnemyItem/TextBg/Rank"))?
             .GetComponent<TMP_Text>();
 
         if (playerRateText == null || aiRateText == null)
@@ -230,6 +249,65 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
             Debug.LogWarning(
                 "Gameplay LoadingPanel requires player and EnemyPart RateText nodes.",
                 loadingPanel);
+        }
+    }
+
+    private async void RefreshRankTexts()
+    {
+        // Rank labels only exist in the V2 composition. V1 therefore keeps its
+        // existing presentation without performing an extra rank request.
+        if (playerRankText == null && aiRankText == null)
+        {
+            return;
+        }
+
+        AuthSession session = ClientCompositionRoot.Current.AuthSession.Current;
+        if (session == null || string.IsNullOrWhiteSpace(session.PlayerId))
+        {
+            ApplyRankTexts(RankProgressionRules.Calculate(0));
+            return;
+        }
+
+        try
+        {
+            PlayerRankState rank = await ClientCompositionRoot.Current.Rank.GetRankAsync(
+                session.PlayerId,
+                lifetimeCancellation.Token);
+            if (!cancelled && rank != null)
+            {
+                ApplyRankTexts(rank);
+            }
+        }
+        catch (System.OperationCanceledException)
+        {
+            // Scene was unloaded while the rank request was in flight.
+        }
+        catch (System.Exception exception)
+        {
+            if (!cancelled)
+            {
+                Debug.LogWarning(
+                    "Gameplay LoadingPanel could not load rank data: " + exception.Message,
+                    loadingPanel);
+                ApplyRankTexts(RankProgressionRules.Calculate(0));
+            }
+        }
+    }
+
+    private void ApplyRankTexts(PlayerRankState playerRank)
+    {
+        string displayName = RankProgressionRules.GetDisplayName(playerRank);
+        if (playerRankText != null)
+        {
+            playerRankText.text = displayName;
+        }
+
+        // Gameplay currently matches the AI profile from the player's rank band.
+        // Until the run contract exposes a separate AI rank snapshot, present the
+        // matched rank rather than inventing an unrelated opponent rank.
+        if (aiRankText != null)
+        {
+            aiRankText.text = displayName;
         }
     }
 
