@@ -17,8 +17,8 @@ namespace DragonBound.Presentation
     {
         private const string ShovelSpriteResourcePath = "ComponentUI/shovel";
         private const string BoardSelectPrefabResourcePath = "prefabs/BoardSelect";
-        private const string BeachSelectSpriteResourcePath = "GameUI/BoardSelect";
-        private const string BoardSelectSpriteResourcePath = "GameUI/BeachSelect";
+        private const string BeachSelectSpriteResourcePath = "GameUI/BeachSelect";
+        private const string BoardSelectSpriteResourcePath = "GameUI/BoardSelect";
         private const string InformPrefabResourcePath = "prefabs/Inform";
         private const float MirroredUnitArtAnchoredPositionX = -38f;
         private const float MirroredHeroArtAnchoredPositionX = 13f;

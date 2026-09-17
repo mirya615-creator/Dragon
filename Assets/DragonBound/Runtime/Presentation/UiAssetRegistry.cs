@@ -132,7 +132,16 @@ namespace DragonBound.Presentation
     {
         private static UiAssetRegistry active;
 
-        public static UiAssetRegistry Active => active;
+        public static UiAssetRegistry Active
+        {
+            get
+            {
+                #if UNITY_EDITOR
+        TryActivateEditorRegistry();
+#endif
+        return active;
+    }
+        }
 
         public static void Activate(UiAssetRegistry registry)
         {
