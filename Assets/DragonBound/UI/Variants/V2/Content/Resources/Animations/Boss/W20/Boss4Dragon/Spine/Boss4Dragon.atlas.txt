@@ -1,0 +1,48 @@
+
+Boss4Dragon.png
+size: 4096,4096
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Tail
+  rotate: false
+  xy: 4, 1367
+  size: 902, 541
+  orig: 902, 541
+  offset: 0, 0
+  index: -1
+ForeLegFront
+  rotate: false
+  xy: 910, 1367
+  size: 564, 522
+  orig: 564, 522
+  offset: 0, 0
+  index: -1
+WingBack
+  rotate: false
+  xy: 926, 4
+  size: 1001, 1089
+  orig: 1001, 1089
+  offset: 0, 0
+  index: -1
+Body
+  rotate: false
+  xy: 1931, 4
+  size: 947, 833
+  orig: 947, 833
+  offset: 0, 0
+  index: -1
+Head
+  rotate: false
+  xy: 4, 4
+  size: 918, 1359
+  orig: 918, 1359
+  offset: 0, 0
+  index: -1
+HindLegFront
+  rotate: false
+  xy: 2882, 4
+  size: 665, 638
+  orig: 665, 638
+  offset: 0, 0
+  index: -1

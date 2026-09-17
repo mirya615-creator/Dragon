@@ -1,0 +1,90 @@
+
+Boss3Blood.png
+size: 4096,4096
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+CapeBack
+  rotate: false
+  xy: 708, 4
+  size: 1051, 1099
+  orig: 1051, 1099
+  offset: 0, 0
+  index: -1
+LegR
+  rotate: false
+  xy: 1215, 1154
+  size: 316, 379
+  orig: 316, 379
+  offset: 0, 0
+  index: -1
+LegL
+  rotate: false
+  xy: 803, 1154
+  size: 408, 393
+  orig: 408, 393
+  offset: 0, 0
+  index: -1
+ForearmL
+  rotate: false
+  xy: 1535, 1154
+  size: 357, 333
+  orig: 357, 333
+  offset: 0, 0
+  index: -1
+UpperArmL
+  rotate: false
+  xy: 413, 1154
+  size: 386, 409
+  orig: 386, 409
+  offset: 0, 0
+  index: -1
+Weapon
+  rotate: false
+  xy: 4, 4
+  size: 700, 1146
+  orig: 700, 1146
+  offset: 0, 0
+  index: -1
+Body
+  rotate: false
+  xy: 2699, 4
+  size: 827, 666
+  orig: 827, 666
+  offset: 0, 0
+  index: -1
+Head
+  rotate: false
+  xy: 1763, 4
+  size: 932, 1049
+  orig: 932, 1049
+  offset: 0, 0
+  index: -1
+ForearmR
+  rotate: false
+  xy: 4, 1154
+  size: 405, 409
+  orig: 405, 409
+  offset: 0, 0
+  index: -1
+HandR
+  rotate: false
+  xy: 1896, 1154
+  size: 337, 313
+  orig: 337, 313
+  offset: 0, 0
+  index: -1
+UpperArmR
+  rotate: false
+  xy: 3530, 4
+  size: 561, 534
+  orig: 561, 534
+  offset: 0, 0
+  index: -1
+HandL
+  rotate: false
+  xy: 2237, 1154
+  size: 297, 250
+  orig: 297, 250
+  offset: 0, 0
+  index: -1

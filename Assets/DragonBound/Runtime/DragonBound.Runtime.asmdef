@@ -14,7 +14,8 @@
     "DragonBound.Items.Runtime",
     "DragonBound.Runes.Runtime",
     "Unity.UGUI",
-    "Unity.TextMeshPro"
+    "Unity.TextMeshPro",
+    "spine-unity"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

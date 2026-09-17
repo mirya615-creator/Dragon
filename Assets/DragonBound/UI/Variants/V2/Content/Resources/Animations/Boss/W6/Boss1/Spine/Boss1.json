@@ -1,0 +1,691 @@
+{
+  "skeleton": {
+    "hash": "boss1-walk-local",
+    "spine": "3.8.0",
+    "images": "../SourceLayers/",
+    "audio": ""
+  },
+  "bones": [
+    {
+      "name": "root"
+    },
+    {
+      "name": "Body",
+      "parent": "root",
+      "x": 111,
+      "y": -529,
+      "length": 1
+    },
+    {
+      "name": "CapeBack",
+      "parent": "Body",
+      "x": 297,
+      "y": 230.5
+    },
+    {
+      "name": "LegWeaponSide",
+      "parent": "root",
+      "x": -125,
+      "y": -703
+    },
+    {
+      "name": "LegFreeSide",
+      "parent": "root",
+      "x": 337.5,
+      "y": -703.5
+    },
+    {
+      "name": "ForearmFree",
+      "parent": "Body",
+      "x": -332.5,
+      "y": 123
+    },
+    {
+      "name": "Weapon",
+      "parent": "Body",
+      "x": -729,
+      "y": 533
+    },
+    {
+      "name": "HandFree",
+      "parent": "Body",
+      "x": -548,
+      "y": 176.5
+    },
+    {
+      "name": "ArmWeapon",
+      "parent": "Body",
+      "x": 215.5,
+      "y": 25
+    },
+    {
+      "name": "Head",
+      "parent": "Body",
+      "x": 57.5,
+      "y": 750
+    }
+  ],
+  "slots": [
+    {
+      "name": "slot-CapeBack",
+      "bone": "CapeBack",
+      "attachment": "CapeBack"
+    },
+    {
+      "name": "slot-LegWeaponSide",
+      "bone": "LegWeaponSide",
+      "attachment": "LegWeaponSide"
+    },
+    {
+      "name": "slot-LegFreeSide",
+      "bone": "LegFreeSide",
+      "attachment": "LegFreeSide"
+    },
+    {
+      "name": "slot-ForearmFree",
+      "bone": "ForearmFree",
+      "attachment": "ForearmFree"
+    },
+    {
+      "name": "slot-Body",
+      "bone": "Body",
+      "attachment": "Body"
+    },
+    {
+      "name": "slot-Weapon",
+      "bone": "Weapon",
+      "attachment": "Weapon"
+    },
+    {
+      "name": "slot-HandFree",
+      "bone": "HandFree",
+      "attachment": "HandFree"
+    },
+    {
+      "name": "slot-ArmWeapon",
+      "bone": "ArmWeapon",
+      "attachment": "ArmWeapon"
+    },
+    {
+      "name": "slot-Head",
+      "bone": "Head",
+      "attachment": "Head"
+    }
+  ],
+  "skins": [
+    {
+      "name": "default",
+      "attachments": {
+        "slot-CapeBack": {
+          "CapeBack": {
+            "x": 0,
+            "y": 0,
+            "width": 1294,
+            "height": 1094
+          }
+        },
+        "slot-LegWeaponSide": {
+          "LegWeaponSide": {
+            "x": 0,
+            "y": 0,
+            "width": 330,
+            "height": 371
+          }
+        },
+        "slot-LegFreeSide": {
+          "LegFreeSide": {
+            "x": 0,
+            "y": 0,
+            "width": 351,
+            "height": 372
+          }
+        },
+        "slot-ForearmFree": {
+          "ForearmFree": {
+            "x": 0,
+            "y": 0,
+            "width": 447,
+            "height": 267
+          }
+        },
+        "slot-Body": {
+          "Body": {
+            "x": 0,
+            "y": 0,
+            "width": 1076,
+            "height": 719
+          }
+        },
+        "slot-Weapon": {
+          "Weapon": {
+            "x": 0,
+            "y": 0,
+            "width": 874,
+            "height": 1659
+          }
+        },
+        "slot-HandFree": {
+          "HandFree": {
+            "x": 0,
+            "y": 0,
+            "width": 248,
+            "height": 256
+          }
+        },
+        "slot-ArmWeapon": {
+          "ArmWeapon": {
+            "x": 0,
+            "y": 0,
+            "width": 433,
+            "height": 427
+          }
+        },
+        "slot-Head": {
+          "Head": {
+            "x": 0,
+            "y": 0,
+            "width": 1153,
+            "height": 1337
+          }
+        }
+      }
+    }
+  ],
+  "animations": {
+    "Walk": {
+      "bones": {
+        "CapeBack": {
+          "rotate": [
+            {
+              "angle": 2,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.1,
+              "angle": 1,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.2,
+              "angle": -1.5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.3,
+              "angle": -2,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.4,
+              "angle": 2,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.5,
+              "angle": 1,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.6,
+              "angle": -1.5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.7,
+              "angle": -2,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.8,
+              "angle": 2
+            }
+          ]
+        },
+        "LegWeaponSide": {
+          "rotate": [
+            {
+              "angle": 8,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.1,
+              "angle": 5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.2,
+              "angle": 0,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.3,
+              "angle": -5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.4,
+              "angle": -8,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.5,
+              "angle": -5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.6,
+              "angle": 0,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.7,
+              "angle": 5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.8,
+              "angle": 8
+            }
+          ]
+        },
+        "LegFreeSide": {
+          "rotate": [
+            {
+              "angle": -8,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.1,
+              "angle": -5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.2,
+              "angle": 0,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.3,
+              "angle": 5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.4,
+              "angle": 8,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.5,
+              "angle": 5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.6,
+              "angle": 0,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.7,
+              "angle": -5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.8,
+              "angle": -8
+            }
+          ]
+        },
+        "Body": {
+          "rotate": [
+            {
+              "angle": -1,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.1,
+              "angle": 0,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.2,
+              "angle": 1.5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.3,
+              "angle": 0,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.4,
+              "angle": -1,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.5,
+              "angle": 0,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.6,
+              "angle": 1.5,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.7,
+              "angle": 0,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.8,
+              "angle": -1
+            }
+          ],
+          "translate": [
+            {
+              "x": 0,
+              "y": 0,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.1,
+              "x": 3,
+              "y": -6,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.2,
+              "x": 0,
+              "y": 14,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.3,
+              "x": -3,
+              "y": -6,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.4,
+              "x": 0,
+              "y": 0,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.5,
+              "x": 3,
+              "y": -6,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.6,
+              "x": 0,
+              "y": 14,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.7,
+              "x": -3,
+              "y": -6,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.8,
+              "x": 0,
+              "y": 0
+            }
+          ]
+        },
+        "Head": {
+          "rotate": [
+            {
+              "angle": 1,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.1,
+              "angle": 0.4,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.2,
+              "angle": -1,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.3,
+              "angle": -0.3,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.4,
+              "angle": 1,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.5,
+              "angle": 0.4,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.6,
+              "angle": -1,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.7,
+              "angle": -0.3,
+              "curve": 0.25,
+              "c2": 0,
+              "c3": 0.75,
+              "c4": 1
+            },
+            {
+              "time": 0.8,
+              "angle": 1
+            }
+          ]
+        }
+      },
+      "slots": {},
+      "duration": 0.8
+    }
+  },
+  "__layerBboxes": {
+    "CapeBack": [
+      1001,
+      1505,
+      2295,
+      2599
+    ],
+    "LegWeaponSide": [
+      950,
+      2271,
+      1280,
+      2642
+    ],
+    "LegFreeSide": [
+      1402,
+      2271,
+      1753,
+      2643
+    ],
+    "ForearmFree": [
+      795,
+      2026,
+      1242,
+      2293
+    ],
+    "Body": [
+      813,
+      1923,
+      1889,
+      2642
+    ],
+    "Weapon": [
+      185,
+      920,
+      1059,
+      2579
+    ],
+    "HandFree": [
+      679,
+      1978,
+      927,
+      2234
+    ],
+    "ArmWeapon": [
+      1350,
+      2044,
+      1783,
+      2471
+    ],
+    "Head": [
+      832,
+      864,
+      1985,
+      2201
+    ]
+  }
+}

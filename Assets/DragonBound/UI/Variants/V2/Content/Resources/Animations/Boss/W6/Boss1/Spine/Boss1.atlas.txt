@@ -1,0 +1,69 @@
+
+Boss1.png
+size: 4096,4096
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+CapeBack
+  rotate: false
+  xy: 2039, 4
+  size: 1294, 1094
+  orig: 1294, 1094
+  offset: 0, 0
+  index: -1
+LegWeaponSide
+  rotate: false
+  xy: 1876, 1667
+  size: 330, 371
+  orig: 330, 371
+  offset: 0, 0
+  index: -1
+LegFreeSide
+  rotate: false
+  xy: 1521, 1667
+  size: 351, 372
+  orig: 351, 372
+  offset: 0, 0
+  index: -1
+ForearmFree
+  rotate: false
+  xy: 2210, 1667
+  size: 447, 267
+  orig: 447, 267
+  offset: 0, 0
+  index: -1
+Body
+  rotate: false
+  xy: 4, 1667
+  size: 1076, 719
+  orig: 1076, 719
+  offset: 0, 0
+  index: -1
+Weapon
+  rotate: false
+  xy: 4, 4
+  size: 874, 1659
+  orig: 874, 1659
+  offset: 0, 0
+  index: -1
+HandFree
+  rotate: false
+  xy: 2661, 1667
+  size: 248, 256
+  orig: 248, 256
+  offset: 0, 0
+  index: -1
+ArmWeapon
+  rotate: false
+  xy: 1084, 1667
+  size: 433, 427
+  orig: 433, 427
+  offset: 0, 0
+  index: -1
+Head
+  rotate: false
+  xy: 882, 4
+  size: 1153, 1337
+  orig: 1153, 1337
+  offset: 0, 0
+  index: -1

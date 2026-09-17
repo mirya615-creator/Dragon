@@ -1,7 +1,9 @@
-using System.Collections.Generic;
-using DragonBound.Presentation;
-using DragonBound.Core;
 using DragonBound.Bosses.Runtime;
+using DragonBound.Core;
+using DragonBound.Presentation;
+using Spine.Unity;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,6 +34,7 @@ namespace DragonBound.Presentation
         private static readonly Dictionary<int, RuntimeAnimatorController> BossAnimationControllers =
             new Dictionary<int, RuntimeAnimatorController>();
         private static readonly HashSet<int> MissingBossAnimationWaves = new HashSet<int>();
+        private static readonly HashSet <int > MissingBossSkeletonWaves= new HashSet<int>();
         private static Texture2D healthFillFallbackTexture;
         private static Sprite healthFillFallbackSprite; 
         private static Sprite frostcrownMarkSprite;
@@ -71,6 +74,20 @@ namespace DragonBound.Presentation
 
         [SerializeField] private Image hpTrack;
 
+        [SerializeField] private SkeletonGraphic waveSkeleton;
+        [SerializeField] private SkeletonDataAsset[] waveSkeletonData;
+
+        [Serializable]
+        public struct EnemySkeletonWaveEntry
+        {
+            public int wave;                     // 6 / 12 / 16 / 20
+            public SkeletonDataAsset skeleton;
+            public float scale;                  // 该 Boss 的缩放，1 = 沿用节点当前值
+        }
+
+        [SerializeField] private EnemySkeletonWaveEntry[] bossSkeletons;
+
+        private int boundWaveSkeletonIndex = -1;
         private Sprite authoredHpTrackSprite;
         private static Sprite bossHpTrackSprite;
         private const string BossHpResourcePath = "GameUI/BossHp";
@@ -89,6 +106,8 @@ namespace DragonBound.Presentation
         private RectTransform waveAnimationRoot;
         private Vector3 authoredWaveAnimationScale = Vector3.one;
         private bool waveAnimationScaleCaptured;
+        private Vector3 authoredSkeletonScale = Vector3.one;
+        private bool skeletonScaleCaptured;
         private Vector2 authoredWaveAnimationPosition;
         private bool waveAnimationPositionCaptured;
         private float hitShakeRemaining;
@@ -1055,6 +1074,13 @@ namespace DragonBound.Presentation
                 waveAnimationPositionCaptured = true;
             }
 
+            if (waveSkeleton != null && !skeletonScaleCaptured)
+            {
+                authoredSkeletonScale = waveSkeleton.transform.localScale;
+                skeletonScaleCaptured = true;
+            }
+
+
             var healthTrack = transform.FindUi("ART_EnemyHpTrack");
             if (healthTrack != null)
             {
@@ -1094,12 +1120,32 @@ namespace DragonBound.Presentation
 
         private void BindWaveAnimation(EnemyRuntime enemy)
         {
-            if (waveAnimationImage == null || waveAnimator == null)
+            if (waveSkeleton != null)
+            {
+                var asset = ResolveSkeletonForWave(enemy, out var slotKey, out var scale);
+                if (asset != null)
+                {
+                    if (boundWaveSkeletonIndex != slotKey || !waveSkeleton.IsValid)
+                    {
+                        waveSkeleton.skeletonDataAsset = asset;
+                        waveSkeleton.Initialize(true);
+                        waveSkeleton.AnimationState.SetAnimation(0, "Walk", true);
+                        waveSkeleton.Update(0f);
+                        boundWaveSkeletonIndex = slotKey;
+                        waveSkeleton.transform.localScale = authoredSkeletonScale * scale;  // Boss 尺寸
+                    }
+                    if (waveAnimationImage != null) waveAnimationImage.enabled = false;
+                    if (waveAnimator != null) waveAnimator.enabled = false;
+                    return;
+                }
+            }
+
+                if (waveAnimationImage == null || waveAnimator == null)
             {
                 ResolveWaveAnimationView();
             }
 
-            if (waveAnimationImage == null || waveAnimator == null)
+                if (waveAnimationImage == null || waveAnimator == null)
             {
                 return;
             }
@@ -1130,6 +1176,49 @@ namespace DragonBound.Presentation
             waveAnimator.runtimeAnimatorController = controller;
             waveAnimator.Rebind();
             waveAnimator.Update(0f);
+        }
+
+        private SkeletonDataAsset ResolveSkeletonForWave(EnemyRuntime enemy, out int slotKey, out float scale)
+        {
+            scale = 1f;
+            var spawnWave = Mathf.Max(1, enemy.SpawnWaveIndex);
+
+            if (enemy.Archetype == EnemyArchetype.Boss)
+            {
+                // Boss 与波次一一对应，不做循环；slotKey 取负波次，避免与小兵 index(0..3) 撞键。
+                slotKey = -spawnWave;
+                if (bossSkeletons != null)
+                {
+                    for (var index = 0; index < bossSkeletons.Length; index++)
+                    {
+                        var entry = bossSkeletons[index];
+                        if (entry.wave != spawnWave || entry.skeleton == null)
+                        {
+                            continue;
+                        }
+
+                        scale = entry.scale > 0f ? entry.scale : 1f;
+                        return entry.skeleton;
+                    }
+                }
+
+                slotKey = -1;
+                if (MissingBossSkeletonWaves.Add(spawnWave))
+                {
+                    Debug.LogWarning($"Boss skeleton is not configured for wave {spawnWave}.");
+                }
+
+                return null;    // 未配置 → 回退原 Animator 路径（V2 无对应键 → 空白）
+            }
+
+            if (waveSkeletonData == null || waveSkeletonData.Length == 0)
+            {
+                slotKey = -1;
+                return null;
+            }
+
+            slotKey = (spawnWave - 1) % waveSkeletonData.Length;
+            return waveSkeletonData[slotKey];
         }
 
         private static RuntimeAnimatorController GetBossAnimationController(int spawnWave)

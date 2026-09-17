@@ -6857,6 +6857,9 @@ MonoBehaviour:
   preserveAuthoredSize: 1
   stormShieldVfxSize: {x: 110, y: 110}
   hpTrack: {fileID: 0}
+  waveSkeleton: {fileID: 0}
+  waveSkeletonData: []
+  bossSkeletons: []
 --- !u!1 &677145636162111132
 GameObject:
   m_ObjectHideFlags: 0
@@ -40877,6 +40880,9 @@ MonoBehaviour:
   preserveAuthoredSize: 1
   stormShieldVfxSize: {x: 110, y: 110}
   hpTrack: {fileID: 0}
+  waveSkeleton: {fileID: 0}
+  waveSkeletonData: []
+  bossSkeletons: []
 --- !u!1 &3719672264225715171
 GameObject:
   m_ObjectHideFlags: 0
