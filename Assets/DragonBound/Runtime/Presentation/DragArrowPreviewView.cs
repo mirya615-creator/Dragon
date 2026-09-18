@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 namespace DragonBound.Presentation
 {
@@ -14,6 +15,10 @@ namespace DragonBound.Presentation
         private const float V2LineX = 1f, V2LineYBottom = 47f, V2LineW = 98f, V2LineH = 9f;
 
         private Sprite tiledPathSprite;   // 缓存，避免每次 Configure 都 new
+        private readonly List<Image> shaftSegments = new List<Image>();
+
+        private const float SegmentHeight = 10f;
+        private const float SegmentOverlap = 4f;
 
         [SerializeField] private Image shaft;
         [SerializeField] private Text headLabel;
@@ -59,7 +64,32 @@ namespace DragonBound.Presentation
             rect.anchoredPosition = source;
             // SlectRoad has generous transparent padding around its centered line art.
             // A taller rect keeps the visible line readable without modifying the source asset.
-            rect.sizeDelta = new Vector2(delta.magnitude, TiledPathHeight);
+            float distance = delta.magnitude;
+            float segmentWidth =
+                tiledPathSprite.rect.width /
+                Mathf.Max(1f, tiledPathSprite.rect.height) *
+                SegmentHeight;
+
+            float step = Mathf.Max(1f, segmentWidth - SegmentOverlap);
+            int segmentCount = Mathf.Max(
+                1,
+                Mathf.CeilToInt((distance + SegmentOverlap) / step));
+
+            rect.sizeDelta = new Vector2(distance, SegmentHeight);
+
+            EnsureSegmentCount(segmentCount);
+
+            for (int i = 0; i < segmentCount; i++)
+            {
+                Image segment = shaftSegments[i];
+                RectTransform segmentRect = segment.rectTransform;
+
+                segmentRect.anchorMin = new Vector2(0f, 0.5f);
+                segmentRect.anchorMax = new Vector2(0f, 0.5f);
+                segmentRect.pivot = new Vector2(0f, 0.5f);
+                segmentRect.anchoredPosition = new Vector2(i * step, 0f);
+                segmentRect.sizeDelta = new Vector2(segmentWidth, SegmentHeight);
+            }
             rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
             // Keep the authored arrow art above runtime unit cards without changing board state.
             transform.SetAsLastSibling();
@@ -114,15 +144,39 @@ namespace DragonBound.Presentation
             }
 
             shaft.sprite = tiledPathSprite;
-            shaft.type = Image.Type.Tiled;
+            shaft.type = Image.Type.Simple;
             shaft.preserveAspect = false;
-            // 瓷砖高度 = crop.height / (ppu * multiplier) = TiledPathHeight
-            shaft.pixelsPerUnitMultiplier = Mathf.Max(0.01f, crop.height / (ppu * TiledPathHeight));
+            shaft.raycastTarget = false;
+            shaft.gameObject.SetActive(false);
 
             if (headLabel != null)
             {
                 headLabel.gameObject.SetActive(false);
             }
+        }
+        private void EnsureSegmentCount(int count)
+        {
+            while (shaftSegments.Count < count)
+            {
+                CreateSegment();
+            }
+
+            for (int i = 0; i < shaftSegments.Count; i++)
+            {
+                shaftSegments[i].gameObject.SetActive(i < count);
+            }
+        }
+        private Image CreateSegment()
+        {
+            var segment = Instantiate(shaft, shaft.transform.parent);
+            segment.name = "SlectRoadSegment";
+            segment.sprite = tiledPathSprite;
+            segment.type = Image.Type.Simple;
+            segment.preserveAspect = false;
+            segment.raycastTarget = false;
+            segment.gameObject.SetActive(true);
+            shaftSegments.Add(segment);
+            return segment;
         }
 
     }

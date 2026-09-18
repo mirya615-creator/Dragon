@@ -346,22 +346,22 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: b9a3a4b12648477438c569e6135d0c7d, type: 3}
     - {fileID: 21300000, guid: b9a3a4b12648477438c569e6135d0c7d, type: 3}
-  - key: UIResources/Game/game/Lock
+  - key: GameUI/Lock
     assets:
-    - {fileID: 2800000, guid: 4a3e7ecc15e1b874087813eaeeea73f9, type: 3}
-    - {fileID: 21300000, guid: 4a3e7ecc15e1b874087813eaeeea73f9, type: 3}
-  - key: UIResources/Game/game/Road
+    - {fileID: 2800000, guid: c9b5195c72649c24a98d95b8e62d4870, type: 3}
+    - {fileID: 21300000, guid: c9b5195c72649c24a98d95b8e62d4870, type: 3}
+  - key: GameUI/Road
     assets:
-    - {fileID: 2800000, guid: 5732ab7f7a887934fa68999191831b3c, type: 3}
-    - {fileID: 21300000, guid: 5732ab7f7a887934fa68999191831b3c, type: 3}
+    - {fileID: 2800000, guid: 4df536111bb7eb849ab13f59d3d96633, type: 3}
+    - {fileID: 21300000, guid: 4df536111bb7eb849ab13f59d3d96633, type: 3}
   - key: GameUI/SlectRoad
     assets:
     - {fileID: 2800000, guid: 1f04c0cfbdf0e1643a4dfd745db78a6e, type: 3}
     - {fileID: 21300000, guid: 1f04c0cfbdf0e1643a4dfd745db78a6e, type: 3}
-  - key: UIResources/Game/game/UnLock
+  - key: GameUI/UnLock
     assets:
-    - {fileID: 2800000, guid: e4cd9357f61badd40a6456ff27d8f95e, type: 3}
-    - {fileID: 21300000, guid: e4cd9357f61badd40a6456ff27d8f95e, type: 3}
+    - {fileID: 2800000, guid: fd954d3aaf5456645bccf419bd502c60, type: 3}
+    - {fileID: 21300000, guid: fd954d3aaf5456645bccf419bd502c60, type: 3}
   - key: "UIResources/Game/game/boss\u9884\u8B66"
     assets:
     - {fileID: 2800000, guid: 3d9671f204be17648a183e05470175db, type: 3}
