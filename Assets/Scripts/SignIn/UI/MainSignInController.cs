@@ -285,11 +285,13 @@ public sealed class MainSignInController : MonoBehaviour
         }
     }
 
+    private const int PreserveAuthoredSpriteMask = 1 << 6;
     private void ApplyDaySprites(int currentDay)
     {
         for (int index = 0; index < SignInDayCount; index++)
         {
-            if (dayImages[index] != null)
+            if (dayImages[index] != null) continue;
+            if ((PreserveAuthoredSpriteMask &(1 << index)) != 0) continue;
                 dayImages[index].sprite = index + 1 == currentDay ? todaySprite : otherSprite;
         }
     }

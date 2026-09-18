@@ -127,6 +127,17 @@ namespace DragonBound.Presentation
         public bool IsDragArrowVisible => dragArrowPreview != null && dragArrowPreview.IsVisible;
         public Sprite DragPathSprite => dragArrowPreview != null ? dragArrowPreview.PathSprite : null;
         public bool IsBoardSelectVisible => boardSelectPreview != null && boardSelectPreview.activeSelf;
+
+        private static bool PreserveMirroredUnitPosition
+        {
+            get
+            {
+                return string.Equals(
+                    UiAssets.Active?.VariantId,
+                    "V2",
+                    StringComparison.Ordinal);
+            }
+        }
         public bool IsSourceSelectVisible
         {
             get
@@ -386,8 +397,9 @@ namespace DragonBound.Presentation
                 }
 
                 unitView.FaceArtTowards(
-                    horizontalDelta > 0f,
-                    MirroredUnitArtAnchoredPositionX);
+    horizontalDelta > 0f,
+    MirroredUnitArtAnchoredPositionX,
+    PreserveMirroredUnitPosition);
                 return true;
             }
 
@@ -783,8 +795,9 @@ namespace DragonBound.Presentation
                     unitView.SetStandardPresentation();
                     ApplyCardPresentation(currentCard, unitView);
                     unitView.InitializeArtFacing(
-                        board.Side == TeamSide.AI,
-                        MirroredUnitArtAnchoredPositionX);
+    board.Side == TeamSide.AI,
+    MirroredUnitArtAnchoredPositionX,
+    PreserveMirroredUnitPosition);
                 }
 
                 if (unitLabels.TryGetValue(occupant.UnitId, out var label))

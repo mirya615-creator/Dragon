@@ -304,25 +304,41 @@ namespace DragonBound.Presentation
             artImage.rectTransform.localScale = scale;
         }
 
-        public void InitializeArtFacing(bool mirrored, float mirroredAnchoredPositionX)
+        public void InitializeArtFacing(
+    bool mirrored,
+    float mirroredAnchoredPositionX,
+    bool preserveAnchoredPosition = false)
         {
             if (artFacingInitialized)
             {
                 return;
             }
 
-            ApplyArtFacing(mirrored, mirroredAnchoredPositionX, false);
+            ApplyArtFacing(
+                mirrored,
+                mirroredAnchoredPositionX,
+                false,
+                preserveAnchoredPosition);
         }
 
-        public void FaceArtTowards(bool mirrored, float mirroredAnchoredPositionX)
+        public void FaceArtTowards(
+    bool mirrored,
+    float mirroredAnchoredPositionX,
+    bool preserveAnchoredPosition = false)
         {
-            ApplyArtFacing(mirrored, mirroredAnchoredPositionX, true);
+            ApplyArtFacing(
+                mirrored,
+                mirroredAnchoredPositionX,
+                true,
+                preserveAnchoredPosition);
         }
 
         private void ApplyArtFacing(
-            bool mirrored,
-            float mirroredAnchoredPositionX,
-            bool animate)
+    bool mirrored,
+    float mirroredAnchoredPositionX,
+    bool animate,
+    bool preserveAnchoredPosition)
+
         {
             if (artImage == null)
             {
@@ -333,9 +349,11 @@ namespace DragonBound.Presentation
             CaptureAuthoredArtAnchoredPosition();
             var rect = artImage.rectTransform;
             var targetScaleX = mirrored ? -authoredArtScale.x : authoredArtScale.x;
-            var targetPositionX = mirrored
-                ? mirroredAnchoredPositionX
-                : authoredArtAnchoredPosition.x;
+            var targetPositionX = preserveAnchoredPosition
+    ? authoredArtAnchoredPosition.x
+    : mirrored
+        ? mirroredAnchoredPositionX
+        : authoredArtAnchoredPosition.x;
 
             if (artFacingInitialized && artFacingMirrored == mirrored)
             {

@@ -140,12 +140,10 @@ public sealed class LoginController : MonoBehaviour
         guestLoginButton.gameObject.SetActive(false);
         googleButton.gameObject.SetActive(false);
         startupLoadingImage.SetActive(true);
-        startupLoadingFill.type = Image.Type.Simple;
-        startupLoadingFillRect.anchorMin = new Vector2(0f, 0f);
-        startupLoadingFillRect.anchorMax = new Vector2(0f, 1f);
-        startupLoadingFillRect.pivot = new Vector2(0f, 0.5f);
-        startupLoadingFillRect.anchoredPosition = Vector2.zero;
-        startupLoadingFillRect.sizeDelta = Vector2.zero;
+        startupLoadingFill.type = Image.Type.Filled;
+        startupLoadingFill.fillMethod = Image.FillMethod.Horizontal;
+        startupLoadingFill.fillOrigin = 0;          // Left
+        startupLoadingFill.fillAmount = 0f;
         SetStartupLoadingProgress(0f);
         SetBusy(true);
         startupLoadingCoroutine = StartCoroutine(RestoreSessionOrShowLogin());
@@ -237,9 +235,9 @@ public sealed class LoginController : MonoBehaviour
 
     private void SetStartupLoadingProgress(float value)
     {
-        float progress = Mathf.Clamp01(value);
-        startupLoadingFill.fillAmount = progress;
-        startupLoadingFillRect.anchorMax = new Vector2(progress, 1f);
+        startupLoadingFill.fillAmount = Mathf.Clamp01(value);
+        //float progress = Mathf.Clamp01(value);
+        //startupLoadingFill.fillAmount = progress;
     }
 
     private async void OnGuestLoginClicked()

@@ -224,12 +224,9 @@ public sealed class SceneLoader : MonoBehaviour
             return;
         }
 
-        fill.type = Image.Type.Simple;
-        fill.rectTransform.anchorMin = new Vector2(0f, 0f);
-        fill.rectTransform.anchorMax = new Vector2(0f, 1f);
-        fill.rectTransform.pivot = new Vector2(0f, 0.5f);
-        fill.rectTransform.anchoredPosition = Vector2.zero;
-        fill.rectTransform.sizeDelta = Vector2.zero;
+        fill.type = Image.Type.Filled ;
+        fill.fillMethod = Image.FillMethod.Horizontal;
+        fill.fillOrigin = 0;
         fill.fillAmount = 0f;
     }
 }
