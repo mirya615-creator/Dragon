@@ -1,0 +1,76 @@
+
+Boss2Storm.png
+size: 4096,4096
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+CapeBack
+  rotate: false
+  xy: 4, 2096
+  size: 1906, 1224
+  orig: 1906, 1224
+  offset: 0, 0
+  index: -1
+ForearmWeapon
+  rotate: false
+  xy: 434, 3324
+  size: 646, 436
+  orig: 646, 436
+  offset: 0, 0
+  index: -1
+Weapon
+  rotate: false
+  xy: 4, 4
+  size: 928, 2088
+  orig: 928, 2088
+  offset: 0, 0
+  index: -1
+HandWeapon
+  rotate: false
+  xy: 1084, 3324
+  size: 312, 342
+  orig: 312, 342
+  offset: 0, 0
+  index: -1
+LegFreeSide
+  rotate: false
+  xy: 3005, 2096
+  size: 391, 473
+  orig: 391, 473
+  offset: 0, 0
+  index: -1
+LegWeaponSide
+  rotate: false
+  xy: 3400, 2096
+  size: 393, 468
+  orig: 393, 468
+  offset: 0, 0
+  index: -1
+Body
+  rotate: false
+  xy: 1914, 2096
+  size: 1087, 717
+  orig: 1087, 717
+  offset: 0, 0
+  index: -1
+Head
+  rotate: false
+  xy: 936, 4
+  size: 1543, 1527
+  orig: 1543, 1527
+  offset: 0, 0
+  index: -1
+ForearmFree
+  rotate: false
+  xy: 4, 3324
+  size: 426, 452
+  orig: 426, 452
+  offset: 0, 0
+  index: -1
+HandFree
+  rotate: false
+  xy: 1400, 3324
+  size: 341, 326
+  orig: 341, 326
+  offset: 0, 0
+  index: -1

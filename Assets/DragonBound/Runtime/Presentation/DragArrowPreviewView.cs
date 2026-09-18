@@ -7,7 +7,13 @@ namespace DragonBound.Presentation
     public sealed class DragArrowPreviewView : MonoBehaviour
     {
         private const string DragPathSpriteResourcePath = "GameUI/SlectRoad";
-        private const float DragPathRectHeight = 180f;
+        private const float TiledPathHeight = 10f;
+        private const float V1TexHeight = 1254f;
+        private const float V1LineX = 213f, V1LineYBottom = 607f, V1LineW = 827f, V1LineH = 49f;
+        private const float V2TexHeight = 100f;
+        private const float V2LineX = 1f, V2LineYBottom = 47f, V2LineW = 98f, V2LineH = 9f;
+
+        private Sprite tiledPathSprite;   // 缓存，避免每次 Configure 都 new
 
         [SerializeField] private Image shaft;
         [SerializeField] private Text headLabel;
@@ -53,7 +59,7 @@ namespace DragonBound.Presentation
             rect.anchoredPosition = source;
             // SlectRoad has generous transparent padding around its centered line art.
             // A taller rect keeps the visible line readable without modifying the source asset.
-            rect.sizeDelta = new Vector2(delta.magnitude, DragPathRectHeight);
+            rect.sizeDelta = new Vector2(delta.magnitude, TiledPathHeight);
             rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
             // Keep the authored arrow art above runtime unit cards without changing board state.
             transform.SetAsLastSibling();
@@ -88,14 +94,36 @@ namespace DragonBound.Presentation
                     $"Missing drag path sprite at Resources/{DragPathSpriteResourcePath}.");
             }
 
-            shaft.sprite = pathSprite;
-            shaft.type = Image.Type.Simple;
+            // 源图是"细线 + 大片透明边距"，整张平铺会让线细到看不见，
+            // 因此用 Sprite.Create 只取线条那一横条作为平铺单元。
+            var textureRect = pathSprite.textureRect;
+            Rect crop;
+            if (pathSprite.texture.height > 500)
+            {
+                crop = new Rect(textureRect.x + V1LineX, textureRect.y + V1LineYBottom, V1LineW, V1LineH);
+            }
+            else
+            {
+                crop = new Rect(textureRect.x + V2LineX, textureRect.y + V2LineYBottom, V2LineW, V2LineH);
+            }
+
+            var ppu = pathSprite.pixelsPerUnit > 0f ? pathSprite.pixelsPerUnit : 100f;
+            if (tiledPathSprite == null || tiledPathSprite.texture != pathSprite.texture)
+            {
+                tiledPathSprite = Sprite.Create(pathSprite.texture, crop, new Vector2(0.5f, 0.5f), ppu);
+            }
+
+            shaft.sprite = tiledPathSprite;
+            shaft.type = Image.Type.Tiled;
             shaft.preserveAspect = false;
-            shaft.color = Color.white;
+            // 瓷砖高度 = crop.height / (ppu * multiplier) = TiledPathHeight
+            shaft.pixelsPerUnitMultiplier = Mathf.Max(0.01f, crop.height / (ppu * TiledPathHeight));
+
             if (headLabel != null)
             {
                 headLabel.gameObject.SetActive(false);
             }
         }
+
     }
 }

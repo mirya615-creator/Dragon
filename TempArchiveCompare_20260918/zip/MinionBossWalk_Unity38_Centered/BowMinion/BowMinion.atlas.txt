@@ -1,0 +1,76 @@
+
+BowMinion.png
+size: 4096,2048
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+BowArm
+  rotate: false
+  xy: 4, 1272
+  size: 309, 300
+  orig: 309, 300
+  offset: 0, 0
+  index: -1
+Bow
+  rotate: false
+  xy: 1378, 4
+  size: 866, 1171
+  orig: 866, 1171
+  offset: 0, 0
+  index: -1
+BowHand
+  rotate: false
+  xy: 839, 1272
+  size: 223, 224
+  orig: 223, 224
+  offset: 0, 0
+  index: -1
+LegRear
+  rotate: false
+  xy: 2929, 4
+  size: 413, 512
+  orig: 413, 512
+  offset: 0, 0
+  index: -1
+LegFront
+  rotate: false
+  xy: 3346, 4
+  size: 483, 425
+  orig: 483, 425
+  offset: 0, 0
+  index: -1
+Body
+  rotate: false
+  xy: 2248, 4
+  size: 677, 594
+  orig: 677, 594
+  offset: 0, 0
+  index: -1
+Head
+  rotate: false
+  xy: 4, 4
+  size: 1370, 1264
+  orig: 1370, 1264
+  offset: 0, 0
+  index: -1
+FreeArm
+  rotate: false
+  xy: 317, 1272
+  size: 279, 295
+  orig: 279, 295
+  offset: 0, 0
+  index: -1
+ShoulderPad
+  rotate: false
+  xy: 600, 1272
+  size: 235, 233
+  orig: 235, 233
+  offset: 0, 0
+  index: -1
+FreeHand
+  rotate: false
+  xy: 1066, 1272
+  size: 225, 199
+  orig: 225, 199
+  offset: 0, 0
+  index: -1

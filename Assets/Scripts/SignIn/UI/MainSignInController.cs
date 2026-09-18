@@ -290,9 +290,21 @@ public sealed class MainSignInController : MonoBehaviour
     {
         for (int index = 0; index < SignInDayCount; index++)
         {
-            if (dayImages[index] != null) continue;
-            if ((PreserveAuthoredSpriteMask &(1 << index)) != 0) continue;
-                dayImages[index].sprite = index + 1 == currentDay ? todaySprite : otherSprite;
+            // Image (6) 保留预制体中的原始图片
+            if ((PreserveAuthoredSpriteMask & (1 << index)) != 0)
+            {
+                continue;
+            }
+
+            if (dayImages[index] == null)
+            {
+                continue;
+            }
+
+            dayImages[index].sprite =
+                index + 1 == currentDay
+                    ? todaySprite
+                    : otherSprite;
         }
     }
 

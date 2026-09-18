@@ -1,0 +1,75 @@
+
+WindclawRanger.png
+size: 2000,1861
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Body
+  rotate: false
+  xy: 1266, 203
+  size: 732, 712
+  orig: 732, 712
+  offset: 0, 0
+  index: -1
+Cape
+  rotate: true
+  xy: 1266, 917
+  size: 942, 706
+  orig: 942, 706
+  offset: 0, 0
+  index: -1
+Head
+  rotate: false
+  xy: 2, 490
+  size: 1262, 1369
+  orig: 1262, 1369
+  offset: 0, 0
+  index: -1
+LowerBody
+  rotate: false
+  xy: 2, 2
+  size: 858, 486
+  orig: 858, 486
+  offset: 0, 0
+  index: -1
+
+WindclawRanger2.png
+size: 1898,1057
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Left
+  rotate: true
+  xy: 710, 510
+  size: 545, 650
+  orig: 545, 651
+  offset: 0, 1
+  index: -1
+LeftClawArm
+  rotate: false
+  xy: 1362, 514
+  size: 534, 541
+  orig: 534, 541
+  offset: 0, 0
+  index: -1
+Right
+  rotate: false
+  xy: 710, 2
+  size: 664, 506
+  orig: 664, 508
+  offset: 0, 0
+  index: -1
+RightClawArm
+  rotate: true
+  xy: 1376, 67
+  size: 445, 467
+  orig: 445, 467
+  offset: 0, 0
+  index: -1
+Tail
+  rotate: false
+  xy: 2, 349
+  size: 706, 706
+  orig: 706, 706
+  offset: 0, 0
+  index: -1

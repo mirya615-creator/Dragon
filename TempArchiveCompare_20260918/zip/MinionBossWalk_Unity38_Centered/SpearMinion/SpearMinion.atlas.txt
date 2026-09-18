@@ -1,0 +1,76 @@
+
+SpearMinion.png
+size: 4096,2048
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+SpearArm
+  rotate: false
+  xy: 491, 1390
+  size: 309, 300
+  orig: 309, 300
+  offset: 0, 0
+  index: -1
+Spear
+  rotate: false
+  xy: 4, 4
+  size: 1138, 1382
+  orig: 1138, 1382
+  offset: 0, 0
+  index: -1
+SpearHand
+  rotate: false
+  xy: 1326, 1390
+  size: 223, 224
+  orig: 223, 224
+  offset: 0, 0
+  index: -1
+LegRear
+  rotate: false
+  xy: 3201, 4
+  size: 413, 512
+  orig: 413, 512
+  offset: 0, 0
+  index: -1
+LegFront
+  rotate: false
+  xy: 4, 1390
+  size: 483, 425
+  orig: 483, 425
+  offset: 0, 0
+  index: -1
+Body
+  rotate: false
+  xy: 2520, 4
+  size: 677, 594
+  orig: 677, 594
+  offset: 0, 0
+  index: -1
+Head
+  rotate: false
+  xy: 1146, 4
+  size: 1370, 1264
+  orig: 1370, 1264
+  offset: 0, 0
+  index: -1
+FreeArm
+  rotate: false
+  xy: 804, 1390
+  size: 279, 295
+  orig: 279, 295
+  offset: 0, 0
+  index: -1
+ShoulderPad
+  rotate: false
+  xy: 1087, 1390
+  size: 235, 233
+  orig: 235, 233
+  offset: 0, 0
+  index: -1
+FreeHand
+  rotate: false
+  xy: 1553, 1390
+  size: 225, 199
+  orig: 225, 199
+  offset: 0, 0
+  index: -1

@@ -1969,6 +1969,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: bc92ac7d8df7d6449a8234a8a7b185e0, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Ember Shaman
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2376,6 +2380,46 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 190871980}
   m_CullTransparentMesh: 1
+--- !u!21 &196298969
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UI/RoundedCorners/RoundedCorners
+  m_Shader: {fileID: 4800000, guid: 0bd2ec5d73751e34a814274a454bec41, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ColorMask: 15
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
+    - _UseUIAlphaClip: 0
+    m_Colors:
+    - _OuterUV: {r: 0, g: 0, b: 1, a: 1}
+    - _WidthHeightRadius: {r: 120, g: 120, b: 30, a: 0}
+  m_BuildTextureStacks: []
 --- !u!224 &199377628 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1188504190766499036, guid: b868e783e6d629b429b65883ca422030, type: 3}
@@ -5128,6 +5172,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 77af9eb89c757784780132dd21f09c32, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Flame Drake Rider
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -8588,6 +8636,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 9b0cf36c7548c9b4ab75bdcbf178c12d, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Stonebound Warlock
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -9091,6 +9143,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 10cd2b69953558c409503e6b5a6817b7, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Abyssal Harpooner
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -10071,6 +10127,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 1c71bb9841676dd439eb71cb7c2111e4, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Frostcrown Hunter
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -11817,6 +11877,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 5ca9e7294f3db254c84642de27f7ff4e, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Starfall Archmage
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -15667,6 +15731,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 1254ce723a495b64b94e044e1efce94b, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Thunderlord
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -16268,6 +16336,46 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1149818778}
   m_CullTransparentMesh: 1
+--- !u!21 &1152040158
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UI/RoundedCorners/RoundedCorners
+  m_Shader: {fileID: 4800000, guid: 0bd2ec5d73751e34a814274a454bec41, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ColorMask: 15
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
+    - _UseUIAlphaClip: 0
+    m_Colors:
+    - _OuterUV: {r: 0, g: 0, b: 1, a: 1}
+    - _WidthHeightRadius: {r: 120, g: 120, b: 30, a: 0}
+  m_BuildTextureStacks: []
 --- !u!1001 &1171087788
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22675,6 +22783,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 63c823846bf36aa4ea480e1d652cd5f5, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Starfall Archmage
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -22785,6 +22897,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 42b0f2864cdbe5b41aee024e638a5b2e, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Nightfang Assassin
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -24054,6 +24170,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: d45d01d916dc89c469cac8a7a37eba1e, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Skyborne Valkyrie
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -26221,6 +26341,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 376619bfd99b9b049919c086b52909e1, type: 3}
+    - target: {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+      propertyPath: m_text
+      value: Oathcrown Blademaster
+      objectReference: {fileID: 0}
     - target: {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -28046,6 +28170,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1372806960056359051, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 196298969}
     - target: {fileID: 3237568724850068398, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
       propertyPath: m_Name
       value: ProfileImg

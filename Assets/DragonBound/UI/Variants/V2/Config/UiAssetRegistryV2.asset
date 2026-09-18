@@ -334,6 +334,18 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 1bfb04d7f24204548bcdb3ebadaddf80, type: 3}
     - {fileID: 21300000, guid: 1bfb04d7f24204548bcdb3ebadaddf80, type: 3}
+  - key: UIResources/Game/game/BossHp
+    assets:
+    - {fileID: 2800000, guid: 8e06715acba92f84589943fc9bdf9abc, type: 3}
+    - {fileID: 21300000, guid: 8e06715acba92f84589943fc9bdf9abc, type: 3}
+  - key: "UIResources/Game/game/ChatGPT Image 2026\u5E749\u670816\u65E5 16_38_43"
+    assets:
+    - {fileID: 2800000, guid: 34346ba6d10571e4895de5d78c46e9db, type: 3}
+    - {fileID: 21300000, guid: 34346ba6d10571e4895de5d78c46e9db, type: 3}
+  - key: "UIResources/Game/game/ChatGPT Image 2026\u5E749\u67089\u65E5 13_42_39"
+    assets:
+    - {fileID: 2800000, guid: b9a3a4b12648477438c569e6135d0c7d, type: 3}
+    - {fileID: 21300000, guid: b9a3a4b12648477438c569e6135d0c7d, type: 3}
   - key: UIResources/Game/game/Lock
     assets:
     - {fileID: 2800000, guid: 4a3e7ecc15e1b874087813eaeeea73f9, type: 3}
@@ -354,14 +366,18 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 3d9671f204be17648a183e05470175db, type: 3}
     - {fileID: 21300000, guid: 3d9671f204be17648a183e05470175db, type: 3}
+  - key: "UIResources/Game/game/\u56FE\u5C42 115 \u62F7\u8D1D 2"
+    assets:
+    - {fileID: 2800000, guid: 9f26153f6949bf140b307f897298e686, type: 3}
+    - {fileID: 21300000, guid: 9f26153f6949bf140b307f897298e686, type: 3}
+  - key: "UIResources/Game/game/\u56FE\u5C42 121"
+    assets:
+    - {fileID: 2800000, guid: a0af129159e2ba044988e63df34a0b50, type: 3}
+    - {fileID: 21300000, guid: a0af129159e2ba044988e63df34a0b50, type: 3}
   - key: "UIResources/Game/game/\u5FAE\u4FE1\u56FE\u7247_20260916150554_875_101"
     assets:
     - {fileID: 2800000, guid: 062bc99fc0e9fb64a8600e95c0f8e47c, type: 3}
     - {fileID: 21300000, guid: 062bc99fc0e9fb64a8600e95c0f8e47c, type: 3}
-  - key: "UIResources/Game/game/\u5FAE\u4FE1\u56FE\u7247_20260916150557_876_101"
-    assets:
-    - {fileID: 2800000, guid: de54428a5b9a6774cbfa7c3239655f0f, type: 3}
-    - {fileID: 21300000, guid: de54428a5b9a6774cbfa7c3239655f0f, type: 3}
   - key: "UIResources/Game/game/\u5FAE\u4FE1\u56FE\u7247_20260917091958_904_101"
     assets:
     - {fileID: 2800000, guid: 29af6f9cd551dd24b90cb7b3feb02302, type: 3}
@@ -414,6 +430,26 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 9afd9866bd23a0646b956b96485f74f3, type: 3}
     - {fileID: 21300000, guid: 9afd9866bd23a0646b956b96485f74f3, type: 3}
+  - key: "UIResources/Game/game/\u5FAE\u4FE1\u56FE\u7247_20260918101404_981_101"
+    assets:
+    - {fileID: 2800000, guid: 7f0c02ef36955294fa24784cedc0e92e, type: 3}
+    - {fileID: 21300000, guid: 7f0c02ef36955294fa24784cedc0e92e, type: 3}
+  - key: "UIResources/Game/game/\u5FAE\u4FE1\u56FE\u7247_20260918101405_983_101"
+    assets:
+    - {fileID: 2800000, guid: 5ded1f1a82dfc9b4a96c34943315a78c, type: 3}
+    - {fileID: 21300000, guid: 5ded1f1a82dfc9b4a96c34943315a78c, type: 3}
+  - key: "UIResources/Game/game/\u5FAE\u4FE1\u56FE\u7247_20260918103939_1002_101"
+    assets:
+    - {fileID: 2800000, guid: 799f24c57e9ab4f4a8c9ee92c76247bc, type: 3}
+    - {fileID: 21300000, guid: 799f24c57e9ab4f4a8c9ee92c76247bc, type: 3}
+  - key: "UIResources/Game/game/\u5FAE\u4FE1\u56FE\u7247_20260918141403_1026_101"
+    assets:
+    - {fileID: 2800000, guid: 18d60d57c97f3ff4db9f6333ac6f3abc, type: 3}
+    - {fileID: 21300000, guid: 18d60d57c97f3ff4db9f6333ac6f3abc, type: 3}
+  - key: "UIResources/Game/game/\u5FAE\u4FE1\u56FE\u7247_20260918145534_1036_101"
+    assets:
+    - {fileID: 2800000, guid: 5683f2c9ba8b42c4ca340c70ad7b01b1, type: 3}
+    - {fileID: 21300000, guid: 5683f2c9ba8b42c4ca340c70ad7b01b1, type: 3}
   - key: ItemUI/1
     assets:
     - {fileID: 2800000, guid: bfbb7a769751cd44bb7315104a8afe23, type: 3}
@@ -494,6 +530,29 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 3e81fd0306550a440a0eee57c6ba9189, type: 3}
     - {fileID: 21300000, guid: 3e81fd0306550a440a0eee57c6ba9189, type: 3}
+  - key: "UIResources/Loagin/\u5FAE\u4FE1\u56FE\u7247_20260918100129_978_101"
+    assets:
+    - {fileID: 2800000, guid: 5c07fc790f55f1245baae754d00ba6a5, type: 3}
+    - {fileID: 21300000, guid: 5c07fc790f55f1245baae754d00ba6a5, type: 3}
+  - key: "UIResources/Loagin/\u5FAE\u4FE1\u56FE\u7247_20260918100130_979_101"
+    assets:
+    - {fileID: 2800000, guid: 2a3e915fa2575d04ea8f215e3fb4c419, type: 3}
+    - {fileID: 21300000, guid: 2a3e915fa2575d04ea8f215e3fb4c419, type: 3}
+  - key: "UIResources/Loagin/\u5FAE\u4FE1\u56FE\u7247_20260918113033_1006_101"
+    assets:
+    - {fileID: 2800000, guid: 0793a96e69323ce4398c491c7568e12c, type: 3}
+    - {fileID: 21300000, guid: 0793a96e69323ce4398c491c7568e12c, type: 3}
+  - key: "UIResources/Loagin/\u5FAE\u4FE1\u56FE\u7247_20260918113033_1007_101"
+    assets:
+    - {fileID: 2800000, guid: fa0ece8a983452f4f86a311cffbe94de, type: 3}
+    - {fileID: 21300000, guid: fa0ece8a983452f4f86a311cffbe94de, type: 3}
+  - key: "UIResources/Loagin/\u5FAE\u4FE1\u56FE\u7247_20260918134655_1020_101"
+    assets:
+    - {fileID: 2800000, guid: 44431a06775e5e4499d538e1a9d29361, type: 3}
+    - {fileID: 21300000, guid: 44431a06775e5e4499d538e1a9d29361, type: 3}
+  - key: "UIResources/Loagin/\u5FAE\u4FE1\u56FE\u7247_20260918141524_1027_101"
+    assets:
+    - {fileID: 2800000, guid: cf482234afd680e4bb62a9852d30f8cc, type: 3}
   - key: UIResources/Main/AddEnergy/333
     assets:
     - {fileID: 2800000, guid: 51edf0a90fed8634d940315364dc2c73, type: 3}
@@ -582,6 +641,14 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 1254ce723a495b64b94e044e1efce94b, type: 3}
     - {fileID: 21300000, guid: 1254ce723a495b64b94e044e1efce94b, type: 3}
+  - key: "UIResources/Main/Inform/\u5FAE\u4FE1\u56FE\u7247_20260918140339_1023_101"
+    assets:
+    - {fileID: 2800000, guid: 8cea1971eb8a0ef42bc5496a9b485afb, type: 3}
+    - {fileID: 21300000, guid: 8cea1971eb8a0ef42bc5496a9b485afb, type: 3}
+  - key: "UIResources/Main/Inform/\u5FAE\u4FE1\u56FE\u7247_20260918140340_1024_101"
+    assets:
+    - {fileID: 2800000, guid: 55858209949654242b85bbf1879e722b, type: 3}
+    - {fileID: 21300000, guid: 55858209949654242b85bbf1879e722b, type: 3}
   - key: "UIResources/Main/Merchant/\u56FE\u5C42 24 \u62F7\u8D1D 6"
     assets:
     - {fileID: 2800000, guid: 35f60683d4e1c6d4093cda7611f65623, type: 3}
@@ -614,14 +681,74 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: b12885047f2d5f64f911951aaf7f4604, type: 3}
     - {fileID: 21300000, guid: b12885047f2d5f64f911951aaf7f4604, type: 3}
+  - key: "UIResources/Main/Merchant/\u5FAE\u4FE1\u56FE\u7247_20260918134048_1012_101"
+    assets:
+    - {fileID: 2800000, guid: bed4065e036ebc648ab27a3869a1cc50, type: 3}
+    - {fileID: 21300000, guid: bed4065e036ebc648ab27a3869a1cc50, type: 3}
+  - key: "UIResources/Main/Merchant/\u5FAE\u4FE1\u56FE\u7247_20260918134049_1013_101"
+    assets:
+    - {fileID: 2800000, guid: 47a52112c24f1674abb6ea3ba48d9e37, type: 3}
+    - {fileID: 21300000, guid: 47a52112c24f1674abb6ea3ba48d9e37, type: 3}
+  - key: "UIResources/Main/Merchant/\u5FAE\u4FE1\u56FE\u7247_20260918134051_1015_101"
+    assets:
+    - {fileID: 2800000, guid: a4ea7d5ff8386dc4489638784dcf5a21, type: 3}
+    - {fileID: 21300000, guid: a4ea7d5ff8386dc4489638784dcf5a21, type: 3}
+  - key: "UIResources/Main/Merchant/\u5FAE\u4FE1\u56FE\u7247_20260918134419_1019_101"
+    assets:
+    - {fileID: 2800000, guid: 92d150bbb5140c04494f472403d4836b, type: 3}
+    - {fileID: 21300000, guid: 92d150bbb5140c04494f472403d4836b, type: 3}
   - key: "UIResources/Main/Merchant/\u77E9\u5F62 4"
     assets:
     - {fileID: 2800000, guid: 1c5f2f6edd8fbaa4c9ed25fc4dba4749, type: 3}
     - {fileID: 21300000, guid: 1c5f2f6edd8fbaa4c9ed25fc4dba4749, type: 3}
   - key: UIResources/Main/Profile/0
     assets:
-    - {fileID: 2800000, guid: 46e970993fbfa3f4e934e5304a6a7349, type: 3}
-    - {fileID: 21300000, guid: 46e970993fbfa3f4e934e5304a6a7349, type: 3}
+    - {fileID: 2800000, guid: 1b3c780d8ea7b0b4fb906438b57f0301, type: 3}
+    - {fileID: 21300000, guid: 1b3c780d8ea7b0b4fb906438b57f0301, type: 3}
+  - key: UIResources/Main/Profile/1
+    assets:
+    - {fileID: 2800000, guid: ff20ba227080c1e4f9352eb4ebe95e89, type: 3}
+    - {fileID: 21300000, guid: ff20ba227080c1e4f9352eb4ebe95e89, type: 3}
+  - key: UIResources/Main/Profile/10
+    assets:
+    - {fileID: 2800000, guid: 3a45d435ab1aa0f4c9a53adc0d5e14d0, type: 3}
+    - {fileID: 21300000, guid: 3a45d435ab1aa0f4c9a53adc0d5e14d0, type: 3}
+  - key: UIResources/Main/Profile/11
+    assets:
+    - {fileID: 2800000, guid: 36458fea8db7e7743943a0e862ff5066, type: 3}
+    - {fileID: 21300000, guid: 36458fea8db7e7743943a0e862ff5066, type: 3}
+  - key: UIResources/Main/Profile/2
+    assets:
+    - {fileID: 2800000, guid: b0bbb1ed64f57854cbb49c9b9a320408, type: 3}
+    - {fileID: 21300000, guid: b0bbb1ed64f57854cbb49c9b9a320408, type: 3}
+  - key: UIResources/Main/Profile/3
+    assets:
+    - {fileID: 2800000, guid: dab321f56c3ca3f41be1c7b053a38f86, type: 3}
+    - {fileID: 21300000, guid: dab321f56c3ca3f41be1c7b053a38f86, type: 3}
+  - key: UIResources/Main/Profile/4
+    assets:
+    - {fileID: 2800000, guid: b19c76c36b50f4747a19e12e2250151d, type: 3}
+    - {fileID: 21300000, guid: b19c76c36b50f4747a19e12e2250151d, type: 3}
+  - key: UIResources/Main/Profile/5
+    assets:
+    - {fileID: 2800000, guid: c9d891a95f5c0524abfcb9f383ce973f, type: 3}
+    - {fileID: 21300000, guid: c9d891a95f5c0524abfcb9f383ce973f, type: 3}
+  - key: UIResources/Main/Profile/6
+    assets:
+    - {fileID: 2800000, guid: a3aa2c453a291f24db69009cf51d46d2, type: 3}
+    - {fileID: 21300000, guid: a3aa2c453a291f24db69009cf51d46d2, type: 3}
+  - key: UIResources/Main/Profile/7
+    assets:
+    - {fileID: 2800000, guid: 05e16d2765217c94f8610b209449a773, type: 3}
+    - {fileID: 21300000, guid: 05e16d2765217c94f8610b209449a773, type: 3}
+  - key: UIResources/Main/Profile/8
+    assets:
+    - {fileID: 2800000, guid: 24f86d0edc6d9ce46aaa030e6fafe3d0, type: 3}
+    - {fileID: 21300000, guid: 24f86d0edc6d9ce46aaa030e6fafe3d0, type: 3}
+  - key: UIResources/Main/Profile/9
+    assets:
+    - {fileID: 2800000, guid: 1e01882979321c143bdf1d044d1b11ba, type: 3}
+    - {fileID: 21300000, guid: 1e01882979321c143bdf1d044d1b11ba, type: 3}
   - key: "UIResources/Main/Profile/ProfileFire/\u5FAE\u4FE1\u56FE\u7247_20260915113937_726_101"
     assets:
     - {fileID: 2800000, guid: 9d2d599a2ae01844f8862c2dac036e7f, type: 3}
@@ -867,6 +994,10 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 6116502e54f936748adfd054250324d8, type: 3}
     - {fileID: 21300000, guid: 6116502e54f936748adfd054250324d8, type: 3}
+  - key: "UIResources/Main/main/\u5FAE\u4FE1\u56FE\u7247_20260917165756_957_101"
+    assets:
+    - {fileID: 2800000, guid: c99050b396a4151498f2130a92a7c831, type: 3}
+    - {fileID: 21300000, guid: c99050b396a4151498f2130a92a7c831, type: 3}
   - key: "UIResources/Main/main/\u77E9\u5F62 1"
     assets:
     - {fileID: 2800000, guid: db2ead5386ba1254d82756ca82085fba, type: 3}
@@ -883,59 +1014,59 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: c5bca2c311a65db4fab3e888babcbb86, type: 3}
     - {fileID: 21300000, guid: c5bca2c311a65db4fab3e888babcbb86, type: 3}
-  - key: UIResources/Rune/1
+  - key: RuneUI/1
     assets:
     - {fileID: 2800000, guid: 25ca7c005a3d8604a945fd0380044974, type: 3}
     - {fileID: 21300000, guid: 25ca7c005a3d8604a945fd0380044974, type: 3}
-  - key: UIResources/Rune/10
+  - key: RuneUI/10
     assets:
     - {fileID: 2800000, guid: a6e819eb0e7b93c43995e0204818568a, type: 3}
     - {fileID: 21300000, guid: a6e819eb0e7b93c43995e0204818568a, type: 3}
-  - key: UIResources/Rune/11
+  - key: RuneUI/11
     assets:
     - {fileID: 2800000, guid: f74ec2a4de35c3342b99eecefbfaa846, type: 3}
     - {fileID: 21300000, guid: f74ec2a4de35c3342b99eecefbfaa846, type: 3}
-  - key: UIResources/Rune/12
+  - key: RuneUI/12
     assets:
     - {fileID: 2800000, guid: c46dd4c3991942b4a871aa34b9e3b0fc, type: 3}
     - {fileID: 21300000, guid: c46dd4c3991942b4a871aa34b9e3b0fc, type: 3}
-  - key: UIResources/Rune/13
+  - key: RuneUI/13
     assets:
     - {fileID: 2800000, guid: 3dbe9993c02861c4290f09536f16f5b4, type: 3}
     - {fileID: 21300000, guid: 3dbe9993c02861c4290f09536f16f5b4, type: 3}
-  - key: UIResources/Rune/14
+  - key: RuneUI/14
     assets:
     - {fileID: 2800000, guid: 3ad4add5923743646bb25219774771f7, type: 3}
     - {fileID: 21300000, guid: 3ad4add5923743646bb25219774771f7, type: 3}
-  - key: UIResources/Rune/2
+  - key: RuneUI/2
     assets:
     - {fileID: 2800000, guid: 9353fe4004ee83f4393f3e9caf7fded4, type: 3}
     - {fileID: 21300000, guid: 9353fe4004ee83f4393f3e9caf7fded4, type: 3}
-  - key: UIResources/Rune/3
+  - key: RuneUI/3
     assets:
     - {fileID: 2800000, guid: aaa75d95966e6eb44ac9b3246ede24da, type: 3}
     - {fileID: 21300000, guid: aaa75d95966e6eb44ac9b3246ede24da, type: 3}
-  - key: UIResources/Rune/4
+  - key: RuneUI/4
     assets:
     - {fileID: 2800000, guid: 9ca1f6a6c0d085a40a77b184839f382a, type: 3}
     - {fileID: 21300000, guid: 9ca1f6a6c0d085a40a77b184839f382a, type: 3}
-  - key: UIResources/Rune/5
+  - key: RuneUI/5
     assets:
     - {fileID: 2800000, guid: aea5604b9317f8749ab010c7f81f3f58, type: 3}
     - {fileID: 21300000, guid: aea5604b9317f8749ab010c7f81f3f58, type: 3}
-  - key: UIResources/Rune/6
+  - key: RuneUI/6
     assets:
     - {fileID: 2800000, guid: e8ae6902546855046b107ec6eb7fed3a, type: 3}
     - {fileID: 21300000, guid: e8ae6902546855046b107ec6eb7fed3a, type: 3}
-  - key: UIResources/Rune/7
+  - key: RuneUI/7
     assets:
     - {fileID: 2800000, guid: fbd4178154033504fa61bda4f1edfb27, type: 3}
     - {fileID: 21300000, guid: fbd4178154033504fa61bda4f1edfb27, type: 3}
-  - key: UIResources/Rune/8
+  - key: RuneUI/8
     assets:
     - {fileID: 2800000, guid: b38d2df88157656478107282f2bc4d7a, type: 3}
     - {fileID: 21300000, guid: b38d2df88157656478107282f2bc4d7a, type: 3}
-  - key: UIResources/Rune/9
+  - key: RuneUI/9
     assets:
     - {fileID: 2800000, guid: 5d0a7628ed452474a9111f93cb1594b0, type: 3}
     - {fileID: 21300000, guid: 5d0a7628ed452474a9111f93cb1594b0, type: 3}
@@ -955,10 +1086,6 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 2e6ac0d762da74c4f817f209849ed7f5, type: 3}
     - {fileID: 21300000, guid: 2e6ac0d762da74c4f817f209849ed7f5, type: 3}
-  - key: GameUI/BossHp
-    assets:
-    - {fileID: 2800000, guid: 8e06715acba92f84589943fc9bdf9abc, type: 3}
-    - {fileID:21300000, guid: 8e06715acba92f84589943fc9bdf9abc, type: 3}
   - key: prefabs/BeachItem
     assets:
     - {fileID: 6327522584179283528, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
@@ -1028,6 +1155,10 @@ MonoBehaviour:
     - {fileID: 8579549045668006548, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
     - {fileID: 1511527053135035449, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
     - {fileID: 8178373582620603695, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+    - {fileID: 8583824597201649994, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+    - {fileID: 6677127680370839556, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+    - {fileID: 2130022591060009960, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+    - {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
   - key: prefabs/HeroDetail
     assets:
     - {fileID: 3642876520770384034, guid: e5843f1200ac607458fe64e6438b5b37, type: 3}
