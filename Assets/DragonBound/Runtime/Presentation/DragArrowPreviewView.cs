@@ -17,8 +17,14 @@ namespace DragonBound.Presentation
         private Sprite tiledPathSprite;   // 缓存，避免每次 Configure 都 new
         private readonly List<Image> shaftSegments = new List<Image>();
 
-        private const float SegmentHeight = 10f;
+        // V1 的 SlectRoad 是"8 段菱形虚线"，段高 10 时菱形只有约 9×4 屏幕像素且带缝，
+        // 观感过细；V2 的图本身就是一条细实线，保持原段高即可。
+        private const float V1SegmentHeight = 100f;
+        private const float V2SegmentHeight = 10f;
         private const float SegmentOverlap = 4f;
+
+        // 按变体取值，默认 V1（编辑器未激活注册表时 UiAssets.Active 为 null，行为不变）。
+        private float segmentHeight = V1SegmentHeight;
 
         [SerializeField] private Image shaft;
         [SerializeField] private Text headLabel;
@@ -50,6 +56,21 @@ namespace DragonBound.Presentation
                 return;
             }
 
+            // The arrow GameObject starts inactive in the authored scenes, so Awake never runs
+            // and Configure is only invoked by the editor scene builder. Initialize lazily here
+            // instead of relying on either, otherwise the first Show would dereference a null
+            // tiling sprite.
+            if (tiledPathSprite == null)
+            {
+                ApplyAuthoredPathSprite();
+                if (tiledPathSprite == null)
+                {
+                    Hide();
+                    return;
+                }
+            }
+
+
             var source = (Vector2)parent.InverseTransformPoint(sourceWorld);
             var target = (Vector2)parent.InverseTransformPoint(targetWorld);
             var delta = target - source;
@@ -68,14 +89,14 @@ namespace DragonBound.Presentation
             float segmentWidth =
                 tiledPathSprite.rect.width /
                 Mathf.Max(1f, tiledPathSprite.rect.height) *
-                SegmentHeight;
+                segmentHeight;
 
             float step = Mathf.Max(1f, segmentWidth - SegmentOverlap);
             int segmentCount = Mathf.Max(
                 1,
                 Mathf.CeilToInt((distance + SegmentOverlap) / step));
 
-            rect.sizeDelta = new Vector2(distance, SegmentHeight);
+            rect.sizeDelta = new Vector2(distance, segmentHeight);
 
             EnsureSegmentCount(segmentCount);
 
@@ -87,8 +108,14 @@ namespace DragonBound.Presentation
                 segmentRect.anchorMin = new Vector2(0f, 0.5f);
                 segmentRect.anchorMax = new Vector2(0f, 0.5f);
                 segmentRect.pivot = new Vector2(0f, 0.5f);
-                segmentRect.anchoredPosition = new Vector2(i * step, 0f);
-                segmentRect.sizeDelta = new Vector2(segmentWidth, SegmentHeight);
+                // 段数向上取整，最后一整段会溢出终点；把它往回挪，让线末端正好
+                // 停在 distance 处（与前一段多叠一点，图案不会被压扁）。
+                // 注意：不能用 RectMask2D 裁剪——根 RectTransform 带旋转，
+                // RectMask2D 用对角点算裁剪矩形会得到退化矩形（宽/高为 0 或负），
+                // 会按拖动方向把整条线裁没（表现为"时有时无"）。
+                float x = Mathf.Min(i * step, Mathf.Max(0f, distance - segmentWidth));
+                segmentRect.anchoredPosition = new Vector2(x, 0f);
+                segmentRect.sizeDelta = new Vector2(segmentWidth, segmentHeight);
             }
             rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
             // Keep the authored arrow art above runtime unit cards without changing board state.
@@ -126,9 +153,27 @@ namespace DragonBound.Presentation
 
             // 源图是"细线 + 大片透明边距"，整张平铺会让线细到看不见，
             // 因此用 Sprite.Create 只取线条那一横条作为平铺单元。
+            // 注意：SlectRoad 是以 Tight 方式导入的，Unity 已经把 textureRect trim 到线条
+            // 包围盒，此时再叠加下面那套"整图坐标"的裁剪常量会让矩形越界（Sprite.Create
+            // 抛 ArgumentException）或裁到错误区域。只有图是 FullRect（textureRect ≈ 整图）
+            // 时才回退到常量路径。
+            segmentHeight = string.Equals(
+                DragonBound.Presentation.UiAssets.Active?.VariantId ?? "V1",
+                "V2",
+                System.StringComparison.Ordinal)
+                ? V2SegmentHeight
+                : V1SegmentHeight;
+
             var textureRect = pathSprite.textureRect;
+            bool isTrimmed =
+                textureRect.width < pathSprite.texture.width * 0.9f ||
+                textureRect.height < pathSprite.texture.height * 0.9f;
             Rect crop;
-            if (pathSprite.texture.height > 500)
+            if (isTrimmed)
+            {
+                crop = textureRect;
+            }
+            else if (pathSprite.texture.height > 500)
             {
                 crop = new Rect(textureRect.x + V1LineX, textureRect.y + V1LineYBottom, V1LineW, V1LineH);
             }
@@ -136,6 +181,14 @@ namespace DragonBound.Presentation
             {
                 crop = new Rect(textureRect.x + V2LineX, textureRect.y + V2LineYBottom, V2LineW, V2LineH);
             }
+
+            // Sprite.Create 要求裁剪矩形完全落在纹理内，浮点尾差也要夹住。
+            float maxX = pathSprite.texture.width;
+            float maxY = pathSprite.texture.height;
+            crop.x = Mathf.Clamp(crop.x, 0f, Mathf.Max(0f, maxX - 1f));
+            crop.y = Mathf.Clamp(crop.y, 0f, Mathf.Max(0f, maxY - 1f));
+            crop.width = Mathf.Clamp(crop.width, 1f, maxX - crop.x);
+            crop.height = Mathf.Clamp(crop.height, 1f, maxY - crop.y);
 
             var ppu = pathSprite.pixelsPerUnit > 0f ? pathSprite.pixelsPerUnit : 100f;
             if (tiledPathSprite == null || tiledPathSprite.texture != pathSprite.texture)
@@ -174,6 +227,9 @@ namespace DragonBound.Presentation
             segment.type = Image.Type.Simple;
             segment.preserveAspect = false;
             segment.raycastTarget = false;
+            // 不要用 Shaft 的 authored 颜色：那是给旧箭头美术调的染色，
+            // 会把 V2 的 SlectRoad 原色（青蓝）染成绿色。白色 = 显示图片原本颜色。
+            segment.color = Color.white;
             segment.gameObject.SetActive(true);
             shaftSegments.Add(segment);
             return segment;

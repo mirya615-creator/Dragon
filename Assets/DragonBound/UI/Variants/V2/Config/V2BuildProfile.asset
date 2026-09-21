@@ -21,7 +21,7 @@ MonoBehaviour:
   - {fileID: 102900000, guid: 789288e3b4da97c4d92abebb380dceee, type: 3}
   assetRegistry: {fileID: 11400000, guid: 37ee4d994dbb6fd408787117738695f1, type: 2}
   productName: Drakeforge V2
-  applicationIdentifier: com.drakeforge.mergedefense.v2
+  applicationIdentifier: com.drakeforge.mergedefense
   bundleVersion: 0.1.0
   androidVersionCode: 1
   outputPath: Builds/Android/V2/Drakeforge-V2.apk

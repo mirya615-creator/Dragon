@@ -19,6 +19,7 @@ namespace DragonBound.Editor.Versioning
         private const string V2Root = UiVariantProjectPaths.V2Root;
         private const string V1RegistryPath = V1Root + "/Config/UiAssetRegistryV1.asset";
         private const string V2RegistryPath = V2Root + "/Config/UiAssetRegistryV2.asset";
+        private const string V2AliasesPath = V2Root + "/Config/UiAssetRegistryV2Aliases.asset";
         private const string V1ProfilePath = V1Root + "/Config/V1BuildProfile.asset";
         private const string V2ProfilePath = V2Root + "/Config/V2BuildProfile.asset";
         private const string LegacyResourcesRoot = "Assets/Resources";
@@ -40,9 +41,15 @@ namespace DragonBound.Editor.Versioning
             EnsureFolder(V2Root + "/Scenes");
 
             var v1Registry = GenerateV1Registry();
+            // The generated registry is intentionally not cleared here. Its V2 logical
+            // aliases are preserved in a separate, version-owned catalog.
             var v2Registry = LoadOrCreate<UiAssetRegistry>(V2RegistryPath);
-            v2Registry.Configure("V2", new List<UiAssetRegistry.Entry>());
-            EditorUtility.SetDirty(v2Registry);
+            var v2Aliases = LoadOrCreate<DragonBoundUiAssetAliasCatalog>(V2AliasesPath);
+            if (!string.Equals(v2Aliases.VariantId, "V2", StringComparison.Ordinal))
+            {
+                v2Aliases.Configure("V2", v2Aliases.Entries.ToList());
+                EditorUtility.SetDirty(v2Aliases);
+            }
 
             var login = LoadScene("Login");
             var main = LoadScene("Main");
@@ -76,10 +83,10 @@ namespace DragonBound.Editor.Versioning
             AssetDatabase.SaveAssets();
         }
 
-        [MenuItem("DragonBound/Versioning/Regenerate V2 Asset Registry")]
+        [MenuItem("DragonBound/Versioning/Regenerate V2 Asset Registry (Preserve Aliases)")]
         public static void RegenerateV2Registry()
         {
-            GenerateRegistry("V2", V2ResourcesRoot, V2RegistryPath);
+            GenerateV2Registry();
             AssetDatabase.SaveAssets();
         }
 
@@ -92,7 +99,7 @@ namespace DragonBound.Editor.Versioning
                 V1ResourcesRoot + "/Configuration",
                 SharedResourcesRoot + "/Configuration");
             GenerateV1Registry();
-            GenerateRegistry("V2", V2ResourcesRoot, V2RegistryPath);
+            GenerateV2Registry();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("Moved runtime Configuration to shared Resources and regenerated both UI registries.");
@@ -120,7 +127,7 @@ namespace DragonBound.Editor.Versioning
             CopyPrefabTree(V1ComponentPrefabsRoot, V2ComponentPrefabsRoot, guidMap, copiedPaths);
             RemapCopiedAssetReferences(copiedPaths, guidMap);
 
-            var registry = GenerateRegistry("V2", V2ResourcesRoot, V2RegistryPath);
+            var registry = GenerateV2Registry();
             var scenes = new[]
             {
                 AssetDatabase.LoadAssetAtPath<SceneAsset>($"{V2Root}/Scenes/Login.unity"),
@@ -470,7 +477,11 @@ namespace DragonBound.Editor.Versioning
             return string.Join(";", symbols.Distinct(StringComparer.Ordinal));
         }
 
-        private static UiAssetRegistry GenerateRegistry(string variant, string sourceRoot, string outputPath)
+        private static UiAssetRegistry GenerateRegistry(
+            string variant,
+            string sourceRoot,
+            string outputPath,
+            DragonBoundUiAssetAliasCatalog aliases = null)
         {
             if (!AssetDatabase.IsValidFolder(sourceRoot))
                 throw new InvalidOperationException($"Resource source folder does not exist: {sourceRoot}");
@@ -503,6 +514,9 @@ namespace DragonBound.Editor.Versioning
                 }
             }
 
+            PreserveExistingAliases(registry, assetsByKey, aliases);
+            MergeAliases(assetsByKey, aliases, variant);
+
             var entries = new List<UiAssetRegistry.Entry>();
             foreach (var pair in assetsByKey)
             {
@@ -516,6 +530,134 @@ namespace DragonBound.Editor.Versioning
             EditorUtility.SetDirty(registry);
             Debug.Log($"Generated {variant} UI registry with {entries.Count} keys at {outputPath}.");
             return registry;
+        }
+
+        private static UiAssetRegistry GenerateV2Registry()
+        {
+            var aliases = LoadOrCreate<DragonBoundUiAssetAliasCatalog>(V2AliasesPath);
+            if (!string.Equals(aliases.VariantId, "V2", StringComparison.Ordinal))
+            {
+                aliases.Configure("V2", aliases.Entries.ToList());
+                EditorUtility.SetDirty(aliases);
+            }
+
+            return GenerateRegistry("V2", V2ResourcesRoot, V2RegistryPath, aliases);
+        }
+
+        private static void PreserveExistingAliases(
+            UiAssetRegistry registry,
+            IReadOnlyDictionary<string, List<UnityEngine.Object>> generatedAssets,
+            DragonBoundUiAssetAliasCatalog aliases)
+        {
+            if (registry == null || aliases == null)
+            {
+                return;
+            }
+
+            var preserved = new List<UiAssetRegistry.Entry>();
+            var catalogChanged = false;
+            foreach (var entry in aliases.Entries)
+            {
+                if (entry == null || string.IsNullOrWhiteSpace(entry.Key))
+                {
+                    catalogChanged = true;
+                    continue;
+                }
+
+                if (!entry.Assets.Any(asset => asset != null))
+                {
+                    Debug.LogWarning(
+                        $"Discarded stale V2 UI alias with no remaining assets: {entry.Key}");
+                    catalogChanged = true;
+                    continue;
+                }
+
+                preserved.Add(entry);
+            }
+
+            var knownKeys = new HashSet<string>(
+                preserved.Select(entry => entry.Key),
+                StringComparer.Ordinal);
+
+            foreach (var entry in registry.Entries)
+            {
+                if (entry == null || string.IsNullOrWhiteSpace(entry.Key) ||
+                    generatedAssets.ContainsKey(entry.Key) ||
+                    knownKeys.Contains(entry.Key))
+                {
+                    continue;
+                }
+
+                if (!entry.Assets.Any(asset => asset != null))
+                {
+                    Debug.LogWarning(
+                        $"Skipped stale V2 UI registry entry with no remaining assets: {entry.Key}");
+                    continue;
+                }
+
+                var copied = new UiAssetRegistry.Entry();
+                copied.Configure(entry.Key, entry.Assets.ToArray());
+                preserved.Add(copied);
+                knownKeys.Add(entry.Key);
+                catalogChanged = true;
+            }
+
+            if (catalogChanged)
+            {
+                aliases.Configure("V2", preserved);
+                EditorUtility.SetDirty(aliases);
+            }
+        }
+
+        private static void MergeAliases(
+            IDictionary<string, List<UnityEngine.Object>> generatedAssets,
+            DragonBoundUiAssetAliasCatalog aliases,
+            string variant)
+        {
+            if (aliases == null)
+            {
+                return;
+            }
+
+            var seenKeys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var alias in aliases.Entries)
+            {
+                if (alias == null || string.IsNullOrWhiteSpace(alias.Key))
+                {
+                    throw new InvalidOperationException($"{variant} UI alias has an empty key.");
+                }
+
+                if (!seenKeys.Add(alias.Key))
+                {
+                    throw new InvalidOperationException(
+                        $"{variant} UI alias is duplicated: {alias.Key}");
+                }
+
+                if (generatedAssets.ContainsKey(alias.Key))
+                {
+                    throw new InvalidOperationException(
+                        $"{variant} UI alias conflicts with an automatically generated key: {alias.Key}");
+                }
+
+                var objects = alias.Assets.Where(asset => asset != null).ToList();
+                if (objects.Count == 0)
+                {
+                    throw new InvalidOperationException(
+                        $"{variant} UI alias has no assets: {alias.Key}");
+                }
+
+                foreach (var asset in objects)
+                {
+                    var assetPath = Normalize(AssetDatabase.GetAssetPath(asset));
+                    if (string.IsNullOrWhiteSpace(assetPath) || !IsBelow(assetPath, V2Root))
+                    {
+                        throw new InvalidOperationException(
+                            $"{variant} UI alias references an asset outside {V2Root}: {alias.Key} -> {assetPath}");
+                    }
+                }
+
+                generatedAssets.Add(alias.Key, objects);
+            }
         }
 
         private static UiAssetRegistry GenerateV1Registry()

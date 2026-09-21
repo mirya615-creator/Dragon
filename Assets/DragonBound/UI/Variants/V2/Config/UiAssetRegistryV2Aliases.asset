@@ -1,0 +1,280 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a0ab946c8a9b6e4aa05828c2c5fc223, type: 3}
+  m_Name: UiAssetRegistryV2Aliases
+  m_EditorClassIdentifier: 
+  variantId: V2
+  entries:
+  - key: ComponentUI/001
+    assets:
+    - {fileID: 2800000, guid: 4658842d8f6e98f48af8aab44bfecb30, type: 3}
+    - {fileID: 21300000, guid: 4658842d8f6e98f48af8aab44bfecb30, type: 3}
+  - key: ComponentUI/002
+    assets:
+    - {fileID: 2800000, guid: 04dcd42d47bfc0b4e8db64b0406d033f, type: 3}
+    - {fileID: 21300000, guid: 04dcd42d47bfc0b4e8db64b0406d033f, type: 3}
+  - key: ComponentUI/003
+    assets:
+    - {fileID: 2800000, guid: 3e260f3770a3bcd40822a30ec68736bf, type: 3}
+    - {fileID: 21300000, guid: 3e260f3770a3bcd40822a30ec68736bf, type: 3}
+  - key: ComponentUI/004
+    assets:
+    - {fileID: 2800000, guid: c39a41ddb9beda647a9f78ce4c70e5fa, type: 3}
+    - {fileID: 21300000, guid: c39a41ddb9beda647a9f78ce4c70e5fa, type: 3}
+  - key: ComponentUI/005
+    assets:
+    - {fileID: 2800000, guid: 70791711b2751414e91eb6408eaf8068, type: 3}
+    - {fileID: 21300000, guid: 70791711b2751414e91eb6408eaf8068, type: 3}
+  - key: ComponentUI/006
+    assets:
+    - {fileID: 2800000, guid: 2443c2fd8d73c6b48895c7436d3e9bcf, type: 3}
+    - {fileID: 21300000, guid: 2443c2fd8d73c6b48895c7436d3e9bcf, type: 3}
+  - key: ComponentUI/007
+    assets:
+    - {fileID: 2800000, guid: 522b3db4eb84ab74c99dca51486d1bcb, type: 3}
+    - {fileID: 21300000, guid: 522b3db4eb84ab74c99dca51486d1bcb, type: 3}
+  - key: ComponentUI/008
+    assets:
+    - {fileID: 2800000, guid: c0fdf9e730b12024c91d2a31a04f69d3, type: 3}
+    - {fileID: 21300000, guid: c0fdf9e730b12024c91d2a31a04f69d3, type: 3}
+  - key: ComponentUI/009
+    assets:
+    - {fileID: 2800000, guid: ac45034cc2e3f664e93b2210339a863a, type: 3}
+    - {fileID: 21300000, guid: ac45034cc2e3f664e93b2210339a863a, type: 3}
+  - key: ComponentUI/01
+    assets:
+    - {fileID: 2800000, guid: 6b0127314c6f6484b937730702a3b525, type: 3}
+    - {fileID: 21300000, guid: 6b0127314c6f6484b937730702a3b525, type: 3}
+  - key: ComponentUI/010
+    assets:
+    - {fileID: 2800000, guid: 4c3238b82107fd54a8e6f9add8a1f595, type: 3}
+    - {fileID: 21300000, guid: 4c3238b82107fd54a8e6f9add8a1f595, type: 3}
+  - key: ComponentUI/011
+    assets:
+    - {fileID: 2800000, guid: f5dc2b78dfa2edd42aa36ae24f2195b4, type: 3}
+    - {fileID: 21300000, guid: f5dc2b78dfa2edd42aa36ae24f2195b4, type: 3}
+  - key: ComponentUI/012
+    assets:
+    - {fileID: 2800000, guid: 119679ac45ddc17409eb9a7d253f3131, type: 3}
+    - {fileID: 21300000, guid: 119679ac45ddc17409eb9a7d253f3131, type: 3}
+  - key: ComponentUI/014
+    assets:
+    - {fileID: 2800000, guid: 05b30ee8a7ba2c04fb7dae3fe14270f4, type: 3}
+    - {fileID: 21300000, guid: 05b30ee8a7ba2c04fb7dae3fe14270f4, type: 3}
+  - key: ComponentUI/015
+    assets:
+    - {fileID: 2800000, guid: 9ff16966fd1967b4f8c8e48aa0a79590, type: 3}
+    - {fileID: 21300000, guid: 9ff16966fd1967b4f8c8e48aa0a79590, type: 3}
+  - key: ComponentUI/02
+    assets:
+    - {fileID: 2800000, guid: cb30a970e0513a84eaf20a0533f4d3d2, type: 3}
+    - {fileID: 21300000, guid: cb30a970e0513a84eaf20a0533f4d3d2, type: 3}
+  - key: ComponentUI/03
+    assets:
+    - {fileID: 2800000, guid: 4f09ad503607cd74eaf8aabf9dc59591, type: 3}
+    - {fileID: 21300000, guid: 4f09ad503607cd74eaf8aabf9dc59591, type: 3}
+  - key: ComponentUI/043
+    assets:
+    - {fileID: 2800000, guid: b3b48f3251fda5b4faf6abc62ab1845e, type: 3}
+    - {fileID: 21300000, guid: b3b48f3251fda5b4faf6abc62ab1845e, type: 3}
+  - key: ComponentUI/shovel
+    assets:
+    - {fileID: 2800000, guid: ec84dfd9faf237a479231ba10d335ea1, type: 3}
+    - {fileID: 21300000, guid: ec84dfd9faf237a479231ba10d335ea1, type: 3}
+  - key: GameUI/CampUI/Collection
+    assets:
+    - {fileID: 2800000, guid: 6d056878b6a3ed4419c452915e778074, type: 3}
+    - {fileID: 21300000, guid: 6d056878b6a3ed4419c452915e778074, type: 3}
+  - key: GameUI/CampUI/CollectionClick
+    assets:
+    - {fileID: 2800000, guid: cf6ebb196d51f8844a6e7c418257813c, type: 3}
+    - {fileID: 21300000, guid: cf6ebb196d51f8844a6e7c418257813c, type: 3}
+  - key: GameUI/CampUI/Deck
+    assets:
+    - {fileID: 2800000, guid: 4e99ec55cb21a3f4f955aba1266f20f4, type: 3}
+    - {fileID: 21300000, guid: 4e99ec55cb21a3f4f955aba1266f20f4, type: 3}
+  - key: GameUI/CampUI/DeckClick
+    assets:
+    - {fileID: 2800000, guid: 080285f07f1f1fb4faac689e125c6b3c, type: 3}
+    - {fileID: 21300000, guid: 080285f07f1f1fb4faac689e125c6b3c, type: 3}
+  - key: GameUI/BeachSelect
+    assets:
+    - {fileID: 2800000, guid: bf88eee5f9c196243b0003e04156c20d, type: 3}
+    - {fileID: 21300000, guid: bf88eee5f9c196243b0003e04156c20d, type: 3}
+  - key: GameUI/BoardSelect
+    assets:
+    - {fileID: 2800000, guid: 1bfb04d7f24204548bcdb3ebadaddf80, type: 3}
+    - {fileID: 21300000, guid: 1bfb04d7f24204548bcdb3ebadaddf80, type: 3}
+  - key: GameUI/Lock
+    assets:
+    - {fileID: 2800000, guid: c9b5195c72649c24a98d95b8e62d4870, type: 3}
+    - {fileID: 21300000, guid: c9b5195c72649c24a98d95b8e62d4870, type: 3}
+  - key: GameUI/Road
+    assets:
+    - {fileID: 2800000, guid: 4df536111bb7eb849ab13f59d3d96633, type: 3}
+    - {fileID: 21300000, guid: 4df536111bb7eb849ab13f59d3d96633, type: 3}
+  - key: GameUI/SlectRoad
+    assets:
+    - {fileID: 2800000, guid: 1f04c0cfbdf0e1643a4dfd745db78a6e, type: 3}
+    - {fileID: 21300000, guid: 1f04c0cfbdf0e1643a4dfd745db78a6e, type: 3}
+  - key: GameUI/UnLock
+    assets:
+    - {fileID: 2800000, guid: fd954d3aaf5456645bccf419bd502c60, type: 3}
+    - {fileID: 21300000, guid: fd954d3aaf5456645bccf419bd502c60, type: 3}
+  - key: ItemUI/1
+    assets:
+    - {fileID: 2800000, guid: bfbb7a769751cd44bb7315104a8afe23, type: 3}
+    - {fileID: 21300000, guid: bfbb7a769751cd44bb7315104a8afe23, type: 3}
+  - key: ItemUI/10
+    assets:
+    - {fileID: 2800000, guid: f7d68c0782fa23d42aa685864da7c789, type: 3}
+    - {fileID: 21300000, guid: f7d68c0782fa23d42aa685864da7c789, type: 3}
+  - key: ItemUI/11
+    assets:
+    - {fileID: 2800000, guid: 9a197b05f53c7c94b8bc3ef3adfd1be3, type: 3}
+    - {fileID: 21300000, guid: 9a197b05f53c7c94b8bc3ef3adfd1be3, type: 3}
+  - key: ItemUI/12
+    assets:
+    - {fileID: 2800000, guid: 7e1641078cc1c0e4e9fbe9477c836a60, type: 3}
+    - {fileID: 21300000, guid: 7e1641078cc1c0e4e9fbe9477c836a60, type: 3}
+  - key: ItemUI/14
+    assets:
+    - {fileID: 2800000, guid: e225f6a0c9ec33f4d80c8423504d4195, type: 3}
+    - {fileID: 21300000, guid: e225f6a0c9ec33f4d80c8423504d4195, type: 3}
+  - key: ItemUI/15
+    assets:
+    - {fileID: 2800000, guid: ad4fa3a6b8e6d9b4dbf1fe61a4a820f1, type: 3}
+    - {fileID: 21300000, guid: ad4fa3a6b8e6d9b4dbf1fe61a4a820f1, type: 3}
+  - key: ItemUI/16
+    assets:
+    - {fileID: 2800000, guid: b7884378e7178df47a10cf0684098636, type: 3}
+    - {fileID: 21300000, guid: b7884378e7178df47a10cf0684098636, type: 3}
+  - key: ItemUI/17
+    assets:
+    - {fileID: 2800000, guid: 713d32add0a807a4f85055b546cbbbce, type: 3}
+    - {fileID: 21300000, guid: 713d32add0a807a4f85055b546cbbbce, type: 3}
+  - key: ItemUI/18
+    assets:
+    - {fileID: 2800000, guid: 86ecc200abb6db34e87eb755cf18a581, type: 3}
+    - {fileID: 21300000, guid: 86ecc200abb6db34e87eb755cf18a581, type: 3}
+  - key: ItemUI/19
+    assets:
+    - {fileID: 2800000, guid: c06327afee3e6d6439d8733aa7e47ea1, type: 3}
+    - {fileID: 21300000, guid: c06327afee3e6d6439d8733aa7e47ea1, type: 3}
+  - key: ItemUI/2
+    assets:
+    - {fileID: 2800000, guid: d620522b68ab93a4bb5ac42fa43ab5d7, type: 3}
+    - {fileID: 21300000, guid: d620522b68ab93a4bb5ac42fa43ab5d7, type: 3}
+  - key: ItemUI/20
+    assets:
+    - {fileID: 2800000, guid: 232e31d8f877a39488520c0028e952cf, type: 3}
+    - {fileID: 21300000, guid: 232e31d8f877a39488520c0028e952cf, type: 3}
+  - key: ItemUI/3
+    assets:
+    - {fileID: 2800000, guid: e6ab8f0df072c0c46935817852dd6be3, type: 3}
+    - {fileID: 21300000, guid: e6ab8f0df072c0c46935817852dd6be3, type: 3}
+  - key: ItemUI/4
+    assets:
+    - {fileID: 2800000, guid: 8967fdf039763d9438ba161d0f008ba4, type: 3}
+    - {fileID: 21300000, guid: 8967fdf039763d9438ba161d0f008ba4, type: 3}
+  - key: ItemUI/5
+    assets:
+    - {fileID: 2800000, guid: 586ea212d8841484ca075ec26b5a712d, type: 3}
+    - {fileID: 21300000, guid: 586ea212d8841484ca075ec26b5a712d, type: 3}
+  - key: ItemUI/6
+    assets:
+    - {fileID: 2800000, guid: 8d800d30335ecb34c8b0563cabd2effd, type: 3}
+    - {fileID: 21300000, guid: 8d800d30335ecb34c8b0563cabd2effd, type: 3}
+  - key: ItemUI/7
+    assets:
+    - {fileID: 2800000, guid: 0d2beed1b3fca1c4298e052b934a4a6d, type: 3}
+    - {fileID: 21300000, guid: 0d2beed1b3fca1c4298e052b934a4a6d, type: 3}
+  - key: ItemUI/8
+    assets:
+    - {fileID: 2800000, guid: 27768004d00690f489f8a24facecf4cc, type: 3}
+    - {fileID: 21300000, guid: 27768004d00690f489f8a24facecf4cc, type: 3}
+  - key: ItemUI/9
+    assets:
+    - {fileID: 2800000, guid: 26144a7ff56763c4f979e63239743cfe, type: 3}
+    - {fileID: 21300000, guid: 26144a7ff56763c4f979e63239743cfe, type: 3}
+  - key: RuneUI/1
+    assets:
+    - {fileID: 2800000, guid: 25ca7c005a3d8604a945fd0380044974, type: 3}
+    - {fileID: 21300000, guid: 25ca7c005a3d8604a945fd0380044974, type: 3}
+  - key: RuneUI/10
+    assets:
+    - {fileID: 2800000, guid: a6e819eb0e7b93c43995e0204818568a, type: 3}
+    - {fileID: 21300000, guid: a6e819eb0e7b93c43995e0204818568a, type: 3}
+  - key: RuneUI/11
+    assets:
+    - {fileID: 2800000, guid: f74ec2a4de35c3342b99eecefbfaa846, type: 3}
+    - {fileID: 21300000, guid: f74ec2a4de35c3342b99eecefbfaa846, type: 3}
+  - key: RuneUI/12
+    assets:
+    - {fileID: 2800000, guid: c46dd4c3991942b4a871aa34b9e3b0fc, type: 3}
+    - {fileID: 21300000, guid: c46dd4c3991942b4a871aa34b9e3b0fc, type: 3}
+  - key: RuneUI/13
+    assets:
+    - {fileID: 2800000, guid: 3dbe9993c02861c4290f09536f16f5b4, type: 3}
+    - {fileID: 21300000, guid: 3dbe9993c02861c4290f09536f16f5b4, type: 3}
+  - key: RuneUI/14
+    assets:
+    - {fileID: 2800000, guid: 3ad4add5923743646bb25219774771f7, type: 3}
+    - {fileID: 21300000, guid: 3ad4add5923743646bb25219774771f7, type: 3}
+  - key: RuneUI/2
+    assets:
+    - {fileID: 2800000, guid: 9353fe4004ee83f4393f3e9caf7fded4, type: 3}
+    - {fileID: 21300000, guid: 9353fe4004ee83f4393f3e9caf7fded4, type: 3}
+  - key: RuneUI/3
+    assets:
+    - {fileID: 2800000, guid: aaa75d95966e6eb44ac9b3246ede24da, type: 3}
+    - {fileID: 21300000, guid: aaa75d95966e6eb44ac9b3246ede24da, type: 3}
+  - key: RuneUI/4
+    assets:
+    - {fileID: 2800000, guid: 9ca1f6a6c0d085a40a77b184839f382a, type: 3}
+    - {fileID: 21300000, guid: 9ca1f6a6c0d085a40a77b184839f382a, type: 3}
+  - key: RuneUI/5
+    assets:
+    - {fileID: 2800000, guid: aea5604b9317f8749ab010c7f81f3f58, type: 3}
+    - {fileID: 21300000, guid: aea5604b9317f8749ab010c7f81f3f58, type: 3}
+  - key: RuneUI/6
+    assets:
+    - {fileID: 2800000, guid: e8ae6902546855046b107ec6eb7fed3a, type: 3}
+    - {fileID: 21300000, guid: e8ae6902546855046b107ec6eb7fed3a, type: 3}
+  - key: RuneUI/7
+    assets:
+    - {fileID: 2800000, guid: fbd4178154033504fa61bda4f1edfb27, type: 3}
+    - {fileID: 21300000, guid: fbd4178154033504fa61bda4f1edfb27, type: 3}
+  - key: RuneUI/8
+    assets:
+    - {fileID: 2800000, guid: b38d2df88157656478107282f2bc4d7a, type: 3}
+    - {fileID: 21300000, guid: b38d2df88157656478107282f2bc4d7a, type: 3}
+  - key: RuneUI/9
+    assets:
+    - {fileID: 2800000, guid: 5d0a7628ed452474a9111f93cb1594b0, type: 3}
+    - {fileID: 21300000, guid: 5d0a7628ed452474a9111f93cb1594b0, type: 3}
+  - key: Hero/UnitUI/AXE00
+    assets:
+    - {fileID: 2800000, guid: 791995e89e715644ca5437c3118dbda8, type: 3}
+    - {fileID: 21300000, guid: 791995e89e715644ca5437c3118dbda8, type: 3}
+  - key: Hero/UnitUI/BERSERKER00
+    assets:
+    - {fileID: 2800000, guid: 1265ffc3f671433468db336f0cc628ea, type: 3}
+    - {fileID: 21300000, guid: 1265ffc3f671433468db336f0cc628ea, type: 3}
+  - key: Hero/UnitUI/BOW00
+    assets:
+    - {fileID: 2800000, guid: b7f8d84f60f7a1e4ea94b001d4877213, type: 3}
+    - {fileID: 21300000, guid: b7f8d84f60f7a1e4ea94b001d4877213, type: 3}
+  - key: Hero/UnitUI/SPEAR00
+    assets:
+    - {fileID: 2800000, guid: 2e6ac0d762da74c4f817f209849ed7f5, type: 3}
+    - {fileID: 21300000, guid: 2e6ac0d762da74c4f817f209849ed7f5, type: 3}
