@@ -1,0 +1,75 @@
+
+誓冠剑士 拆.png
+size: 2040,1835
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Body
+  rotate: true
+  xy: 1358, 1011
+  size: 822, 680
+  orig: 837, 796
+  offset: 4, 110
+  index: -1
+Hair
+  rotate: false
+  xy: 2, 925
+  size: 1354, 908
+  orig: 1371, 929
+  offset: 9, 15
+  index: -1
+LowerBody
+  rotate: true
+  xy: 1358, 191
+  size: 818, 526
+  orig: 837, 614
+  offset: 12, 4
+  index: -1
+Sword
+  rotate: true
+  xy: 2, 2
+  size: 921, 890
+  orig: 932, 907
+  offset: 7, 9
+  index: -1
+
+誓冠剑士 拆2.png
+size: 1562,1656
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Cape
+  rotate: true
+  xy: 2, 604
+  size: 1050, 756
+  orig: 1071, 778
+  offset: 14, 11
+  index: -1
+FreeArm
+  rotate: false
+  xy: 1020, 24
+  size: 468, 607
+  orig: 514, 614
+  offset: 37, 1
+  index: -1
+Head
+  rotate: true
+  xy: 760, 633
+  size: 1021, 800
+  orig: 1037, 804
+  offset: 11, 1
+  index: -1
+OathCrown
+  rotate: true
+  xy: 2, 2
+  size: 600, 482
+  orig: 614, 491
+  offset: 6, 1
+  index: -1
+SwordArm
+  rotate: false
+  xy: 486, 47
+  size: 532, 555
+  orig: 741, 564
+  offset: 4, 1
+  index: -1
