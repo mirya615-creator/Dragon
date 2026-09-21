@@ -145,6 +145,91 @@ namespace DragonBound.Editor
             Debug.Log("DragonBound range previews upgraded without rebuilding other UI prefabs.");
         }
 
+        // The gameplay scenes own plain scene copies of the range preview nodes (they are not
+        // prefab instances), so upgrading the prefabs alone leaves them rendering the default
+        // built-in UISprite as a square instead of the authored circular range art. This pass
+        // rewrites the scene copies: circular fill (Knob) plus the variant range outline.
+        [MenuItem("DragonBound/UI/Upgrade Range Previews In Scenes")]
+        public static void UpgradeRangePreviewsInScenes()
+        {
+            AssetDatabase.Refresh();
+
+            var fillSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+            if (fillSprite == null)
+            {
+                throw new InvalidOperationException("Range fill sprite is missing: UI/Skin/Knob.psd");
+            }
+
+            var scenePaths = new[]
+            {
+                UiVariantProjectPaths.V1Scene("Greybox_Main"),
+                UiVariantProjectPaths.V2Scene("Greybox_Main"),
+            };
+            var outlinePaths = new[]
+            {
+                UiVariantProjectPaths.V1Ui("Art/Range/RangeOutlineThin.png"),
+                UiVariantProjectPaths.V2Ui("Art/Range/RangeOutlineThin.png"),
+            };
+
+            var upgraded = 0;
+            for (int i = 0; i < scenePaths.Length; i++)
+            {
+                PrepareRangeOutlineSprite(outlinePaths[i]);
+                var outlineSprite = AssetDatabase.LoadAssetAtPath<Sprite>(outlinePaths[i]);
+                if (outlineSprite == null)
+                {
+                    throw new InvalidOperationException($"Range outline sprite is missing: {outlinePaths[i]}");
+                }
+
+                var scene = EditorSceneManager.OpenScene(scenePaths[i], OpenSceneMode.Single);
+                foreach (var root in scene.GetRootGameObjects())
+                {
+                    foreach (var node in root.GetComponentsInChildren<Transform>(true))
+                    {
+                        if (node.name == null ||
+                            !node.name.StartsWith("ART_", StringComparison.Ordinal) ||
+                            !node.name.EndsWith("RangePreview", StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+
+                        var fill = node.GetComponent<Image>();
+                        if (fill == null)
+                        {
+                            continue;
+                        }
+
+                        fill.sprite = fillSprite;
+                        fill.color = RangeFillColor;
+                        fill.preserveAspect = true;
+                        fill.raycastTarget = false;
+                        EditorUtility.SetDirty(fill);
+
+                        var outlineTransform = node.FindUi("ART_RangeOutline");
+                        var outline = outlineTransform != null
+                            ? outlineTransform.GetComponent<Image>()
+                            : null;
+                        if (outline != null)
+                        {
+                            outline.sprite = outlineSprite;
+                            outline.color = RangeOutlineColor;
+                            outline.preserveAspect = true;
+                            outline.raycastTarget = false;
+                            EditorUtility.SetDirty(outline);
+                        }
+
+                        upgraded++;
+                    }
+                }
+
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
+
+            AssetDatabase.SaveAssets();
+            Debug.Log($"DragonBound range previews upgraded in scenes: {upgraded} preview(s).");
+        }
+
         private static void EnsureFolders()
         {
             EnsureFolder(UiVariantProjectPaths.V1Root + "/Content/UI/Prefabs/Screens");
@@ -1096,10 +1181,15 @@ namespace DragonBound.Editor
 
         private static void PrepareRangeOutlineSprite()
         {
-            var importer = AssetImporter.GetAtPath(RangeOutlineSpritePath) as TextureImporter;
+            PrepareRangeOutlineSprite(RangeOutlineSpritePath);
+        }
+
+        private static void PrepareRangeOutlineSprite(string path)
+        {
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
             if (importer == null)
             {
-                throw new InvalidOperationException($"Range outline texture is missing: {RangeOutlineSpritePath}");
+                throw new InvalidOperationException($"Range outline texture is missing: {path}");
             }
 
             if (importer.textureType == TextureImporterType.Sprite &&

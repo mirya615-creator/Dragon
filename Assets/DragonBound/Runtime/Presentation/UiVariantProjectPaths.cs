@@ -13,5 +13,10 @@ namespace DragonBound.Presentation
         public static string V1Ui(string relativePath) => $"{V1Root}/Content/UI/{relativePath.TrimStart('/')}";
         public static string V1Resource(string relativePath) =>
             $"{V1Root}/Content/Resources/{relativePath.TrimStart('/')}";
+
+        public static string V2Scene(string name) => $"{V2Root}/Scenes/{name}.unity";
+        public static string V2Ui(string relativePath) => $"{V2Root}/Content/UI/{relativePath.TrimStart('/')}";
+        public static string V2Resource(string relativePath) =>
+            $"{V2Root}/Content/Resources/{relativePath.TrimStart('/')}";
     }
 }
