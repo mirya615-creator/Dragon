@@ -24,6 +24,7 @@ namespace DragonBound.Presentation
         private RecruitButtonResourceProgress resourceProgress;
         private bool initialized;
         private bool unavailableAtPointerDown;
+        private bool dropAnimationInFlight;
 
         public Button RecruitButton => recruitButton;
         public Text RecruitButtonLabel => recruitButtonLabel;
@@ -74,6 +75,11 @@ namespace DragonBound.Presentation
                 return;
             }
 
+            if (dropAnimationInFlight)
+            {
+                return;
+            }
+
             var attempt = recruitment.TryRecruit();
             if (attempt.Status != RecruitmentStatus.Success || attempt.Batch == null)
             {
@@ -81,6 +87,16 @@ namespace DragonBound.Presentation
                 RefreshButton();
                 return;
             }
+
+            // 收集本次新放入的 5 个 runtimeId（顺序与 BoardRecruitDestination.Commit 的
+            // board.TryPlace 一致），先标记再 RefreshUnits —— 这样 RefreshUnitsCore 在
+            // SnapUnit 之后会立刻把 view 视觉隐藏，避免用户看到 view 突然出现在 bench 上。
+            var newRuntimeIds = new List<string>(attempt.Batch.Cards.Count);
+            foreach (var card in attempt.Batch.Cards)
+            {
+                newRuntimeIds.Add(card.RuntimeId);
+            }
+            boardView.MarkUnitsForHiddenFlight(newRuntimeIds);
 
             boardView.RefreshUnits();
             foreach (var card in attempt.Batch.Cards)
@@ -94,7 +110,23 @@ namespace DragonBound.Presentation
                     card.Kind == RecruitItemKind.BasicUnit);
             }
 
-            RefreshButton();
+            dropAnimationInFlight = true;
+            recruitButton.interactable = false;
+            boardView.PlayRecruitDropStagger(
+                newRuntimeIds,
+                recruitButton.transform.position,
+                perCardStaggerSeconds: 0.10f,
+                perCardDurationSeconds: 0.34f,
+                arcHeightInCells: -0.55f,
+                onCompleted: () =>
+                {
+                    // 飞行结束后再 RefreshUnits 一次，让 SetUnitPresentation 写入的
+                    // label/range 真正画到落定的 view 上（飞行期间 view 被隐藏，label
+                    // 写入字典但没刷到 view，所以需要这次补刷）。
+                    boardView.RefreshUnits();
+                    dropAnimationInFlight = false;
+                    RefreshButton();
+                });
         }
 
         private void RefreshButton()

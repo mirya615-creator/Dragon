@@ -76,6 +76,8 @@ namespace DragonBound.Presentation
             new Dictionary<string, int>(StringComparer.Ordinal);
         private readonly HashSet<string> pendingSynthesisPairIds =
             new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string > pendingHiddenFlightIds=
+            new HashSet <string>(StringComparer.Ordinal);
         private readonly HashSet<string> soulChainControlledUnitIds =
             new HashSet<string>(StringComparer.Ordinal);
         private readonly Dictionary<string, DeploymentAnimationState> deploymentAnimations =
@@ -826,6 +828,14 @@ namespace DragonBound.Presentation
                 {
                     unitView.SetDeploymentVisualHidden(true);
                 }
+                else if (pendingHiddenFlightIds.Remove(occupant.UnitId))
+                {
+                    // RefreshUnitsCore ran while the view was marked as "hidden flight" so
+                    // keep the committedView visually hidden until PlayDeploymentFlight's
+                    // ghost animation finishes. Remove() returns true exactly once, which is
+                    // enough to suppress the next RefreshUnits pass.
+                    unitView.SetDeploymentVisualHidden(true);
+                }
             }
 
             foreach (var entry in previousViews)
@@ -1239,6 +1249,112 @@ namespace DragonBound.Presentation
                 target.localScale = destination;
             }
         }
+
+        /// <summary>
+        /// Marks runtime ids as "pending hidden flight" so the next RefreshUnitsCore pass
+        /// will hide their committed views as soon as they are snapped into place. Pair
+        /// this with a PlayRecruitDropStagger call so the same ids fly in afterwards.
+        /// Must be invoked BEFORE RefreshUnits; otherwise the committed view would already
+        /// be visible on the bench.
+        /// </summary>
+        public void MarkUnitsForHiddenFlight(IEnumerable<string> runtimeIds)
+        {
+            if (runtimeIds == null)
+            {
+                return;
+            }
+
+            foreach (var runtimeId in runtimeIds)
+            {
+                if (!string.IsNullOrWhiteSpace(runtimeId))
+                {
+                    pendingHiddenFlightIds.Add(runtimeId);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Plays a staggered drop animation: each runtime id flies from <paramref name="originWorld"/>
+        /// to its current cell's world position. <paramref name="onCompleted"/> fires after the
+        /// final card finishes its flight + landing settle, so the caller can safely re-enable
+        /// any disabled UI and re-refresh labels that were written after the flight started.
+        /// </summary>
+        public void PlayRecruitDropStagger(
+            IReadOnlyList<string> newRuntimeIds,
+            Vector3 originWorld,
+            float perCardStaggerSeconds,
+            float perCardDurationSeconds,
+            float arcHeightInCells,
+            Action onCompleted = null)
+        {
+            if (newRuntimeIds == null || newRuntimeIds.Count == 0)
+            {
+                onCompleted?.Invoke();
+                return;
+            }
+
+            if (!isActiveAndEnabled)
+            {
+                onCompleted?.Invoke();
+                return;
+            }
+
+            StartCoroutine(AnimateRecruitDropStagger(
+                newRuntimeIds,
+                originWorld,
+                perCardStaggerSeconds,
+                perCardDurationSeconds,
+                arcHeightInCells,
+                onCompleted));
+        }
+
+        private IEnumerator AnimateRecruitDropStagger(
+            IReadOnlyList<string> newRuntimeIds,
+            Vector3 originWorld,
+            float perCardStaggerSeconds,
+            float perCardDurationSeconds,
+            float arcHeightInCells,
+            Action onCompleted)
+        {
+            // RefreshUnitsCore is synchronous: by the time control returns from RefreshUnits,
+            // every view is already in unitViews. MarkUnitsForHiddenFlight was invoked before
+            // RefreshUnits, so the committed views are visually hidden at this point — only
+            // the deployment ghost will be visible during the flight.
+            var pending = perCardStaggerSeconds;
+            for (var index = 0; index < newRuntimeIds.Count; index++)
+            {
+                if (pending > 0f)
+                {
+                    yield return new WaitForSecondsRealtime(pending);
+                }
+
+                pending = perCardStaggerSeconds;
+                var runtimeId = newRuntimeIds[index];
+                if (string.IsNullOrWhiteSpace(runtimeId) ||
+                    !unitViews.TryGetValue(runtimeId, out var view) ||
+                    view == null ||
+                    !board.TryGetPosition(runtimeId, out var gridPosition) ||
+                    !cells.TryGetValue(gridPosition, out var cell) ||
+                    cell == null)
+                {
+                    continue;
+                }
+
+                PlayDeploymentFlight(
+                    runtimeId,
+                    originWorld,
+                    cell.transform.position,
+                    arcHeightInCells);
+            }
+
+            // Wait for the final card to finish its flight + landing settle before
+            // notifying the caller so the recruit button can safely re-enable.
+            var settleTime = perCardDurationSeconds + LandingSettleDuration;
+            yield return new WaitForSecondsRealtime(settleTime);
+
+            onCompleted?.Invoke();
+        }
+
 
         private void FinishDeploymentAnimation(string runtimeId, DeploymentAnimationState state)
         {
