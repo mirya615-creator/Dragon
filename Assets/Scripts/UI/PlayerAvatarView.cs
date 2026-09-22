@@ -160,28 +160,55 @@ public static class PlayerAvatarSceneInstaller
             Transform loadingPanel = FindDescendant(root.transform, "LoadingPanel");
             if (loadingPanel == null) continue;
 
-            // V2 keeps each avatar inside its animated item. Retain the older
-            // locations as fallbacks so V1 continues to use its authored layout.
-            Transform target = loadingPanel.FindUi("BG/MyPart/MyItem/Image") ??
-                               loadingPanel.FindUi("MyPart/MyItem/Image") ??
-                               loadingPanel.FindUi("BG/Image") ??
-                               loadingPanel.FindUi("BG/MyPart/Image");
+            // The avatar slot is named per variant, and V1 reuses the V2 path name
+            // for a different node:
+            //   V2: .../MyPart/MyItem/Image  = 200x200 avatar slot
+            //   V1: .../MyPart/Image         = 255x255 avatar slot
+            //       .../MyPart/MyItem/Image  = 579x93 name-bar background (!)
+            // One shared fallback chain would therefore let V1 silently mount on
+            // the name bar, so resolve strictly by the variant owning this scene.
+            bool v2 = IsV2Variant(scene);
+
+            Transform target = v2
+                ? loadingPanel.FindUi("BG/MyPart/MyItem/Image")
+                : (loadingPanel.FindUi("BG/MyPart/Image") ??
+                   loadingPanel.FindUi("MyPart/Image"));
             if (target != null)
             {
                 PlayerAvatarPrefabPresenter.Mount(target as RectTransform, avatarId);
             }
 
-            Transform enemyTarget = loadingPanel.FindUi("BG/EnemyPart/EnemyItem/Image") ??
-                                    loadingPanel.FindUi("EnemyPart/EnemyItem/Image") ??
-                                    loadingPanel.FindUi("BG/EnemyPart/Image");
+            Transform enemyTarget = v2
+                ? loadingPanel.FindUi("BG/EnemyPart/EnemyItem/Image")
+                : (loadingPanel.FindUi("BG/EnemyPart/Image") ??
+                   loadingPanel.FindUi("EnemyPart/Image"));
             if (enemyTarget != null)
             {
                 PlayerAvatarPrefabPresenter.Mount(
                     enemyTarget as RectTransform,
                     PlayerAvatarProfile.CreateRandomAvatarId());
             }
+
         }
     }
+
+    /// <summary>Resolves the UI variant that owns this scene.</summary>
+    private static bool IsV2Variant(Scene scene)
+    {
+        string path = scene.path;
+        if (!string.IsNullOrEmpty(path) &&
+            path.Replace('\\', '/').IndexOf("/Variants/V2/", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return true;
+        }
+
+        // Fallback: the registry selected via PlayerSettings.preloadedAssets.
+        var registry = DragonBound.Presentation.UiAssets.Active;
+        return registry != null &&
+               string.Equals(registry.VariantId, "V2", StringComparison.OrdinalIgnoreCase);
+    }
+
+
 
     private static Transform FindDescendant(Transform root, string objectName)
     {

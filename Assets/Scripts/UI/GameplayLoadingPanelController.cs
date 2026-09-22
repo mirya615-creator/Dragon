@@ -226,23 +226,31 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
         }
 
         Transform root = loadingPanel.transform;
-        playerRateText = (root.FindUi("BG/MyPart/MyItem/Rate/RateText") ??
-                          root.FindUi("MyPart/MyItem/Rate/RateText") ??
-                          root.FindUi("BG/MyPart/MyItem/Text (TMP)/RateText") ??
-                          root.FindUi("MyPart/MyItem/Text (TMP)/RateText") ??
-                          root.FindUi("BG/PlayerPart/PlayerItem/Text (TMP)/RateText"))?
-            .GetComponent<TMP_Text>();
-        aiRateText = (root.FindUi("BG/EnemyPart/EnemyItem/Rate/RateText") ??
-                      root.FindUi("EnemyPart/EnemyItem/Rate/RateText") ??
-                      root.FindUi("BG/EnemyPart/EnemyItem/Text (TMP)/RateText") ??
-                      root.FindUi("EnemyPart/EnemyItem/Text (TMP)/RateText"))?
-            .GetComponent<TMP_Text>();
-        playerRankText = (root.FindUi("BG/MyPart/MyItem/TextBg/Rank") ??
-                          root.FindUi("MyPart/MyItem/TextBg/Rank"))?
-            .GetComponent<TMP_Text>();
+        bool v2 = IsV2Variant(gameObject.scene.IsValid()
+            ? gameObject.scene
+            : SceneManager.GetActiveScene());
+
+        // V2 nests rate/rank inside animated items ("Rate/RateText",
+        // "TextBg/Rank"); V1 keeps the plain "Text (TMP)/RateText" and its own
+        // rank nodes. Querying both shapes in one chain makes every V2-shaped
+        // path fall through to the leaf-name fallback, where Image / Rank /
+        // RateText are ambiguous and each miss logs an error.
+        playerRateText = (v2
+            ? (root.FindUi("BG/MyPart/MyItem/Rate/RateText"))
+            : (root.FindUi("BG/MyPart/MyItem/Text (TMP)/RateText") ??
+               root.FindUi("MyPart/MyItem/Text (TMP)/RateText")))?.GetComponent<TMP_Text>();
+        aiRateText = (v2
+            ? (root.FindUi("BG/EnemyPart/EnemyItem/Rate/RateText"))
+            : (root.FindUi("BG/EnemyPart/EnemyItem/Text (TMP)/RateText") ??
+               root.FindUi("EnemyPart/EnemyItem/Text (TMP)/RateText")))?.GetComponent<TMP_Text>();
+
+        // Player rank moved between variants; the enemy rank path is shared.
+        playerRankText = (v2
+            ? (root.FindUi("BG/MyPart/MyItem/TextBg/Rank"))
+            : (root.FindUi("BG/MyPart/MyItem/Image/Rank")))?.GetComponent<TMP_Text>();
         aiRankText = (root.FindUi("BG/EnemyPart/EnemyItem/TextBg/Rank") ??
-                      root.FindUi("EnemyPart/EnemyItem/TextBg/Rank"))?
-            .GetComponent<TMP_Text>();
+                      root.FindUi("EnemyPart/EnemyItem/TextBg/Rank"))?.GetComponent<TMP_Text>();
+
 
         if (playerRateText == null || aiRateText == null)
         {
@@ -251,6 +259,24 @@ public sealed class GameplayLoadingPanelController : MonoBehaviour
                 loadingPanel);
         }
     }
+
+    /// <summary>Resolves the UI variant that owns this controller's scene.</summary>
+    private static bool IsV2Variant(Scene scene)
+    {
+        string path = scene.path;
+        if (!string.IsNullOrEmpty(path) &&
+            path.Replace('\\', '/').IndexOf("/Variants/V2/", System.StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return true;
+        }
+
+        // Fallback: the registry selected via PlayerSettings.preloadedAssets.
+        var registry = UiAssets.Active;
+        return registry != null &&
+               string.Equals(registry.VariantId, "V2", System.StringComparison.OrdinalIgnoreCase);
+    }
+
+
 
     private async void RefreshRankTexts()
     {
