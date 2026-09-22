@@ -535,12 +535,14 @@ namespace DragonBound.Presentation
             if (shovelUnlockService != null)
             {
                 shovelUnlockService.StateChanged -= HandleShovelStateChanged;
+                shovelUnlockService.ShovelUsed -= HandleShovelUsed;
             }
 
             shovelUnlockService = service;
             if (shovelUnlockService != null)
             {
                 shovelUnlockService.StateChanged += HandleShovelStateChanged;
+                shovelUnlockService.ShovelUsed += HandleShovelUsed;
             }
         }
 
@@ -623,6 +625,7 @@ namespace DragonBound.Presentation
             if (shovelUnlockService != null)
             {
                 shovelUnlockService.StateChanged -= HandleShovelStateChanged;
+                shovelUnlockService.ShovelUsed -= HandleShovelUsed;
             }
 
             foreach (var cellView in cells.Values)
@@ -1968,7 +1971,36 @@ namespace DragonBound.Presentation
 
         private void HandleBoardChanged(GridMutation mutation)
         {
+            if (mutation.Kind == GridMutationKind.CellUnlocked &&
+                cells.TryGetValue(mutation.To, out var unlockedCell) &&
+                unlockedCell != null)
+            {
+                // Capture the locked art before the refresh switches it, then let the wipe
+                // erase the locked copy diagonally while the unlocked art shows underneath.
+                CellUnlockWipeView.Play(unlockedCell);
+                RefreshCellStates();
+                return;
+            }
+
             RefreshCellStates();
+        }
+
+        private void HandleShovelUsed(GridPosition position)
+        {
+            if (!cells.TryGetValue(position, out var cell) || cell == null)
+            {
+                return;
+            }
+
+            // The dig ghost must live on an effect layer, never on the bench card: the unlock
+            // refreshes the bench right after, which would destroy a card-attached ghost.
+            var layer = heroEffectLayer != null ? heroEffectLayer : unitLayer;
+            if (layer == null)
+            {
+                return;
+            }
+
+            ShovelDigEffectView.Play(layer, cell.RectTransform);
         }
 
         private void BindLayoutCells()

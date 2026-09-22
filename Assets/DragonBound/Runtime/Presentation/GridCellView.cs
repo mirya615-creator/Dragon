@@ -33,6 +33,15 @@ namespace DragonBound.Presentation
         public RectTransform RectTransform => (RectTransform)transform;
         public RectTransform ContentAnchor => contentAnchor != null ? contentAnchor : RectTransform;
         public Image ArtImage => artImage;
+
+        /// <summary>
+        /// The sprite currently displayed by the development state image (the same image that
+        /// ApplyDevelopmentVisual drives), or null when the cell has no development art. The
+        /// unlock wipe reads this before the state refresh to capture the locked art.
+        /// </summary>
+        public Sprite CurrentDevelopmentSprite =>
+            (developmentStateImage != null ? developmentStateImage : artImage)?.sprite;
+
         public event Action<GridPosition> Clicked;
 
         public void Configure(
