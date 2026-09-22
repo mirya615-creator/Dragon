@@ -563,6 +563,7 @@ namespace DragonBound.Presentation
                 unitDestination.HeroPairLinked += HandleHeroPairLinked;
                 unitDestination.HeroPairUnlinked += HandleHeroPairUnlinked;
                 unitDestination.BasicUnitLevelChanged += HandleBasicUnitLevelChanged;
+                unitDestination.BasicUnitMerged += HandleBasicUnitMerged;
             }
 
             if (canvas == null || unitLayer == null || unitPrefab == null ||
@@ -616,6 +617,7 @@ namespace DragonBound.Presentation
                 unitDestination.HeroPairLinked -= HandleHeroPairLinked;
                 unitDestination.HeroPairUnlinked -= HandleHeroPairUnlinked;
                 unitDestination.BasicUnitLevelChanged -= HandleBasicUnitLevelChanged;
+                unitDestination.BasicUnitMerged -= HandleBasicUnitMerged;
             }
 
             if (shovelUnlockService != null)
@@ -1679,6 +1681,27 @@ namespace DragonBound.Presentation
         private void HandleBasicUnitLevelChanged(string runtimeId)
         {
             RefreshUnits();
+            PlayBasicUnitLevelUpFx(runtimeId);
+        }
+
+        private void HandleBasicUnitMerged(BasicUnitMergedEvent merged)
+        {
+            RefreshUnits();
+            PlayBasicUnitLevelUpFx(merged.TargetUnitId);
+        }
+
+        private void PlayBasicUnitLevelUpFx(string runtimeId)
+        {
+            // The level-up effect lives on the surviving card view, so it can only start
+            // once the refresh above has (re)bound that unit to a live card instance.
+            if (string.IsNullOrWhiteSpace(runtimeId) ||
+                !unitViews.TryGetValue(runtimeId, out var unitView) ||
+                unitView == null)
+            {
+                return;
+            }
+
+            unitView.PlayLevelUpFx();
         }
 
         private void HandleHeroPairUnlinked(HeroPairUnlinkedEvent unlinked)

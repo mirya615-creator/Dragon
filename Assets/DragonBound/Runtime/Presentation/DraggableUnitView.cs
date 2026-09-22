@@ -33,6 +33,8 @@ namespace DragonBound.Presentation
         [SerializeField] private Text heroLevelLabel;
         [Header("Soul Chain presentation")]
         [SerializeField] private Image soulChainOverlay;
+        [Header("Basic unit level-up presentation")]
+        [SerializeField] private Animator levelUpAnimator;
 
         private GreyboxBoardView boardView;
         private string unitId;
@@ -63,10 +65,17 @@ namespace DragonBound.Presentation
         private const float SoulChainFlashHalfPhaseSeconds = 0.12f;
         private const int SoulChainFlashCount = 2;
         private const float ArtFacingTransitionSeconds = 0.14f;
+        private const string LevelUpFxNodeName = "ART_LevelUpFx";
+        private const float LevelUpFxAuthoredSeconds = 0.6f;
+        private const float LevelUpFxMaxSeconds = 2f;
 
         private Coroutine artFacingCoroutine;
         private bool artFacingInitialized;
         private bool artFacingMirrored;
+
+        private Coroutine levelUpFxCoroutine;
+        private bool levelUpFxResolved;
+        private float levelUpFxDuration = LevelUpFxAuthoredSeconds;
 
         public RectTransform RectTransform => (RectTransform)transform;
         public Image ArtImage => artImage;
@@ -512,6 +521,119 @@ namespace DragonBound.Presentation
             return true;
         }
 
+        // Optional V2 presentation: the authored UnitLevelUp overlay only exists on the
+        // variant that ships the effect node, so missing clips stay a silent no-op here.
+        public void PlayLevelUpFx()
+        {
+            if (!ResolveLevelUpFx())
+            {
+                return;
+            }
+
+            if (levelUpFxCoroutine != null)
+            {
+                StopCoroutine(levelUpFxCoroutine);
+                levelUpFxCoroutine = null;
+            }
+
+            levelUpFxCoroutine = StartCoroutine(RunLevelUpFx());
+        }
+
+        private bool ResolveLevelUpFx()
+        {
+            if (levelUpAnimator != null)
+            {
+                return levelUpAnimator.runtimeAnimatorController != null;
+            }
+
+            if (levelUpFxResolved)
+            {
+                return false;
+            }
+
+            levelUpFxResolved = true;
+            var node = transform.FindUi(LevelUpFxNodeName);
+            if (node == null)
+            {
+                return false;
+            }
+
+            levelUpAnimator = node.GetComponent<Animator>();
+            if (levelUpAnimator == null ||
+                levelUpAnimator.runtimeAnimatorController == null)
+            {
+                levelUpAnimator = null;
+                return false;
+            }
+
+            levelUpAnimator.speed = 1f;
+            levelUpAnimator.enabled = true;
+            node.gameObject.SetActive(false);
+            return true;
+        }
+
+        private IEnumerator RunLevelUpFx()
+        {
+            var animator = levelUpAnimator;
+            animator.gameObject.SetActive(true);
+            animator.Rebind();
+            animator.Play(0, 0, 0f);
+            animator.Update(0f);
+
+            levelUpFxDuration = ResolveLevelUpFxDuration(animator);
+            var elapsed = 0f;
+            while (elapsed < levelUpFxDuration && elapsed < LevelUpFxMaxSeconds)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f)
+                {
+                    break;
+                }
+
+                yield return null;
+            }
+
+            HideLevelUpFx();
+            levelUpFxCoroutine = null;
+        }
+
+        private static float ResolveLevelUpFxDuration(Animator animator)
+        {
+            var state = animator.GetCurrentAnimatorStateInfo(0);
+            if (state.length <= 0f)
+            {
+                return LevelUpFxAuthoredSeconds;
+            }
+
+            var stateSpeed = Mathf.Abs(state.speed);
+            if (stateSpeed <= 0.0001f)
+            {
+                stateSpeed = 1f;
+            }
+
+            var controllerSpeed = Mathf.Abs(animator.speed);
+            if (controllerSpeed <= 0.0001f)
+            {
+                controllerSpeed = 1f;
+            }
+
+            // The authored state plays the flash back slowly, so the derived duration can
+            // only be trusted when it reaches at least the intended one-shot length.
+            return Mathf.Clamp(
+                state.length / (stateSpeed * controllerSpeed),
+                LevelUpFxAuthoredSeconds,
+                LevelUpFxMaxSeconds);
+        }
+
+        private void HideLevelUpFx()
+        {
+            if (levelUpAnimator != null &&
+                levelUpAnimator.gameObject.activeSelf)
+            {
+                levelUpAnimator.gameObject.SetActive(false);
+            }
+        }
+
         internal void NotifyBowProjectileRelease()
         {
             if (!string.IsNullOrEmpty(unitId))
@@ -809,6 +931,7 @@ namespace DragonBound.Presentation
             ghost.deploymentVisualHidden = false;
             ghost.ResetSoulChainVisual();
             ghost.FreezeBasicAttackAnimationForVisualProxy();
+            ghost.HideLevelUpFx();
             ghost.SetInteractive(false);
             foreach (var graphic in ghost.GetComponentsInChildren<Graphic>(true))
             {
@@ -926,6 +1049,13 @@ namespace DragonBound.Presentation
         private void OnDisable()
         {
             StopArtFacingTransition();
+            if (levelUpFxCoroutine != null)
+            {
+                StopCoroutine(levelUpFxCoroutine);
+                levelUpFxCoroutine = null;
+                HideLevelUpFx();
+            }
+
             if (dragging)
             {
                 dragging = false;
