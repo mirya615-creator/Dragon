@@ -20,11 +20,22 @@ namespace DragonBound.Presentation
         // V1 的 SlectRoad 是"8 段菱形虚线"，段高 10 时菱形只有约 9×4 屏幕像素且带缝，
         // 观感过细；V2 的图本身就是一条细实线，保持原段高即可。
         private const float V1SegmentHeight = 100f;
-        private const float V2SegmentHeight = 10f;
+        private const float V2SegmentHeight = 18f;
         private const float SegmentOverlap = 4f;
+
+        // V2 的 SlectRoad（100×100，Tight）实测：线体条带高 9px，含 6 段虚线，
+        // 每段宽 15px、间隔仅 2px——间隔是美术图上写死的，代码等比放大概不掉。
+        // 这里把平铺单元裁成"单段虚线"，间隔交给代码：
+        //   V2DashSourceWidth = 单段虚线的源像素宽（实测 15）
+        //   V2DashSourceGap   = 期望的虚线间隔（源像素；渲染时按段高等比换算）
+        private const float V2DashSourceWidth = 15f;
+        private const float V2DashSourceGap = 8f;
 
         // 按变体取值，默认 V1（编辑器未激活注册表时 UiAssets.Active 为 null，行为不变）。
         private float segmentHeight = V1SegmentHeight;
+
+        // V2：单段虚线之间的正间隔（渲染像素）；V1：0（保持"负重叠贴缝"旧逻辑）。
+        private float segmentGap;
 
         [SerializeField] private Image shaft;
         [SerializeField] private Text headLabel;
@@ -91,10 +102,34 @@ namespace DragonBound.Presentation
                 Mathf.Max(1f, tiledPathSprite.rect.height) *
                 segmentHeight;
 
-            float step = Mathf.Max(1f, segmentWidth - SegmentOverlap);
-            int segmentCount = Mathf.Max(
-                1,
-                Mathf.CeilToInt((distance + SegmentOverlap) / step));
+            float step;
+            int segmentCount;
+            if (segmentGap > 0f)
+            {
+                // V2 单段虚线：理想周期 = 段宽 + 间隔；再按实际距离均匀分布，
+                // 让首段贴起点、末段右缘正好贴终点（间距在理想值附近轻微浮动）。
+                if (distance <= segmentWidth)
+                {
+                    step = segmentWidth;
+                    segmentCount = 1;
+                }
+                else
+                {
+                    float idealStep = segmentWidth + segmentGap;
+                    int gapCount = Mathf.Max(1, Mathf.RoundToInt((distance - segmentWidth) / idealStep));
+                    step = Mathf.Max(segmentWidth, (distance - segmentWidth) / gapCount);
+                    segmentCount = gapCount + 1;
+                }
+            }
+            else
+            {
+                // V1：整条多段图平铺，相邻 tile 负重叠贴缝（间隔写在图里），行为不变。
+                step = Mathf.Max(1f, segmentWidth - SegmentOverlap);
+                segmentCount = Mathf.Max(
+                    1,
+                    Mathf.CeilToInt((distance + SegmentOverlap) / step));
+            }
+
 
             rect.sizeDelta = new Vector2(distance, segmentHeight);
 
@@ -157,21 +192,36 @@ namespace DragonBound.Presentation
             // 包围盒，此时再叠加下面那套"整图坐标"的裁剪常量会让矩形越界（Sprite.Create
             // 抛 ArgumentException）或裁到错误区域。只有图是 FullRect（textureRect ≈ 整图）
             // 时才回退到常量路径。
-            segmentHeight = string.Equals(
-                DragonBound.Presentation.UiAssets.Active?.VariantId ?? "V1",
-                "V2",
-                System.StringComparison.Ordinal)
-                ? V2SegmentHeight
-                : V1SegmentHeight;
+            bool isV2Variant = string.Equals(
+    DragonBound.Presentation.UiAssets.Active?.VariantId ?? "V1",
+    "V2",
+    System.StringComparison.Ordinal);
+            segmentHeight = isV2Variant ? V2SegmentHeight : V1SegmentHeight;
 
             var textureRect = pathSprite.textureRect;
             bool isTrimmed =
                 textureRect.width < pathSprite.texture.width * 0.9f ||
                 textureRect.height < pathSprite.texture.height * 0.9f;
             Rect crop;
+            bool singleDashTile = false;
             if (isTrimmed)
             {
-                crop = textureRect;
+                if (isV2Variant)
+                {
+                    // V2：只裁一段虚线作为平铺单元（Tight 已把 textureRect trim 到
+                    // 99×9 的线条条带，第一段虚线就从左缘 x=0 开始），间隔交给 segmentGap。
+                    crop = new Rect(
+                        textureRect.x,
+                        textureRect.y,
+                        Mathf.Min(V2DashSourceWidth, textureRect.width),
+                        textureRect.height);
+                    singleDashTile = true;
+                }
+                else
+                {
+                    // V1：保持整条多段图平铺（菱形虚线的节奏写在图里）。
+                    crop = textureRect;
+                }
             }
             else if (pathSprite.texture.height > 500)
             {
@@ -190,8 +240,19 @@ namespace DragonBound.Presentation
             crop.width = Mathf.Clamp(crop.width, 1f, maxX - crop.x);
             crop.height = Mathf.Clamp(crop.height, 1f, maxY - crop.y);
 
+            // 间隔按"源像素 → 渲染像素"等比换算：渲染间隔 = 源间隔 × 段高 / 裁剪高。
+            // 只有真正裁成单段时才有意义；V1 与 V2 的 FullRect 兜底路径保持 0（旧贴缝逻辑）。
+            segmentGap = singleDashTile
+                ? V2DashSourceGap / Mathf.Max(1f, crop.height) * segmentHeight
+                : 0f;
+
             var ppu = pathSprite.pixelsPerUnit > 0f ? pathSprite.pixelsPerUnit : 100f;
-            if (tiledPathSprite == null || tiledPathSprite.texture != pathSprite.texture)
+            // 缓存守卫必须把裁剪尺寸也纳入：裁成单段后 crop 尺寸变了，只比 texture
+            // 会复用旧的整条平铺单元。
+            if (tiledPathSprite == null ||
+                tiledPathSprite.texture != pathSprite.texture ||
+                !Mathf.Approximately(tiledPathSprite.rect.width, crop.width) ||
+                !Mathf.Approximately(tiledPathSprite.rect.height, crop.height))
             {
                 tiledPathSprite = Sprite.Create(pathSprite.texture, crop, new Vector2(0.5f, 0.5f), ppu);
             }
