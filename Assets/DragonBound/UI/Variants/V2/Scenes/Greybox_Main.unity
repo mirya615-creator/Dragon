@@ -13363,6 +13363,8 @@ MonoBehaviour:
   artRect: {fileID: 1990000021}
   artImage: {fileID: 1990000023}
   sourceAspect: 0.5510204
+  widthReference: {fileID: 99241378082185544}
+  fixedWidth: 1080
   simulateInEditor: 0
   simulatedTopInset: 240
   simulatedBottomInset: 120

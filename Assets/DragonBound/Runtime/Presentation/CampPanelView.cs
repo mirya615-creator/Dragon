@@ -255,13 +255,12 @@ namespace DragonBound.Presentation
             for (var i = 0; i < BasicUnitIds.Length; i++)
             {
                 var slot = slots[i];
-                // The authored Unit0-3 objects are the image slots themselves. Keep the
-                // older nested Img lookup as a compatibility fallback for legacy prefabs.
-                var image = slot.GetComponent<Image>();
-                if (image == null)
-                {
-                    image = slot.FindUi("Img")?.GetComponent<Image>();
-                }
+                // The authored Unit slot keeps its own background art, so the runtime
+                // artwork is written to the nested UIImage child instead. The older nested
+                // Img lookup and the slot root itself stay as compatibility fallbacks.
+                var image = FindDirectChildComponent<Image>(slot, "UIImage") ??
+                            FindDirectChildComponent<Image>(slot, "Img") ??
+                            slot.GetComponent<Image>();
                 if (image == null)
                 {
                     throw new InvalidOperationException(slot.name + " is missing an Image component.");

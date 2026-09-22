@@ -28,6 +28,13 @@ namespace DragonBound.Presentation
         [SerializeField] private UnityEngine.UI.Image artImage;
         [SerializeField] private float sourceAspect = 0.5510204f;
 
+        // The seam between this strip and the authored background only lines up when both
+        // render at the same horizontal scale. The background is pinned to a fixed width
+        // and cropped, so the strip has to follow that same width instead of the canvas
+        // width (which drifts with every screen aspect ratio).
+        [SerializeField] private RectTransform widthReference;
+        [SerializeField] private float fixedWidth = 1080f;
+
 #if UNITY_EDITOR
         [SerializeField] private bool simulateInEditor = true;
         [SerializeField] private float simulatedTopInset = 240f;
@@ -153,7 +160,8 @@ namespace DragonBound.Presentation
         }
 
         /// <summary>
-        /// 子节点按贴图原始宽高比铺满宽度并保持比例，底边对齐本节点底边。
+        /// 子节点按贴图原始宽高比定尺寸，居中且底边对齐本节点底边（即与背景顶边的接缝）。
+        /// 宽度优先跟随 widthReference（通常是背景节点），其次 fixedWidth，最后才是画布宽。
         /// 缺口越大，露出贴图越靠上的部分；多出部分溢出屏幕顶边被裁掉。
         /// </summary>
         private void ApplyArtSize()
@@ -163,19 +171,15 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            var width = 0f;
-            if (rootCanvas != null)
+            var width = widthReference != null ? widthReference.rect.width : 0f;
+            if (width <= 0f)
             {
-                var canvasRect = rootCanvas.GetComponent<RectTransform>();
-                if (canvasRect != null)
-                {
-                    width = canvasRect.rect.width;
-                }
+                width = fixedWidth;
             }
 
             if (width <= 0f)
             {
-                width = rectTransform.rect.width;
+                width = ResolveCanvasWidth();
             }
 
             if (width <= 0f)
@@ -199,11 +203,27 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            artRect.anchorMin = new Vector2(0f, 0f);
-            artRect.anchorMax = new Vector2(1f, 0f);
+            // Center the strip on the seam band and let it overflow sideways exactly like
+            // the background does, so both sides crop the same authored pixels.
+            artRect.anchorMin = new Vector2(0.5f, 0f);
+            artRect.anchorMax = new Vector2(0.5f, 0f);
             artRect.pivot = new Vector2(0.5f, 0f);
             artRect.anchoredPosition = Vector2.zero;
-            artRect.sizeDelta = new Vector2(0f, width / aspect);
+            artRect.sizeDelta = new Vector2(width, width / aspect);
+        }
+
+        private float ResolveCanvasWidth()
+        {
+            if (rootCanvas != null)
+            {
+                var canvasRect = rootCanvas.GetComponent<RectTransform>();
+                if (canvasRect != null)
+                {
+                    return canvasRect.rect.width;
+                }
+            }
+
+            return rectTransform.rect.width;
         }
 
         private Rect ResolveSafeArea(Vector2Int screenSize)
