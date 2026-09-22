@@ -78,6 +78,8 @@ namespace DragonBound.Presentation
             new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string > pendingHiddenFlightIds=
             new HashSet <string>(StringComparer.Ordinal);
+        private readonly HashSet <string > pendingBasicUnitLevelUpIds=
+            new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<string> soulChainControlledUnitIds =
             new HashSet<string>(StringComparer.Ordinal);
         private readonly Dictionary<string, DeploymentAnimationState> deploymentAnimations =
@@ -1694,6 +1696,7 @@ namespace DragonBound.Presentation
             }
 
             RefreshPairPresentations();
+            FlushPendingBasicUnitLevelUpFx();
         }
 
         private void HandleHeroPairLinked(HeroPairLinkedEvent linked)
@@ -1800,13 +1803,13 @@ namespace DragonBound.Presentation
         private void HandleBasicUnitLevelChanged(string runtimeId)
         {
             RefreshUnits();
-            PlayBasicUnitLevelUpFx(runtimeId);
+            QueueBasicUnitLevelUpFx(runtimeId);
         }
 
         private void HandleBasicUnitMerged(BasicUnitMergedEvent merged)
         {
             RefreshUnits();
-            PlayBasicUnitLevelUpFx(merged.TargetUnitId);
+            QueueBasicUnitLevelUpFx(merged.TargetUnitId);
         }
 
         private void PlayBasicUnitLevelUpFx(string runtimeId)
@@ -1822,6 +1825,37 @@ namespace DragonBound.Presentation
 
             unitView.PlayLevelUpFx();
         }
+
+        private void QueueBasicUnitLevelUpFx(string runtimeId)
+        {
+            // The level-up overlay must not start inside the same frame that builds it:
+            // CompleteDrag runs a second RefreshUnits right after the merge, which
+            // deactivates every authored bench card and would kill the effect coroutine
+            // before a single frame of it is ever rendered. Defer to LateUpdate so the
+            // refresh settles first.
+            if (string.IsNullOrWhiteSpace(runtimeId))
+            {
+                return;
+            }
+
+            pendingBasicUnitLevelUpIds.Add(runtimeId);
+        }
+
+        private void FlushPendingBasicUnitLevelUpFx()
+        {
+            if (pendingBasicUnitLevelUpIds.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var runtimeId in pendingBasicUnitLevelUpIds)
+            {
+                PlayBasicUnitLevelUpFx(runtimeId);
+            }
+
+            pendingBasicUnitLevelUpIds.Clear();
+        }
+
 
         private void HandleHeroPairUnlinked(HeroPairUnlinkedEvent unlinked)
         {
