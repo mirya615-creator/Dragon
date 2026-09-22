@@ -1,0 +1,24 @@
+===== V1 EnemyCard.prefab =====
+EnemyCard
+  ART_EnemyAnimation
+    Image
+    Animator
+  ART_EnemyHpTrack
+    overHp
+    ART_EnemyHpFill
+
+  [GO 6149469607123596897] name=ART_EnemyAnimation comps=['1019753487264449422', '2419914236089332672']
+    class=RectTransform anchorMin={x: 0, y: 0} anchorMax={x: 1, y: 1} pos={x: 0, y: 0} size={x: 0, y: 0}
+    class=CanvasRenderer
+
+===== V2 EnemyCard.prefab =====
+EnemyCard
+  ART_EnemyAnimation
+    Image
+  ART_EnemyHpTrack
+    overHp
+    ART_EnemyHpFill
+
+  [GO 6149469607123596897] name=ART_EnemyAnimation comps=['1019753487264449422', '2419914236089332672']
+    class=RectTransform anchorMin={x: 0, y: 0} anchorMax={x: 1, y: 1} pos={x: 0, y: 0} size={x: 0, y: 0}
+    class=CanvasRenderer
