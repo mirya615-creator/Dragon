@@ -165,21 +165,36 @@ public sealed class LoadingPanelEntranceAnimator : MonoBehaviour
 
         Transform enemyPart = transform.FindUi("BG/EnemyPart");
         Transform playerPart = transform.FindUi("BG/MyPart");
-        AddPartTargets(enemyPart, "EnemyItem", enemyTargets);
-        AddPartTargets(playerPart, "MyItem", playerTargets);
+        AddPartTargets(enemyPart, "EnemyItem", "Image",enemyTargets);
+        AddPartTargets(playerPart, "MyItem", "Image",playerTargets);
         positionsCaptured = true;
     }
 
     private static void AddPartTargets(
-        Transform part,
-        string itemName,
-        List<MotionTarget> targets)
+    Transform part,
+    string itemName,
+    string avatarSlotName,
+    List<MotionTarget> targets)
     {
         if (part == null) return;
 
         Transform item = part.FindUi(itemName);
         AddTarget(item, targets);
+
+        // V1 把头像槽放在 Item 的兄弟位置（MyPart/Image），Item 的位移带不到它，
+        // 需要显式追加。这里只能用 Transform.Find（只看直接子节点）：
+        //   1) 不能用 FindUi("Image")——V1 的 MyPart 子树里 Image 出现两次
+        //      （MyPart/Image 头像槽、MyPart/MyItem/Image 579x93 名条底图），
+        //      叶子名兜底会判歧义，LogError 后返回 null，改动静默失效；
+        //   2) V2 的槽在 Item 内部，Find 返回 null 直接早退，避免双重位移。
+        Transform avatarSlot = string.IsNullOrEmpty(avatarSlotName)
+            ? null
+            : part.Find(avatarSlotName);
+        if (avatarSlot == null) return;
+        if (item != null && avatarSlot.IsChildOf(item)) return;
+        AddTarget(avatarSlot, targets);
     }
+
 
     private static void AddTarget(Transform target, List<MotionTarget> targets)
     {
