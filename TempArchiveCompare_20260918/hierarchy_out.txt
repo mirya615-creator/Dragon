@@ -1,0 +1,109 @@
+=== D:/Codex project/Dragon/Assets/DragonBound/UI/Variants/V1/Content/Resources/prefabs/LoadingPanel.prefab :: root=LoadingPanel (go 3352196444703009163) ===
+LoadingPanel
+  EnemyPart
+    EnemyItem
+      Image
+      Rank
+      Text (TMP)
+        RateText
+    EnemyWeaCon
+      ?
+  MyPart
+    MyItem
+      Image
+      Rank
+      Text (TMP)
+        RateText
+  Text (TMP)
+  MyWeaCon
+    ?
+
+=== D:/Codex project/Dragon/Assets/DragonBound/UI/Variants/V1/Scenes/Greybox_Main.unity :: root=LoadingPanel (go 3352196445198527622) ===
+LoadingPanel
+  BG
+    BgShadow
+    Title
+    EnemyPart
+      Image
+      EnemyItem
+        TextBg
+          Rank
+        Text (TMP)
+          RateText
+    MyPart
+      Image
+      MyItem
+        Image
+          Rank
+        Text (TMP)
+          RateText
+    Device
+
+=== D:/Codex project/Dragon/Assets/DragonBound/UI/Variants/V1/Scenes/Main.unity :: NO node named LoadingPanel ===
+=== D:/Codex project/Dragon/Assets/DragonBound/UI/Variants/V1/Scenes/Game.unity :: root=LoadingPanel (go 6249138298140451414) ===
+LoadingPanel
+  EnemyPart
+    EnemyItem
+      Image
+      Rank
+      Text (TMP)
+        RateText
+    EnemyWeaCon
+      WeaponItem
+  MyPart
+    MyItem
+      Image
+      Rank
+      Text (TMP)
+        RateText
+  Text (TMP)
+  MyWeaCon
+    WeaponItem
+
+=== D:/Codex project/Dragon/Assets/DragonBound/UI/Variants/V2/Content/Resources/prefabs/LoadingPanel.prefab :: root=LoadingPanel (go 3352196444703009163) ===
+LoadingPanel
+  EnemyPart
+    EnemyItem
+      Image
+      Rank
+      Text (TMP)
+        RateText
+    EnemyWeaCon
+      ?
+  MyPart
+    MyItem
+      Image
+      Rank
+      Text (TMP)
+        RateText
+  Text (TMP)
+  MyWeaCon
+    ?
+
+=== D:/Codex project/Dragon/Assets/DragonBound/UI/Variants/V2/Scenes/Greybox_Main.unity :: root=LoadingPanel (go 3352196445198527622) ===
+LoadingPanel
+  BG
+    Title
+    Device
+    EnemyPart
+      EnemyItem
+        Image
+        TextBg
+          Rank
+          Image
+        Rate
+          Text (TMP)
+          RateText
+          Image
+    MyPart
+      MyItem
+        Image
+        TextBg
+          Rank
+          Image
+        Rate
+          Text (TMP)
+          RateText
+          Image
+
+=== D:/Codex project/Dragon/Assets/DragonBound/UI/Variants/V2/Scenes/Main.unity :: NO node named LoadingPanel ===
