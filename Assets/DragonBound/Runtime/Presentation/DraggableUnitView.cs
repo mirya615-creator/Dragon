@@ -18,6 +18,7 @@ namespace DragonBound.Presentation
         IDragHandler,
         IEndDragHandler
     {
+
         private const float FallbackDragThresholdPixels = 10f;
         private const float InputSizePixels = 100f;
         private const string InputReceiverName = "InputReceiver";
@@ -76,6 +77,9 @@ namespace DragonBound.Presentation
         private Coroutine levelUpFxCoroutine;
         private bool levelUpFxResolved;
         private float levelUpFxDuration = LevelUpFxAuthoredSeconds;
+        // RefreshUnitsCore 每次刷新都会先把 bench 卡整体 SetActive(false) 再 SetActive(true)，
+        // 这会打断正在播放的升级特效。记录打断状态，等视图同帧恢复时自动重播。
+        private bool levelUpFxInterrupted;
 
         public RectTransform RectTransform => (RectTransform)transform;
         public Image ArtImage => artImage;
@@ -144,6 +148,7 @@ namespace DragonBound.Presentation
             ResetSoulChainVisual();
             boardView = value;
             unitId = id;
+            levelUpFxInterrupted = false;
             CaptureAuthoredArtColor();
             SetLabel("U");
             SetLevelVisible(false);
@@ -1053,7 +1058,6 @@ namespace DragonBound.Presentation
             {
                 StopCoroutine(levelUpFxCoroutine);
                 levelUpFxCoroutine = null;
-                HideLevelUpFx();
             }
 
             if (dragging)
@@ -1065,6 +1069,17 @@ namespace DragonBound.Presentation
             gesture.Cancel();
             ResetSoulChainVisual(false);
         }
+        private void OnEnable()
+        {
+            if (!levelUpFxInterrupted)
+            {
+                return;
+            }
+
+            levelUpFxInterrupted = false;
+            PlayLevelUpFx();
+        }
+
     }
 
     [DisallowMultipleComponent]
