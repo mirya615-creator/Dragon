@@ -142,6 +142,41 @@ MonoBehaviour:
   - key: Animations/Enemy/04/BowMinion/Spine/BowMinion_SkeletonData
     assets:
     - {fileID: 11400000, guid: d99881962bd04c74eaa20173c23c06de, type: 2}
+  - key: Animations/Enemy/EnemyDie
+    assets:
+    - {fileID: 7400000, guid: 91cceb79daf81954da9254e620cdbc52, type: 2}
+    - {fileID: 9100000, guid: cc97060b52f4cab4a9538f874192d3b7, type: 2}
+    - {fileID: -2104261986021400185, guid: cc97060b52f4cab4a9538f874192d3b7, type: 2}
+    - {fileID: -1557689083190223188, guid: cc97060b52f4cab4a9538f874192d3b7, type: 2}
+  - key: "Animations/Hero/Oathcrown Blademaster/normal/Spine/\u8A93\u51A0\u5251\u58EB
+      \u62C6"
+    assets:
+    - {fileID: 4900000, guid: 65ddb8b61eddcab4daf1c3abb5189f8b, type: 3}
+    - {fileID: 2800000, guid: f60bbbce3b73efe4db7d200bd33803a7, type: 3}
+  - key: "Animations/Hero/Oathcrown Blademaster/normal/Spine/\u8A93\u51A0\u5251\u58EB
+      \u62C6.atlas"
+    assets:
+    - {fileID: 4900000, guid: 61e9e9d06b02eac4aa6bb46a68b81700, type: 3}
+  - key: "Animations/Hero/Oathcrown Blademaster/normal/Spine/\u8A93\u51A0\u5251\u58EB
+      \u62C62"
+    assets:
+    - {fileID: 2800000, guid: 19c434ef6eaa86744b7b37b799946537, type: 3}
+  - key: "Animations/Hero/Oathcrown Blademaster/normal/Spine/\u8A93\u51A0\u5251\u58EB
+      \u62C6_Atlas"
+    assets:
+    - {fileID: 11400000, guid: 3af1855e6bb0bb24293af5641fb858ea, type: 2}
+  - key: "Animations/Hero/Oathcrown Blademaster/normal/Spine/\u8A93\u51A0\u5251\u58EB
+      \u62C6_SkeletonData"
+    assets:
+    - {fileID: 11400000, guid: 79f0cc820b71eae4e8ce5e59ff49175b, type: 2}
+  - key: "Animations/Hero/Oathcrown Blademaster/normal/Spine/\u8A93\u51A0\u5251\u58EB
+      \u62C6_\u8A93\u51A0\u5251\u58EB \u62C6"
+    assets:
+    - {fileID: 2100000, guid: 62238243e622deb488ebe910d5bee18d, type: 2}
+  - key: "Animations/Hero/Oathcrown Blademaster/normal/Spine/\u8A93\u51A0\u5251\u58EB
+      \u62C6_\u8A93\u51A0\u5251\u58EB \u62C62"
+    assets:
+    - {fileID: 2100000, guid: 226ea171f0e4dd940b66a57fdafebb64, type: 2}
   - key: Animations/Hero/Windclaw Ranger/Spine/WindclawRanger
     assets:
     - {fileID: 4900000, guid: d1323b8598fe4a6428e1edcf0f6a6cec, type: 3}
@@ -164,6 +199,34 @@ MonoBehaviour:
   - key: Animations/Hero/Windclaw Ranger/Spine/WindclawRanger_WindclawRanger2
     assets:
     - {fileID: 2100000, guid: be42f75421b5dc5429348ae578a645b4, type: 2}
+  - key: Animations/Hero/Windclaw Ranger/normal/Spine/WindclawRanger
+    assets:
+    - {fileID: 4900000, guid: d1323b8598fe4a6428e1edcf0f6a6cec, type: 3}
+    - {fileID: 2800000, guid: cc06a9730d23e7b42b64ff3bb780a2c4, type: 3}
+  - key: Animations/Hero/Windclaw Ranger/normal/Spine/WindclawRanger.atlas
+    assets:
+    - {fileID: 4900000, guid: 111da33644c9f574da431cd0ab35eefc, type: 3}
+  - key: Animations/Hero/Windclaw Ranger/normal/Spine/WindclawRanger2
+    assets:
+    - {fileID: 2800000, guid: 59179ef8a86d22446a7c614b90079402, type: 3}
+  - key: Animations/Hero/Windclaw Ranger/normal/Spine/WindclawRanger_Atlas
+    assets:
+    - {fileID: 11400000, guid: ffc7ad032462df34dade4a40632cb726, type: 2}
+  - key: Animations/Hero/Windclaw Ranger/normal/Spine/WindclawRanger_SkeletonData
+    assets:
+    - {fileID: 11400000, guid: a9a4c45457d0c4a42978dc4774f5eb1e, type: 2}
+  - key: Animations/Hero/Windclaw Ranger/normal/Spine/WindclawRanger_WindclawRanger
+    assets:
+    - {fileID: 2100000, guid: ca2d9e07b00645f45a676b2a35bd2f25, type: 2}
+  - key: Animations/Hero/Windclaw Ranger/normal/Spine/WindclawRanger_WindclawRanger2
+    assets:
+    - {fileID: 2100000, guid: be42f75421b5dc5429348ae578a645b4, type: 2}
+  - key: Animations/Unit/UnitLevelUp
+    assets:
+    - {fileID: 7400000, guid: c97b51a0c644f974794f8e29b4692bc5, type: 2}
+    - {fileID: 9100000, guid: 4f5485ea83e873f4bb1efb20745dff74, type: 2}
+    - {fileID: -4572951743056233529, guid: 4f5485ea83e873f4bb1efb20745dff74, type: 2}
+    - {fileID: -8451844599591596576, guid: 4f5485ea83e873f4bb1efb20745dff74, type: 2}
   - key: ComponentUI/001
     assets:
     - {fileID: 2800000, guid: 4658842d8f6e98f48af8aab44bfecb30, type: 3}
@@ -504,6 +567,26 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: ec84dfd9faf237a479231ba10d335ea1, type: 3}
     - {fileID: 21300000, guid: ec84dfd9faf237a479231ba10d335ea1, type: 3}
+  - key: "UIResources/Enemy/EnemyDie/\u5FAE\u4FE1\u56FE\u7247_20260923142400_304_2"
+    assets:
+    - {fileID: 2800000, guid: 1dc9040f381b51c48a570e9ceb404bcb, type: 3}
+    - {fileID: 21300000, guid: 1dc9040f381b51c48a570e9ceb404bcb, type: 3}
+  - key: "UIResources/Enemy/EnemyDie/\u5FAE\u4FE1\u56FE\u7247_20260923142401_305_2"
+    assets:
+    - {fileID: 2800000, guid: 65b03fcf5f908f34caeecb0ac51ced6d, type: 3}
+    - {fileID: 21300000, guid: 65b03fcf5f908f34caeecb0ac51ced6d, type: 3}
+  - key: "UIResources/Enemy/EnemyDie/\u5FAE\u4FE1\u56FE\u7247_20260923142402_306_2"
+    assets:
+    - {fileID: 2800000, guid: ced078ff2f2764a4d9802a2d153394ca, type: 3}
+    - {fileID: 21300000, guid: ced078ff2f2764a4d9802a2d153394ca, type: 3}
+  - key: "UIResources/Enemy/EnemyDie/\u5FAE\u4FE1\u56FE\u7247_20260923142403_307_2"
+    assets:
+    - {fileID: 2800000, guid: fdf56922dce70c248bc2a593ebd15ce6, type: 3}
+    - {fileID: 21300000, guid: fdf56922dce70c248bc2a593ebd15ce6, type: 3}
+  - key: "UIResources/Enemy/EnemyDie/\u5FAE\u4FE1\u56FE\u7247_20260923142403_308_2"
+    assets:
+    - {fileID: 2800000, guid: 06dbf3b4d7dc2bd45aa945960250e502, type: 3}
+    - {fileID: 21300000, guid: 06dbf3b4d7dc2bd45aa945960250e502, type: 3}
   - key: UIResources/Game/Camp/Collection
     assets:
     - {fileID: 2800000, guid: 6d056878b6a3ed4419c452915e778074, type: 3}
@@ -616,6 +699,10 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: bf88eee5f9c196243b0003e04156c20d, type: 3}
     - {fileID: 21300000, guid: bf88eee5f9c196243b0003e04156c20d, type: 3}
+  - key: UIResources/Game/game/BgLong
+    assets:
+    - {fileID: 2800000, guid: c702807fda12ed04b9180b6c042ede77, type: 3}
+    - {fileID: 21300000, guid: c702807fda12ed04b9180b6c042ede77, type: 3}
   - key: UIResources/Game/game/BoardSelect
     assets:
     - {fileID: 2800000, guid: 1bfb04d7f24204548bcdb3ebadaddf80, type: 3}
@@ -632,6 +719,10 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: b9a3a4b12648477438c569e6135d0c7d, type: 3}
     - {fileID: 21300000, guid: b9a3a4b12648477438c569e6135d0c7d, type: 3}
+  - key: UIResources/Game/game/InformBg
+    assets:
+    - {fileID: 2800000, guid: e2be749175a13af46b5328b0f31a4048, type: 3}
+    - {fileID: 21300000, guid: e2be749175a13af46b5328b0f31a4048, type: 3}
   - key: UIResources/Game/game/Lock
     assets:
     - {fileID: 2800000, guid: c9b5195c72649c24a98d95b8e62d4870, type: 3}
@@ -664,6 +755,10 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 3d9671f204be17648a183e05470175db, type: 3}
     - {fileID: 21300000, guid: 3d9671f204be17648a183e05470175db, type: 3}
+  - key: UIResources/Game/game/gameBg
+    assets:
+    - {fileID: 2800000, guid: ada0621c6e01fc84d85edc4a3b1ae303, type: 3}
+    - {fileID: 21300000, guid: ada0621c6e01fc84d85edc4a3b1ae303, type: 3}
   - key: "UIResources/Game/game/\u56FE\u5C42 115 \u62F7\u8D1D 2"
     assets:
     - {fileID: 2800000, guid: 9f26153f6949bf140b307f897298e686, type: 3}
@@ -756,6 +851,10 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 88c93c1208ffb4e4d837e7790fef2b58, type: 3}
     - {fileID: 21300000, guid: 88c93c1208ffb4e4d837e7790fef2b58, type: 3}
+  - key: "UIResources/Game/game/\u5FAE\u4FE1\u56FE\u7247_20260921134155_1104_101"
+    assets:
+    - {fileID: 2800000, guid: 33a21289dbd5a934d880e8ae004ad6d9, type: 3}
+    - {fileID: 21300000, guid: 33a21289dbd5a934d880e8ae004ad6d9, type: 3}
   - key: UIResources/Item/1
     assets:
     - {fileID: 2800000, guid: bfbb7a769751cd44bb7315104a8afe23, type: 3}
@@ -947,6 +1046,18 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 1254ce723a495b64b94e044e1efce94b, type: 3}
     - {fileID: 21300000, guid: 1254ce723a495b64b94e044e1efce94b, type: 3}
+  - key: "UIResources/Main/Bag/\u5FAE\u4FE1\u56FE\u7247_20260922145134_1168_101"
+    assets:
+    - {fileID: 2800000, guid: 8a63a4c379dc18748a4ea6fc777db7f9, type: 3}
+    - {fileID: 21300000, guid: 8a63a4c379dc18748a4ea6fc777db7f9, type: 3}
+  - key: "UIResources/Main/Bag/\u5FAE\u4FE1\u56FE\u7247_20260922145137_1169_101"
+    assets:
+    - {fileID: 2800000, guid: ef1ed39f162c2ee4ebce2e1f6c940cff, type: 3}
+    - {fileID: 21300000, guid: ef1ed39f162c2ee4ebce2e1f6c940cff, type: 3}
+  - key: "UIResources/Main/Bag/\u5FAE\u4FE1\u56FE\u7247_20260922145145_1170_101"
+    assets:
+    - {fileID: 2800000, guid: 0397932b320e8714dbb5824a274949dd, type: 3}
+    - {fileID: 21300000, guid: 0397932b320e8714dbb5824a274949dd, type: 3}
   - key: "UIResources/Main/Inform/\u5FAE\u4FE1\u56FE\u7247_20260918140339_1023_101"
     assets:
     - {fileID: 2800000, guid: 8cea1971eb8a0ef42bc5496a9b485afb, type: 3}
@@ -1388,6 +1499,34 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: b7f8d84f60f7a1e4ea94b001d4877213, type: 3}
     - {fileID: 21300000, guid: b7f8d84f60f7a1e4ea94b001d4877213, type: 3}
+  - key: "UIResources/Unit/LevelUp/\u5FAE\u4FE1\u56FE\u7247_20260921170225_297_2"
+    assets:
+    - {fileID: 2800000, guid: dc53c7fa6813eea49a5ff0c754c20532, type: 3}
+    - {fileID: 21300000, guid: dc53c7fa6813eea49a5ff0c754c20532, type: 3}
+  - key: "UIResources/Unit/LevelUp/\u5FAE\u4FE1\u56FE\u7247_20260921170225_298_2"
+    assets:
+    - {fileID: 2800000, guid: 07dc10442c9d6a64a8d212c30fbd9337, type: 3}
+    - {fileID: 21300000, guid: 07dc10442c9d6a64a8d212c30fbd9337, type: 3}
+  - key: "UIResources/Unit/LevelUp/\u5FAE\u4FE1\u56FE\u7247_20260921170226_299_2"
+    assets:
+    - {fileID: 2800000, guid: 630cd00c1a7f7a844b2bbe17488a6273, type: 3}
+    - {fileID: 21300000, guid: 630cd00c1a7f7a844b2bbe17488a6273, type: 3}
+  - key: "UIResources/Unit/LevelUp/\u5FAE\u4FE1\u56FE\u7247_20260921170226_300_2"
+    assets:
+    - {fileID: 2800000, guid: a3c5d16229434f940bbff17271493ad9, type: 3}
+    - {fileID: 21300000, guid: a3c5d16229434f940bbff17271493ad9, type: 3}
+  - key: "UIResources/Unit/LevelUp/\u5FAE\u4FE1\u56FE\u7247_20260921170227_301_2"
+    assets:
+    - {fileID: 2800000, guid: 92cbd963d7c72d345a312932db13cdb7, type: 3}
+    - {fileID: 21300000, guid: 92cbd963d7c72d345a312932db13cdb7, type: 3}
+  - key: "UIResources/Unit/LevelUp/\u5FAE\u4FE1\u56FE\u7247_20260921170227_302_2"
+    assets:
+    - {fileID: 2800000, guid: 636ac5b640be53c4cbe4ba28f23f3a6e, type: 3}
+    - {fileID: 21300000, guid: 636ac5b640be53c4cbe4ba28f23f3a6e, type: 3}
+  - key: "UIResources/Unit/LevelUp/\u5FAE\u4FE1\u56FE\u7247_20260921170228_303_2"
+    assets:
+    - {fileID: 2800000, guid: 1ab50d369ac053942926edff720a581b, type: 3}
+    - {fileID: 21300000, guid: 1ab50d369ac053942926edff720a581b, type: 3}
   - key: UIResources/Unit/SPEAR00
     assets:
     - {fileID: 2800000, guid: 2e6ac0d762da74c4f817f209849ed7f5, type: 3}
@@ -1406,6 +1545,11 @@ MonoBehaviour:
     - {fileID: 4816702187435626321, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 3212963743644976978, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 8690704716622005665, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 8465729890412022266, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 4332711986383810658, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 6477674956628709555, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 2280007001464478174, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 6883263927553415975, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
   - key: prefabs/BoardSelect
     assets:
     - {fileID: 2663392251814759821, guid: 1b8ca868e6afc0748b60c8699e96f42b, type: 3}
@@ -1455,16 +1599,16 @@ MonoBehaviour:
     assets:
     - {fileID: 2543788200930911281, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
     - {fileID: 4933963736146544911, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+    - {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
     - {fileID: 6301729990574354423, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
     - {fileID: 2258501032961769934, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
     - {fileID: 1079240461894022381, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+    - {fileID: 6677127680370839556, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
     - {fileID: 8579549045668006548, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
+    - {fileID: 8583824597201649994, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
     - {fileID: 1511527053135035449, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
     - {fileID: 8178373582620603695, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
-    - {fileID: 8583824597201649994, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
-    - {fileID: 6677127680370839556, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
     - {fileID: 2130022591060009960, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
-    - {fileID: 5506675517675660044, guid: 1c6ce4a73f574ed4e935d68d08c268a3, type: 3}
   - key: prefabs/HeroDetail
     assets:
     - {fileID: 3642876520770384034, guid: e5843f1200ac607458fe64e6438b5b37, type: 3}
@@ -1547,6 +1691,7 @@ MonoBehaviour:
     - {fileID: 2441550063554292016, guid: b8c643a7bc2dc2447bec82764177790f, type: 3}
     - {fileID: 7982631550401836120, guid: b8c643a7bc2dc2447bec82764177790f, type: 3}
     - {fileID: 2468600645793229628, guid: b8c643a7bc2dc2447bec82764177790f, type: 3}
+    - {fileID: 1831038651667842900, guid: b8c643a7bc2dc2447bec82764177790f, type: 3}
   - key: prefabs/Item
     assets:
     - {fileID: 5101737429136821640, guid: 8a13709325e0a0541862959b0671cd62, type: 3}
@@ -1731,14 +1876,14 @@ MonoBehaviour:
     assets:
     - {fileID: 3237568724850068398, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
     - {fileID: 32046063211859198, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
-    - {fileID: 6610854709504745143, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
     - {fileID: 1372806960056359051, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
+    - {fileID: 6610854709504745143, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
     - {fileID: 8761478016833762441, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
+    - {fileID: 6838709870128061547, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
     - {fileID: 7057240704784985872, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
     - {fileID: 3193886222973988888, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
     - {fileID: 936503890131935460, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
     - {fileID: 7340510338110227078, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
-    - {fileID: 6838709870128061547, guid: d7c8053d2c105ee45a3cb8d69122df0f, type: 3}
   - key: prefabs/SettlementPanel
     assets:
     - {fileID: 591965810180052252, guid: 4249de73fa8bde347857f19c4a087002, type: 3}

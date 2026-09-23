@@ -278,3 +278,26 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 2e6ac0d762da74c4f817f209849ed7f5, type: 3}
     - {fileID: 21300000, guid: 2e6ac0d762da74c4f817f209849ed7f5, type: 3}
+    - {fileID: 0}
+  - key: Animations/Hero/Windclaw Ranger/Spine/WindclawRanger
+    assets:
+    - {fileID: 4900000, guid: d1323b8598fe4a6428e1edcf0f6a6cec, type: 3}
+    - {fileID: 2800000, guid: cc06a9730d23e7b42b64ff3bb780a2c4, type: 3}
+  - key: Animations/Hero/Windclaw Ranger/Spine/WindclawRanger.atlas
+    assets:
+    - {fileID: 4900000, guid: 111da33644c9f574da431cd0ab35eefc, type: 3}
+  - key: Animations/Hero/Windclaw Ranger/Spine/WindclawRanger2
+    assets:
+    - {fileID: 2800000, guid: 59179ef8a86d22446a7c614b90079402, type: 3}
+  - key: Animations/Hero/Windclaw Ranger/Spine/WindclawRanger_Atlas
+    assets:
+    - {fileID: 11400000, guid: ffc7ad032462df34dade4a40632cb726, type: 2}
+  - key: Animations/Hero/Windclaw Ranger/Spine/WindclawRanger_SkeletonData
+    assets:
+    - {fileID: 11400000, guid: a9a4c45457d0c4a42978dc4774f5eb1e, type: 2}
+  - key: Animations/Hero/Windclaw Ranger/Spine/WindclawRanger_WindclawRanger
+    assets:
+    - {fileID: 2100000, guid: ca2d9e07b00645f45a676b2a35bd2f25, type: 2}
+  - key: Animations/Hero/Windclaw Ranger/Spine/WindclawRanger_WindclawRanger2
+    assets:
+    - {fileID: 2100000, guid: be42f75421b5dc5429348ae578a645b4, type: 2}

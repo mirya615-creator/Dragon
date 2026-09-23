@@ -21,6 +21,12 @@ namespace DragonBound.Presentation
         private const string WinterveilMarkSpritePath = "VFX/Item/微信图片_20260909164615_606_101";
         private const string DeathVfxName = "ART_EnemyDeathVFX";
         private const string DeathControllerResourcePath = "Animation/DieBoom";
+        private const string DeathControllerResourcePathV2 = "Animations/Enemy/EnemyDie";
+        private static readonly string[] DeathControllerResourcePaths =
+        {
+            DeathControllerResourcePathV2,
+            DeathControllerResourcePath
+        };
         private const string StormShieldVfxName = "ART_StormShieldVFX";
         private const string StormShieldControllerResourcePath = "Animation/ShieldShieldW";
         private const string StormShieldFirstFrameResourcePath = "VFX/ShieldShieldW/Shield_O4_0";
@@ -737,7 +743,7 @@ namespace DragonBound.Presentation
             if (!deathAnimationControllerLoaded)
             {
                 deathAnimationController =
-                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(DeathControllerResourcePath);
+                    LoadFirstRegistered<RuntimeAnimatorController>(DeathControllerResourcePaths);
                 deathAnimationControllerLoaded = true;
             }
 
@@ -754,6 +760,37 @@ namespace DragonBound.Presentation
                     $"Enemy death presentation requires Resources/{DeathControllerResourcePath}.controller.",
                     this);
             }
+        }
+        private static T LoadFirstRegistered<T>(string[] keys) where T : UnityEngine.Object
+        {
+            var registry = UiAssets.Active;
+            if (registry != null)
+            {
+                for (var index = 0; index < keys.Length; index++)
+                {
+                    var asset = registry.Load<T>(keys[index]);
+                    if (asset != null)
+                    {
+                        return asset;
+                    }
+                }
+
+                return null;
+            }
+
+#if UNITY_EDITOR
+            // Registry-less editor fallback keeps mirrors UiAssets.Load before the migration.
+            for (var index = 0; index < keys.Length; index++)
+            {
+                var fallback = Resources.Load<T>(keys[index]);
+                if (fallback != null)
+                {
+                    return fallback;
+                }
+            }
+#endif
+
+            return null;
         }
 
         private void UpdateHitShake()
