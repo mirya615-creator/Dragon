@@ -65,6 +65,9 @@ namespace DragonBound.Presentation
         [SerializeField, Min(0.01f)] private float hitShakeDuration = 0.16f;
         [SerializeField, Min(0f)] private float hitShakeDistance = 8f;
         [SerializeField, Min(1f)] private float bossHitShakeMultiplier = 1.6f;
+        [SerializeField, Range(0.05f, 0.9f)] private float hitShakeRecoilPortion = 0.3f;
+        [SerializeField, Range(0f, 30f)] private float hitShakeLeanDegrees = 10f;
+        [SerializeField, Range(0f, 0.5f)] private float hitShakeFootRatio = 0f;
         [Header("Authored presentation")]
         [SerializeField] private bool preserveAuthoredColor = true;
         [SerializeField] private bool preserveAuthoredSprite;
@@ -111,6 +114,8 @@ namespace DragonBound.Presentation
         private Vector2 authoredWaveAnimationPosition;
         private bool waveAnimationPositionCaptured;
         private float hitShakeRemaining;
+        private Vector2 hitShakeBackward = Vector2.left;
+        private Quaternion authoredWaveAnimationRotation = Quaternion.identity;
         private bool boundAsBoss;
         private int boundWaveAnimationIndex = -1;
         private Color normalColor;
@@ -552,6 +557,7 @@ namespace DragonBound.Presentation
             deathSequenceElapsed = 0f;
             deathHealthBarHidden = false;
             hitShakeRemaining = 0f;
+            RestoreAuthoredWaveAnimation();
 
             SetFrostcrownMarked(false);
             SetFrostMireMarked(false);
@@ -575,6 +581,7 @@ namespace DragonBound.Presentation
 
             // Restart from the prefab-authored origin so rapid hits never accumulate drift.
             waveAnimationRoot.anchoredPosition = authoredWaveAnimationPosition;
+            waveAnimationRoot .localRotation = authoredWaveAnimationRotation;
             hitShakeRemaining = Mathf.Max(0.01f, hitShakeDuration);
         }
 
@@ -593,6 +600,7 @@ namespace DragonBound.Presentation
             var scale = authoredWaveAnimationScale;
             scale.x = mirrored ? -scale.x : scale.x;
             waveAnimationRoot.localScale = scale;
+            hitShakeBackward = mirrored ? Vector2.right : Vector2.left;
         }
 
         private void Update()
@@ -758,17 +766,59 @@ namespace DragonBound.Presentation
             var duration = Mathf.Max(0.01f, hitShakeDuration);
             hitShakeRemaining = Mathf.Max(0f, hitShakeRemaining - Time.deltaTime);
             var progress = 1f - (hitShakeRemaining / duration);
-            var attenuation = 1f - progress;
-            var distance = hitShakeDistance * (boundAsBoss ? bossHitShakeMultiplier : 1f);
-            var horizontal = Mathf.Sin(progress * Mathf.PI * 6f) * distance * attenuation;
-            var vertical = Mathf.Sin(progress * Mathf.PI * 8f) * distance * 0.3f * attenuation;
+
+            // One-shot recoil lean: rotate around the foot point, then settle home.
+            // The card root keeps advancing along the lane; only the body leans
+            // back, so a hit reads as being staggered, not shoved sideways.
+            var recoilPortion = Mathf.Clamp(hitShakeRecoilPortion, 0.05f, 0.9f);
+            float push;
+            if (progress < recoilPortion)
+            {
+                var t = progress / recoilPortion;
+                push = 1f - ((1f - t) * (1f - t));
+            }
+            else
+            {
+                var t = (progress - recoilPortion) / (1f - recoilPortion);
+                push = 1f - (t * t * (3f - 2f * t));
+            }
+
+            var maxRadians = Mathf.Max(0f, hitShakeLeanDegrees) * Mathf.Deg2Rad *
+                (boundAsBoss ? bossHitShakeMultiplier : 1f);
+            var angle = -hitShakeBackward.x * maxRadians * push;
+
+            waveAnimationRoot.localRotation = authoredWaveAnimationRotation *
+                Quaternion.Euler(0f, 0f, angle * Mathf.Rad2Deg);
+
+            // The pivot sits at the card center: compensate the position so the
+            // foot point stays anchored in parent space while the body rotates.
+            var scale = waveAnimationRoot.localScale;
+            var footArm = Mathf.Abs(scale.y) * waveAnimationRoot.rect.height *
+                (0.5f - Mathf.Clamp(hitShakeFootRatio, 0f, 0.5f));
+            var sin = Mathf.Sin(angle);
+            var cos = Mathf.Cos(angle);
             waveAnimationRoot.anchoredPosition =
-                authoredWaveAnimationPosition + new Vector2(horizontal, vertical);
+                authoredWaveAnimationPosition + new Vector2(-footArm * sin, footArm * (cos - 1f));
 
             if (hitShakeRemaining <= 0f)
             {
+                RestoreAuthoredWaveAnimation();
+            }
+        }
+
+        private void RestoreAuthoredWaveAnimation()
+        {
+            if (waveAnimationRoot == null)
+            {
+                return;
+            }
+
+            if (waveAnimationPositionCaptured)
+            {
                 waveAnimationRoot.anchoredPosition = authoredWaveAnimationPosition;
             }
+
+            waveAnimationRoot.localRotation = authoredWaveAnimationRotation;
         }
 
         private void OnDisable()
@@ -778,10 +828,7 @@ namespace DragonBound.Presentation
             SetWinterveilMarked(false);
             HideStormShieldVisual();
             hitShakeRemaining = 0f;
-            if (waveAnimationRoot != null && waveAnimationPositionCaptured)
-            {
-                waveAnimationRoot.anchoredPosition = authoredWaveAnimationPosition;
-            }
+            RestoreAuthoredWaveAnimation();
         }
 
         private void UpdateStormShieldVisual(float shieldHitPoints)
@@ -1071,6 +1118,7 @@ namespace DragonBound.Presentation
             if (waveAnimationRoot != null && !waveAnimationPositionCaptured)
             {
                 authoredWaveAnimationPosition = waveAnimationRoot.anchoredPosition;
+                authoredWaveAnimationRotation = waveAnimationRoot.localRotation;
                 waveAnimationPositionCaptured = true;
             }
 
