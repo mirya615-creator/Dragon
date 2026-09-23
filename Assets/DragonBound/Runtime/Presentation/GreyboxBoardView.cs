@@ -23,12 +23,11 @@ namespace DragonBound.Presentation
         private const float MirroredUnitArtAnchoredPositionX = -38f;
         private const float MirroredHeroArtAnchoredPositionX = 13f;
         private const float AttackFacingHorizontalDeadZone = 0.5f;
-        private const float DeploymentFlightDuration = 0.34f;
-        private const float DeploymentArcHeightInCells = 0.8f;
-        private const float SwapReturnArcHeightInCells = -0.55f;
-        private const float LandingSquashDuration = 0.07f;
-        private const float LandingReboundDuration = 0.08f;
-        private const float LandingSettleDuration = 0.10f;
+        private const float DeploymentFlightDuration = 0.20f;
+        private const float DeploymentArcHeightInCells = 0.4f;
+        private const float SwapReturnArcHeightInCells = -0.25f;
+        private const float LandingPressPixels = 3f;
+        private const float LandingSettleDuration = 0.06f;
         private const float SynthesisComponentFadeDuration = 0.08f;
         private const float SynthesisComponentEndScale = 0.8f;
         private const float DragTargetSwitchHysteresisPixels = 12f;
@@ -111,6 +110,8 @@ namespace DragonBound.Presentation
             public Coroutine Routine;
             public DraggableUnitView Ghost;
             public Vector3 BaseScale = Vector3.one;
+            public Vector2 BaseAnchoredPosition;
+            public bool HasBaseAnchoredPosition;
             public bool HideCommittedView = true;
             public bool OwnsCombatSuspension;
         }
@@ -1177,11 +1178,7 @@ namespace DragonBound.Presentation
                     (inverse * inverse * start) +
                     (2f * inverse * eased * control) +
                     (eased * eased * target);
-                var liftScale = 1f + (Mathf.Sin(progress * Mathf.PI) * 0.06f);
-                ghostRect.localScale = new Vector3(
-                    ghostBaseScale.x * liftScale,
-                    ghostBaseScale.y * liftScale,
-                    ghostBaseScale.z);
+                ghostRect.localScale = ghostBaseScale;
                 yield return null;
             }
 
@@ -1202,21 +1199,17 @@ namespace DragonBound.Presentation
             var landedRect = landedView.RectTransform;
             var baseScale = landedRect.localScale;
             state.BaseScale = baseScale;
-            yield return AnimateDeploymentScale(
-                landedRect,
-                baseScale,
-                new Vector2(1.16f, 0.78f),
-                LandingSquashDuration);
-            yield return AnimateDeploymentScale(
-                landedRect,
-                baseScale,
-                new Vector2(0.92f, 1.10f),
-                LandingReboundDuration);
-            yield return AnimateDeploymentScale(
-                landedRect,
-                baseScale,
-                Vector2.one,
-                LandingSettleDuration);
+            state.BaseAnchoredPosition = landedRect.anchoredPosition;
+            state.HasBaseAnchoredPosition = true;
+
+            // Landing press: a single-frame downward nudge instead of a scale
+            // squash. A pure offset reads as weight and can never read as a
+            // spring, because scale never leaves 1 in the first place.
+            landedRect.anchoredPosition =
+                state.BaseAnchoredPosition - new Vector2(0f, LandingPressPixels);
+            yield return null;
+            landedRect.anchoredPosition = state.BaseAnchoredPosition;
+
             FinishDeploymentAnimation(runtimeId, state);
         }
 
@@ -1371,6 +1364,10 @@ namespace DragonBound.Presentation
             {
                 view.SetDeploymentVisualHidden(false);
                 view.RectTransform.localScale = state.BaseScale;
+                if (state.HasBaseAnchoredPosition)
+                {
+                    view.RectTransform.anchoredPosition = state.BaseAnchoredPosition;
+                }
             }
         }
 
@@ -1394,6 +1391,10 @@ namespace DragonBound.Presentation
             {
                 view.SetDeploymentVisualHidden(false);
                 view.RectTransform.localScale = state.BaseScale;
+                if (state.HasBaseAnchoredPosition)
+                {
+                    view.RectTransform.anchoredPosition = state.BaseAnchoredPosition;
+                }
             }
             deploymentAnimations.Remove(runtimeId);
         }

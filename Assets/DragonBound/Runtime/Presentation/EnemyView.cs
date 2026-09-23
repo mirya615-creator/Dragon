@@ -63,7 +63,7 @@ namespace DragonBound.Presentation
         [SerializeField, Min(0.01f)] private float deathHealthDecreaseDuration = 0.12f;
         [Header("Hit reaction")]
         [SerializeField, Min(0.01f)] private float hitShakeDuration = 0.16f;
-        [SerializeField, Min(0f)] private float hitShakeDistance = 8f;
+        //[SerializeField, Min(0f)] private float hitShakeDistance = 8f;
         [SerializeField, Min(1f)] private float bossHitShakeMultiplier = 1.6f;
         [SerializeField, Range(0.05f, 0.9f)] private float hitShakeRecoilPortion = 0.3f;
         [SerializeField, Range(0f, 30f)] private float hitShakeLeanDegrees = 10f;
