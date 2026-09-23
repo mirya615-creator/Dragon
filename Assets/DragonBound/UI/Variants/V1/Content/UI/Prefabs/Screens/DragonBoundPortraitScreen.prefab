@@ -6850,8 +6850,10 @@ MonoBehaviour:
   healthIncreaseDuration: 0.35
   deathHealthDecreaseDuration: 0.12
   hitShakeDuration: 0.12
-  hitShakeDistance: 5
   bossHitShakeMultiplier: 1.5
+  hitShakeRecoilPortion: 0.3
+  hitShakeLeanDegrees: 10
+  hitShakeFootRatio: 0
   preserveAuthoredColor: 1
   preserveAuthoredSprite: 0
   preserveAuthoredSize: 1
@@ -40873,8 +40875,10 @@ MonoBehaviour:
   healthIncreaseDuration: 0.35
   deathHealthDecreaseDuration: 0.12
   hitShakeDuration: 0.12
-  hitShakeDistance: 5
   bossHitShakeMultiplier: 1.5
+  hitShakeRecoilPortion: 0.3
+  hitShakeLeanDegrees: 10
+  hitShakeFootRatio: 0
   preserveAuthoredColor: 1
   preserveAuthoredSprite: 0
   preserveAuthoredSize: 1

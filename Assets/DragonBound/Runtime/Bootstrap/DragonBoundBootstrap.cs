@@ -37,7 +37,9 @@ namespace DragonBound.Bootstrap
         [SerializeField, Range(1, 10)] private int localPlayerRankLevel = 1;
         [SerializeField] private RecruitComponentPolicy recruitComponentPolicy = RecruitComponentPolicy.V3;
         [SerializeField, Min(20)] private int heroSliceStartingResources = 500;
-        [SerializeField, Min(0.05f)] private float aiBoardActionIntervalSeconds = 0.2f;
+        [SerializeField, Min(0.05f)] private float aiBoardActionIntervalSeconds = 0.25f;
+        [SerializeField, Min(0.05f)] private float aiFlightSeconds = 0.14f;
+        [SerializeField, Min(0f)] private float aiOpeningDecisionDelaySeconds = 3f;
         [SerializeField] private DragonBoundScreenView screenView;
 
         public MatchController Match { get; private set; }
@@ -678,7 +680,7 @@ namespace DragonBound.Bootstrap
                 AiShovelUnlocks,
                 Match.AI);
             AiProfile = AiStrategyProfile.Get(AiProfileId);
-            AiDecisionScheduler = new AiDecisionScheduler(AiProfile, aiDecisionSeed);
+            AiDecisionScheduler = new AiDecisionScheduler(AiProfile, aiDecisionSeed, aiOpeningDecisionDelaySeconds);
             AiController.ConfigureStrategy(AiProfile, aiDecisionSeed);
             PlayerLayoutStatistics = new GreyboxRunStatistics(
                 BattlefieldLayout.LayoutId,
@@ -1092,8 +1094,8 @@ namespace DragonBound.Bootstrap
 
             if (AiController.TryExecuteStepwiseCycleStep(out var action))
             {
-                var interval = Mathf.Max(0.05f, aiBoardActionIntervalSeconds);
-                AiBoardView?.RefreshUnits(action, interval * 0.85f);
+                var interval = GetAiActionIntervalSeconds(action.Type);
+                AiBoardView?.RefreshUnits(action, aiFlightSeconds);
                 aiBoardActionRemaining = interval;
             }
             else
@@ -1103,6 +1105,19 @@ namespace DragonBound.Bootstrap
 
             return AiController.IsStepwiseCycleActive;
         }
+
+        private float GetAiActionIntervalSeconds(AiBoardActionType type)
+        {
+            switch (type)
+            {
+                case AiBoardActionType.UseForgePick: return 0.85f;
+                case AiBoardActionType.FormHero: return 0.70f;
+                case AiBoardActionType.MergeBasicUnit: return 0.50f;
+                case AiBoardActionType.Recruit: return 0.12f;
+                default: return Mathf.Max(0.05f, aiBoardActionIntervalSeconds);
+            }
+        }
+
 
         private void OnDestroy()
         {

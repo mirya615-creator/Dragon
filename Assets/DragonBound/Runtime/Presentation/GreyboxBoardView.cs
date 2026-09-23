@@ -698,7 +698,7 @@ namespace DragonBound.Presentation
         /// </summary>
         public void RefreshUnits(AiBoardAction action, float transitionSeconds)
         {
-            _ = transitionSeconds;
+            var flightSeconds = transitionSeconds > 0f ? transitionSeconds : DeploymentFlightDuration;
             var sourceWorld = Vector3.zero;
             var targetWorld = Vector3.zero;
             var canAnimate = action.HasSource && action.HasTarget &&
@@ -719,10 +719,11 @@ namespace DragonBound.Presentation
             }
 
             PlayDeploymentFlight(
-                action.RuntimeId,
-                sourceWorld,
-                targetWorld,
-                DeploymentArcHeightInCells);
+               action.RuntimeId,
+               sourceWorld,
+               targetWorld,
+               DeploymentArcHeightInCells,
+               flightSeconds);
             if (!string.IsNullOrWhiteSpace(swappedUnitId) &&
                 !string.Equals(swappedUnitId, action.RuntimeId, StringComparison.Ordinal))
             {
@@ -730,7 +731,8 @@ namespace DragonBound.Presentation
                     swappedUnitId,
                     targetWorld,
                     sourceWorld,
-                    SwapReturnArcHeightInCells);
+                    SwapReturnArcHeightInCells,
+                    flightSeconds);
             }
         }
 
@@ -1099,7 +1101,8 @@ namespace DragonBound.Presentation
             string runtimeId,
             Vector3 startWorld,
             Vector3 targetWorld,
-            float arcHeightInCells)
+            float arcHeightInCells,
+            float durationSeconds = -1f)
         {
             if (string.IsNullOrWhiteSpace(runtimeId) ||
                 !unitViews.TryGetValue(runtimeId, out var committedView) ||
@@ -1141,7 +1144,8 @@ namespace DragonBound.Presentation
                 state,
                 startWorld,
                 targetWorld,
-                arcHeightInCells));
+                arcHeightInCells,
+                durationSeconds));
         }
 
         private IEnumerator AnimateDeploymentFlight(
@@ -1149,8 +1153,10 @@ namespace DragonBound.Presentation
             DeploymentAnimationState state,
             Vector3 startWorld,
             Vector3 targetWorld,
-            float arcHeightInCells)
+            float arcHeightInCells,
+            float durationSeconds = -1f)
         {
+            var duration = durationSeconds > 0f ? durationSeconds : DeploymentFlightDuration;
             var ghostRect = state.Ghost != null ? state.Ghost.RectTransform : null;
             var fxLayer = ghostRect != null ? ghostRect.parent as RectTransform : null;
             if (ghostRect == null || fxLayer == null)
@@ -1168,10 +1174,10 @@ namespace DragonBound.Presentation
                           (Vector3.up * arcHeight * Mathf.Sign(arcHeightInCells));
             var ghostBaseScale = ghostRect.localScale;
             var elapsed = 0f;
-            while (ghostRect != null && elapsed < DeploymentFlightDuration)
+            while (ghostRect != null && elapsed < duration)
             {
                 elapsed += Time.unscaledDeltaTime;
-                var progress = Mathf.Clamp01(elapsed / DeploymentFlightDuration);
+                var progress = Mathf.Clamp01(elapsed / duration);
                 var eased = 1f - Mathf.Pow(1f - progress, 3f);
                 var inverse = 1f - eased;
                 ghostRect.localPosition =

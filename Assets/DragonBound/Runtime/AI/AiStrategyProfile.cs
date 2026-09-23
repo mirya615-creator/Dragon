@@ -90,12 +90,14 @@ namespace DragonBound.AI
     {
         private readonly AiStrategyProfile profile;
         private readonly IRunRandom random;
+        private readonly float openingDelaySeconds;
         private float remainingSeconds;
         private int intervalOrdinal;
 
-        public AiDecisionScheduler(AiStrategyProfile profile, int decisionSeed)
+        public AiDecisionScheduler(AiStrategyProfile profile, int decisionSeed, float openingDelaySeconds = 0f)
         {
             this.profile = profile ?? throw new ArgumentNullException(nameof(profile));
+            this.openingDelaySeconds = openingDelaySeconds > 0f ? openingDelaySeconds : 0f;
             random = new RunRandom(decisionSeed);
             Reset();
         }
@@ -122,6 +124,17 @@ namespace DragonBound.AI
 
         private void ScheduleNext()
         {
+            // First decision of the run can be held back by a fixed opening delay so the AI does
+            // not start deploying the instant the player gains control. The ordinal is still
+            // consumed here so every later decision keeps drawing the same random sequence.
+            if (intervalOrdinal == 0 && openingDelaySeconds > 0f)
+            {
+                intervalOrdinal++;
+                CurrentIntervalSeconds = openingDelaySeconds;
+                remainingSeconds = openingDelaySeconds;
+                return;
+            }
+
             float unit = random.NextUnit("ai.decision.interval." + intervalOrdinal++);
             float multiplier = 0.85f + (unit * 0.30f);
             CurrentIntervalSeconds = profile.DecisionIntervalSeconds * multiplier;

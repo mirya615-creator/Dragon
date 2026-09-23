@@ -33,6 +33,7 @@
 ## Greybox_Main 加载链路
 场景激活 → `DragonBoundBootstrap.InitializeRuntime`（可 defer 等 snapshot）→ Match 状态机 Ready（停 1s）→ `TwentyWave.StartRun()` → TryTransition(Running) → BeginWave(1)。API：`bootstrap.Match/State/StateChanged/IsInitialized/InitializationFailed`。
 `Scripts/UI/GameplayLoadingPanelController.cs` 自动挂 LoadingPanel（复用 `Canvas/LoadingPanel/BG`）→ Running 隐藏，20s 兜底。SceneLoader 仅 Login 解析 LoadingImg。
+- **Bootstrap 组件挂哪个对象**：V1/V2 `Greybox_Main.unity` 里都挂在名为 **`Systems`** 的**场景根节点**上（`m_Father: 0`、无子节点，V1/V2 的 GameObject fileID 均为 649599053）；Hierarchy 搜 `t:DragonBoundBootstrap` 可直达。其 `[SerializeField]` 值在两个场景各存一份（如 `aiBoardActionIntervalSeconds: 0.2`），**改代码默认值不会覆盖已有场景实例**，必须分别开两个场景改 Inspector 并 Ctrl+S 才会写回 YAML；新增字段要等 Unity 反序列化保存后才出现在场景文件里。
 
 ## Forgekeeper's Gift（2026-09-12 落地）
 - ID：商店 `ITEM_FORGEGIFTERS_GIFT`（typo 保留）/ 运行时 `ITEM_FORGEKEEPERS_GIFT`，`DevelopmentItemRunSnapshotProvider.cs:16` 字典兼容。120 金、Legendary、Passive、**金币可买可带入 Run**。
