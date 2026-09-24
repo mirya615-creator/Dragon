@@ -4,6 +4,7 @@ using DragonBound.Core;
 using GameShared.Settings;
 using UnityEngine;
 using UnityEngine.UI;
+using Spine.Unity;
 
 namespace DragonBound.Presentation
 {
@@ -106,6 +107,14 @@ namespace DragonBound.Presentation
         // last frame at x136/150 (~9.3% blank on each side). Divide the gameplay length by this  
         // ratio so the \*visible\* stroke actually lands on the enemy. Visual only.  
         private const float RuneboltMagePathVisualPaddingRatio = 0.9f;
+        [SerializeField]
+        private string runeboltMageSpineProjectileKey =
+    "Animations/Hero/Runebolt Mage/normal/VFX/Spine/Attack_SkeletonData";
+        [SerializeField] private string runeboltMageSpineProjectileAnimation = "Attack";
+        [SerializeField, Min(1f)] private float runeboltMageSpineReferenceLength = 273f;
+        [SerializeField, Min(0f)] private float runeboltMageSpineOriginOffset = 17.3f;
+        [SerializeField, Min(0.02f)] private float runeboltMageSpineHitProgressDuration = 0.12f;
+        private SkeletonDataAsset runeboltMageSpineProjectileSkeleton;
         private const float RuneboltMageMaximumPathLength = 550f;
         [SerializeField, Min(0f)] private float runeboltMagePathVisualOvershoot = 55f;
         [SerializeField, Min(0f)] private float runeboltMagePathHoldDuration = 0.12f;
@@ -870,11 +879,326 @@ namespace DragonBound.Presentation
 
         }
 
+        // Probe silently: V1 has no V2 key, so a miss is expected (and must fall back to the
+
+        // Animator path) rather than log an error. UiAssets.Load<T> logs; the instance API
+
+        // UiAssetRegistry.Load<T> does not.
+
+        private SkeletonDataAsset ResolveRuneboltMageSpineProjectile()
+
+        {
+
+            if (runeboltMageSpineProjectileSkeleton != null)
+
+            {
+
+                return runeboltMageSpineProjectileSkeleton;
+
+            }
+
+
+
+            if (string.IsNullOrWhiteSpace(runeboltMageSpineProjectileKey))
+
+            {
+
+                return null;
+
+            }
+
+
+
+            var registry = DragonBound.Presentation.UiAssets.Active;
+
+            if (registry == null)
+
+            {
+
+                return null;
+
+            }
+
+
+
+            runeboltMageSpineProjectileSkeleton =
+
+                registry.Load<SkeletonDataAsset>(runeboltMageSpineProjectileKey);
+
+            return runeboltMageSpineProjectileSkeleton;
+
+        }
+
+
+
+        // Returns true when the Spine clip handled the beam (even on early-outs), so the caller
+
+        // keeps the old 6-frame Animator beam only when there is no Spine art at all.
+
+        private bool TrySpawnRuneboltMageSpineBolt(
+
+            PendingRuneboltMageCast pending,
+
+            Vector3 attackerPosition)
+
+        {
+
+            var skeletonData = ResolveRuneboltMageSpineProjectile();
+
+            if (skeletonData == null)
+
+            {
+
+                // No Spine art registered (e.g. V1): fall through to the Animator beam.
+
+                return false;
+
+            }
+
+
+
+            if (pending.Shots.Count == 0)
+
+            {
+
+                return true;
+
+            }
+
+
+
+            // Draw against where the enemies are RIGHT NOW: the FX is released by a fallback
+
+            // timer, so the damage-frame snapshot can be a quarter-cell stale.
+
+            RefreshRuneboltMageTargetPositions(pending);
+
+            pending.SortByDistance(attackerPosition);
+
+
+
+            // Shots is sorted NEAREST-FIRST, so the last entry is the farthest target.
+
+            var farthestShot = pending.Shots[pending.Shots.Count - 1];
+
+            var direction = farthestShot.TargetPosition - attackerPosition;
+
+            if (direction.sqrMagnitude <= 0.0001f)
+
+            {
+
+                CompleteRuneboltMageCast(pending);
+
+                return true;
+
+            }
+
+
+
+            direction.Normalize();
+
+
+
+            var start = attackerPosition + (direction * 8f);
+
+
+
+            // Gameplay length: the ONLY value the damage / impact timeline reads. The 5-cell
+
+            // pierce (RuneboltMageMaximumPathLength = 550) is untouched.
+
+            var travelDistance = Mathf.Clamp(
+
+                Vector3.Distance(farthestShot.TargetPosition, start),
+
+                1f,
+
+                RuneboltMageMaximumPathLength);
+
+
+
+            // Visual-only stretch. The Spine clip owns its own length animation
+
+            // (sdj.scaleX 0.175 -> 1.81 -> 0.429), so length here is a uniform scale,
+
+            // NOT a sizeDelta.
+
+            var visualLength = travelDistance / RuneboltMagePathVisualPaddingRatio
+  
+                +runeboltMagePathVisualOvershoot;
+
+
+
+            pending.ConfigurePath(start, direction, travelDistance);
+
+
+
+            var scale = visualLength / Mathf.Max(1f, runeboltMageSpineReferenceLength);
+
+
+
+            var parent = fixedBoardCanvas != null && fixedBoardCanvas.CombatFxLayer != null
+
+                ? fixedBoardCanvas.CombatFxLayer
+
+                : transform;
+
+
+
+            var root = new GameObject(
+
+                "Runebolt Mage Spine Path",
+
+                typeof(RectTransform),
+
+                typeof(CanvasRenderer),
+
+                typeof(SkeletonGraphic));
+
+            var rect = root.GetComponent<RectTransform>();
+
+            rect.SetParent(parent, false);
+
+
+
+            // DO NOT set pivot or sizeDelta: SkeletonGraphic.SetRectTransformBounds() overwrites
+
+            // both on every mesh update so that the rect pivot always sits exactly on the
+
+            // skeleton origin. That makes rect.position THE skeleton origin in world space.
+
+            rect.localRotation = Quaternion.Euler(
+
+                0f,
+
+                0f,
+
+                Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
+
+            // Mirror on Y when firing left: a 180 deg rotation would otherwise flip the beam.
+
+            var flipY = direction.x < 0f;
+
+            rect.localScale = new Vector3(scale, flipY ? -scale : scale, 1f);
+
+            rect.position = start - (direction *(runeboltMageSpineOriginOffset *scale));
+
+
+
+            var graphic = root.GetComponent<SkeletonGraphic>();
+
+            graphic.raycastTarget = false;
+
+            graphic.skeletonDataAsset = skeletonData;
+
+            graphic.Initialize(true);
+
+
+
+            var entry = graphic.AnimationState.SetAnimation(
+
+                0,
+
+                runeboltMageSpineProjectileAnimation,
+
+                false);
+
+            graphic.AnimationState.AddEmptyAnimation(0, 0f, 0f);
+
+            graphic.Update(0f);
+
+
+
+            var clipLength = entry != null && entry.Animation != null
+
+                ? Mathf.Max(0.01f, entry.Animation.Duration)
+
+                : 0.6667f;
+
+            var fadeDuration = Mathf.Min(
+
+                Mathf.Max(0.01f, runeboltMagePathFadeDuration),
+
+                clipLength * 0.5f);
+
+
+
+            active.Add(new ActiveFx(
+
+                rect,
+
+                graphic,
+
+                null,
+
+                start,
+
+                start,
+
+                false,
+
+                false,
+
+                clipLength,
+
+                false,
+
+                () => CompleteRuneboltMageCast(pending),
+
+                0f,
+
+                false,
+
+                0f,
+
+                normalized =>
+
+                {
+
+                    var elapsed = normalized * clipLength;
+
+                    // Impacts ride the beam tip: they fire while the clip is still extending.
+
+                    var pathProgress = Mathf.Clamp01(
+
+                        elapsed / Mathf.Max(0.01f, runeboltMageSpineHitProgressDuration));
+
+                    CompleteRuneboltMageHitsThrough(pending, pathProgress);
+
+
+
+                    var fadeStart = clipLength - fadeDuration;
+
+                    var alpha = elapsed <= fadeStart
+
+                        ? 1f
+
+                        : 1f - Mathf.Clamp01((elapsed - fadeStart) / fadeDuration);
+
+                    var color = graphic.color;
+
+                    color.a = alpha;
+
+                    graphic.color = color;
+
+                }));
+
+
+
+            return true;
+
+        }
+
+
         private void SpawnRuneboltMageBolt(
             PendingRuneboltMageCast pending,
             Vector3 attackerPosition)
         {
             if (pending.Shots.Count == 0)
+            {
+                return;
+            }
+            if (TrySpawnRuneboltMageSpineBolt(pending, attackerPosition))
             {
                 return;
             }
@@ -4986,7 +5310,7 @@ namespace DragonBound.Presentation
         {
             public ActiveFx(
                 RectTransform root,
-                Image image,
+                Graphic  image,
                 Text label,
                 Vector3 start,
                 Vector3 end,
@@ -5020,7 +5344,7 @@ namespace DragonBound.Presentation
             }
 
             public RectTransform Root { get; }
-            public Image Image { get; }
+            public Graphic  Image { get; }
             public Text Label { get; }
             public Vector3 Start { get; }
             public Vector3 End { get; }

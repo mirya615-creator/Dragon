@@ -2228,7 +2228,8 @@ var visualLength = Mathf.Max(
 
 ### 步骤 1：新增 overshoot 字段
 
-在 **第 109 行** `private const float RuneboltMageMaximumPathLength = 550f;` 之后、  
+在 **第 109 行** `private const float RuneboltMageMaximumPathLength = 550f;` 之后、
+
 **第 110 行** `[SerializeField, Min(0f)] private float runeboltMagePathHoldDuration = 0.12f;` 之前插入：
 
 ```csharp
@@ -2238,7 +2239,8 @@ var visualLength = Mathf.Max(
         [SerializeField, Min(0f)] private float runeboltMagePathVisualOvershoot = 55f;
 ```
 
-> 单位是世界 UI 单位，**1 格 = 110**。55 = 0.5 格，82 = 0.75 格，110 = 1 格。>   
+> 单位是世界 UI 单位，**1 格 = 110**。55 = 0.5 格，82 = 0.75 格，110 = 1 格。
+>
 > 建议从 **55** 起步。
 
 ### 步骤 2：把 overshoot 加进视觉长度
@@ -2260,7 +2262,8 @@ var visualLength = Mathf.Max(
 
 ### 步骤 3（可选）：给视觉长度加个硬上限
 
-当前 550 只 clamp `travelDistance`，`visualLength` 没有上限，最坏能到 550/0.9+110 = 721，  
+当前 550 只 clamp `travelDistance`，`visualLength` 没有上限，最坏能到 550/0.9+110 = 721，
+
 会画到屏幕外。想兜底的话，把步骤 2 的那两行换成：
 
 ```csharp
@@ -2275,12 +2278,16 @@ var visualLength = Mathf.Max(
 
 ### 步骤 4（可选）：V1 不想被影响就设 0
 
-新字段是 `[SerializeField]`，Unity 会用代码默认值 55，**V1 场景也会生效**。  
-若只想改 V2：打开 V1 场景 → 选中 `Systems` 上的 `CombatFxView` →  
+新字段是 `[SerializeField]`，Unity 会用代码默认值 55，**V1 场景也会生效**。
+
+若只想改 V2：打开 V1 场景 → 选中 `Systems` 上的 `CombatFxView` →
+
 把 `Runebolt Mage Path Visual Overshoot` 改成 **0** → Ctrl+S。
 
-> ⚠️ 老坑：改完代码默认值后，**必须**打开 V2 场景 `Greybox_Main`，在 `Systems` 的>   
-> `CombatFxView` Inspector 里确认该字段显示为 **55**（而不是 0），然后 Ctrl+S。>   
+> ⚠️ 老坑：改完代码默认值后，**必须**打开 V2 场景 `Greybox_Main`，在 `Systems` 的
+>
+> `CombatFxView` Inspector 里确认该字段显示为 **55**（而不是 0），然后 Ctrl+S。
+>
 > 场景里的序列化值会覆盖代码默认值。
 
 ### 验证（临时日志，验完删掉）
@@ -2316,11 +2323,381 @@ var visualLength = Mathf.Max(
 
 ### 别忘了确认根因
 
-overshoot 只是把光柱**硬拉长**。如果"到不了最远敌人"的根因是  
-`FrozenHeroConfiguration.cs:611` 的 `RangeCells = 3.00`（只在 3 格内选最前敌人定方向），  
+overshoot 只是把光柱**硬拉长**。如果"到不了最远敌人"的根因是
+
+`FrozenHeroConfiguration.cs:611` 的 `RangeCells = 3.00`（只在 3 格内选最前敌人定方向），
+
 那么拉长后光柱会伸到**根本没受伤**的敌人身上，看着够了但语义是错的。
 
 配合第 20 节那条日志看 `shots` 数量：
 
 - `shots ≥ 2` 且 `boxEnd ≈ farthest` → 纯视觉问题，overshoot 就是正解
 - `shots` 长期 = 1 → 根因在玩法层，应把 `RangeCells` 3.00 提到 5.0 与 `PierceLength` 对齐
+
+## 24. 步骤 5 完整代码：ResolveRuneboltMageSpineProjectile() + TrySpawnRuneboltMageSpineBolt()
+
+### 24.1 插入位置
+
+`Assets/DragonBound/Runtime/Presentation/CombatFxView.cs`，插在 **`SpawnRuneboltMageBolt(...)` 方法结束的大括号之后、`SpawnRuneboltMageImpact(Vector3 position)` 之前**（当前文件约第 1050~1052 行之间）。
+
+调用点已就位（第 890 行）：
+
+```csharp
+if (TrySpawnRuneboltMageSpineBolt(pending, attackerPosition))
+{
+    return;
+}
+```
+
+### 24.2 前置条件（已完成，勿重复）
+
+| 项                              | 位置                        | 状态    |
+| ------------------------------ | ------------------------- | ----- |
+| `using Spine.Unity;`           | 第 7 行                     | ✅ 已有  |
+| 5 个新字段                         | 第 110~117 行               | ✅ 已有  |
+| `ActiveFx` 构造第 2 参改成 `Graphic` | 第 5002 行                  | ✅ 已有  |
+| V2 注册表含 4 个 Spine 键            | `UiAssetRegistryV2.asset` | ✅ 已生成 |
+
+### 24.3 关键 API 核实结论
+
+- `SkeletonGraphic.skeletonDataAsset` 是 **public 字段**（`SkeletonGraphic.cs:50`），可直接赋值。
+- `Initialize(bool overwrite)` 存在（`SkeletonGraphic.cs:500`）。
+- `AnimationState` 属性存在（`:380`）；`SetAnimation` 返回的 `TrackEntry.Animation.Duration` 可用（`Animation.cs:61`）。
+- **`SetRectTransformBounds()`（`SkeletonGraphic.cs:453-464`）会每帧覆写 `sizeDelta` 和 `pivot`**，把它设成 `pivot = 0.5 - center/size`。推导可知 **rect 的 pivot 点恰好等于 mesh 局部原点（即骨架原点）**，且逐帧保持该关系。
+
+  → 结论：**不要设 `pivot` / `sizeDelta`**，会被覆盖；`rect.position` 就是骨架原点的世界坐标。
+- `ActiveFx` 结束时 `Destroy(fx.Root.gameObject)`（`:481`），节点自动回收，无需手写销毁。
+
+### 24.4 长度换算推导
+
+```
+attachment 四角 x : 84.57 ± 75 → [9.57, 159.57]
+× sdj.scaleX 1.81 (动画峰值)   → [17.32, 288.82]   宽 271.5
+叠加层 scaleX 1.82             → [17.42, 290.32]   可见宽 ≈ 273
+```
+
+- `runeboltMageSpineReferenceLength = 273` —— 峰值可见宽度（mesh 局部单位）。
+- `runeboltMageSpineOriginOffset = 17.3` —— 骨架原点到光带左端的距离。
+- `scale = visualLength / 273`，`rect.position = start - direction * (17.3 * scale)`。
+
+### 24.5 完整代码（可直接复制）
+
+```csharp
+        // Probe silently: V1 has no V2 key, so a miss is expected (and must fall back to the
+        // Animator path) rather than log an error. UiAssets.Load<T> logs; the instance API
+        // UiAssetRegistry.Load<T> does not.
+        private SkeletonDataAsset ResolveRuneboltMageSpineProjectile()
+        {
+            if (runeboltMageSpineProjectileSkeleton != null)
+            {
+                return runeboltMageSpineProjectileSkeleton;
+            }
+
+            if (string.IsNullOrWhiteSpace(runeboltMageSpineProjectileKey))
+            {
+                return null;
+            }
+
+            var registry = DragonBound.Presentation.UiAssets.Active;
+            if (registry == null)
+            {
+                return null;
+            }
+
+            runeboltMageSpineProjectileSkeleton =
+                registry.Load<SkeletonDataAsset>(runeboltMageSpineProjectileKey);
+            return runeboltMageSpineProjectileSkeleton;
+        }
+
+        // Returns true when the Spine clip handled the beam (even on early-outs), so the caller
+        // keeps the old 6-frame Animator beam only when there is no Spine art at all.
+        private bool TrySpawnRuneboltMageSpineBolt(
+            PendingRuneboltMageCast pending,
+            Vector3 attackerPosition)
+        {
+            var skeletonData = ResolveRuneboltMageSpineProjectile();
+            if (skeletonData == null)
+            {
+                // No Spine art registered (e.g. V1): fall through to the Animator beam.
+                return false;
+            }
+
+            if (pending.Shots.Count == 0)
+            {
+                return true;
+            }
+
+            // Draw against where the enemies are RIGHT NOW: the FX is released by a fallback
+            // timer, so the damage-frame snapshot can be a quarter-cell stale.
+            RefreshRuneboltMageTargetPositions(pending);
+            pending.SortByDistance(attackerPosition);
+
+            // Shots is sorted NEAREST-FIRST, so the last entry is the farthest target.
+            var farthestShot = pending.Shots[pending.Shots.Count - 1];
+            var direction = farthestShot.TargetPosition - attackerPosition;
+            if (direction.sqrMagnitude <= 0.0001f)
+            {
+                CompleteRuneboltMageCast(pending);
+                return true;
+            }
+
+            direction.Normalize();
+
+            var start = attackerPosition + (direction * 8f);
+
+            // Gameplay length: the ONLY value the damage / impact timeline reads. The 5-cell
+            // pierce (RuneboltMageMaximumPathLength = 550) is untouched.
+            var travelDistance = Mathf.Clamp(
+                Vector3.Distance(farthestShot.TargetPosition, start),
+                1f,
+                RuneboltMageMaximumPathLength);
+
+            // Visual-only stretch. The Spine clip owns its own length animation
+            // (sdj.scaleX 0.175 -> 1.81 -> 0.429), so length here is a uniform scale,
+            // NOT a sizeDelta.
+            var visualLength = travelDistance / RuneboltMagePathVisualPaddingRatio
+                + runeboltMagePathVisualOvershoot;
+
+            pending.ConfigurePath(start, direction, travelDistance);
+
+            var scale = visualLength / Mathf.Max(1f, runeboltMageSpineReferenceLength);
+
+            var parent = fixedBoardCanvas != null && fixedBoardCanvas.CombatFxLayer != null
+                ? fixedBoardCanvas.CombatFxLayer
+                : transform;
+
+            var root = new GameObject(
+                "Runebolt Mage Spine Path",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(SkeletonGraphic));
+            var rect = root.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+
+            // DO NOT set pivot or sizeDelta: SkeletonGraphic.SetRectTransformBounds() overwrites
+            // both on every mesh update so that the rect pivot always sits exactly on the
+            // skeleton origin. That makes rect.position THE skeleton origin in world space.
+            rect.localRotation = Quaternion.Euler(
+                0f,
+                0f,
+                Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
+            // Mirror on Y when firing left: a 180 deg rotation would otherwise flip the beam.
+            var flipY = direction.x < 0f;
+            rect.localScale = new Vector3(scale, flipY ? -scale : scale, 1f);
+            rect.position = start - (direction * (runeboltMageSpineOriginOffset * scale));
+
+            var graphic = root.GetComponent<SkeletonGraphic>();
+            graphic.raycastTarget = false;
+            graphic.skeletonDataAsset = skeletonData;
+            graphic.Initialize(true);
+
+            var entry = graphic.AnimationState.SetAnimation(
+                0,
+                runeboltMageSpineProjectileAnimation,
+                false);
+            graphic.AnimationState.AddEmptyAnimation(0, 0f, 0f);
+            graphic.Update(0f);
+
+            var clipLength = entry != null && entry.Animation != null
+                ? Mathf.Max(0.01f, entry.Animation.Duration)
+                : 0.6667f;
+            var fadeDuration = Mathf.Min(
+                Mathf.Max(0.01f, runeboltMagePathFadeDuration),
+                clipLength * 0.5f);
+
+            active.Add(new ActiveFx(
+                rect,
+                graphic,
+                null,
+                start,
+                start,
+                false,
+                false,
+                clipLength,
+                false,
+                () => CompleteRuneboltMageCast(pending),
+                0f,
+                false,
+                0f,
+                normalized =>
+                {
+                    var elapsed = normalized * clipLength;
+                    // Impacts ride the beam tip: they fire while the clip is still extending.
+                    var pathProgress = Mathf.Clamp01(
+                        elapsed / Mathf.Max(0.01f, runeboltMageSpineHitProgressDuration));
+                    CompleteRuneboltMageHitsThrough(pending, pathProgress);
+
+                    var fadeStart = clipLength - fadeDuration;
+                    var alpha = elapsed <= fadeStart
+                        ? 1f
+                        : 1f - Mathf.Clamp01((elapsed - fadeStart) / fadeDuration);
+                    var color = graphic.color;
+                    color.a = alpha;
+                    graphic.color = color;
+                }));
+
+            return true;
+        }
+```
+
+### 24.6 与 Animator 版的三处差异（改错就跑偏）
+
+| 维度    | Animator 版                        | Spine 版                                   |
+| ----- | --------------------------------- | ----------------------------------------- |
+| 长度    | `rect.sizeDelta.x = visualLength` | `rect.localScale = visualLength / 273`    |
+| pivot | 显式设 `(0, 0.5)`                    | **不能设**，Spine 每帧覆写；`rect.position` = 骨架原点 |
+| 进度    | `clip.length`（需除 state speed）     | `entry.Animation.Duration`（0.6667）        |
+
+### 24.7 调参表
+
+| 现象           | 调哪个字段                                        | 方向         |
+| ------------ | -------------------------------------------- | ---------- |
+| 光柱比敌人短       | `runeboltMageSpineReferenceLength`（273）      | **调小**     |
+| 冲过头、盖住没掉血的敌人 | 同上                                           | 调大         |
+| 左端离英雄还有空档    | `runeboltMageSpineOriginOffset`（17.3）        | 调大         |
+| 爆闪比光柱快/慢     | `runeboltMageSpineHitProgressDuration`（0.12） | 上下调        |
+| 想统一加长/缩短     | `runeboltMagePathVisualOvershoot`（55）        | 55 = 0.5 格 |
+
+### 24.8 三个待观察点
+
+1. slot `sd/sdj1` 是 **additive**。叠加层不显示 → 查 `Attack_SkeletonData.asset` 的 `blendModeMaterials` 是否配了 Additive 材质。
+2. `sdj.scaleY` 是负值（-0.83），attachment 上下翻转。若图案仍颠倒，把 `flipY` 的逻辑取反。
+3. 动画 0.6667 s（原 0.3 s）且是 **stepped 瞬间伸长**。嫌拖沓就把 `clipLength` 换成 `Mathf.Min(clipLength, 0.35f)`；要平滑伸出需改 `Attack.json` 去掉 `curve: "stepped"`。
+
+### 24.9 回归开关
+
+旧 `RM nor Projectile` 分支保留（V1 靠它）。临时关 Spine：把 V2 场景 `CombatFxView` 的 `runeboltMageSpineProjectileKey` 清空即可。
+
+> ⚠️ 老坑：新字段是 `[SerializeField]`，改完代码要打开 V2 场景 `Greybox_Main`，在 `Systems` 的 `CombatFxView` 上确认 `273 / 17.3 / 0.12 / Attack_SkeletonData` 并 Ctrl+S，否则被场景序列化值覆盖。
+
+## 25. 方案：让技能特效 Spine 动画不 Loop
+
+### 25.1 先排除：两处 `SetAnimation` 的 loop 参数本来就是 false
+
+| 位置                                   | 代码                                                                | loop        |
+| ------------------------------------ | ----------------------------------------------------------------- | ----------- |
+| `CombatFxView.cs:1098-1104`（特效）      | `SetAnimation(0, runeboltMageSpineProjectileAnimation, false)`    | **false** ✅ |
+| `HeroFormationView.cs:713-714`（英雄挥杖） | `SetAnimation(0, HeroSpineArtCatalog.AttackAnimationName, false)` | **false** ✅ |
+
+`SkeletonGraphic` 也没有被 `startingAnimation` 意外接管（运行时新建的组件，`startingAnimation` 为空串，`Initialize` 不会播任何东西）。
+
+**所以"看起来在 Loop"不是 loop 参数的问题。**
+
+### 25.2 真因：`AddEmptyAnimation(0, 0f, 0f)` 把姿态弹回了 setup pose
+
+`Attack.json` 的 `sdj.scale` 时间轴：
+
+```
+t=0        scaleX 0.175   （几乎不可见）
+t=0.1667   scaleX 1.81    stepped，瞬间伸长
+t=0.3333   scaleX 1.81    保持
+t=0.6667   scaleX 0.429   收缩（末帧，仍有 150×0.429 ≈ 64 宽的光带）
+```
+
+`CombatFxView.cs:1106` 紧跟一行：
+
+```csharp
+graphic.AnimationState.AddEmptyAnimation(0, 0f, 0f);
+```
+
+`mixDuration = 0`、`delay = 0` → 主动画一结束（0.6667 s）**立刻**切进空动画，空动画把骨架 mix 回 **setup pose**：
+
+- `sdj.scaleX` 从 0.429 弹回 **1**（setup 值）
+- slot 的 attachment 从末帧轮切图弹回默认的 `sd/sdj0001`
+
+**结果：光带收缩到 64 宽之后，突然又变回 150 宽的完整光带，然后才被 Destroy。** 视觉上就是"又播了一遍 / 一直在循环"。
+
+> ⚠️ 注意方向性：`AddEmptyAnimation` 对**英雄挥杖动画是对的**（要回到 idle），`HeroFormationView.cs:719` 那行**不要动**。只有特效这一处要改。
+
+### 25.3 方案 A（推荐）：删掉特效那行的 AddEmptyAnimation
+
+**文件**：`Assets/DragonBound/Runtime/Presentation/CombatFxView.cs`
+
+**第 1098-1106 行**原文：
+
+```csharp
+            var entry = graphic.AnimationState.SetAnimation(
+
+                0,
+
+                runeboltMageSpineProjectileAnimation,
+
+                false);
+
+            graphic.AnimationState.AddEmptyAnimation(0, 0f, 0f);
+
+            graphic.Update(0f);
+```
+
+改为：
+
+```csharp
+            var entry = graphic.AnimationState.SetAnimation(
+                0,
+                runeboltMageSpineProjectileAnimation,
+                false);
+            if (entry != null)
+            {
+                // Belt and braces: SetAnimation's third arg already covers this.
+                entry.Loop = false;
+            }
+
+            // NOTE: no AddEmptyAnimation here. An empty animation with mix 0 would snap the
+            // skeleton back to the setup pose (sdj.scaleX 0.429 -> 1) the instant the clip
+            // ends, which reads as the beam playing a second time.
+            graphic.Update(0f);
+```
+
+**原理**：非 loop 的 `TrackEntry` 播完后会从 track 上摘掉，`AnimationState.Apply` 不再执行，骨架**保持最后一帧姿态**（scaleX 0.429 的短光带），随后由 `ActiveFx` 的 fade 淡出 + `Destroy` 收尾。
+
+### 25.4 方案 B（末帧残留碍眼时用）：动画一结束就停渲染
+
+如果删掉 `AddEmptyAnimation` 后，末帧那截 64 宽的短光带仍觉得突兀，在方案 A 基础上加一行：
+
+```csharp
+            if (entry != null)
+            {
+                entry.Loop = false;
+                // Stop rendering the moment the clip ends; ActiveFx still owns the destroy.
+                entry.Complete += _ => graphic.enabled = false;
+            }
+```
+
+`TrackEntry.Complete` 是 `AnimationState.TrackEntryDelegate`（签名 `void (TrackEntry entry)`，`AnimationState.cs` 已核实），非 loop 时只在播完时触发一次。
+
+### 25.5 方案 C（可选保险丝）：显式关掉组件级 loop
+
+`SkeletonGraphic` 有 `public bool startingLoop`（`SkeletonGraphic.cs:59`），`Initialize` 时若 `startingAnimation` 非空会用它播。当前 `startingAnimation` 为空所以不触发，但加一行可彻底排除误配：
+
+```csharp
+            graphic.skeletonDataAsset = skeletonData;
+            graphic.startingAnimation = string.Empty;   // 保险丝
+            graphic.startingLoop = false;              // 保险丝
+            graphic.Initialize(true);
+```
+
+### 25.6 如果看完还是"重复播放多次"——那是另一个问题
+
+方案 A/B/C 解决的是"播完后回弹"。若你看到的是**一次攻击连续冒出好几条光柱**，根因在分批/兜底释放，不是 loop：
+
+- `CombatFxView.cs` 的 `QueueRuneboltMageCast` 按 `Time.frameCount` 分批
+- `TickPendingRuneboltMageCasts` 用 `runeboltMageReleaseFallbackDelay`（V2 场景 0.16）兜底释放
+
+诊断：Play 模式下看 Hierarchy 里 `Runebolt Mage Spine Path` 节点，一次攻击应该**只出现 1 个**、存活约 0.67 s。出现多个就去看分批逻辑。
+
+### 25.7 验证清单
+
+| 检查项                        | 期望                                                              |
+| -------------------------- | --------------------------------------------------------------- |
+| Play 一次普攻，Hierarchy 里特效节点数 | 只有 1 个                                                          |
+| 节点存活时长                     | ≈ 0.67 s（动画时长）后消失                                               |
+| 光带尾段                       | 收缩到短光带后**直接淡出**，不再变回完整宽度                                        |
+| 英雄本体                       | 挥杖一次后回到 idle（`HeroFormationView.cs:719` 的 AddEmptyAnimation 保留） |
+
+### 25.8 调参
+
+| 现象        | 动作                                                      |
+| --------- | ------------------------------------------------------- |
+| 末帧短光带停留太久 | 把 `clipLength` 换成 `Mathf.Min(clipLength, 0.4f)`，在收缩段就收尾 |
+| 消失太突然     | 加大 `runeboltMagePathFadeDuration`（现 0.08）               |
+| 想彻底不留末帧   | 上方案 B 的 `entry.Complete`                                |

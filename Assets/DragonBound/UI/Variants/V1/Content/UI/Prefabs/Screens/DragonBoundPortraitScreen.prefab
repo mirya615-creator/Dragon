@@ -22321,8 +22321,15 @@ MonoBehaviour:
   emberShamanFireballMinTravelDuration: 0.18
   emberShamanFireballMaxTravelDuration: 0.3
   emberShamanReleaseFallbackDelay: 0.34
+  runeboltMageSpineProjectileKey: Animations/Hero/Runebolt Mage/normal/VFX/Spine/Attack_SkeletonData
+  runeboltMageSpineProjectileAnimation: Attack
+  runeboltMageSpineReferenceLength: 273
+  runeboltMageSpineOriginOffset: 17.3
+  runeboltMageSpineHitProgressDuration: 0.12
+  runeboltMagePathVisualOvershoot: 55
   runeboltMagePathHoldDuration: 0.04
   runeboltMageImpactSize: {x: 72, y: 72}
+  runeboltMageImpactStateSpeed: 1
   runeboltMagePathFadeDuration: 0.08
   runeboltMageReleaseFallbackDelay: 0.38
   stoneboundWarlockNormalRockSize: {x: 48, y: 48}
@@ -30331,8 +30338,15 @@ MonoBehaviour:
   emberShamanFireballMinTravelDuration: 0.18
   emberShamanFireballMaxTravelDuration: 0.3
   emberShamanReleaseFallbackDelay: 0.34
+  runeboltMageSpineProjectileKey: Animations/Hero/Runebolt Mage/normal/VFX/Spine/Attack_SkeletonData
+  runeboltMageSpineProjectileAnimation: Attack
+  runeboltMageSpineReferenceLength: 273
+  runeboltMageSpineOriginOffset: 17.3
+  runeboltMageSpineHitProgressDuration: 0.12
+  runeboltMagePathVisualOvershoot: 55
   runeboltMagePathHoldDuration: 0.04
   runeboltMageImpactSize: {x: 72, y: 72}
+  runeboltMageImpactStateSpeed: 1
   runeboltMagePathFadeDuration: 0.08
   runeboltMageReleaseFallbackDelay: 0.38
   stoneboundWarlockNormalRockSize: {x: 48, y: 48}
