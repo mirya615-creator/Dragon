@@ -357,6 +357,19 @@ namespace DragonBound.Presentation
             return false;
         }
 
+        public bool TryGetRuneboltMageSpineAttackOrigin(string pairLinkId, out Vector3 position)
+        {
+            if (!string.IsNullOrWhiteSpace(pairLinkId) &&
+                pairPresentations.TryGetValue(pairLinkId, out var pairView) &&
+                pairView != null)
+            {
+                return pairView.TryGetRuneboltMageSpineAttackOrigin(out position);
+            }
+
+            position = Vector3.zero;
+            return false;
+        }
+
         public bool SetHeroFormationArtVisible(string pairLinkId, bool visible)
         {
             if (string.IsNullOrWhiteSpace(pairLinkId) ||

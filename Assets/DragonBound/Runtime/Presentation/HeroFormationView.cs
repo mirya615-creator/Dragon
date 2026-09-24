@@ -25,6 +25,7 @@ namespace DragonBound.Presentation
         private const float ArtFacingTransitionSeconds = 0.14f;
         // The V2 Runebolt Mage Spine clip starts lowering the staff at frame 18 (17/30s at 30 FPS).
         private const float RuneboltMageSpineReleaseTime = 17f / 30f;
+        private const string RuneboltMageSpineReleaseBoneName = "release";
         private static readonly Vector2 LevelUpVfxPosition = new Vector2(3.4f, -13f);
         private static readonly Vector2 LevelUpVfxSize = new Vector2(150f, 100f);
 
@@ -106,7 +107,40 @@ namespace DragonBound.Presentation
                 return true;
             }
 
+            if (string.Equals(configuredSpineHeroId, DragonBoundHeroIds.RuneboltMage, StringComparison.Ordinal) &&
+                TryGetRuneboltMageSpineAttackOrigin(out position))
+            {
+                return true;
+            }
+
             position = RectTransform.position;
+            return false;
+        }
+
+        public bool TryGetRuneboltMageSpineAttackOrigin(out Vector3 position)
+        {
+            if (heroAttackSkeleton != null &&
+                heroAttackSkeleton.gameObject.activeInHierarchy &&
+                string.Equals(configuredSpineHeroId, DragonBoundHeroIds.RuneboltMage, StringComparison.Ordinal) &&
+                heroAttackSkeleton.Skeleton != null)
+            {
+                var releaseBone = heroAttackSkeleton.Skeleton.FindBone(RuneboltMageSpineReleaseBoneName);
+                if (releaseBone != null)
+                {
+                    // SkeletonGraphic scales Spine coordinates by the parent Canvas PPU when it
+                    // builds its UI mesh. Apply the same conversion before transforming the point.
+                    var canvas = heroAttackSkeleton.canvas;
+                    var pixelsPerUnit = canvas != null ? canvas.referencePixelsPerUnit : 100f;
+                    position = heroAttackSkeleton.transform.TransformPoint(
+                        new Vector3(
+                            releaseBone.WorldX * pixelsPerUnit,
+                            releaseBone.WorldY * pixelsPerUnit,
+                            0f));
+                    return true;
+                }
+            }
+
+            position = Vector3.zero;
             return false;
         }
         public event Action<string> FlameDrakeFireballReleased;

@@ -1,6 +1,7 @@
 # V2 新增 Runebolt Mage 普攻特效：线路（穿透线）上播放 `RM nor Projectile`
 
 资源：`Assets/DragonBound/UI/Variants/V2/Content/Resources/Animations/Hero/Runebolt Mage/normal/VFX/RM nor Projectile.anim`（+ 同名 `.controller`）
+
 状态：**仅方案，未执行**。
 
 ---
@@ -20,21 +21,23 @@
 
 ## 2. 资源核查（已核对）
 
-| 项 | 值 | 是否需要处理 |
-| --- | --- | --- |
-| V2 注册表 key | `Animations/Hero/Runebolt Mage/normal/VFX/RM nor Projectile`（`UiAssetRegistryV2.asset:236`） | ✅ 已存在，不用 Regenerate |
-| clip 时长 | 6 帧 @60fps，`m_StopTime: 0.1` → **0.1s** | 与 V1 旧资源一致，节奏不用改 |
-| controller state speed | **`m_Speed: 0.2`** | ⚠️ **必须改成 1**（见下） |
-| 循环 | `m_LoopTime: 1`（勾选） | ⚠️ 建议取消勾选 |
-| 参照：V1 `Runebolt MageBoom` | clip 0.1s、`m_LoopTime: 0`、controller `m_Speed: 1` | — |
+| 项                         | 值                                                                                           | 是否需要处理              |
+| ------------------------- | ------------------------------------------------------------------------------------------- | ------------------- |
+| V2 注册表 key                | `Animations/Hero/Runebolt Mage/normal/VFX/RM nor Projectile`（`UiAssetRegistryV2.asset:236`） | ✅ 已存在，不用 Regenerate |
+| clip 时长                   | 6 帧 @60fps，`m_StopTime: 0.1` → **0.1s**                                                     | 与 V1 旧资源一致，节奏不用改    |
+| controller state speed    | **`m_Speed: 0.2`**                                                                          | ⚠️ **必须改成 1**（见下）   |
+| 循环                        | `m_LoopTime: 1`（勾选）                                                                         | ⚠️ 建议取消勾选           |
+| 参照：V1 `Runebolt MageBoom` | clip 0.1s、`m_LoopTime: 0`、controller `m_Speed: 1`                                           | —                   |
 
 ### 必须做的两处资源修正
 
 1. **`RM nor Projectile.controller` → AnimatorState `m_Speed: 0.2` 改为 `1`**
-   代码用 `clipLength`（=0.1s）驱动伤害推进并在其后淡出销毁；state speed 0.2 会让动画实际要 0.5s 才播完 → 伤害 0.1s 结算完时画面才播了 1/5 就被 fade 掉，看起来像"闪一下就没了"。（与之前 `EnemyDie` 同一个坑。）
-   在 Unity 里：选中 controller → Animator 窗口 → 状态 `RM nor Projectile` → **Speed = 1**（或改 YAML 第 10 行 `m_Speed: 1`）。
 
+   代码用 `clipLength`（=0.1s）驱动伤害推进并在其后淡出销毁；state speed 0.2 会让动画实际要 0.5s 才播完 → 伤害 0.1s 结算完时画面才播了 1/5 就被 fade 掉，看起来像"闪一下就没了"。（与之前 `EnemyDie` 同一个坑。）
+
+   在 Unity 里：选中 controller → Animator 窗口 → 状态 `RM nor Projectile` → **Speed = 1**（或改 YAML 第 10 行 `m_Speed: 1`）。
 2. **`RM nor Projectile.anim` → 取消 Loop Time**（`m_LoopTime: 1` → `0`）
+
    FX 是按时长销毁的一次性对象，循环会在末尾重复/闪烁。
 
 ---
@@ -160,6 +163,7 @@
 ```
 
 并新增字段（`[SerializeField]` 放 :97 附近）：
+
 ```csharp
         [SerializeField] private Vector2 runeboltMageProjectileSize = new Vector2(110f, 110f);
 ```
@@ -179,9 +183,11 @@
 ## 6. 后续（非本次范围）
 
 同一目录还有 `RM nor Muzzle`（枪口，speed 1）与 `RM nor Impact`（命中，speed 0.5，同样需要把 speed 改 1）：
+
 - Muzzle → 在 `SpawnRuneboltMageBolt` 起点 `start` 处再生成一个独立 FX；
 - Impact → 在 `CompleteRuneboltMageImpact`(:909) 里按 `shot.TargetPosition` 生成。
-两者都照抄步骤 1-3 的「V2 静默探测 + V1 回退」模式即可。
+
+  两者都照抄步骤 1-3 的「V2 静默探测 + V1 回退」模式即可。
 
 ---
 
@@ -213,10 +219,10 @@
 
 ### 8.1 关键事实：新旧两套美术的「画布内容占比」完全不同
 
-| 美术 | 画布 | 实体笔画 bbox（alpha>160） | 占画布宽 | 占画布高 |
-| --- | --- | --- | --- | --- |
-| V1 `VFX/Runebolt Mage/road/符文雷矢法师普攻特效_0000x.png` | 1080×1080 | 393×54 / 665×90 / 832×24（0/3/5 帧） | 0.36~0.77 | **0.022~0.083** |
-| V2 `UIResources/VFX/Hero/Runebolt Mage/normal/Projectile/sdj0001~0006.png` | 150×72 | 74×24 → 129×44（逐帧） | 0.81~0.86 | **0.33~0.61**（均值 0.54） |
+| 美术                                                                         | 画布        | 实体笔画 bbox（alpha>160）              | 占画布宽      | 占画布高                   |
+| -------------------------------------------------------------------------- | --------- | --------------------------------- | --------- | ---------------------- |
+| V1 `VFX/Runebolt Mage/road/符文雷矢法师普攻特效_0000x.png`                           | 1080×1080 | 393×54 / 665×90 / 832×24（0/3/5 帧） | 0.36~0.77 | **0.022~0.083**        |
+| V2 `UIResources/VFX/Hero/Runebolt Mage/normal/Projectile/sdj0001~0006.png` | 150×72    | 74×24 → 129×44（逐帧）                | 0.81~0.86 | **0.33~0.61**（均值 0.54） |
 
 - V1：「细线贯穿方形画布」——线只占画布高度的 3~8%，这正是它在 300 高的盒子里看起来是**一条细线**的原因。
 - V2：「实心彗星/箭形」——笔画几乎填满 150×72 画布（宽 85%、高 54%）。
@@ -233,9 +239,9 @@ image.preserveAspect = false;   // 刻意非等比拉伸满全程
 
 于是两套美术在同一个盒子里的表现完全不同（1 格 = 110 单位）：
 
-| | 纵向缩放 | 笔画实际厚度 |
-| --- | --- | --- |
-| V1（高占比 0.05） | 1080 → 300，0.28× | 0.05 × 300 ≈ **15 单位 ≈ 0.14 格**（细线 ✅） |
+|              | 纵向缩放               | 笔画实际厚度                                 |
+| ------------ | ------------------ | -------------------------------------- |
+| V1（高占比 0.05） | 1080 → 300，0.28×   | 0.05 × 300 ≈ **15 单位 ≈ 0.14 格**（细线 ✅）  |
 | V2（高占比 0.54） | 72 → 300，**4.17×** | 0.54 × 300 ≈ **162 单位 ≈ 1.47 格**（厚带 ❌） |
 
 → 同一个特效盒子里，V2 的笔画比 V1 粗了约 **11 倍**，观感从「线路」变成「糊成一片的厚带」。
@@ -244,19 +250,19 @@ image.preserveAspect = false;   // 刻意非等比拉伸满全程
 
 纵向缩放固定在 `300/72 = 4.17×`，横向缩放 = `travelDistance/150`：
 
-| travelDistance | 横向缩放 | 失真倍数（纵向/横向） | 观感 |
-| --- | --- | --- | --- |
-| 110（1 格） | 0.73× | **5.7×** | 被压扁 + 拉厚，最难看 |
-| 220（2 格） | 1.47× | 2.8× | 明显变形 |
-| 330（3 格） | 2.20× | 1.9× | 仍偏厚 |
-| 550（5 格，上限） | 3.67× | 1.14× | 接近美术原比例，尚可 |
+| travelDistance | 横向缩放  | 失真倍数（纵向/横向） | 观感           |
+| -------------- | ----- | ----------- | ------------ |
+| 110（1 格）       | 0.73× | **5.7×**    | 被压扁 + 拉厚，最难看 |
+| 220（2 格）       | 1.47× | 2.8×        | 明显变形         |
+| 330（3 格）       | 2.20× | 1.9×        | 仍偏厚          |
+| 550（5 格，上限）    | 3.67× | 1.14×       | 接近美术原比例，尚可   |
 
-即：**只有打满 5 格时比例才接近原始美术**；日常 1~3 格距离下被纵向拉伸 2~5.7 倍。截图里那条又短又粗的斜向糊带，正是短距离（1~2 格）+ 固定 300 高的组合结果。
+即：**只有打满 5 格时比例才接近原始美术**；日常 1~~3 格距离下被纵向拉伸 2~~5.7 倍。截图里那条又短又粗的斜向糊带，正是短距离（1~2 格）+ 固定 300 高的组合结果。
 
 ### 8.4 根因三：「长度」由目标摆位决定，且美术本身左右留白
 
 - `travelDistance = Mathf.Clamp(farthestDistance, 1f, RuneboltMageMaximumPathLength)`（:836-844）——长度 = **到最远命中目标**的投影距离，而不是技能线的 5 格（`PierceLength = 5`，`HeroCombatState.cs:737`）。目标站位近，线就短。
-- 美术内容只占画布宽的 81~86%（左右各有约 3~10% 空白），且**第 1 帧内容只有 55% 宽**（`sdj0001` bbox 83×30）→ 0.1s 动画里「线」的长度本身在变。
+- 美术内容只占画布宽的 81~~86%（左右各有约 3~~10% 空白），且**第 1 帧内容只有 55% 宽**（`sdj0001` bbox 83×30）→ 0.1s 动画里「线」的长度本身在变。
 - FX 总时长只有 `0.1(clip) + 0.04(hold) + 0.08(fade) ≈ 0.22s`，抓拍大概率停在第一帧（最短那一帧），进一步强化「长度不对」。
 
 ### 8.5 加剧项：美术语义与用法不匹配
@@ -281,7 +287,7 @@ image.preserveAspect = false;   // 刻意非等比拉伸满全程
 
 - 棋盘格间距 ≈ 80px；`FixedBoardCanvasView.cs:22` 定义 1 格 = 110 世界单位 → **1 世界单位 ≈ 0.727px**。
 - 光柱**水平**贯穿，中线恒在 y≈259（= 施法者/目标所在行的行心），全长 ≈ 227px ≈ **2.8 格**（起 x≈283、止 x≈510）。
-- 厚度：亮核 **1~3px**（≈0.02~0.04 格），柔光 **7~18px**（均 ≈12px ≈ **0.15 格**）；整体可见带 20~26px ≈ **0.25~0.33 格**。
+- 厚度：亮核 **1~3px**（≈0.02~~0.04 格），柔光 **7~18px**（均 ≈12px ≈ **0.15 格**）；整体可见带 20~~26px ≈ **0.25~0.33 格**。
 - 颜色：核心 `#cbe7ff → #ffffff`，外围淡蓝；末端/命中敌人处有 ≈35px（0.44 格）白色爆闪。
 - 起点：从**英雄立绘轮廓之外**开始，不是从英雄中心。
 
@@ -289,30 +295,32 @@ image.preserveAspect = false;   // 刻意非等比拉伸满全程
 
 把 V2 的 6 帧按不同盒子高度双线性拉伸后，与参考图并排对比（见 `Docs/attachments/Runebolt线路特效_盒子高度模拟对比.png`，行序自上而下：参考 / 300 / 72 / 36 / 24）：
 
-| 盒子高度 | 截图像素高 | 观感 |
-|---|---|---|
-| 300 world（当前） | 218px | 巨大糊带，完全不像线 ✗ |
-| 72 world | 52px | 仍明显偏厚 ✗ |
-| **36 world** | **26px** | **与参考最接近 ✓** |
-| 24 world | 17px | 略细，也可接受 |
+| 盒子高度          | 截图像素高    | 观感           |
+| ------------- | -------- | ------------ |
+| 300 world（当前） | 218px    | 巨大糊带，完全不像线 ✗ |
+| 72 world      | 52px     | 仍明显偏厚 ✗      |
+| **36 world**  | **26px** | **与参考最接近 ✓** |
+| 24 world      | 17px     | 略细，也可接受      |
 
 换算依据：V2 美术内容只占画布高 54%，36 × 0.54 ≈ **19.5 世界单位 ≈ 0.18 格 ≈ 14px**，与参考实测的柔光 12px 吻合。
+
 推荐 **36f**，可微调区间 **28~44**。
 
 ### 9.3 为什么必须「按变体取高度」
 
 同一个 `RuneboltMagePathVisualHeight = 300f`（`CombatFxView.cs:98`）现在同时服务两套美术：
 
-| 美术 | 画布 | 笔画占画布高 | 300 高盒子里的实际粗细 |
-|---|---|---|---|
-| V1 `符文雷矢法师普攻特效` | 1080×1080 | 2.2%~8.3% | ≈7~25 单位（细线）✓ |
-| V2 `RM nor Projectile` | 150×72 | **33%~61%（均 54%）** | ≈100~180 单位（1~1.6 格糊带）✗ |
+| 美术                     | 画布        | 笔画占画布高             | 300 高盒子里的实际粗细             |
+| ---------------------- | --------- | ------------------ | ------------------------- |
+| V1 `符文雷矢法师普攻特效`        | 1080×1080 | 2.2%~8.3%          | ≈7~25 单位（细线）✓             |
+| V2 `RM nor Projectile` | 150×72    | **33%~61%（均 54%）** | ≈100~~180 单位（1~~1.6 格糊带）✗ |
 
 两者差约 10 倍。既然 controller 已按变体解析（`:779-802`），高度也必须跟着变体走，否则 V1/V2 只能顾一头。
 
 ### 9.4 主方案（推荐）：把「路径样式」变体化（共 4 处）
 
 **① 常量（`:98` 处替换）**
+
 ```csharp
 // V1 美术（1080² 画布，线条极细）：保持原值
 private const float RuneboltMagePathVisualHeightV1 = 300f;
@@ -321,11 +329,13 @@ private const float RuneboltMagePathVisualHeightV2 = 36f;
 ```
 
 **② 新增缓存字段（与已有的 `runeboltMageBoltController` 并列）**
+
 ```csharp
 private float runeboltMageBoltVisualHeight = -1f;   // <0 = 尚未解析
 ```
 
 **③ `ResolveRuneboltMagePathController()`（`:779-802`）两个分支各写一次高度**
+
 ```csharp
 var projectile = registry != null
     ? registry.Load<RuntimeAnimatorController>(RuneboltMageNormalProjectileControllerPathV2)
@@ -344,6 +354,7 @@ return runeboltMageBoltController;
 ```
 
 **④ `SpawnRuneboltMageBolt`（`:857-859`）改用解析出的高度**
+
 ```csharp
 var visualHeight = runeboltMageBoltVisualHeight > 0f
     ? runeboltMageBoltVisualHeight
@@ -356,17 +367,18 @@ rect.sizeDelta = new Vector2(travelDistance, visualHeight);
 ### 9.5 配套项（还原参考图的其余特征，可选，按优先级）
 
 1. **起点偏移**（`:828`）：`start = pending.AttackerPosition + (direction * 24f)`。
+
    24 单位（0.22 格）通常仍在英雄立绘内部；参考图里光柱是从立绘轮廓**外**开始的。若实机看到「光柱从法师身体里长出来」，把 24f 提到 **120~150**（1.1~1.4 格）；要保 V1 不变就同样做成变体化常量。
 2. **命中爆闪**：参考图里每个被命中敌人身上都有 0.44 格白爆。V2 的 `RM nor Impact` 尚未接线；先把 controller `m_Speed` 0.5→1、anim `m_LoopTime` 1→0，再接到 `CompleteRuneboltMageImpact`（`:909`），照抄「V2 静默探测 + V1 回退」模式。
 3. **时长**：整段 `0.1(clip)+0.04(hold)+0.08(fade) ≈ 0.22s` 偏短，肉眼几乎抓不到。把 `runeboltMagePathHoldDuration`（`:100`）提到 **0.10~0.15**，更接近参考的「一条稳定存在的光束」。
 
 ### 9.6 不推荐的方案
 
-| 方案 | 为什么不选 |
-|---|---|
-| 等比拉伸：`preserveAspect=true`，`height = length × 72/150` | 2 格时 0.96 格厚、5 格时 2.4 格厚 → **越远越粗**，与参考（细线、粗细不随距离变）相反 |
-| 改成飞行弹体（固定尺寸沿线飞） | 参考明确是「贯穿光束」，不是飞行物 |
-| 9-slice（头/中/尾） | 需给 6 张 png 加 border，且 150px 宽的美术中间可拉伸区太窄会撕裂/重复；整段只有 0.22s，收益不抵成本 |
+| 方案                                                    | 为什么不选                                                            |
+| ----------------------------------------------------- | ---------------------------------------------------------------- |
+| 等比拉伸：`preserveAspect=true`，`height = length × 72/150` | 2 格时 0.96 格厚、5 格时 2.4 格厚 → **越远越粗**，与参考（细线、粗细不随距离变）相反            |
+| 改成飞行弹体（固定尺寸沿线飞）                                       | 参考明确是「贯穿光束」，不是飞行物                                                |
+| 9-slice（头/中/尾）                                        | 需给 6 张 png 加 border，且 150px 宽的美术中间可拉伸区太窄会撕裂/重复；整段只有 0.22s，收益不抵成本 |
 
 ### 9.7 验证清单
 
@@ -507,22 +519,23 @@ var start = pending.AttackerPosition + (direction * 24f);
 
 但 V2 美术画布 150×72，实测每一帧的内容范围：
 
-| 帧 | alpha>32 内容 x 范围 | 宽度占比 | alpha>160 实体笔画宽 |
-|---|---|---|---|
-| sdj0001 | 58..140 | **55%（且左端空 58px！）** | 49% |
-| sdj0002 | 7..142 | 91% | 86% |
-| sdj0003 | 7..140 | 89% | 85% |
-| sdj0004 | 6..136 | 87% | 84% |
-| sdj0005 | 11..137 | 85% | 66% |
-| sdj0006 | 12..136 | 83% | 81% |
+| 帧       | alpha>32 内容 x 范围 | 宽度占比                | alpha>160 实体笔画宽 |
+| ------- | ---------------- | ------------------- | --------------- |
+| sdj0001 | 58..140          | **55%（且左端空 58px！）** | 49%             |
+| sdj0002 | 7..142           | 91%                 | 86%             |
+| sdj0003 | 7..140           | 89%                 | 85%             |
+| sdj0004 | 6..136           | 87%                 | 84%             |
+| sdj0005 | 11..137          | 85%                 | 66%             |
+| sdj0006 | 12..136          | 83%                 | 81%             |
 
 结论：
+
 - **两端永久留白**：即使是铺得最满的第 2 帧，右端也只到 x142（右留白 5%）+ 实体笔画到 86%，末帧实体只到 x136（**右留白 9.3%**）→ 盒子末端与可见笔触末端天然差约 **9%**，2.5 格距离上就是 **0.23 格 ≈ 14px**，正好是截图里"没挨住"的缺口量级。
 - **首帧是反方向的**：sdj0001 的内容集中在 **x58..140（右半段）**，左端 39% 全空 —— 说明这组动画是"能量头先出现在末端侧、尾迹再向左回填"（彗星式），**不是**"从左端整条铺到右端"的横贯式。抓拍到越靠前的帧，"光柱"越像一小段漂在右侧的碎光。
 
 ### 11.2 细：36 单位盒高在小格距下偏细
 
-36 世界单位盒高 × 实体笔画占高 56%~61% ≈ **20~22 单位 ≈ 0.19 格**。本截图 1 格 = 61px → 约 **11px**；上一版参考图 1 格 = 80px → 12px。比例几乎一样，但这次的 UI 缩放更小、光柱又短，观感上就更"细弱"。实测用户期望更醒目，建议 **54~72 单位（0.5~0.65 格）**。
+36 世界单位盒高 × 实体笔画占高 56%~~61% ≈ \*\*20~~22 单位 ≈ 0.19 格\*\*。本截图 1 格 = 61px → 约 **11px**；上一版参考图 1 格 = 80px → 12px。比例几乎一样，但这次的 UI 缩放更小、光柱又短，观感上就更"细弱"。实测用户期望更醒目，建议 **54~~72 单位（0.5~~0.65 格）**。
 
 ### 11.3 缺了参考图里那个"命中爆闪"
 
@@ -534,24 +547,27 @@ var start = pending.AttackerPosition + (direction * 24f);
 var direction = pending.Shots[0].TargetPosition - pending.AttackerPosition;   // 最近目标
 farthestDistance = Mathf.Max(farthestDistance, Vector3.Dot(shot.TargetPosition - start, direction));  // 最远目标投影
 ```
+
 当多个命中目标**横向铺开**（例如 5 个敌人一排、法师在斜下方）时：`dir` 朝最近目标，而最远目标与 `dir` 的夹角大，其**投影**远小于真实距离 → 光柱会明显变短，末端只到"最近目标所在的那条线"上，覆盖不到最远端。本次构图（法师斜下方 + 敌人横排）正是这种情形，若这一击命中了 2 个以上横向分离的敌人，此机制就是第二重缩短。
 
 判定方法：在 `SpawnRuneboltMageBolt` 里临时加一行日志
+
 ```csharp
 Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPosition} dir={direction} travel={travelDistance}");
 ```
+
 看 `shots` 数量与各 `TargetPosition`：若只有 1 个目标，则纯粹是 11.1 的美术留白问题；若 ≥2 个且横向分离，则 11.4 也在起作用（此时应把 `direction` 改为朝**最远**目标，长度改用 `Vector3.Distance`）。
 
 ### 11.5 建议的修复组合（按性价比排序）
 
-| # | 改动 | 位置 | 理由 |
-|---|---|---|---|
-| 1 | 盒高 36 → **60** | :98 常量 | 0.55 格，直接解决"细" |
-| 2 | 长度补偿 `travelDistance / 0.9`（仅 V2） | :857-859 | 把 9% 美术留白补回来，让可见末端真正贴到敌人 |
-| 3 | `runeboltMagePathHoldDuration` 0.04 → **0.12** | :100 + 场景 Inspector | 让"完整光束"有一帧可读，不再一闪而过 |
-| 4 | 接 `RM nor Impact` 到 `CompleteRuneboltMageImpact`(:909) | CombatFxView | 复原参考图的敌人爆闪，缝隙自然被盖住 |
-| 5 | 起点偏移 24 → 70 | :828 | 光柱从立绘外起，穿透感更强 |
-| 6 | （根治）重出美术：首帧即满宽、左右无留白、末帧最亮的横贯式 6 帧 | 美术 | 当前 150×72 是彗星推进式，天生不适合"整线贯穿" |
+| # | 改动                                                     | 位置                  | 理由                           |
+| - | ------------------------------------------------------ | ------------------- | ---------------------------- |
+| 1 | 盒高 36 → **60**                                         | :98 常量              | 0.55 格，直接解决"细"               |
+| 2 | 长度补偿 `travelDistance / 0.9`（仅 V2）                      | :857-859            | 把 9% 美术留白补回来，让可见末端真正贴到敌人     |
+| 3 | `runeboltMagePathHoldDuration` 0.04 → **0.12**         | :100 + 场景 Inspector | 让"完整光束"有一帧可读，不再一闪而过          |
+| 4 | 接 `RM nor Impact` 到 `CompleteRuneboltMageImpact`(:909) | CombatFxView        | 复原参考图的敌人爆闪，缝隙自然被盖住           |
+| 5 | 起点偏移 24 → 70                                           | :828                | 光柱从立绘外起，穿透感更强                |
+| 6 | （根治）重出美术：首帧即满宽、左右无留白、末帧最亮的横贯式 6 帧                      | 美术                  | 当前 150×72 是彗星推进式，天生不适合"整线贯穿" |
 
 第 2 项若不想动长度逻辑，等价的最小做法是把 `rect.sizeDelta.x` 直接写成 `travelDistance * 1.11f`（V2 分支内），伤害推进仍用未补偿的 `travelDistance`。
 
@@ -560,9 +576,11 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
 ## 12. 手动修改步骤：修复「细 / 短 / 没挨住」（2026-09-24，可直接照抄）
 
 目标：执行 11.5 的 **1~4 项**（第 5 项作为可选增强附在最后）。
+
 文件：`Assets/DragonBound/Runtime/Presentation/CombatFxView.cs`（唯一文件，共 5 处代码改动 + 1 处场景改动）。
 
 > 补充实测（写步骤时顺带核对）：
+>
 > - `RM nor Projectile.anim` = 6 帧 / 60fps，末帧 0.0833 → **clip length ≈ 0.10s**（所以"一闪而过"是真的，需要 hold 拉长）。
 > - `RM nor Impact.anim` = 8 帧 / 60fps，末帧 0.1167 → **clip length ≈ 0.133s**，贴图 128×137（近似正方）。
 > - `V2/Scenes/Greybox_Main.unity` 里 `runeboltMagePathHoldDuration: 0.04` 有两处：**14104**（对象 `ContentAnchor`）与 **41208**。
@@ -570,11 +588,14 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
 ### 改动 1 —— 常量区：新增 Impact 资源路径（现 :31-32 之后）
 
 定位：
+
 ```csharp
         private const string RuneboltMageNormalProjectileControllerPathV2 =
             "Animations/Hero/Runebolt Mage/normal/VFX/RM nor Projectile";
 ```
+
 改为（在其后追加两行）：
+
 ```csharp
         private const string RuneboltMageNormalProjectileControllerPathV2 =
             "Animations/Hero/Runebolt Mage/normal/VFX/RM nor Projectile";
@@ -585,6 +606,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
 ### 改动 2 —— 常量/序列化值：高度 36→60、新增留白系数、hold 0.04→0.12（现 :99-103）
 
 原：
+
 ```csharp
         // V1 art (1080x1080 canvas, stroke occupies only 2.2%-8.3% of the height) keeps the original value.
         private const float RuneboltMagePathVisualHeightV1 = 300f;
@@ -593,7 +615,9 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
         private const float RuneboltMageMaximumPathLength = 550f;
         [SerializeField, Min(0f)] private float runeboltMagePathHoldDuration = 0.04f;
 ```
+
 改为：
+
 ```csharp
         // V1 art (1080x1080 canvas, stroke occupies only 2.2%-8.3% of the height) keeps the original value.
         private const float RuneboltMagePathVisualHeightV1 = 300f;
@@ -612,11 +636,14 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
 ### 改动 3 —— 缓存字段：新增 Impact 控制器（现 :233-234）
 
 原：
+
 ```csharp
         private RuntimeAnimatorController runeboltMageBoltController;
         private float runeboltMageBoltVisualHeight = -1f;
 ```
+
 改为：
+
 ```csharp
         private RuntimeAnimatorController runeboltMageBoltController;
         private RuntimeAnimatorController runeboltMageNormalImpactController;
@@ -626,6 +653,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
 ### 改动 4 —— `SpawnRuneboltMageBolt`：视觉长度补偿（现 :844-848）
 
 原：
+
 ```csharp
             var travelDistance = Mathf.Clamp(
                 farthestDistance,
@@ -633,7 +661,9 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
                 RuneboltMageMaximumPathLength);
             pending.ConfigurePath(start, direction, travelDistance);
 ```
+
 改为：
+
 ```csharp
             var travelDistance = Mathf.Clamp(
                 farthestDistance,
@@ -649,12 +679,15 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
 ### 改动 5 —— `SpawnRuneboltMageBolt`：盒子宽度用补偿值（现 :866-868）
 
 原：
+
 ```csharp
             rect.sizeDelta = new Vector2(
                 travelDistance,          // ← X 轴保持原样，长度/5 格穿透不变
                 visualHeight);
 ```
+
 改为：
+
 ```csharp
             rect.sizeDelta = new Vector2(
                 visualLength,            // ← 视觉长度；伤害判定仍是 travelDistance（5 格穿透不变）
@@ -728,13 +761,16 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
 ### 改动 7 —— 在命中结算里播放爆闪（现 :943-953，`CompleteRuneboltMageImpact`）
 
 原：
+
 ```csharp
             if (combatEvent.Damage > 0f)
             {
                 lane?.PlayEnemyHitShake(combatEvent.TargetRuntimeId);
             }
 ```
+
 改为：
+
 ```csharp
             // Reference shot: every pierced enemy gets a ~0.44 cell white burst, which is what
             // visually "connects" the beam tip to the enemy.
@@ -744,6 +780,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
                 lane?.PlayEnemyHitShake(combatEvent.TargetRuntimeId);
             }
 ```
+
 （`position` 是上面已解析出的敌人最新位置，变量已在作用域内，直接用即可。）
 
 ### 改动 8（可选）—— 起点偏移 24 → 70（现 :834）
@@ -751,10 +788,13 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
 ```csharp
             var start = pending.AttackerPosition + (direction * 24f);
 ```
+
 →
+
 ```csharp
             var start = pending.AttackerPosition + (direction * 70f);
 ```
+
 让光柱从立绘外侧起手，穿透感更强。若改完发现起点悬空，回退到 48。
 
 ### 改动 9 —— 场景里的 `runeboltMagePathHoldDuration`（**必做，否则改动 2 的 0.12 不生效**）
@@ -767,6 +807,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} attacker={pending.AttackerPos
 - `Assets/DragonBound/UI/Variants/V1/Scenes/Greybox_Main.unity`（13210 / 40313）**保持 0.04 不动** —— V1 是 300 高的横贯式大特效，拉长 hold 会显得拖沓。
 
 改法二选一：
+
 1. Unity 里打开 V2 场景 → Hierarchy 搜索框输入 `t:CombatFxView` → 选中 → Inspector 把 `Runebolt Mage Path Hold Duration` 改成 `0.12` → **Ctrl+S 保存场景**。
 2. 直接用文本编辑器改上面两行（Unity 会热重载）。
 
@@ -809,11 +850,11 @@ if (entry.Value.Elapsed < runeboltMageReleaseFallbackDelay) continue;   // 0.38s
 
 而敌人在持续移动（`TwentyWavePressureConfiguration.cs:87-89`）：
 
-| 类型 | 速度 |
-|---|---|
+| 类型     | 速度       |
+| ------ | -------- |
 | Normal | 0.60 格/秒 |
-| Fast | 0.80 格/秒 |
-| Elite | 0.58 格/秒 |
+| Fast   | 0.80 格/秒 |
+| Elite  | 0.58 格/秒 |
 
 0.38s × 0.6 格/s = **0.228 格 ≈ 25 单位**（Fast 型 0.30 格 ≈ 33 单位）。敌人若朝远离法师的方向走，光柱末端正好差这么多；再加光柱播放 + hold 期间（0.1 + 0.12s）又走掉约 0.07 格，缺口接近 **0.3 格**。
 
@@ -828,11 +869,11 @@ if (lane != null && lane.TryGetEnemyPosition(combatEvent.TargetRuntimeId, out va
 
 ### 13.3 与上一轮补偿的叠加关系
 
-| 来源 | 缺口 | 上一轮是否已解决 |
-|---|---|---|
+| 来源                             | 缺口               | 上一轮是否已解决                   |
+| ------------------------------ | ---------------- | -------------------------- |
 | 美术两端留白 9%（末帧 sdj0006 右留白 9.3%） | 2.5 格距离上 ≈0.23 格 | 已用 `/0.9` 补偿（第 12 节改动 4/5） |
-| **位置快照过期 0.38s** | **0.23~0.30 格** | **未解决（本轮新发现）** |
-| 多目标横向分离的 Dot 投影 | 通常 <0.05 格 | 未解决（0.35 格宽度内影响很小） |
+| **位置快照过期 0.38s**               | **0.23~0.30 格**  | **未解决（本轮新发现）**             |
+| 多目标横向分离的 Dot 投影                | 通常 <0.05 格       | 未解决（0.35 格宽度内影响很小）         |
 
 两者量级相当且**叠加**，所以补完 9% 之后仍差约 0.3 格（截图 61px/格 ≈ 18px），肉眼就是"到不了最远目标"。
 
@@ -855,18 +896,19 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 ```
 
 判读：
+
 - `drift` ≈ 25~35 → 13.2 成立（位置快照过期），是主因。
 - `drift` ≈ 0 但依然短 → 回到第 12 节改动 5：`visualLength` 是否真的写进了 `sizeDelta.x`。
 - `shots ≥ 2` 且 drift 大 → 同时存在 11.4 的投影问题。
 
 ### 13.5 修复方向（按根治程度排序，未执行）
 
-| # | 方案 | 位置 | 说明 |
-|---|---|---|---|
-| 1 | **绘制前刷新目标实时位置** | `SpawnRuneboltMageBolt` 开头遍历 `pending.Shots`，用 `lane.TryGetEnemyPosition(shot.CombatEvent.TargetRuntimeId, out var p)` 覆盖；需把 `PendingRuneboltMageShot.TargetPosition`（:5093）改成 `{ get; private set; }` 或加 setter | **根治**：方向、长度、爆闪三者统一到同一时刻坐标，末端恒等于最远敌人的当前位置，滞后多久都不影响 |
-| 2 | **兜底延迟 0.38 → 0.12** | `CombatFxView.cs:113` + V2 场景 `Greybox_Main.unity` 第 14108 / 41214 行 `runeboltMageReleaseFallbackDelay`（V1 的 13212/40315 可视情况保留 0.38） | 缺口从 0.3 格降到约 0.09 格；顺便让光柱贴合攻击动作（现在晚 0.38s 才出，动作都快播完了） |
-| 3 | 让 Release 真正触发 | 订阅 `heroAttackSkeleton.AnimationState.Event`，并在 `Runebolt Mage.json` 的 `Attack` 里补 `{"time":0.18,"name":"AttackRelease"}`（与 Windclaw 对齐） | 最"正确"，但要改 JSON + 写订阅代码，工作量最大 |
-| 4 | padding 0.9 → 0.8 | 常量 | 只是再多补 12% 长度掩盖问题，方向仍可能歪，不推荐单独用 |
+| # | 方案                   | 位置                                                                                                                                                                                                               | 说明                                                    |
+| - | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| 1 | **绘制前刷新目标实时位置**      | `SpawnRuneboltMageBolt` 开头遍历 `pending.Shots`，用 `lane.TryGetEnemyPosition(shot.CombatEvent.TargetRuntimeId, out var p)` 覆盖；需把 `PendingRuneboltMageShot.TargetPosition`（:5093）改成 `{ get; private set; }` 或加 setter | **根治**：方向、长度、爆闪三者统一到同一时刻坐标，末端恒等于最远敌人的当前位置，滞后多久都不影响    |
+| 2 | **兜底延迟 0.38 → 0.12** | `CombatFxView.cs:113` + V2 场景 `Greybox_Main.unity` 第 14108 / 41214 行 `runeboltMageReleaseFallbackDelay`（V1 的 13212/40315 可视情况保留 0.38）                                                                            | 缺口从 0.3 格降到约 0.09 格；顺便让光柱贴合攻击动作（现在晚 0.38s 才出，动作都快播完了） |
+| 3 | 让 Release 真正触发       | 订阅 `heroAttackSkeleton.AnimationState.Event`，并在 `Runebolt Mage.json` 的 `Attack` 里补 `{"time":0.18,"name":"AttackRelease"}`（与 Windclaw 对齐）                                                                         | 最"正确"，但要改 JSON + 写订阅代码，工作量最大                          |
+| 4 | padding 0.9 → 0.8    | 常量                                                                                                                                                                                                               | 只是再多补 12% 长度掩盖问题，方向仍可能歪，不推荐单独用                        |
 
 推荐组合：**1 + 2**（1 保证末端贴合，2 保证时机贴动作）。
 
@@ -875,6 +917,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 ## 14. 具体修改步骤：① 绘制前刷新实时位置（根治）+ ② 兜底延迟 0.38→0.16（2026-09-24）
 
 目标：让光柱末端**恒等于绘制那一刻最远敌人的真实位置**，并把"晚 0.38 秒才画"压到 0.16 秒。
+
 全部改动仍在 `Assets/DragonBound/Runtime/Presentation/CombatFxView.cs`（行号为本次改动前，建议**自下往上**改，或按锚点文本搜）。
 
 ### 改动 1 — 给 `TargetPosition` 加可写入口（:5093）
@@ -945,8 +988,8 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 
 `[SerializeField]` 被场景实例值覆盖。改 `Assets/DragonBound/UI/Variants/V2/Scenes/Greybox_Main.unity`：
 
-| 行号 | 字段 | 现值 → 新值 |
-|---|---|---|
+| 行号    | 字段                                 | 现值 → 新值         |
+| ----- | ---------------------------------- | --------------- |
 | 14108 | `runeboltMageReleaseFallbackDelay` | `0.38` → `0.16` |
 | 41214 | `runeboltMageReleaseFallbackDelay` | `0.38` → `0.16` |
 
@@ -991,7 +1034,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
             }
 ```
 
-- 想确认"改之前差多少"：把这段日志放在改动 3 **之前**打一次，应看到 drift ≈ 25~35（未刷新时的缺口，即 0.23~0.30 格）。
+- 想确认"改之前差多少"：把这段日志放在改动 3 **之前**打一次，应看到 drift ≈ 25~~35（未刷新时的缺口，即 0.23~~0.30 格）。
 - 放在改动 3 **之后**打则 drift ≈ 0（刷新后自然相等），真正的判据是**末端是否贴住敌人**。
 - 仍短且 drift ≈ 0 → 回查第 12 节改动 5：`sizeDelta.x` 是否真的写成了 `visualLength`。
 
@@ -1009,11 +1052,11 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 
 ### 15.1 截图实测（对 clipboard-2026-09-24 那张 464x404 截图做像素聚类）
 
-| 元素 | 实测位置（截图像素） | 说明 |
-|---|---|---|
-| 英雄（Runebolt Mage） | 蓝色团块 bbox (256,240)-(346,339)，中心 ≈ **(301,290)** | 法师本体 |
-| 命中爆闪（青色环） | bbox (203,81)-(245,126)，中心 **(224,103)**，直径 ≈ 43px | = `runeboltMageImpactSize (72,72)` × 0.55 px/单位 ≈ 40px ✔ 尺寸正确，位置就在最上方敌人的血条下方 |
-| 光柱（可见部分） | 蓝色能量像素从 **(270,218) 到 (223,136)**，跨度 ≈ 92px，轴角 ≈ **60°（屏幕）** | 屏幕上只有宝箱一小段 |
+| 元素                | 实测位置（截图像素）                                                   | 说明                                                                           |
+| ----------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| 英雄（Runebolt Mage） | 蓝色团块 bbox (256,240)-(346,339)，中心 ≈ **(301,290)**             | 法师本体                                                                         |
+| 命中爆闪（青色环）         | bbox (203,81)-(245,126)，中心 **(224,103)**，直径 ≈ 43px           | = `runeboltMageImpactSize (72,72)` × 0.55 px/单位 ≈ 40px ✔ 尺寸正确，位置就在最上方敌人的血条下方 |
+| 光柱（可见部分）          | 蓝色能量像素从 **(270,218) 到 (223,136)**，跨度 ≈ 92px，轴角 ≈ **60°（屏幕）** | 屏幕上只有宝箱一小段                                                                   |
 
 推论：
 
@@ -1026,14 +1069,14 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 
 对 `V2/.../Runebolt Mage/normal/Projectile/sdj0001..0006.png`（150x72）逐帧统计（alpha>24 的包围盒）：
 
-| 帧 | 内容 x 范围 | 横向覆盖 | 左留白 | 右留白 | 高度占比 |
-|---|---|---|---|---|---|
-| sdj0001 | 58..141 | **56%** | **39%** | 5% | 44% |
-| sdj0002 | 6..143 | **92%** | 4% | 4% | 68% |
-| sdj0003 | 7..141 | 90% | 5% | 5% | 69% |
-| sdj0004 | 6..137 | 88% | 4% | 8% | 67% |
-| sdj0005 | 10..138 | 86% | 7% | 7% | 60% |
-| sdj0006 | 11..137 | **85%** | 7% | **8%** | 62% |
+| 帧       | 内容 x 范围 | 横向覆盖    | 左留白     | 右留白    | 高度占比 |
+| ------- | ------- | ------- | ------- | ------ | ---- |
+| sdj0001 | 58..141 | **56%** | **39%** | 5%     | 44%  |
+| sdj0002 | 6..143  | **92%** | 4%      | 4%     | 68%  |
+| sdj0003 | 7..141  | 90%     | 5%      | 5%     | 69%  |
+| sdj0004 | 6..137  | 88%     | 4%      | 8%     | 67%  |
+| sdj0005 | 10..138 | 86%     | 7%      | 7%     | 60%  |
+| sdj0006 | 11..137 | **85%** | 7%      | **8%** | 62%  |
 
 两条硬结论：
 
@@ -1044,13 +1087,13 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 
 ### 15.3 根因排序
 
-| # | 根因 | 量级 | 证据 |
-|---|---|---|---|
-| 1 | **`travelDistance` 被投影缩水** … `direction` 取的是 `pending.Shots[0]`（`SortByDistance` 升序 → **最近**目标），长度却取所有目标在该方向上的 `Dot` 投影。多目标方位不一致时，投影 = 真实距离 × cosθ | 实测只剩 **53%** → 夹角约 58° | 光柱 92px vs 应有 175px；方向只差 8° 但长度差一半 |
-| 2 | **美术帧内容 56%~92% 波动**，首帧仅 56% 且左空 39% | 播放期间 0~44% 的缺口 | 15.2 表格 |
-| 3 | 末帧（hold 阶段显示）右留白 8% → 敌人侧固定缺口 | `0.08 × L`，被 paddingRatio 0.9 抵消后 ≈ −2%（**这一项其实已解决**） | 15.2 + 现值 `RuneboltMagePathVisualPaddingRatio = 0.9` |
-| 4 | 起点偏移 48 单位（≈0.44 格）+ 帧 1 左空 39% | 英雄侧空 1.2 格 | 15.1 |
-| 5 | 位置快照过期（已由第 14 节刷新修掉） | 已解决 | — |
+| # | 根因                                                                                                                                                 | 量级                                                    | 证据                                                   |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------- |
+| 1 | **`travelDistance` 被投影缩水** … `direction` 取的是 `pending.Shots[0]`（`SortByDistance` 升序 → **最近**目标），长度却取所有目标在该方向上的 `Dot` 投影。多目标方位不一致时，投影 = 真实距离 × cosθ | 实测只剩 **53%** → 夹角约 58°                                | 光柱 92px vs 应有 175px；方向只差 8° 但长度差一半                   |
+| 2 | **美术帧内容 56%~92% 波动**，首帧仅 56% 且左空 39%                                                                                                               | 播放期间 0~44% 的缺口                                        | 15.2 表格                                              |
+| 3 | 末帧（hold 阶段显示）右留白 8% → 敌人侧固定缺口                                                                                                                      | `0.08 × L`，被 paddingRatio 0.9 抵消后 ≈ −2%（**这一项其实已解决**） | 15.2 + 现值 `RuneboltMagePathVisualPaddingRatio = 0.9` |
+| 4 | 起点偏移 48 单位（≈0.44 格）+ 帧 1 左空 39%                                                                                                                    | 英雄侧空 1.2 格                                            | 15.1                                                 |
+| 5 | 位置快照过期（已由第 14 节刷新修掉）                                                                                                                               | 已解决                                                   | —                                                    |
 
 > 关键：**第 3 项的数学刚好抵消**，所以"末端差一截"不是 padding 不够，而是第 1 项（长度算小）和第 2 项（帧不满幅）叠加的结果。继续调 padding / height / fallback 都不会再改善。
 
@@ -1076,11 +1119,11 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
             var visualLength = travelDistance / 0.92f;   // 见第 3 步
 ```
 
-   > `Vector3.Distance` 替代 `Dot` 的好处：即便个别目标偏离轴线（多目标散开），长度也**保证覆盖最远目标**，不会被投影吃掉。伤害推进仍走 `ConfigurePath(start, direction, travelDistance)`。
-   >
-   > 注意：若命中目标分散到一条直线覆盖不了（截图里横向散布很大），**优先满足"到达最远目标"**——这也是需求里明确的那一条。
+> `Vector3.Distance` 替代 `Dot` 的好处：即便个别目标偏离轴线（多目标散开），长度也**保证覆盖最远目标**，不会被投影吃掉。伤害推进仍走 `ConfigurePath(start, direction, travelDistance)`。
+>
+> 注意：若命中目标分散到一条直线覆盖不了（截图里横向散布很大），**优先满足"到达最远目标"**——这也是需求里明确的那一条。
 
-2. **不播 6 帧的"生长"过程，改成定格在帧 2**（92% 覆盖，两端各 4%）：
+1. **不播 6 帧的"生长"过程，改成定格在帧 2**（92% 覆盖，两端各 4%）：
 
 ```csharp
             animator.runtimeAnimatorController = pathController;
@@ -1090,22 +1133,22 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
             animator.Update(0f);
 ```
 
-   若要保留一点动感：先按原样播 0.04s（到帧 2 附近）再把 `animator.speed = 0f`，或在 update 回调里把时间循环限制在 `[1/6, 3/6]`（帧 2~4，覆盖 88%~92%）：
+若要保留一点动感：先按原样播 0.04s（到帧 2 附近）再把 `animator.speed = 0f`，或在 update 回调里把时间循环限制在 `[1/6, 3/6]`（帧 2~4，覆盖 88%~92%）：
 
 ```csharp
                     var loopT = 1f / 6f + Mathf.Repeat(elapsed / Mathf.Max(0.01f, clipLength), 2f / 6f);
                     animator.Play(0, 0, loopT);
 ```
 
-3. **padding 用帧 2 的真实覆盖率反算**：可见段是 `[0.04L, 0.96L]`，要让"可见右端"落在距离 D 处 → `L = D / 0.92`。所以把
+1. **padding 用帧 2 的真实覆盖率反算**：可见段是 `[0.04L, 0.96L]`，要让"可见右端"落在距离 D 处 → `L = D / 0.92`。所以把
 
 ```csharp
         private const float RuneboltMagePathVisualPaddingRatio = 0.92f;   // 由 0.9 改
 ```
 
-   （数值含义从"补留白"变成"帧覆盖率的倒数"。）
+（数值含义从"补留白"变成"帧覆盖率的倒数"。）
 
-4. 起点偏移 `48f → 24f`（或 0），把英雄侧空档收掉一半以上。
+1. 起点偏移 `48f → 24f`（或 0），把英雄侧空档收掉一半以上。
 
 #### 方案 B（彻底满足"一条完整贯穿线"）— 换"无缝光带"贴图
 
@@ -1134,6 +1177,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 ```
 
 判读：
+
 - `shots=1` 且 `travel ≈ toFarthest` → 长度本该正确，问题全在美术帧（走方案 A 第 2/3 步或 B）。
 - `shots ≥ 2` 且 `travel < toFarthest`（比如 0.5 倍）→ **第 1 项根因成立**，按方案 A 第 1 步修。
 - `list` 里各坐标方向散开 → 目标确实不共线，此时"到达最远目标"只能靠朝最远目标绘制。
@@ -1229,7 +1273,8 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 ```
 
 **为什么必须这么改（新发现）**：`RM nor Projectile.controller` 的 AnimatorState 里
-`m_Speed: 0.1`（不是 1！）。所以 0.1s 的 clip 实际要 **1 秒**才播完，而 `ActiveFx` 的寿命只有 `clipLength(0.1) + hold(0.12) + fade(0.08) = 0.30s` —— 光柱在死掉时只播到 clip 的 **30%**，也就是说它一生都停在**帧 1（覆盖 56%、左侧空 39%）**和帧 2 之间。这就是"细、短、没挨住"里"短"的第二重来源（第一重是改动 1 修掉的投影缩水）。
+
+`m_Speed: 0.1`（不是 1！）。所以 0.1s 的 clip 实际要 **1 秒**才播完，而 `ActiveFx` 的寿命只有 `clipLength(0.1) + hold(0.12) + fade(0.08) = 0.30s` —— 光柱在死掉时只播到 clip 的 **30%**，也就是说它一生都停在**帧 1（覆盖 56%、左侧空 39%）**&#x548C;帧 2 之间。这就是"细、短、没挨住"里"短"的第二重来源（第一重是改动 1 修掉的投影缩水）。
 
 > 想保留一点"飞行生长"的动感，见本节末尾**变体 A2**。
 
@@ -1238,7 +1283,9 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 ### 改动 5（可选，推荐）— 定格后多看 0.06 秒
 
 定格帧是静止的，hold 0.12s + fade 0.08s 略短。若嫌一闪而过：V2 `Greybox_Main.unity` 的
+
 `runeboltMagePathHoldDuration: 0.12` → `0.2`（**14105 / 41211** 两处，或 Unity 里搜 `t:CombatFxView` 改 Inspector 后 Ctrl+S）。
+
 注意 `[SerializeField]` 被场景值覆盖，改代码默认值无效。
 
 ---
@@ -1246,6 +1293,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 ### 改动 6（可选，仅为代码默认值对齐）
 
 `:113` 的 `runeboltMageReleaseFallbackDelay = 0.38f` → `0.16f`。
+
 场景里**已经是 0.16**（14108 / 41214），所以这条不改也能跑；改了只是让新场景/新预制体不再继承 0.38。
 
 ---
@@ -1255,6 +1303,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 如果希望看到光柱从法师手里"甩出去"而不是直接定格：
 
 1. 用文本编辑器打开
+
    `Assets/DragonBound/UI/Variants/V2/Content/Resources/Animations/Hero/Runebolt Mage/normal/VFX/RM nor Projectile.controller`
    - `m_Speed: 0.1` → `m_Speed: 1`（让 6 帧在 0.1s 内播完，与代码算的 `clipLength` 一致）
    - `m_LoopTime: 1` → `m_LoopTime: 0`（播完停在末帧，否则 hold 期间会循环回空白的帧 1）
@@ -1263,6 +1312,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 4. 起点偏移仍是 24（改动 2）。
 
 代价：起播瞬间（≈0.017s）是帧 1，英雄侧会有一闪的空档；末帧覆盖 85% 略细于帧 2。
+
 **建议先用改动 1~4（定格），确认"能挨住最远敌人"之后再试 A2。**
 
 ---
@@ -1285,6 +1335,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 ```
 
 判读：
+
 - `visual ≈ travel / 0.96` 且 `travel ≈ toFarthest` → 改动 1 生效；末端应正好压在最远敌人身上。
 - `lateral` 各目标都应 ≲ 19（0.35 格宽度的一半 × 110）；若某个明显大于 19，说明它不在玩法判定的那条线上（玩法 `IsInsideLine` 侧向阈值 0.175 格），画面会"擦过它边上"——这是数据问题，不是特效问题。
 - 画面仍短：回查 `:926` 的 `sizeDelta.x` 是否真写成 `visualLength`、`preserveAspect` 是否仍为 `false`。
@@ -1305,16 +1356,16 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 
 ### 17.1 截图实测（453x364，棋盘格 59.5px = 110 单位，1 单位 = 0.541px）
 
-| 元素 | 实测 | 换算 |
-|---|---|---|
-| 法师格子中心 | ≈ (196, 277) | —— |
-| 光柱可见段 | (203,266) → (255,161)，长 **127px** | **2.13 格** |
-| 光柱轴角 | 57°±3°（指向"中间行最右"那个敌人） | —— |
-| 该敌人身上 | 青色**环**（Impact 第 2~3 帧） | 最年轻的一次爆闪 |
-| 上排右敌 (318,107) | 青色**实心盘**（Impact 第 4 帧） | 更老的爆闪，**光柱没有到它** |
-| 上排左敌 (260,96) | 青色盘 | 同上 |
+| 元素             | 实测                                | 换算               |
+| -------------- | --------------------------------- | ---------------- |
+| 法师格子中心         | ≈ (196, 277)                      | ——               |
+| 光柱可见段          | (203,266) → (255,161)，长 **127px** | **2.13 格**       |
+| 光柱轴角           | 57°±3°（指向"中间行最右"那个敌人）             | ——               |
+| 该敌人身上          | 青色**环**（Impact 第 2~3 帧）           | 最年轻的一次爆闪         |
+| 上排右敌 (318,107) | 青色**实心盘**（Impact 第 4 帧）           | 更老的爆闪，**光柱没有到它** |
+| 上排左敌 (260,96)  | 青色盘                               | 同上               |
 
-"法师 → 上排右敌"这条射线做亮度剖面：前 127px 是光柱（lum 200~255、b-r 30~120），**127px 之后到敌人身上之前只有棋盘的高光十字（纯白小斑，b-r≈0）** —— 即光柱的 box 确实只到 2.13 格处，这一点是确定的。
+"法师 → 上排右敌"这条射线做亮度剖面：前 127px 是光柱（lum 200~~255、b-r 30~~120），**127px 之后到敌人身上之前只有棋盘的高光十字（纯白小斑，b-r≈0）** —— 即光柱的 box 确实只到 2.13 格处，这一点是确定的。
 
 ### 17.2 结论一：上排敌人的爆闪不是"这一发"打的
 
@@ -1329,6 +1380,7 @@ Debug.Log($"[Runebolt] shots={pending.Shots.Count} travel={travelDistance:0.#} v
 ### 17.3 结论二：上排那两个敌人**本来就不该受伤**（玩法口径）
 
 `HeroCombatState.ResolveRuneboltAttack`（:721-760）：
+
 ```
 direction = 朝 SelectFrontmostInRange 选出的"最前"敌人
 length = PierceLength = 5      （5 格）
@@ -1336,6 +1388,7 @@ width  = PierceWidth  = 0.35   （走廊宽 0.35 格）
 IsInsideLine: forward ∈ [0, 5] 且 lateral ≤ width*0.5 = 0.175 格（≈ ±10px）
 maxTargets = MaxTargetsByLevel[0] = 4
 ```
+
 即**一条 5 格长、0.35 格宽的细走廊**，方向朝"最前"敌人。实测：上排右敌相对"朝中间行敌人"的走廊，侧向偏 **0.78 格**（远大于 0.175）；同一排里另外三个敌人侧向偏 0.3~0.5 格 → **都没受伤**。
 
 所以"光柱没有挨住上排那个敌人"在玩法上是正确的，只有"爆闪"会误导你以为它被打了。玩家视觉上认为"这一排都在线上"，但规则说不在 —— 这就是需求与规则的冲突点。
@@ -1344,14 +1397,15 @@ maxTargets = MaxTargetsByLevel[0] = 4
 
 代码永远用 `clip.length` 算时长，而 **`AnimatorState.m_Speed` 不在 `clip.length` 里**（`Animator` 实际播放 = `animator.speed × state.m_Speed`，`animator.speed` 才是代码里那个 1）。实测三套：
 
-| 资源 | clip 时长 / 帧数 | controller `m_Speed` | 代码给的寿命 | 实际播到 |
-|---|---|---|---|---|
-| `RM nor Projectile` | 0.100s / 6 帧 | **0.1** | `clipLength+hold+fade` = 0.30s | 只走 0.03s → **帧 1~2**（帧1 覆盖仅 56%、左空 39%） |
-| `RM nor Impact` | 0.133s / 8 帧 | **0.5** | `= clip.length` = 0.133s | 只走 0.066s → **帧 ~4（实心盘）**，8 帧永远播不完 |
-| `RM nor Muzzle` | 0.133s / 8 帧 | 1 | 代码里**没有任何引用** | 未使用 |
-| clip 的 `m_LoopTime` | 三套全部 = **1** | —— | —— | Projectile 在 hold 期间会**循环回帧 1**（最空的那帧） |
+| 资源                  | clip 时长 / 帧数 | controller `m_Speed` | 代码给的寿命                         | 实际播到                                    |
+| ------------------- | ------------ | -------------------- | ------------------------------ | --------------------------------------- |
+| `RM nor Projectile` | 0.100s / 6 帧 | **0.1**              | `clipLength+hold+fade` = 0.30s | 只走 0.03s → **帧 1~2**（帧1 覆盖仅 56%、左空 39%） |
+| `RM nor Impact`     | 0.133s / 8 帧 | **0.5**              | `= clip.length` = 0.133s       | 只走 0.066s → **帧 ~4（实心盘）**，8 帧永远播不完      |
+| `RM nor Muzzle`     | 0.133s / 8 帧 | 1                    | 代码里**没有任何引用**                  | 未使用                                     |
+| clip 的 `m_LoopTime` | 三套全部 = **1** | ——                   | ——                             | Projectile 在 hold 期间会**循环回帧 1**（最空的那帧）  |
 
 这解释了你看到的两件事：
+
 1. **没有动态**：你把 `animator.speed` 设成 0 定格在帧 2 之后，画面当然不动（这是上一轮方案 A 的代价）；但即使不定格，因为 state speed = 0.1，0.3s 的寿命里动画也走不到 1/3，看起来就是"卡着不动"。
 2. **细/短**：一生停在帧 1（左空 39%）～帧 2，可见笔画 = box × 覆盖率；两端留白再叠上 box 本身，就永远"差一截"。
 
@@ -1364,14 +1418,16 @@ maxTargets = MaxTargetsByLevel[0] = 4
 ### 17.6 修复清单（三层，缺一不可）
 
 **A. 资源层（必做，两行文本）**
-| 文件 | 改动 | 作用 |
-|---|---|---|
-| `RM nor Projectile.controller` | `m_Speed: 0.1` → `1` | 6 帧在 0.1s 内正常播完，动画活了 |
+
+| 文件                                | 改动                    | 作用                             |
+| --------------------------------- | --------------------- | ------------------------------ |
+| `RM nor Projectile.controller`    | `m_Speed: 0.1` → `1`  | 6 帧在 0.1s 内正常播完，动画活了           |
 | `RM nor Projectile.anim`（clip 设置） | `m_LoopTime: 1` → `0` | hold 期间停在末帧，而不是循环回"左空 39%"的帧 1 |
-| `RM nor Impact.controller` | `m_Speed: 0.5` → `1` | 8 帧爆闪在 0.133s 内完整播完（不再是实心盘定格） |
-| `RM nor Impact.anim`（可选） | `m_LoopTime: 1` → `0` | 停在末帧淡出，避免循环闪烁 |
+| `RM nor Impact.controller`        | `m_Speed: 0.5` → `1`  | 8 帧爆闪在 0.133s 内完整播完（不再是实心盘定格）  |
+| `RM nor Impact.anim`（可选）          | `m_LoopTime: 1` → `0` | 停在末帧淡出，避免循环闪烁                  |
 
 **B. 代码层**
+
 - 不再定格：`animator.speed = 1f; animator.Play(0, 0, 1f/6f);`（从帧 2 起播 → 全程覆盖率 ≥85%，永不回到 56% 的帧 1）；
 - `RuneboltMagePathVisualPaddingRatio` 回到 **0.9**（末帧右留白 9.3% 由它补掉）；
 - 起点偏移 **24**（保留）；
@@ -1379,7 +1435,8 @@ maxTargets = MaxTargetsByLevel[0] = 4
 - 爆闪 `SpawnRuneboltMageImpact` 的 `duration` 改成 `clip.length / stateSpeed`（否则改完 `m_Speed` 后爆闪会被提前销毁）—— 或者干脆把 duration 乘 2。
 
 **C. 玩法层（要不要做取决于需求取舍）**
-- 若要求"玩家看到的整排敌人都被线穿过"：把 `PierceWidth` 从 **0.35** 放宽（同排相邻两敌侧向差 0.4~0.8 格，要覆盖整排需要 ≈1.6~2.0 格宽，等于"横扫一排"）。
+
+- 若要求"玩家看到的整排敌人都被线穿过"：把 `PierceWidth` 从 **0.35** 放宽（同排相邻两敌侧向差 0.4~~0.8 格，要覆盖整排需要 ≈1.6~~2.0 格宽，等于"横扫一排"）。
 - 若保持 0.35 的"细线穿透"手感：那就接受"光柱只到受伤的最远者"，并把爆闪做成更强的"命中锚点"，让玩家读作"打中了"而不是"没到"。
 - 折中：`PierceWidth` 0.35 → **0.6**，能额外吃到侧向 0.3 格内的近邻（同一格半内的敌人），视觉上更像"擦着穿过"。
 
@@ -1412,6 +1469,7 @@ maxTargets = MaxTargetsByLevel[0] = 4
 （`attackerId` 直接从 `pending.Shots[0].CombatEvent.AttackerRuntimeId` 取，不用给 `PendingRuneboltMageCast` 加字段。）
 
 判读：
+
 - 每次攻击只打出 1 行 `[RB]`，且 `shots` 里**只有同排/同轴上的敌人**（lateral ≤ 10）→ 证实 17.3：上排敌人的爆闪属于更早的批次；
 - 若出现 `shots=1` 但画面上有多个爆闪 → 证实 17.2 的"残影错位"；
 - `lateral > 10` 的 shot 还能出现在日志里 → 走廊判定与表现不一致，需要按 17.5 统一方向。
@@ -1426,19 +1484,19 @@ maxTargets = MaxTargetsByLevel[0] = 4
 
 ### 18.0 先核对当前状态（我刚实测过，别跳过）
 
-| 对象 | 位置 | 现值 | 本轮是否要改 |
-|---|---|---|---|
-| `RM nor Projectile.controller` | `m_Speed` | **1** | ❌ 已改好（A2 已做） |
-| `RM nor Projectile.anim` | `m_LoopTime` | **0** | ❌ 已改好 |
-| `RM nor Impact.controller` | `m_Speed` | **0.5** | ✅ 改动 1 |
-| `RM nor Impact.anim` | `m_LoopTime` | **1** | ⭕ 可选 |
-| `CombatFxView.cs:985` | `animator.speed = 0f;`（定格） | 仍在 | ✅ 改动 2（删除） |
-| `CombatFxView.cs:108` | `RuneboltMagePathVisualPaddingRatio` | **0.96** | ✅ 改动 3 → 0.9 |
-| `CombatFxView.cs:911` | 起点偏移 | **24f** | ⭕ 改动 4 → 8f |
-| `CombatFxView.cs:1072` | Impact 寿命 | `clip.length` | ✅ 改动 5 |
-| `FrozenHeroConfiguration.cs:615` | `PierceWidth` | **0.35** | ✅ 改动 6（关键） |
-| V2 场景 `Greybox_Main.unity` | `runeboltMageReleaseFallbackDelay` | **0.16**（14108/41214） | ❌ 已改 |
-| V2 场景 | `runeboltMagePathHoldDuration` | **0.12**（14105/41211） | ❌ 已改 |
+| 对象                               | 位置                                   | 现值                    | 本轮是否要改       |
+| -------------------------------- | ------------------------------------ | --------------------- | ------------ |
+| `RM nor Projectile.controller`   | `m_Speed`                            | **1**                 | ❌ 已改好（A2 已做） |
+| `RM nor Projectile.anim`         | `m_LoopTime`                         | **0**                 | ❌ 已改好        |
+| `RM nor Impact.controller`       | `m_Speed`                            | **0.5**               | ✅ 改动 1       |
+| `RM nor Impact.anim`             | `m_LoopTime`                         | **1**                 | ⭕ 可选         |
+| `CombatFxView.cs:985`            | `animator.speed = 0f;`（定格）           | 仍在                    | ✅ 改动 2（删除）   |
+| `CombatFxView.cs:108`            | `RuneboltMagePathVisualPaddingRatio` | **0.96**              | ✅ 改动 3 → 0.9 |
+| `CombatFxView.cs:911`            | 起点偏移                                 | **24f**               | ⭕ 改动 4 → 8f  |
+| `CombatFxView.cs:1072`           | Impact 寿命                            | `clip.length`         | ✅ 改动 5       |
+| `FrozenHeroConfiguration.cs:615` | `PierceWidth`                        | **0.35**              | ✅ 改动 6（关键）   |
+| V2 场景 `Greybox_Main.unity`       | `runeboltMageReleaseFallbackDelay`   | **0.16**（14108/41214） | ❌ 已改         |
+| V2 场景                            | `runeboltMagePathHoldDuration`       | **0.12**（14105/41211） | ❌ 已改         |
 
 > 结论：上一轮"没有动态"的直接原因是 `:985` 的定格仍在（资源层你已经改好了）；"到不了最远敌人"的直接原因是**玩法侧走廊只有 0.35 格宽，本来就没打到更远的敌人**（改动 6）。
 
@@ -1454,6 +1512,7 @@ maxTargets = MaxTargetsByLevel[0] = 4
 ```
 
 （可选）同目录 `RM nor Impact.anim`：`m_LoopTime: 1` → `m_LoopTime: 0`。
+
 不改也行——`duration = clip.length` 正好在循环点销毁，视觉差异极小。
 
 > 不改这行的后果：clip 0.133s / state 0.5 = 实际播放 0.266s，而代码给的寿命是 0.133s → 爆闪**一辈子只播到一半**，看起来就是"一个不动的青色实心盘"（这正是截图里那个"老态爆闪"）。
@@ -1486,14 +1545,14 @@ maxTargets = MaxTargetsByLevel[0] = 4
 
 起播归一化时间 → 帧映射（clip 6 帧 / 0.1s）：
 
-| normalized | 帧 | 横向覆盖率 | 左留白 | 右留白 | 观感 |
-|---|---|---|---|---|---|
-| 0 | 1 | **56%** | **39%** | 5% | 远端先出现一截短光（"彗星头"） |
-| **0.1667** | **2** | **92%** | 4% | 4% | **满幅（推荐起播点）** |
-| 0.3333 | 3 | 90% | 5% | 5% | 满幅 |
-| 0.5 | 4 | 88% | 4% | 8% | 尾部开始收 |
-| 0.6667 | 5 | 86% | 7% | 7% | 消散中 |
-| 0.8333 | 6 | **85%** | **7%** | **8%** | 停住（hold 期间看到的最终形态） |
+| normalized | 帧     | 横向覆盖率   | 左留白     | 右留白    | 观感                 |
+| ---------- | ----- | ------- | ------- | ------ | ------------------ |
+| 0          | 1     | **56%** | **39%** | 5%     | 远端先出现一截短光（"彗星头"）   |
+| **0.1667** | **2** | **92%** | 4%      | 4%     | **满幅（推荐起播点）**      |
+| 0.3333     | 3     | 90%     | 5%      | 5%     | 满幅                 |
+| 0.5        | 4     | 88%     | 4%      | 8%     | 尾部开始收              |
+| 0.6667     | 5     | 86%     | 7%      | 7%     | 消散中                |
+| 0.8333     | 6     | **85%** | **7%**  | **8%** | 停住（hold 期间看到的最终形态） |
 
 想要"射出感"可以把 `1f / 6f` 改成 `0f`（从帧 1 起播）——代价是最初一帧（17ms）光带只覆盖 56% 且偏在远端，会有一闪的错位感。**建议先按 0.1667 试。**
 
@@ -1559,19 +1618,21 @@ maxTargets = MaxTargetsByLevel[0] = 4
 ```csharp
                     new Dictionary<string, float> { { "PierceLength", 5f }, { "PierceWidth", 0.35f } },
 ```
+
 改成
+
 ```csharp
                     new Dictionary<string, float> { { "PierceLength", 5f }, { "PierceWidth", 1.2f } },
 ```
 
 `PierceWidth` 是**走廊总宽**（`IsInsideLine` 里判定 `lateral <= width * 0.5f`，即半宽 = width/2，单位=格）。1 格 = 110 单位。
 
-| 取值 | 半宽 | 能收进来什么 |
-|---|---|---|
-| 0.35（现状） | ±0.175 格 ≈ ±19 单位 | 只收几乎严格共线的敌人，**实测常常只有 1 个** |
-| 0.6 | ±0.3 格 | 同排紧邻的能进 |
-| **1.0 ~ 1.2（推荐）** | ±0.5 ~ 0.6 格 | **整排都能进**，仍不会误伤隔壁排 |
-| 2.0 | ±1.0 格 | 上下三排全收，等于横扫一片，伤害会明显超模 |
+| 取值                | 半宽                | 能收进来什么                     |
+| ----------------- | ----------------- | -------------------------- |
+| 0.35（现状）          | ±0.175 格 ≈ ±19 单位 | 只收几乎严格共线的敌人，**实测常常只有 1 个** |
+| 0.6               | ±0.3 格            | 同排紧邻的能进                    |
+| **1.0 ~ 1.2（推荐）** | ±0.5 ~ 0.6 格      | **整排都能进**，仍不会误伤隔壁排         |
+| 2.0               | ±1.0 格            | 上下三排全收，等于横扫一片，伤害会明显超模      |
 
 为什么这是"到不了最远敌人"的主因：`ResolveRuneboltAttack`（`HeroCombatState.cs:722-760`）先取 `frontmost` 敌人定方向，再用 `IsInsideLine` 过滤；走廊只有 0.35 格宽时，**更远的敌人只要偏离轴线一点点就不算命中**，于是 `Shots` 里只有最近那一两个 → 光柱末端自然只到 2 格左右（截图实测 2.13 格）。
 
@@ -1646,3 +1707,620 @@ V2 场景已是 0.16，这条只影响新建场景/新 prefab 实例，属于收
 - **只影响 Runebolt Mage**：`PierceWidth` 写在它自己的 `AttackParameters` 字典里，`LeviathanHunter` 用的是 `0.40`（:653，独立字典），不受影响。
 - **V1 不受影响**：`RM nor Impact` / `RM nor Projectile` 的 V2 资源键在 V1 注册表里不存在，`ResolveRuneboltMagePathController` 与 `SpawnRuneboltMageImpact` 都会静默返回。
 - **平衡影响**：改动 6 会让 Runebolt Mage 的 DPS 明显上升（从"单体"变成"一排"）。如果只想视觉上穿过、不想加伤害，可以反过来做：保持 `PierceWidth=0.35`，只用改动 8 把光柱画到 3~5 格（末端会越过目标，但判定不变）。
+
+## 19. 方案：光柱起点改为「法杖杖尖」（2026-09-24）
+
+### 19.1 需求与现状
+
+需求：Runebolt Mage 的普攻光柱（`RM nor Projectile`）要从**英雄法杖顶部（杖尖）**&#x5F00;始播放，而不是从英雄身体中心冒出来。
+
+现状链路（已确认）：
+
+| 环节                    | 当前值                                                           | 位置                                                                                                                  |
+| --------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 光柱释放时机（V2 Spine）      | `WaitForSeconds(17f/30f)` = **0.5667s = 第 18 帧**              | `HeroFormationView.cs:27` `RuneboltMageSpineReleaseTime`、`:707-718` `NotifyRuneboltMageBoltReleaseAfterSpineTiming` |
+| 光柱释放兜底                | V2 场景 `runeboltMageReleaseFallbackDelay = 0.6`（已改）；V1 场景 0.38 | `CombatFxView.cs:750-779`                                                                                           |
+| 英雄动画释放事件（V1）          | `OnRuneboltMageBoltRelease` @ 0.2333s                         | `V1/.../Animation/Runebolt Mage.anim:147-149`                                                                       |
+| **光柱起点**              | `pending.AttackerPosition + direction * 8f`                   | `CombatFxView.cs:912`                                                                                               |
+| `AttackerPosition` 来源 | `board.TryGetUnitPosition(...)` = **棋盘格中心**                   | `CombatFxView.cs:500`                                                                                               |
+
+结论：**时机已经是对的**（V2 就是第 18 帧放出，fallback 0.6 > 0.5667 不会抢先）；**唯一缺的就是起点**——现在用棋盘格中心，跟法杖毫无关系，所以光柱看起来从腰上冒出来。
+
+### 19.2 第 18 帧法杖的实测坐标（Spine 解算结果）
+
+法杖 = slot `图层 4`，挂在骨骼 **`bone6`**（链 `root → bone → bone2 → bone5 → bone6`）。`Attack` 动画只有 rotate 轨道，`bone6` 在 0.5s 与 0.5667s 的关键帧值都是 37.94（stepped 后保持）→ 第 15 帧与第 18 帧姿态完全相同。
+
+| 点              | Spine 坐标（y 向上）      | mesh 局部坐标 | 世界偏移（朝右）           |
+| -------------- | ------------------- | --------- | ------------------ |
+| `bone6`（杖柄骨原点） | (360.2, 539.4)      | 同左        | (+21.6, +32.4)     |
+| 晶体中心（杖头）       | (553.0, 50.8)       | 同左        | (+33.2, +3.0)      |
+| **杖尖（最外晶体像素）** | **(804.7, −281.6)** | 同左        | **(+48.3, −16.9)** |
+
+换算系数推导（已逐项核实）：
+
+```
+mesh 局部坐标 = Spine 坐标 × skeletonDataAsset.scale × canvas.referencePixelsPerUnit
+              = Spine 坐标 × 0.01 × 100            → 恰好 = Spine 坐标原值
+世界坐标偏移   = mesh 局部 × RectTransform.localScale(0.06)
+              = Spine 坐标 × 0.06
+```
+
+- `SkeletonDataAsset.scale = 0.01`（`Runebolt Mage_SkeletonData.asset:17`）
+- `referencePixelsPerUnit = 100`（Unity Canvas 默认；`SkeletonGraphic.cs:606` 用它 `ScaleVertexData`）
+- `ART_ComponentConnector`（heroAttackSkeleton 所在节点）`m_LocalScale = {0.06, 0.06, 1}`（`V2/.../HeroFormation.prefab:681`）
+- 校验：英雄全高 1727 Spine 单位 × 0.06 = 103.6 ≈ 0.94 格（1 格 = 110）✔ 与截图一致
+
+**关键结论：直接用 `heroAttackSkeleton.transform.TransformPoint(new Vector3(bone.WorldX, bone.WorldY, 0f))` 即可拿到杖尖世界坐标**——`TransformPoint` 会依次应用 localScale(0.06)、anchoredPosition(-2.2, -54.1)、整条祖先链，**镜像时 `localScale.x` 取负会自动把杖尖翻到左侧**，无需手写朝向判断。
+
+### 19.3 方案 A（推荐）：实时取骨骼位置
+
+#### 改动 1 —— `HeroFormationView.cs` 新增字段（放在 `:38` `heroAttackSkeleton` 后面）
+
+```csharp
+[SerializeField] private string staffTipBoneName = "bone6";
+[SerializeField] private Vector2 staffTipBoneOffset = new Vector2(0f, 0f);
+```
+
+`staffTipBoneOffset` 是可选的微调（单位 = Spine 单位），默认 0 即可。
+
+#### 改动 2 —— `HeroFormationView.cs` 新增方法（放在 `:101` `TryGetAttackOrigin` 后面）
+
+```csharp
+public bool TryGetStaffTipPosition(out Vector3 position)
+{
+    position = RectTransform.position;
+    if (heroAttackSkeleton == null ||
+        !heroAttackSkeleton.gameObject.activeInHierarchy ||
+        heroAttackSkeleton.Skeleton == null ||
+        heroAttackSkeleton.skeletonDataAsset == null ||
+        string.IsNullOrEmpty(staffTipBoneName))
+    {
+        return false;
+    }
+
+    var bone = heroAttackSkeleton.Skeleton.FindBone(staffTipBoneName);
+    if (bone == null)
+    {
+        return false;
+    }
+
+    // Mesh vertices are Spine units * skeletonDataAsset.scale * canvas.referencePixelsPerUnit.
+    // TransformPoint then applies the RectTransform scale (0.06) and the whole ancestor chain,
+    // so mirrored art (negative localScale.x) flips the tip to the left automatically.
+    var canvas = heroAttackSkeleton.canvas;
+    var meshScale = heroAttackSkeleton.skeletonDataAsset.scale *
+                    (canvas != null ? canvas.referencePixelsPerUnit : 100f);
+    var local = new Vector3(
+        (bone.WorldX + staffTipBoneOffset.x) * meshScale,
+        (bone.WorldY + staffTipBoneOffset.y) * meshScale,
+        0f);
+    position = heroAttackSkeleton.transform.TransformPoint(local);
+    return true;
+}
+```
+
+API 可用性已核实：`Bone.WorldX/WorldY` 是 public 只读属性（`spine-csharp/Bone.cs:109`）；`SkeletonDataAsset.scale` 是 public float（`SkeletonDataAsset.cs:46`）；`canvas` 来自 `UnityEngine.UI.Graphic`。
+
+#### 改动 3 —— `GreyboxBoardView.cs` 转发（放在 `:373` `PlayHeroFormationAttackAnimation` 后面）
+
+```csharp
+public bool TryGetHeroStaffTipPosition(string heroRuntimeId, out Vector3 position)
+{
+    position = Vector3.zero;
+    return !string.IsNullOrWhiteSpace(heroRuntimeId) &&
+           pairPresentations.TryGetValue(heroRuntimeId, out var pairView) &&
+           pairView != null &&
+           pairView.TryGetStaffTipPosition(out position);
+}
+```
+
+`pairPresentations` 用英雄 runtimeId 作 key（现有 `PlayHeroFormationAttackAnimation(combatEvent.AttackerRuntimeId, ...)` 就是这么查的）✔
+
+#### 改动 4 —— `CombatFxView.cs`：`PendingRuneboltMageCast` 带上 attackerRuntimeId
+
+```csharp
+public PendingRuneboltMageCast(
+    int createdFrame,
+    string attackerRuntimeId,
+    Vector3 attackerPosition)
+{
+    CreatedFrame = createdFrame;
+    AttackerRuntimeId = attackerRuntimeId ?? string.Empty;
+    AttackerPosition = attackerPosition;
+}
+
+public string AttackerRuntimeId { get; }
+```
+
+对应地把 `:735` 的构造调用改成：
+
+```csharp
+pending = new PendingRuneboltMageCast(Time.frameCount, attackerId, attackerPosition);
+```
+
+#### 改动 5 —— `CombatFxView.cs:912` 起点改成杖尖
+
+把
+
+```csharp
+var start = pending.AttackerPosition + (direction * 8f);
+```
+
+替换成
+
+```csharp
+var start = ResolveRuneboltMagePathOrigin(pending, direction);
+```
+
+并在 `SpawnRuneboltMageBolt` 上方新增：
+
+```csharp
+private const float RuneboltMagePathOriginForwardOffset = 8f;
+
+private Vector3 ResolveRuneboltMagePathOrigin(
+    PendingRuneboltMageCast pending,
+    Vector3 direction)
+{
+    var fallback = pending.AttackerPosition +
+                   (direction * RuneboltMagePathOriginForwardOffset);
+    if (board == null ||
+        !board.TryGetHeroStaffTipPosition(pending.AttackerRuntimeId, out var staffTip))
+    {
+        return fallback;
+    }
+
+    // The staff tip is authored for a right-facing pose. If the target somehow sits behind
+    // the muzzle the beam would start past it, so keep the old forward-offset origin.
+    if (Vector3.Dot(staffTip - pending.AttackerPosition, direction) <= 0f)
+    {
+        return fallback;
+    }
+
+    return staffTip;
+}
+```
+
+`travelDistance`（`:920`）、`visualLength`（`:934`）、`ConfigurePath`（`:936`）都基于 `start`，无需再改；5 格穿透上限 550 不变，只是起点前移约 48（0.44 格），终点仍落在最远敌人身上。
+
+### 19.4 配套（可选但推荐）
+
+- **枪口闪光**：`RM nor Muzzle.anim` 已存在但代码零引用。可在 `SpawnRuneboltMageBolt` 里用 `start` 作为位置再 spawn 一个小特效（复用 `SpawnRuneboltMageImpact` 的模式，换成 Muzzle 控制器 + 单独的 size），让"从法杖射出"更有说服力。
+- **保持时机**：不要再动 `runeboltMageReleaseFallbackDelay`（V2 已是 0.6）。它必须 > 0.5667，否则会在第 5 帧抢先释放，法杖还没举起光柱就出来了。
+- **V1 不受影响**：V1 走 `HeroAnimationController` + `OnRuneboltMageBoltRelease` 事件（0.2333s），且 V1 的 `heroAttackSkeleton` 未配置 → `TryGetStaffTipPosition` 返回 false → 自动回退到旧起点。
+
+### 19.5 验证方法
+
+在 `ResolveRuneboltMagePathOrigin` 里临时加日志：
+
+```csharp
+Debug.Log($"[RMB] tip={staffTip} attacker={pending.AttackerPosition} " +
+          $"delta={(staffTip - pending.AttackerPosition)} dir={direction}");
+```
+
+期望（英雄朝右时）：`delta ≈ (+48, −17) + (Spine 原点相对棋盘格中心的偏移)`。
+
+> 注意：`AttackerPosition` 是棋盘格中心，而 Spine 原点在 `ART_ComponentConnector`（anchoredPosition −2.2, −54.1），两者本身就有差值。先单独打一行 `heroAttackSkeleton.transform.position - AttackerPosition` 拿到这个基准差，再看杖尖增量是否 ≈ (+48.3, −16.9)。若实测偏差大，用 `staffTipBoneOffset` 微调（单位 = Spine 单位，1 格 = 1833 Spine 单位）。
+
+截图判据：光柱左端应紧贴法杖晶体的最外缘，中间不再有"英雄身体里冒光"的空档。
+
+### 19.6 方案 B（备用）：常量偏移，不依赖骨骼
+
+若不想引入骨骼查询，直接用第 18 帧的固定值：
+
+```csharp
+[SerializeField] private Vector2 runeboltMageStaffTipOffset = new Vector2(48.3f, -16.9f);
+```
+
+朝右时 `start = attackerPosition + offset`；镜像（`board` 侧已知 `SetArtMirrored`）时 x 取反。
+
+- 优点：零依赖、不怕骨骼缺失、改起来 3 行。
+- 缺点：美术改动画后失效；无法跟随姿态。
+
+建议先上方案 A（骨骼优先 + 自动回退），把常量偏移当作 A 的回退值。
+
+### 19.7 方案 C（更精确，改动较大）：Spine 动画加 Event
+
+在 `Runebolt Mage.json` 的 `animations.Attack` 里加：
+
+```json
+"events": [
+  { "time": 0.5667, "name": "bolt" }
+]
+```
+
+再在 `PlaySpineAttackAnimation`（`HeroFormationView.cs:679`）里挂 `heroAttackSkeleton.AnimationState.Event += ...`，按 `e.Data.Name == "bolt"` 触发 `NotifyRuneboltMageBoltRelease()`，回收时 `-=` 取消。
+
+- 优点：不受帧率/`WaitForSeconds` 抖动影响，永远精确落在第 18 帧。
+- 缺点：要改 `.json`（Spine 源文件也要同步，否则重新导出会丢失）+ 要处理事件订阅的生命周期。
+
+当前 `RuneboltMageSpineReleaseTime = 17f/30f` 已经等价，建议**暂不做 C**。
+
+## 20. 分析：光柱"长度没达到敌人 UI 中点"是不是视觉上到不了敌人的原因
+
+### 20.1 结论（先给答案）
+
+**不是。** 按当前代码推导，光柱盒子本身就**越过**敌人中心约 11%，而美术 6 帧的右端空白都 ≤0.7%。
+
+所以"长度没到敌人中点"不可能由长度公式造成；**"视觉上没到敌人"的真正原因在长度公式的输入（打到了哪些敌人 / 起点在哪），不在公式本身。**
+
+### 20.2 长度公式的逐项推导（CombatFxView.cs:917-966）
+
+```csharp
+var start          = attackerPosition + (direction * 8f);
+var travelDistance = Clamp(Distance(farthestShot.TargetPosition, start), 1f, 550f);
+var visualLength   = travelDistance / RuneboltMagePathVisualPaddingRatio;   // 0.9
+rect.position      = start;
+rect.pivot         = new Vector2(0f, 0.5f);
+rect.sizeDelta     = new Vector2(visualLength, visualHeight);
+rect.localRotation = Euler(0, 0, Atan2(direction.y, direction.x) * Rad2Deg);
+```
+
+- `RuneboltMagePathVisualPaddingRatio` = **0.9**（`CombatFxView.cs:108`，`const`，V1/V2 场景均未覆盖）。
+- `rect.pivot = (0, 0.5)` → 盒子**左端**落在 `start`，沿 `direction` 延伸 `visualLength`。
+- 设 D = |target − attackerPosition|，则
+
+  `travelDistance = D − 8`，`盒子右端 = start + (D−8)/0.9 = attackerPosition + 1.111·D − 0.89`
+
+  → **D > 8 时恒越过敌人中心**，D 越大越明显（D=234 即 2.13 格时越过约 9.4 UI）。
+
+> `pivot` 写在 `position` 之后是安全的：Unity 的 `RectTransform.pivot` setter 保持 `localPosition`（即 pivot 点）不动，只把矩形相对挪动，所以 pivot 仍停在 `start`，矩形向右展开。项目内 `DragArrowPreviewView.cs:95-97` 也是同一语义（pivot 先、anchoredPosition 后），可交叉印证。
+
+### 20.3 6 帧美术实测（决定"可见光带到底到不到盒子右缘"）
+
+文件：`Assets/DragonBound/UI/Variants/V2/Content/Resources/UIResources/VFX/Hero/Runebolt Mage/normal/Projectile/sdj0001..0006.png`，**全部 150×72**。
+
+| 帧            | a≥24 左空  | 右空       | 可见跨度      | a≥250 时右端 |
+| ------------ | -------- | -------- | --------- | --------- |
+| 1            | 38.7%    | 0.7%     | 60.7%     | 98.0%     |
+| **2（当前定格帧）** | **4.0%** | **0.0%** | **96.0%** | **98.0%** |
+| 3            | 4.7%     | 0.7%     | 94.7%     | 98.0%     |
+| 4            | 4.0%     | 0.7%     | 95.3%     | 97.3%     |
+| 5            | 6.7%     | 0.0%     | 93.3%     | 95.3%     |
+| 6            | 8.0%     | 0.7%     | 92.7%     | 94.7%     |
+
+脚本：`Temp/measure_projectile.py`、`Temp/measure_thresh.py`。
+
+**任何一帧右端都有像素（右空 ≤0.7%）**，所以可见光带必然画到盒子右缘 —— 不存在"美术没画满导致短一截"。
+
+### 20.4 三个真凶候选（按概率排序）
+
+**① 最远"受伤"敌人 ≠ 你看到的最远敌人（最可能）**
+
+`FrozenHeroConfiguration.cs:611`：
+
+```csharp
+Hero(DragonBoundHeroIds.RuneboltMage, "符文雷矢法师", "Runebolt Mage", HeroRecipeRarity.Purple,
+    DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.StormHat, 8f, 1.75f, 3.00f,
+    HeroAttackType.PiercingLine, PurpleLevels(), DragonBoundSkillIds.RuneboltMage,
+    Targets(HeroTargetPriority.Frontmost),
+    new Dictionary<string, float> { { "PierceLength", 5f }, { "PierceWidth", 1.2f } },
+    new Dictionary<string, float[]> { { "MaxTargetsByLevel", new[] { 4f, 5f, 6f } } });
+```
+
+三个数值是 `Attack 8f / AttackInterval 1.75f / RangeCells 3.00f`（同表 Oathcrown 为 `18f / 1.50f / 1.75f`，近战射程小，可反推第 3 个是 RangeCells）。
+
+`HeroCombatState.cs:726`：
+
+```csharp
+var frontmost = SelectFrontmostInRange(origin, registry, RangeCells);   // ← 只在 3 格内选
+var direction = Normalize(frontmost.CombatPosition - origin);
+var length    = GetAttackParameter("PierceLength", 5f);
+var width     = GetAttackParameter("PierceWidth", 1.2f);
+var lineTargets = SelectLineTargets(origin, direction, length, width, snapshot, 4);
+```
+
+—— 方向由 **3 格内**的最前敌人决定，走廊是 5 格长 × **1.2 格宽**（宽度已从 0.35 改到 1.2，正确）。
+
+只有落进这条走廊的敌人才进 `Shots`，而 `farthestShot = Shots[Count-1]` 才是光柱终点。
+
+**所以"最远受伤敌人"通常远小于你看到的最远敌人** → 光柱只画到它，玩家就觉得"没到"。
+
+**② `RuneboltMageSpineReleasePoint` 不是杖尖（确定的 bug）**
+
+`HeroFormationView.cs:29`：`private static readonly Vector3 RuneboltMageSpineReleasePoint = new Vector3(-6.7f, 12.5f, 0f);`
+
+上一轮实测第 18 帧杖尖 Spine 坐标为 **(804.7, −281.6)**，UI 偏移 **(+48.3, −16.9)**。
+
+现值经 `heroAttackSkeleton.transform.TransformPoint(...)`（localScale 0.06）后只有 **(−0.4, +0.75) UI**，等于没挪 → 起点仍是格子中心，光柱左端压在英雄身上，视觉上"短一截、没从法杖射出"。
+
+**③ 目标点本身没问题（已排除）**
+
+`GreyboxLaneView.cs:94`：`position = view.RectTransform.position`。
+
+`EnemyCard.prefab` 根为 80×80、`m_Pivot (0.5, 0.5)`；美术子节点 `ART_EnemyAnimation`（stretch 0→1，sizeDelta 0）→ 其下 `Image` 仅 `m_AnchoredPosition (2.6, -5.3)`。
+
+→ `TryGetEnemyPosition` 返回的就是敌人卡片中心，偏移可忽略。
+
+### 20.5 决定性诊断（加 1 行日志即可定性）
+
+在 `SpawnRuneboltMageBolt` 的 `pending.ConfigurePath(start, direction, travelDistance);` 之后加：
+
+```csharp
+Debug.Log($"[RB] shots={pending.Shots.Count} attacker={attackerPosition} start={start} "
+        + $"dir={direction} farthest={farthestShot.TargetPosition} travel={travelDistance:0.0} "
+        + $"visual={visualLength:0.0} boxEnd={(Vector2)start + (Vector2)direction * visualLength} "
+        + $"distToFarthest={Vector3.Distance(attackerPosition, farthestShot.TargetPosition):0.0}");
+```
+
+判据：
+
+| 现象                             | 结论                         |
+| ------------------------------ | -------------------------- |
+| `boxEnd` 与 `farthest` 距离 ≈ 0   | 盒子到位 → 问题在玩法层（①射程/走廊），不在长度 |
+| `travel` 明显小于 `distToFarthest` | 起点或目标点取错（②）                |
+| `shots` 长期 = 1                 | 走廊/射程问题，就是"到不了最远敌人"的真凶     |
+
+### 20.6 对应修法
+
+- 命中 ① → 让"最远受伤敌人"等于你看到的最远敌人：把 `RangeCells` 3.00 → 5.0（与 `PierceLength` 对齐），或把 `PierceLength` 5 → 6~7。改 `FrozenHeroConfiguration.cs:611` 第 3 个数 / `PierceLength`。
+- 命中 ② → `RuneboltMageSpineReleasePoint` 改为 `new Vector3(804.7f, -281.6f, 0f)`（Spine mesh 局部单位，1 格 = 1833）；若你的坐标系不是 mesh 局部，先按 20.5 的 `attacker` 日志反推。
+- 两者都不命中 → 说明 `rect.position` 与 `sizeDelta` 不同尺度（父层 `boardRect` 有缩放），此时改用 `CombatFxLayer.InverseTransformPoint(start)` + `anchoredPosition`，并把 `visualLength` 除以 `CombatFxLayer.lossyScale.x`。
+
+## 21. 方案：拉长视觉长度（伤害距离不变）可行性分析
+
+### 21.1 结论先行
+
+**完全可行。** 视觉长度与伤害距离在架构上已经是解耦的，只需改 `visualLength` 一处，
+
+`travelDistance` 不动即可。
+
+### 21.2 为什么伤害不会被影响（两层证据）
+
+**① 伤害根本不在视觉层算。**
+
+伤害判定在玩法层，视觉层只是"消费"已经生成好的事件：
+
+```
+HeroCombatState.ResolveRuneboltAttack            <- 谁受伤、伤多少，全部在这里定
+  ├ SelectFrontmostInRange(origin, RangeCells=3)  <- 方向
+  ├ length = GetAttackParameter("PierceLength", 5f)
+  ├ width  = GetAttackParameter("PierceWidth", 1.2f)
+  └ SelectLineTargets(...) / IsInsideLine          <- 走廊命中判定
+        ↓ 产出 CombatEvent 列表
+CombatFxView.QueueRuneboltMageCast                <- 只负责把事件画出来
+```
+
+`CombatFxView` 里没有任何一处参与"选谁受伤"。它只拿到已确定的 `CombatEvent`。
+
+所以 `visualLength` 改成任意值，受伤集合和伤害数字一个字节都不会变。
+
+**② 爆闪（Impact）时机也不受影响。**
+
+这是最容易踩的隐性耦合，但当前代码已经隔离好了：
+
+```csharp
+// CombatFxView.cs:935
+pending.ConfigurePath(start, direction, travelDistance);   // ← 传的是 travelDistance
+// CombatFxView.cs:5186
+shot.PathProgress = Clamp01(Dot(shot - start, dir) / Max(1f, travelDistance));
+```
+
+```csharp
+// CombatFxView.cs:933
+var visualLength = travelDistance / RuneboltMagePathVisualPaddingRatio;  // ← 只喂给 sizeDelta
+// CombatFxView.cs:954
+rect.sizeDelta = new Vector2(visualLength, visualHeight);
+```
+
+`PathProgress`（决定每只敌人何时爆闪）用 **`travelDistance`**，而 `visualLength` 只进
+
+`sizeDelta`。**只要不动 `travelDistance`，爆闪的出现位置和时刻完全不变。**
+
+### 21.3 当前几何（`CombatFxView.cs:911-966`）
+
+```csharp
+var start          = attackerPosition + (direction * 8f);
+var travelDistance = Clamp(Distance(farthestShot.TargetPosition, start), 1f, 550f);
+var visualLength   = travelDistance / 0.9f;              // RuneboltMagePathVisualPaddingRatio
+rect.position      = start;
+rect.pivot         = new Vector2(0f, 0.5f);               // 左端钉在 start
+rect.sizeDelta     = new Vector2(visualLength, visualHeight);
+```
+
+设 **D = |farthestTarget − attackerPosition|**，则 `travel = D − 8`，
+
+```
+末端 = 8 + (D − 8)/p + overshoot
+越过敌人的量 = 8 − 8/p + D·(1/p − 1) + overshoot
+```
+
+p = 0.9、overshoot = 0 时，**末端恒越过敌人中心约 11%**（D=234 即 2.13 格时越过 25 UI ≈ 0.23 格）。
+
+`pivot` 写在 `position` 之后是安全的：Unity 的 pivot setter 保持 `localPosition`（pivot 点）
+
+不动，只把矩形相对挪动，所以左端仍钉在 `start`，拉长只往右延伸。项目里
+
+`DragArrowPreviewView.cs:95-97` 是同一语义。
+
+`CombatFxLayer` 是 `boardRect` 的 stretch 子层，**没有 RectMask2D**
+
+（`FixedBoardCanvasView.cs:494` `CreateRuntimeLayer`，全文件无 `RectMask2D`），
+
+所以拉长不会被裁剪，只会画到棋盘外/屏幕外。
+
+### 21.4 三种拉长手段
+
+#### 方案 A：调小 padding ratio（改 1 个常量，最快）
+
+`CombatFxView.cs:108` `RuneboltMagePathVisualPaddingRatio` 0.9 → 更小。
+
+| padding | D=110(1格) 越过 | D=234(2.13格) 越过 | D=440(4格) 越过 |
+| ------- | ------------ | --------------- | ------------ |
+| 0.9（当前） | 0.10 格       | 0.23 格          | 0.44 格       |
+| 0.8     | 0.23 格       | 0.51 格          | 0.98 格       |
+| 0.7     | 0.39 格       | 0.88 格          | 1.67 格       |
+| 0.6     | 0.61 格       | 1.37 格          | 2.61 格       |
+
+**比例拉伸**：距离越远伸得越长。近处不够用、远处严重过头（4 格时 0.6 会伸出 2.6 格）。
+
+#### 方案 B：固定 overshoot（推荐，新增 1 个字段）
+
+```csharp
+// CombatFxView.cs:110 附近
+[SerializeField, Min(0f)] private float runeboltMagePathVisualOvershoot = 55f;
+```
+
+```csharp
+// CombatFxView.cs:933
+var visualLength = travelDistance / RuneboltMagePathVisualPaddingRatio
+                 + runeboltMagePathVisualOvershoot;
+```
+
+与距离**无关**，末端恒定越过最远敌人固定距离，可预测、好调。
+
+| overshoot   | 越过量（任意 D） | 说明          |
+| ----------- | --------- | ----------- |
+| 55 (0.5 格)  | +0.5 格    | 保守，末端刚过敌人身位 |
+| 82 (0.75 格) | +0.75 格   | 穿透感明显       |
+| 110 (1.0 格) | +1.0 格    | 会盖住下一格未受伤敌人 |
+
+> ⚠️ `[SerializeField]` 场景覆盖坑：改了代码默认值后，必须打开 V2 场景
+>
+> `Greybox_Main`，在 `Systems` 上的 `CombatFxView` Inspector 里确认/重设该值并 Ctrl+S。
+
+#### 方案 C：下限 + overshoot（近处也要有气势）
+
+```csharp
+[SerializeField, Min(0f)] private float runeboltMagePathMinimumVisualLength = 330f;  // 3 格
+
+var visualLength = Mathf.Max(
+        travelDistance / RuneboltMagePathVisualPaddingRatio,
+        runeboltMagePathMinimumVisualLength)
+    + runeboltMagePathVisualOvershoot;
+```
+
+敌人贴脸时（travel 很小）光柱也不会缩成一小截。适合"贴脸也要有技能感"的需求，
+
+代价是近战时会明显伸到敌人身后。
+
+### 21.5 副作用清单
+
+| # | 副作用                 | 严重度   | 处理                                                                                                    |
+| - | ------------------- | ----- | ----------------------------------------------------------------------------------------------------- |
+| 1 | 末端越过最远敌人            | 中     | 穿透技能本身合理，但 ≤0.5~0.75 格为佳，否则会盖住后面**没受伤**的敌人，造成"打到他了却没掉血"的误解                                            |
+| 2 | 精灵被水平拉伸             | 低     | 150×72 拉到 (visualLength, 100)。当前 251/150=1.67×；+110 后 361/150=2.4×。光带是近似均匀的，可接受，但帧 2 的"头光"细节会变糊       |
+| 3 | `visualLength` 没有上限 | 低     | 550 只 clamp `travelDistance`。最长 550/0.9+110=721，会画到屏幕外。若在意，给 `visualLength` 补一个 `Clamp(..., 0, 660)`  |
+| 4 | 起点仍在英雄中心            | —     | 独立的已知 bug（第 19 节 `RuneboltMageSpineReleasePoint`），与本方案正交                                              |
+| 5 | **可能掩盖真根因**         | **高** | 若"到不了最远敌人"的根因是 `RangeCells=3`（只在 3 格内选最前敌人定方向），overshoot 只是把光柱硬拉长到**没受伤的敌人**身上，看着"够了"但语义不对。真正的对齐要改玩法层 |
+|   |                     |       |                                                                                                       |
+
+### 21.6 推荐组合
+
+1. 先按**方案 B**，`runeboltMagePathVisualOvershoot = 55`（0.5 格），padding 保持 0.9。
+2. 跑一次看末端是否够到目标；不够再按 27.5 一档往上加，**上限 110**。
+3. 同时打第 20 节那条诊断日志确认 `shots` 数量：
+   - `shots ≥ 2` 且 `boxEnd ≈ farthest` → 视觉问题，overshoot 就是正解
+   - `shots` 长期 = 1 → 根因在玩法层（`RangeCells` 3.00 / `PierceLength` 5），
+
+     overshoot 只能治标，应把 `FrozenHeroConfiguration.cs:611` 的 `RangeCells` 提到 5.0
+
+### 21.7 一句话总结
+
+\*\*改 `visualLength` 是纯视觉操作：伤害集合由 `HeroCombatState` 决定，爆闪时机由 `travelDistance`
+
+决定，两者都不读 `visualLength`。所以拉长视觉 100% 安全，唯一要权衡的是"末端越过敌人多少格"
+
+这个观感问题，以及别让它掩盖了玩法层射程的真根因。\*\*
+
+## 22. 方案 B 具体修改步骤（固定 overshoot，伤害不变）
+
+只改 `Assets/DragonBound/Runtime/Presentation/CombatFxView.cs` **一个文件、两处**。
+
+### 步骤 1：新增 overshoot 字段
+
+在 **第 109 行** `private const float RuneboltMageMaximumPathLength = 550f;` 之后、  
+**第 110 行** `[SerializeField, Min(0f)] private float runeboltMagePathHoldDuration = 0.12f;` 之前插入：
+
+```csharp
+        // Visual-only extra length added on top of the gameplay travel distance. The beam box is
+        // anchored at pivot (0, 0.5), so this only pushes the right end further out: the start
+        // point, the damage set and every impact timing stay exactly the same. 1 cell = 110.
+        [SerializeField, Min(0f)] private float runeboltMagePathVisualOvershoot = 55f;
+```
+
+> 单位是世界 UI 单位，**1 格 = 110**。55 = 0.5 格，82 = 0.75 格，110 = 1 格。>   
+> 建议从 **55** 起步。
+
+### 步骤 2：把 overshoot 加进视觉长度
+
+**第 943 行**原文：
+
+```csharp
+            var visualLength = travelDistance / RuneboltMagePathVisualPaddingRatio;
+```
+
+改为：
+
+```csharp
+            var visualLength = travelDistance / RuneboltMagePathVisualPaddingRatio
+                + runeboltMagePathVisualOvershoot;
+```
+
+**就这两步，改完即可编译运行。**
+
+### 步骤 3（可选）：给视觉长度加个硬上限
+
+当前 550 只 clamp `travelDistance`，`visualLength` 没有上限，最坏能到 550/0.9+110 = 721，  
+会画到屏幕外。想兜底的话，把步骤 2 的那两行换成：
+
+```csharp
+            var visualLength = Mathf.Clamp(
+                travelDistance / RuneboltMagePathVisualPaddingRatio
+                    + runeboltMagePathVisualOvershoot,
+                0f,
+                666f);
+```
+
+666 = 550/0.9 + 55，即「5 格穿透拉满 + 0.5 格余量」，正好是穿透技能能达到的最大合理长度。
+
+### 步骤 4（可选）：V1 不想被影响就设 0
+
+新字段是 `[SerializeField]`，Unity 会用代码默认值 55，**V1 场景也会生效**。  
+若只想改 V2：打开 V1 场景 → 选中 `Systems` 上的 `CombatFxView` →  
+把 `Runebolt Mage Path Visual Overshoot` 改成 **0** → Ctrl+S。
+
+> ⚠️ 老坑：改完代码默认值后，**必须**打开 V2 场景 `Greybox_Main`，在 `Systems` 的>   
+> `CombatFxView` Inspector 里确认该字段显示为 **55**（而不是 0），然后 Ctrl+S。>   
+> 场景里的序列化值会覆盖代码默认值。
+
+### 验证（临时日志，验完删掉）
+
+在第 **945 行** `pending.ConfigurePath(start, direction, travelDistance);` 之后加：
+
+```csharp
+            Debug.Log($"[RB] overshoot={runeboltMagePathVisualOvershoot:0.0} "
+                + $"travel={travelDistance:0.0} visual={visualLength:0.0} "
+                + $"farthest={farthestShot.TargetPosition} "
+                + $"boxEnd={(Vector2)start + (Vector2)direction * visualLength} "
+                + $"pastEnemyCells={(visualLength + 8f - travelDistance) / 110f:0.00}");
+```
+
+**判据**（以实测 D=234 即 2.13 格为例，`travel` = 226）：
+
+| overshoot | 期望 visual | 期望 pastEnemyCells |
+| --------- | --------- | ----------------- |
+| 0（改前）     | 251.1     | 0.23 格            |
+| **55**    | **306.1** | **0.73 格**        |
+| 82        | 333.1     | 0.97 格            |
+| 110       | 361.1     | 1.23 格            |
+
+`pastEnemyCells` = 末端越过最远受伤敌人的格数 = `travel·(1/0.9 − 1) + overshoot`，再除以 110。
+
+### 调参指引
+
+| 现象                | 动作                                         |
+| ----------------- | ------------------------------------------ |
+| 末端还是够不到敌人         | 55 → 82 → 110 逐档加（每档 +0.25 格）              |
+| 末端盖住了后面**没掉血**的敌人 | 往回退一档，或换查玩法层根因（见下）                         |
+| 光柱内部纹理被拉糊         | overshoot 别超过 110；150px 宽的精灵拉伸超 2.4× 头光就糊了 |
+
+### 别忘了确认根因
+
+overshoot 只是把光柱**硬拉长**。如果"到不了最远敌人"的根因是  
+`FrozenHeroConfiguration.cs:611` 的 `RangeCells = 3.00`（只在 3 格内选最前敌人定方向），  
+那么拉长后光柱会伸到**根本没受伤**的敌人身上，看着够了但语义是错的。
+
+配合第 20 节那条日志看 `shots` 数量：
+
+- `shots ≥ 2` 且 `boxEnd ≈ farthest` → 纯视觉问题，overshoot 就是正解
+- `shots` 长期 = 1 → 根因在玩法层，应把 `RangeCells` 3.00 提到 5.0 与 `PierceLength` 对齐

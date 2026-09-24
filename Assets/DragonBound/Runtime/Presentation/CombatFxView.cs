@@ -107,6 +107,7 @@ namespace DragonBound.Presentation
         // ratio so the \*visible\* stroke actually lands on the enemy. Visual only.  
         private const float RuneboltMagePathVisualPaddingRatio = 0.9f;
         private const float RuneboltMageMaximumPathLength = 550f;
+        [SerializeField, Min(0f)] private float runeboltMagePathVisualOvershoot = 55f;
         [SerializeField, Min(0f)] private float runeboltMagePathHoldDuration = 0.12f;
         [SerializeField] private Vector2 runeboltMageImpactSize = new Vector2(72f, 72f);
         [SerializeField, Min(0.01f)] private float runeboltMageImpactStateSpeed = 1f;
@@ -787,7 +788,14 @@ namespace DragonBound.Presentation
             }
 
             pendingRuneboltMageCasts.Remove(attackerRuntimeId);
-            SpawnRuneboltMageBolt(pending);
+            var attackerPosition = pending.AttackerPosition;
+            if (board != null &&
+                board.TryGetRuneboltMageSpineAttackOrigin(attackerRuntimeId, out var spineAttackerPosition))
+            {
+                attackerPosition = spineAttackerPosition;
+            }
+
+            SpawnRuneboltMageBolt(pending, attackerPosition);
         }
 
         private RuntimeAnimatorController ResolveRuneboltMagePathController()
@@ -862,7 +870,9 @@ namespace DragonBound.Presentation
 
         }
 
-        private void SpawnRuneboltMageBolt(PendingRuneboltMageCast pending)
+        private void SpawnRuneboltMageBolt(
+            PendingRuneboltMageCast pending,
+            Vector3 attackerPosition)
         {
             if (pending.Shots.Count == 0)
             {
@@ -883,7 +893,7 @@ namespace DragonBound.Presentation
 
             RefreshRuneboltMageTargetPositions(pending);
 
-            pending.SortByDistance();
+            pending.SortByDistance(attackerPosition);
 
             // Shots is sorted NEAREST-FIRST, so the last entry is the farthest target.
 
@@ -893,7 +903,7 @@ namespace DragonBound.Presentation
 
             var farthestShot = pending.Shots[pending.Shots.Count - 1];
 
-            var direction = farthestShot.TargetPosition - pending.AttackerPosition;
+            var direction = farthestShot.TargetPosition - attackerPosition;
 
             if (direction.sqrMagnitude <= 0.0001f)
 
@@ -909,7 +919,7 @@ namespace DragonBound.Presentation
 
 
 
-            var start = pending.AttackerPosition + (direction * 8f);
+            var start = attackerPosition + (direction * 8f);
 
             // Real distance (NOT a dot projection): with \`direction\` pointing at the farthest
 
@@ -931,7 +941,9 @@ namespace DragonBound.Presentation
 
             // travelDistance, so the five-cell pierce (550) is untouched.
 
-            var visualLength = travelDistance / RuneboltMagePathVisualPaddingRatio;
+            var visualLength = travelDistance / RuneboltMagePathVisualPaddingRatio
+  
+                + runeboltMagePathVisualOvershoot;
 
             pending.ConfigurePath(start, direction, travelDistance);
 
@@ -5158,11 +5170,11 @@ namespace DragonBound.Presentation
                 return true;
             }
 
-            public void SortByDistance()
+            public void SortByDistance(Vector3 attackerPosition)
             {
                 Shots.Sort((left, right) =>
-                    Vector3.SqrMagnitude(left.TargetPosition - AttackerPosition)
-                        .CompareTo(Vector3.SqrMagnitude(right.TargetPosition - AttackerPosition)));
+                    Vector3.SqrMagnitude(left.TargetPosition - attackerPosition)
+                        .CompareTo(Vector3.SqrMagnitude(right.TargetPosition - attackerPosition)));
             }
 
             public void ConfigurePath(Vector3 start, Vector3 direction, float travelDistance)

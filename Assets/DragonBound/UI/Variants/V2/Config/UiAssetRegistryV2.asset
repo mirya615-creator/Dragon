@@ -239,6 +239,22 @@ MonoBehaviour:
     - {fileID: 9100000, guid: ef6ccabe802674143b3dea3bf803758c, type: 2}
     - {fileID: -6959024744898103621, guid: ef6ccabe802674143b3dea3bf803758c, type: 2}
     - {fileID: 8415972131179619280, guid: ef6ccabe802674143b3dea3bf803758c, type: 2}
+  - key: Animations/Hero/Runebolt Mage/normal/VFX/Spine/Attack
+    assets:
+    - {fileID: 4900000, guid: 0bf32a6c2631f8949a7715150ac822e1, type: 3}
+    - {fileID: 2800000, guid: 08e8371e2aed44a458b723b8f4337292, type: 3}
+  - key: Animations/Hero/Runebolt Mage/normal/VFX/Spine/Attack.atlas
+    assets:
+    - {fileID: 4900000, guid: 49d18ed2d9558444aa16336fc52bf672, type: 3}
+  - key: Animations/Hero/Runebolt Mage/normal/VFX/Spine/Attack_Atlas
+    assets:
+    - {fileID: 11400000, guid: ce4ff0ca8f2f5f34998604c4586959d2, type: 2}
+  - key: Animations/Hero/Runebolt Mage/normal/VFX/Spine/Attack_Material
+    assets:
+    - {fileID: 2100000, guid: d3bec59f6a02e7148968e1be6013eeb7, type: 2}
+  - key: Animations/Hero/Runebolt Mage/normal/VFX/Spine/Attack_SkeletonData
+    assets:
+    - {fileID: 11400000, guid: 8cdea50c4fe4ff44cb4bab371ffa995f, type: 2}
   - key: "Animations/Hero/Thunderlord/normal/\u96F7\u9706\u9886\u4E3B \u62C6"
     assets:
     - {fileID: 4900000, guid: 0ac175c2f1e6374449c0a2bd1dc9c67f, type: 3}

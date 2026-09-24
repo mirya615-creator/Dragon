@@ -1,0 +1,48 @@
+
+Attack.png
+size: 352,151
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+sd/sdj0001
+  rotate: true
+  xy: 307, 55
+  size: 94, 43
+  orig: 150, 72
+  offset: 56, 13
+  index: -1
+sd/sdj0002
+  rotate: true
+  xy: 127, 3
+  size: 146, 59
+  orig: 150, 72
+  offset: 4, 4
+  index: -1
+sd/sdj0003
+  rotate: true
+  xy: 2, 3
+  size: 146, 62
+  orig: 150, 72
+  offset: 4, 8
+  index: -1
+sd/sdj0004
+  rotate: true
+  xy: 66, 2
+  size: 147, 59
+  orig: 150, 72
+  offset: 2, 3
+  index: -1
+sd/sdj0005
+  rotate: true
+  xy: 188, 7
+  size: 142, 59
+  orig: 150, 72
+  offset: 8, 2
+  index: -1
+sd/sdj0006
+  rotate: true
+  xy: 249, 8
+  size: 141, 56
+  orig: 150, 72
+  offset: 9, 5
+  index: -1
