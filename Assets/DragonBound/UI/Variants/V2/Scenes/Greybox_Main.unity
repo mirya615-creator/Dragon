@@ -14105,7 +14105,7 @@ MonoBehaviour:
   runeboltMagePathHoldDuration: 0.12
   runeboltMageImpactSize: {x: 72, y: 72}
   runeboltMagePathFadeDuration: 0.08
-  runeboltMageReleaseFallbackDelay: 0.16
+  runeboltMageReleaseFallbackDelay: 0.6
   stoneboundWarlockNormalRockSize: {x: 48, y: 48}
   stoneboundWarlockSkillRockSize: {x: 88, y: 88}
   stoneboundWarlockNormalArcHeight: 48
@@ -41211,7 +41211,7 @@ MonoBehaviour:
   runeboltMagePathHoldDuration: 0.12
   runeboltMageImpactSize: {x: 72, y: 72}
   runeboltMagePathFadeDuration: 0.08
-  runeboltMageReleaseFallbackDelay: 0.16
+  runeboltMageReleaseFallbackDelay: 0.6
   stoneboundWarlockNormalRockSize: {x: 48, y: 48}
   stoneboundWarlockSkillRockSize: {x: 88, y: 88}
   stoneboundWarlockNormalArcHeight: 48

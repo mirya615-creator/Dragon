@@ -23,6 +23,8 @@ namespace DragonBound.Presentation
         private const float SynthesisHeroRevealDuration = 0.08f;
         private const float SynthesisHeroRevealStartScale = 0.85f;
         private const float ArtFacingTransitionSeconds = 0.14f;
+        // The V2 Runebolt Mage Spine clip starts lowering the staff at frame 18 (17/30s at 30 FPS).
+        private const float RuneboltMageSpineReleaseTime = 17f / 30f;
         private static readonly Vector2 LevelUpVfxPosition = new Vector2(3.4f, -13f);
         private static readonly Vector2 LevelUpVfxSize = new Vector2(150f, 100f);
 
@@ -46,6 +48,8 @@ namespace DragonBound.Presentation
         private RuntimeAnimatorController skillAttackController;
         private Coroutine attackResetCoroutine;
         private int attackPlaybackVersion;
+        private Coroutine spineAttackReleaseCoroutine;
+        private int spineAttackPlaybackVersion;
         private bool attackAnimationPlaying;
         private bool attackAnimationIsSkill;
         private string combatRuntimeId = string.Empty;
@@ -560,6 +564,7 @@ namespace DragonBound.Presentation
                 return;
             }
 
+            CancelSpineAttackRelease();
             configuredSpineHeroId = heroId ?? string.Empty;
             var skeleton = HeroSpineArtCatalog.Load(heroId);
             if (skeleton == null)
@@ -678,8 +683,39 @@ namespace DragonBound.Presentation
                 return false;
             }
             heroAttackSkeleton.AnimationState.AddEmptyAnimation(0, 0f, 0f);
+            if (string.Equals(configuredSpineHeroId, DragonBoundHeroIds.RuneboltMage, StringComparison.Ordinal))
+            {
+                CancelSpineAttackRelease();
+                int playbackVersion = ++spineAttackPlaybackVersion;
+                spineAttackReleaseCoroutine = StartCoroutine(
+                    NotifyRuneboltMageBoltReleaseAfterSpineTiming(playbackVersion));
+            }
             return true;
 
+        }
+
+        private IEnumerator NotifyRuneboltMageBoltReleaseAfterSpineTiming(int playbackVersion)
+        {
+            yield return new WaitForSeconds(RuneboltMageSpineReleaseTime);
+
+            if (playbackVersion == spineAttackPlaybackVersion &&
+                string.Equals(configuredSpineHeroId, DragonBoundHeroIds.RuneboltMage, StringComparison.Ordinal))
+            {
+                NotifyRuneboltMageBoltRelease();
+            }
+
+            spineAttackReleaseCoroutine = null;
+        }
+
+        private void CancelSpineAttackRelease()
+        {
+            if (spineAttackReleaseCoroutine != null)
+            {
+                StopCoroutine(spineAttackReleaseCoroutine);
+                spineAttackReleaseCoroutine = null;
+            }
+
+            spineAttackPlaybackVersion++;
         }
 
 
