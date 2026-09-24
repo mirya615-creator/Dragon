@@ -24,8 +24,15 @@ namespace DragonBound.Presentation
         private const string SkyborneValkyrieArrowSpritePath = "VFX/Skyborne Valkyrie/road";
         private const string SkyborneValkyrieExplosionControllerPath = "Animation/SkyborneValkyrieBoom";
         private const string WindclawImpactSpritePath = "VFX/Windclaw Ranger/road";
+        private const string WindclawNormalVfxControllerPath =
+            "Animations/Hero/Windclaw Ranger/normal/VFX/Windclaw Ranger norVFX";
         private const string EmberShamanFireballSpritePath = "VFX/Ember Shaman/road";
         private const string RuneboltMageBoltControllerPath = "Animation/Runebolt MageBoom";
+        private const string RuneboltMageNormalProjectileControllerPathV2 =
+            "Animations/Hero/Runebolt Mage/normal/VFX/RM nor Projectile";
+        private const string RuneboltMageNormalImpactControllerPathV2 =
+            "Animations/Hero/Runebolt Mage/normal/VFX/RM nor Impact";
+
         private const string StoneboundWarlockNormalRockSpritePath =
             "VFX/Stonebound Warlock/rood";
         private const string StoneboundWarlockSkillRockSpritePath =
@@ -45,6 +52,7 @@ namespace DragonBound.Presentation
         private static readonly Vector2 AbyssalHarpoonPortalSize = new Vector2(72f, 110f);
 
         private Sprite windclawImpactSprite;
+        private RuntimeAnimatorController windclawNormalVfxController;
 
         [SerializeField] private Image attackLineTemplate;
         [SerializeField] private Image bowProjectileTemplate;
@@ -81,6 +89,7 @@ namespace DragonBound.Presentation
         [SerializeField, Min(0.1f)] private float skyborneValkyrieReleaseFallbackDelay = 0.38f;
         [SerializeField] private Vector2 skyborneValkyrieExplosionSize = new Vector2(90f, 90f);
         [SerializeField] private Vector2 windclawImpactSize = new Vector2(110f, 110f);
+        [SerializeField] private Vector2 windclawNormalVfxSize = new Vector2(110f, 110f);
         [SerializeField, Min(0.1f)] private float windclawReleaseFallbackDelay = 0.3f;
         [SerializeField] private Vector2 emberShamanFireballSize = new Vector2(72f, 32f);
         [SerializeField] private Vector2 emberShamanSplashFireballSize = new Vector2(54f, 24f);
@@ -88,9 +97,19 @@ namespace DragonBound.Presentation
         [SerializeField, Min(0.05f)] private float emberShamanFireballMinTravelDuration = 0.18f;
         [SerializeField, Min(0.05f)] private float emberShamanFireballMaxTravelDuration = 0.30f;
         [SerializeField, Min(0.1f)] private float emberShamanReleaseFallbackDelay = 0.34f;
-        private const float RuneboltMagePathVisualHeight = 300f;
+        // V1 art (1080x1080 canvas, stroke occupies only 2.2%-8.3% of the height) keeps the original value.  
+        private const float RuneboltMagePathVisualHeightV1 = 300f;
+        // V2 art (150x72 canvas, stroke occupies ~54%-61% of the height): 0.55 cell.  
+        // 36 was too thin at small board scale; 60 keeps the beam readable without covering the row.  
+        private const float RuneboltMagePathVisualHeightV2 = 100f;
+        // V2 stroke never reaches the canvas edges: even the fullest frame ends at x142/150 and the  
+        // last frame at x136/150 (~9.3% blank on each side). Divide the gameplay length by this  
+        // ratio so the \*visible\* stroke actually lands on the enemy. Visual only.  
+        private const float RuneboltMagePathVisualPaddingRatio = 0.9f;
         private const float RuneboltMageMaximumPathLength = 550f;
-        [SerializeField, Min(0f)] private float runeboltMagePathHoldDuration = 0.04f;
+        [SerializeField, Min(0f)] private float runeboltMagePathHoldDuration = 0.12f;
+        [SerializeField] private Vector2 runeboltMageImpactSize = new Vector2(72f, 72f);
+        [SerializeField, Min(0.01f)] private float runeboltMageImpactStateSpeed = 1f;
         [SerializeField, Min(0.01f)] private float runeboltMagePathFadeDuration = 0.08f;
         [SerializeField, Min(0.1f)] private float runeboltMageReleaseFallbackDelay = 0.38f;
         [SerializeField] private Vector2 stoneboundWarlockNormalRockSize = new Vector2(48f, 48f);
@@ -221,6 +240,8 @@ namespace DragonBound.Presentation
         private bool flameDrakeResourceWarningLogged;
         private Sprite emberShamanFireballSprite;
         private RuntimeAnimatorController runeboltMageBoltController;
+        private RuntimeAnimatorController runeboltMageNormalImpactController;
+        private float runeboltMageBoltVisualHeight = -1f;
         private Sprite stoneboundWarlockNormalRockSprite;
         private Sprite stoneboundWarlockSkillRockSprite;
         private Sprite thunderlordMainChainSprite;
@@ -575,6 +596,7 @@ namespace DragonBound.Presentation
                     // Basic-unit attacks intentionally have no projectile or line VFX.
                     break;
                 case AttackKind.WindclawShot:
+                    SpawnWindclawNormalVfx(combatEvent, target);
                     break;
                 case AttackKind.WindclawPowerShot:
                     QueueWindclawSkillCast(combatEvent, target);
@@ -768,6 +790,78 @@ namespace DragonBound.Presentation
             SpawnRuneboltMageBolt(pending);
         }
 
+        private RuntimeAnimatorController ResolveRuneboltMagePathController()
+        {
+            if (runeboltMageBoltController != null)
+            {
+                return runeboltMageBoltController;
+            }
+
+            // Probe silently: UiAssets.Load logs an error on a miss, and V1 has no V2 key, so an  
+            // absent clip is an expected state rather than a failure. (UiAssetRegistry.Load<T> is  
+            // the silent instance API; the static UiAssets.Load<T> logs.)  
+            var registry = DragonBound.Presentation.UiAssets.Active;
+            var projectile = registry != null
+                ? registry.Load<RuntimeAnimatorController>(RuneboltMageNormalProjectileControllerPathV2)
+                : null;
+            if (projectile != null)
+            {
+                runeboltMageBoltController = projectile;
+                runeboltMageBoltVisualHeight = RuneboltMagePathVisualHeightV2;
+                return runeboltMageBoltController;
+            }
+
+            runeboltMageBoltController =
+                DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(RuneboltMageBoltControllerPath);
+            runeboltMageBoltVisualHeight = RuneboltMagePathVisualHeightV1;
+            return runeboltMageBoltController;
+        }
+
+        private void RefreshRuneboltMageTargetPositions(PendingRuneboltMageCast pending)
+
+        {
+
+            if (lane == null)
+
+            {
+
+                return;
+
+            }
+
+
+            for (var i = 0; i < pending.Shots.Count; i++)
+
+            {
+
+                var shot = pending.Shots[i];
+
+                if (shot.ImpactCompleted)
+
+                {
+
+                    continue;
+
+                }
+
+                // 敌人可能已死亡/离场：查不到就保留伤害结算时的快照，不动。
+
+                if (lane.TryGetEnemyPosition(
+
+                        shot.CombatEvent.TargetRuntimeId,
+
+                        out var currentPosition))
+
+                {
+
+                    shot.SetTargetPosition(currentPosition);
+
+                }
+
+            }
+
+        }
+
         private void SpawnRuneboltMageBolt(PendingRuneboltMageCast pending)
         {
             if (pending.Shots.Count == 0)
@@ -775,41 +869,72 @@ namespace DragonBound.Presentation
                 return;
             }
 
-            if (runeboltMageBoltController == null)
-            {
-                runeboltMageBoltController =
-                    DragonBound.Presentation.UiAssets.Load<RuntimeAnimatorController>(RuneboltMageBoltControllerPath);
-            }
-            if (runeboltMageBoltController == null)
+            var pathController = ResolveRuneboltMagePathController();
+            if (pathController == null)
             {
                 CompleteRuneboltMageCast(pending);
                 return;
             }
+            // Draw against where the enemies are RIGHT NOW: the FX is released by a fallback
+            // timer, so the damage-frame snapshot can be a quarter-cell stale.
+            // Draw against where the enemies are RIGHT NOW: the FX is released by a fallback
+
+            // timer, so the damage-frame snapshot can be a quarter-cell stale.
+
+            RefreshRuneboltMageTargetPositions(pending);
 
             pending.SortByDistance();
-            var direction = pending.Shots[0].TargetPosition - pending.AttackerPosition;
+
+            // Shots is sorted NEAREST-FIRST, so the last entry is the farthest target.
+
+            // Aim the beam at it: everything in between lies on the same ray and is
+
+            // therefore covered by the same stroke.
+
+            var farthestShot = pending.Shots[pending.Shots.Count - 1];
+
+            var direction = farthestShot.TargetPosition - pending.AttackerPosition;
+
             if (direction.sqrMagnitude <= 0.0001f)
+
             {
+
                 CompleteRuneboltMageCast(pending);
+
                 return;
+
             }
+
             direction.Normalize();
 
-            var start = pending.AttackerPosition + (direction * 24f);
-            var farthestDistance = 0f;
-            foreach (var shot in pending.Shots)
-            {
-                farthestDistance = Mathf.Max(
-                    farthestDistance,
-                    Vector3.Dot(shot.TargetPosition - start, direction));
-            }
-            // Match the authored line to the actual hit sequence: stop at the farthest
-            // affected enemy, while retaining the five-cell gameplay cap (5 * 110 = 550).
+
+
+            var start = pending.AttackerPosition + (direction * 8f);
+
+            // Real distance (NOT a dot projection): with \`direction\` pointing at the farthest
+
+            // target this equals its projection, so no more cos-theta shrinkage when the
+
+            // targets are spread apart.
+
             var travelDistance = Mathf.Clamp(
-                farthestDistance,
+
+                Vector3.Distance(farthestShot.TargetPosition, start),
+
                 1f,
+
                 RuneboltMageMaximumPathLength);
+
+            // Visual compensation for the V2 art's blank padding: overshoot the drawn box so
+
+            // the visible stroke reaches the enemy. Damage/hit progress still uses
+
+            // travelDistance, so the five-cell pierce (550) is untouched.
+
+            var visualLength = travelDistance / RuneboltMagePathVisualPaddingRatio;
+
             pending.ConfigurePath(start, direction, travelDistance);
+
 
             var parent = fixedBoardCanvas != null && fixedBoardCanvas.CombatFxLayer != null
                 ? fixedBoardCanvas.CombatFxLayer
@@ -824,9 +949,12 @@ namespace DragonBound.Presentation
             rect.SetParent(parent, false);
             rect.position = start;
             rect.pivot = new Vector2(0f, 0.5f);
+            var visualHeight = runeboltMageBoltVisualHeight > 0f
+                ? runeboltMageBoltVisualHeight
+                : RuneboltMagePathVisualHeightV1;
             rect.sizeDelta = new Vector2(
-                travelDistance,
-                RuneboltMagePathVisualHeight);
+               visualLength,            // ← 视觉长度；伤害判定仍是 travelDistance（5 格穿透不变）  
+               visualHeight);
             rect.localRotation = Quaternion.Euler(
                 0f,
                 0f,
@@ -838,15 +966,30 @@ namespace DragonBound.Presentation
             image.preserveAspect = false;
             image.raycastTarget = false;
             var animator = root.GetComponent<Animator>();
-            animator.runtimeAnimatorController = runeboltMageBoltController;
+
+            animator.runtimeAnimatorController = pathController;
+
             animator.Rebind();
-            animator.Play(0, 0, 0f);
-            animator.Update(0f);
-            var clipLength = runeboltMageBoltController.animationClips.Length > 0
-                ? runeboltMageBoltController.animationClips[0].length
-                : 0.1f;
-            clipLength = Mathf.Max(0.01f, clipLength);
+
+            // Freeze on frame 2 (normalized 1/6 = 0.1667): the only frame whose stroke covers
+
+            // ~92% of the canvas with just 4% blank on each side. Frame 1 covers only 56%
+
+            // (39% blank on the left) and frame 6 ends at x136/150 (~9% blank on the right).
+
             animator.speed = 1f;
+
+            animator.Play(0, 0, 1f / 6f);
+
+            animator.Update(0f);
+
+            var clipLength = pathController.animationClips.Length > 0
+
+                ? pathController.animationClips[0].length
+
+                : 0.1f;
+
+            clipLength = Mathf.Max(0.01f, clipLength);
             var holdDuration = Mathf.Max(0f, runeboltMagePathHoldDuration);
             var fadeDuration = Mathf.Max(0.01f, runeboltMagePathFadeDuration);
             var duration = clipLength + holdDuration + fadeDuration;
@@ -881,6 +1024,69 @@ namespace DragonBound.Presentation
                 }));
         }
 
+        private void SpawnRuneboltMageImpact(Vector3 position)
+        {
+            if (runeboltMageNormalImpactController == null)
+            {
+                // Probe silently: V1 has no V2 key, so a miss is expected, not an error.  
+                var registry = DragonBound.Presentation.UiAssets.Active;
+                runeboltMageNormalImpactController = registry != null
+                    ? registry.Load<RuntimeAnimatorController>(RuneboltMageNormalImpactControllerPathV2)
+                    : null;
+            }
+
+            if (runeboltMageNormalImpactController == null)
+            {
+                return;
+            }
+
+            var parent = fixedBoardCanvas != null && fixedBoardCanvas.CombatFxLayer != null
+                ? fixedBoardCanvas.CombatFxLayer
+                : transform;
+
+            var root = new GameObject(
+                "Runebolt Mage Impact",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image),
+                typeof(Animator));
+
+            var rect = root.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.position = position;
+            rect.sizeDelta = runeboltMageImpactSize;
+
+            var image = root.GetComponent<Image>();
+            image.color = Color.white;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+
+            var animator = root.GetComponent<Animator>();
+            animator.runtimeAnimatorController = runeboltMageNormalImpactController;
+            animator.Rebind();
+            animator.Play(0, 0, 0f);
+            animator.Update(0f);
+            animator.speed = 1f;
+
+            var duration = runeboltMageNormalImpactController.animationClips.Length > 0
+
+                ? runeboltMageNormalImpactController.animationClips[0].length
+
+                : 0.15f;
+
+            duration = Mathf.Max(0.01f, duration / Mathf.Max(0.01f, runeboltMageImpactStateSpeed));
+
+            active.Add(new ActiveFx(
+                rect,
+                image,
+                null,
+                position,
+                position,
+                false,
+                false,
+                duration));
+        }
+
         private void CompleteRuneboltMageHitsThrough(
             PendingRuneboltMageCast pending,
             float normalizedPathProgress)
@@ -912,6 +1118,9 @@ namespace DragonBound.Presentation
             {
                 position = currentPosition;
             }
+            // Reference shot: every pierced enemy gets a ~0.44 cell white burst, which is what  
+            // visually "connects" the beam tip to the enemy.  
+            SpawnRuneboltMageImpact(position);
             if (combatEvent.Damage > 0f)
             {
                 lane?.PlayEnemyHitShake(combatEvent.TargetRuntimeId);
@@ -2856,6 +3065,81 @@ namespace DragonBound.Presentation
                 true,
                 0.22f));
         }
+
+        private void SpawnWindclawNormalVfx(CombatEvent combatEvent, Vector3 targetPosition)
+        {
+            if (windclawNormalVfxController == null)
+            {
+                // Probe silently: UiAssets.Load logs an error on a miss, and V1 has no such  
+                // key, so an absent clip is an expected state rather than a failure.  
+                var registry = DragonBound.Presentation.UiAssets.Active;
+                windclawNormalVfxController = registry != null
+                    ? registry.Load<RuntimeAnimatorController>(WindclawNormalVfxControllerPath)
+                    : null;
+            }
+
+            if (windclawNormalVfxController == null)
+            {
+                return;
+            }
+
+            var position = targetPosition;
+
+            // 敌人在动画期间可能继续移动，所以优先读取最新位置。  
+            if (lane != null &&
+                lane.TryGetEnemyPosition(
+                    combatEvent.TargetRuntimeId,
+                    out var currentPosition))
+            {
+                position = currentPosition;
+            }
+
+            var parent =
+                fixedBoardCanvas != null &&
+                fixedBoardCanvas.CombatFxLayer != null
+                    ? fixedBoardCanvas.CombatFxLayer
+                    : transform;
+
+            var root = new GameObject(
+                "Windclaw Ranger Normal VFX",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image),
+                typeof(Animator));
+
+            var rect = root.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.position = position;
+            rect.sizeDelta = windclawNormalVfxSize;
+
+            var image = root.GetComponent<Image>();
+            image.color = Color.white;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+
+            var animator = root.GetComponent<Animator>();
+            animator.runtimeAnimatorController = windclawNormalVfxController;
+            animator.Rebind();
+            animator.Play(0, 0, 0f);
+            animator.Update(0f);
+            animator.speed = 1f;
+
+            var duration = windclawNormalVfxController.animationClips.Length > 0
+                ? windclawNormalVfxController.animationClips[0].length
+                : 0.15f;
+            duration = Mathf.Max(0.01f, duration);
+
+            active.Add(new ActiveFx(
+                rect,
+                image,
+                null,
+                position,
+                position,
+                false,
+                false,
+                duration));
+        }
+
         private void CompleteWindclawImpact(PendingWindclawSkillCast pending)
         {
             if (pending.Completed)
@@ -4900,7 +5184,8 @@ namespace DragonBound.Presentation
             }
 
             public CombatEvent CombatEvent { get; }
-            public Vector3 TargetPosition { get; }
+            public Vector3 TargetPosition { get; private set; }
+            public void SetTargetPosition(Vector3 position) { TargetPosition = position; }
             public float PathProgress { get; set; }
             public bool ImpactCompleted { get; set; }
         }

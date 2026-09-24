@@ -1,0 +1,131 @@
+
+DragonRider.png
+size: 2038,1753
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+DragonBody
+  rotate: false
+  xy: 2, 2
+  size: 871, 601
+  orig: 874, 603
+  offset: 2, 2
+  index: -1
+DragonEye
+  rotate: true
+  xy: 2, 1587
+  size: 164, 204
+  orig: 164, 204
+  offset: 0, 0
+  index: -1
+DragonFrontLegA
+  rotate: true
+  xy: 1284, 1451
+  size: 300, 357
+  orig: 300, 358
+  offset: 0, 0
+  index: -1
+DragonFrontLegB
+  rotate: true
+  xy: 1276, 1070
+  size: 334, 420
+  orig: 337, 421
+  offset: 1, 1
+  index: -1
+DragonFrontLegC
+  rotate: true
+  xy: 446, 1185
+  size: 309, 447
+  orig: 311, 447
+  offset: 1, 0
+  index: -1
+DragonFrontLegD
+  rotate: true
+  xy: 538, 1496
+  size: 255, 391
+  orig: 258, 391
+  offset: 3, 0
+  index: -1
+DragonHead
+  rotate: true
+  xy: 1255, 200
+  size: 868, 688
+  orig: 868, 688
+  offset: 0, 0
+  index: -1
+DragonJaw
+  rotate: false
+  xy: 2, 810
+  size: 708, 373
+  orig: 709, 374
+  offset: 1, 1
+  index: -1
+DragonTail
+  rotate: false
+  xy: 2, 1217
+  size: 442, 306
+  orig: 444, 306
+  offset: 1, 0
+  index: -1
+DragonWingFront
+  rotate: false
+  xy: 931, 1468
+  size: 351, 283
+  orig: 351, 283
+  offset: 0, 0
+  index: -1
+RiderBody
+  rotate: true
+  xy: 712, 605
+  size: 511, 541
+  orig: 511, 541
+  offset: 0, 0
+  index: -1
+RiderFreeArm
+  rotate: false
+  xy: 208, 1525
+  size: 328, 226
+  orig: 328, 226
+  offset: 0, 0
+  index: -1
+RiderLowerBody
+  rotate: false
+  xy: 895, 1118
+  size: 379, 348
+  orig: 379, 348
+  offset: 0, 0
+  index: -1
+RiderWeaponArm
+  rotate: false
+  xy: 1643, 1406
+  size: 393, 345
+  orig: 393, 345
+  offset: 0, 0
+  index: -1
+
+DragonRider2.png
+size: 1954,1868
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Cape
+  rotate: false
+  xy: 2, 2
+  size: 1115, 913
+  orig: 1115, 917
+  offset: 0, 2
+  index: -1
+RiderHead
+  rotate: false
+  xy: 1119, 71
+  size: 833, 844
+  orig: 833, 844
+  offset: 0, 0
+  index: -1
+RiderWeapon
+  rotate: false
+  xy: 2, 917
+  size: 1470, 949
+  orig: 1470, 949
+  offset: 0, 0
+  index: -1

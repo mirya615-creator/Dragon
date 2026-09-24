@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ClientServiceConfig
   m_EditorClassIdentifier: 
   backendMode: 1
-  apiBaseUrl: http://192.168.31.221:8081
+  apiBaseUrl: http://43.166.253.24
   timeoutSeconds: 15
   clientVersion: 0.1
   contentVersion: 2026081301
@@ -23,4 +23,4 @@ MonoBehaviour:
   googleWebClientId: 82952977839-ui220r26h7t4cpepl9cq7r4q3vkoqf1d.apps.googleusercontent.com
   googleAndroidClientId: 82952977839-15c37858or2t5q4csjsp37k3tmfaqmtt.apps.googleusercontent.com
   requireAuthoritativeRunContract: 1
-  enableNetworkLogging: 0
+  enableNetworkLogging: 1

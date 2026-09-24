@@ -148,6 +148,28 @@ MonoBehaviour:
     - {fileID: 9100000, guid: cc97060b52f4cab4a9538f874192d3b7, type: 2}
     - {fileID: -2104261986021400185, guid: cc97060b52f4cab4a9538f874192d3b7, type: 2}
     - {fileID: -1557689083190223188, guid: cc97060b52f4cab4a9538f874192d3b7, type: 2}
+  - key: Animations/Hero/Flame Drake Rider/normal/DragonRider
+    assets:
+    - {fileID: 4900000, guid: 91576068305c9d64680122768f3d8c48, type: 3}
+    - {fileID: 2800000, guid: 7fb48e802af7622479b30a7ab2b56841, type: 3}
+  - key: Animations/Hero/Flame Drake Rider/normal/DragonRider.atlas
+    assets:
+    - {fileID: 4900000, guid: 7d6f32f807bc77f4880be010a99f90d1, type: 3}
+  - key: Animations/Hero/Flame Drake Rider/normal/DragonRider2
+    assets:
+    - {fileID: 2800000, guid: 23f2012911597294b8029080c6d89af4, type: 3}
+  - key: Animations/Hero/Flame Drake Rider/normal/DragonRider_Atlas
+    assets:
+    - {fileID: 11400000, guid: ea1ede69279591542a87f4ef2092b891, type: 2}
+  - key: Animations/Hero/Flame Drake Rider/normal/DragonRider_DragonRider
+    assets:
+    - {fileID: 2100000, guid: edc9922ef860418498a162e33202cd3d, type: 2}
+  - key: Animations/Hero/Flame Drake Rider/normal/DragonRider_DragonRider2
+    assets:
+    - {fileID: 2100000, guid: de3a9f7ef7a0b304dbfba8f51f3af256, type: 2}
+  - key: Animations/Hero/Flame Drake Rider/normal/DragonRider_SkeletonData
+    assets:
+    - {fileID: 11400000, guid: a992a2713fbf22f4aaac1781df27c77c, type: 2}
   - key: "Animations/Hero/Oathcrown Blademaster/normal/Spine/\u8A93\u51A0\u5251\u58EB
       \u62C6"
     assets:
@@ -177,6 +199,77 @@ MonoBehaviour:
       \u62C6_\u8A93\u51A0\u5251\u58EB \u62C62"
     assets:
     - {fileID: 2100000, guid: 226ea171f0e4dd940b66a57fdafebb64, type: 2}
+  - key: Animations/Hero/Runebolt Mage/normal/Spine/Runebolt Mage
+    assets:
+    - {fileID: 4900000, guid: de5226ecd6b71d2409f101e6e5672038, type: 3}
+    - {fileID: 2800000, guid: d9e607dcb160e944a8eb0c39b2a2e9a7, type: 3}
+  - key: Animations/Hero/Runebolt Mage/normal/Spine/Runebolt Mage.atlas
+    assets:
+    - {fileID: 4900000, guid: 17a08acc1088dd24a9cae4cd6eb2917c, type: 3}
+  - key: Animations/Hero/Runebolt Mage/normal/Spine/Runebolt Mage2
+    assets:
+    - {fileID: 2800000, guid: 99411d6eff54611449505b0256681511, type: 3}
+  - key: Animations/Hero/Runebolt Mage/normal/Spine/Runebolt Mage_Atlas
+    assets:
+    - {fileID: 11400000, guid: 398a62e03a447a344a147f56a82fef97, type: 2}
+  - key: Animations/Hero/Runebolt Mage/normal/Spine/Runebolt Mage_Runebolt Mage
+    assets:
+    - {fileID: 2100000, guid: dc35d51e2ccc7754bb08632a88d7e447, type: 2}
+  - key: Animations/Hero/Runebolt Mage/normal/Spine/Runebolt Mage_Runebolt Mage2
+    assets:
+    - {fileID: 2100000, guid: 39de32ad63f743744a422cdf2b380764, type: 2}
+  - key: Animations/Hero/Runebolt Mage/normal/Spine/Runebolt Mage_SkeletonData
+    assets:
+    - {fileID: 11400000, guid: 03b5db7fd0c7ade4c8c0c237d24d3821, type: 2}
+  - key: Animations/Hero/Runebolt Mage/normal/VFX/RM nor Impact
+    assets:
+    - {fileID: 7400000, guid: 9a6fb2f3435b82e4c89fa6a2cd6c76cd, type: 2}
+    - {fileID: 9100000, guid: b8ac82c527a15644db20d9870a38a276, type: 2}
+    - {fileID: 8365178623433453080, guid: b8ac82c527a15644db20d9870a38a276, type: 2}
+    - {fileID: 8601298519925589556, guid: b8ac82c527a15644db20d9870a38a276, type: 2}
+  - key: Animations/Hero/Runebolt Mage/normal/VFX/RM nor Muzzle
+    assets:
+    - {fileID: 7400000, guid: 3ccdec82bc859ae47b4e4783fc8f1da0, type: 2}
+    - {fileID: 9100000, guid: f924e3bd4d13f734198f838d371045ba, type: 2}
+    - {fileID: 945283421457802076, guid: f924e3bd4d13f734198f838d371045ba, type: 2}
+    - {fileID: 1570067812743393580, guid: f924e3bd4d13f734198f838d371045ba, type: 2}
+  - key: Animations/Hero/Runebolt Mage/normal/VFX/RM nor Projectile
+    assets:
+    - {fileID: 7400000, guid: 4fca9f8b5e9ad1c4997541fdd32d4905, type: 2}
+    - {fileID: 9100000, guid: ef6ccabe802674143b3dea3bf803758c, type: 2}
+    - {fileID: -6959024744898103621, guid: ef6ccabe802674143b3dea3bf803758c, type: 2}
+    - {fileID: 8415972131179619280, guid: ef6ccabe802674143b3dea3bf803758c, type: 2}
+  - key: "Animations/Hero/Thunderlord/normal/\u96F7\u9706\u9886\u4E3B \u62C6"
+    assets:
+    - {fileID: 4900000, guid: 0ac175c2f1e6374449c0a2bd1dc9c67f, type: 3}
+    - {fileID: 2800000, guid: 8bcfe0e6bd812c543a545c6306d32238, type: 3}
+  - key: "Animations/Hero/Thunderlord/normal/\u96F7\u9706\u9886\u4E3B \u62C6.atlas"
+    assets:
+    - {fileID: 4900000, guid: ceb8f647f795b3c46b2c39d83e11666f, type: 3}
+  - key: "Animations/Hero/Thunderlord/normal/\u96F7\u9706\u9886\u4E3B \u62C62"
+    assets:
+    - {fileID: 2800000, guid: a5493e209b9ddbd44b6f2d536ba30580, type: 3}
+  - key: "Animations/Hero/Thunderlord/normal/\u96F7\u9706\u9886\u4E3B \u62C63"
+    assets:
+    - {fileID: 2800000, guid: c84e40d817cf83544a4e0e565833a27f, type: 3}
+  - key: "Animations/Hero/Thunderlord/normal/\u96F7\u9706\u9886\u4E3B \u62C6_Atlas"
+    assets:
+    - {fileID: 11400000, guid: 7e0969620b03aad4ba6a98282b47788d, type: 2}
+  - key: "Animations/Hero/Thunderlord/normal/\u96F7\u9706\u9886\u4E3B \u62C6_SkeletonData"
+    assets:
+    - {fileID: 11400000, guid: 3cbf4e2b6deda0a4094e83bfcc781c58, type: 2}
+  - key: "Animations/Hero/Thunderlord/normal/\u96F7\u9706\u9886\u4E3B \u62C6_\u96F7\u9706\u9886\u4E3B
+      \u62C6"
+    assets:
+    - {fileID: 2100000, guid: a24c8ebfc71789146a81b13be1c10276, type: 2}
+  - key: "Animations/Hero/Thunderlord/normal/\u96F7\u9706\u9886\u4E3B \u62C6_\u96F7\u9706\u9886\u4E3B
+      \u62C62"
+    assets:
+    - {fileID: 2100000, guid: 50619b90d39aaa94eb243aaa366d9fc2, type: 2}
+  - key: "Animations/Hero/Thunderlord/normal/\u96F7\u9706\u9886\u4E3B \u62C6_\u96F7\u9706\u9886\u4E3B
+      \u62C63"
+    assets:
+    - {fileID: 2100000, guid: 0a73d4b22811c444db731f95b17e4630, type: 2}
   - key: Animations/Hero/Windclaw Ranger/Spine/WindclawRanger
     assets:
     - {fileID: 4900000, guid: d1323b8598fe4a6428e1edcf0f6a6cec, type: 3}
@@ -221,6 +314,12 @@ MonoBehaviour:
   - key: Animations/Hero/Windclaw Ranger/normal/Spine/WindclawRanger_WindclawRanger2
     assets:
     - {fileID: 2100000, guid: be42f75421b5dc5429348ae578a645b4, type: 2}
+  - key: Animations/Hero/Windclaw Ranger/normal/VFX/Windclaw Ranger norVFX
+    assets:
+    - {fileID: 7400000, guid: 0eb44c2714eadf84fa3d4e0ad4d622c6, type: 2}
+    - {fileID: 9100000, guid: d46083c5def479c4dbaf5332d2da1ae9, type: 2}
+    - {fileID: -8524201607815087073, guid: d46083c5def479c4dbaf5332d2da1ae9, type: 2}
+    - {fileID: -4308757965142694419, guid: d46083c5def479c4dbaf5332d2da1ae9, type: 2}
   - key: Animations/Unit/UnitLevelUp
     assets:
     - {fileID: 7400000, guid: c97b51a0c644f974794f8e29b4692bc5, type: 2}
@@ -1531,25 +1630,149 @@ MonoBehaviour:
     assets:
     - {fileID: 2800000, guid: 2e6ac0d762da74c4f817f209849ed7f5, type: 3}
     - {fileID: 21300000, guid: 2e6ac0d762da74c4f817f209849ed7f5, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Impact/42006_impact_0
+    assets:
+    - {fileID: 2800000, guid: cd6bb90a495ba8c4e8432c76abb910a5, type: 3}
+    - {fileID: 21300000, guid: cd6bb90a495ba8c4e8432c76abb910a5, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Impact/42006_impact_1
+    assets:
+    - {fileID: 2800000, guid: 8b6f4c93597723042ad8ff641a747142, type: 3}
+    - {fileID: 21300000, guid: 8b6f4c93597723042ad8ff641a747142, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Impact/42006_impact_2
+    assets:
+    - {fileID: 2800000, guid: 3c4341d6ad5e10c45b4568bac51e2d46, type: 3}
+    - {fileID: 21300000, guid: 3c4341d6ad5e10c45b4568bac51e2d46, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Impact/42006_impact_3
+    assets:
+    - {fileID: 2800000, guid: 90098ddd5ca474f4cbbc222d6396f5a1, type: 3}
+    - {fileID: 21300000, guid: 90098ddd5ca474f4cbbc222d6396f5a1, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Impact/42006_impact_4
+    assets:
+    - {fileID: 2800000, guid: b5f389641d29c0e4ba34d0a9c3be4203, type: 3}
+    - {fileID: 21300000, guid: b5f389641d29c0e4ba34d0a9c3be4203, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Impact/42006_impact_5
+    assets:
+    - {fileID: 2800000, guid: 187376baf81bb064eb136e671c1f47d8, type: 3}
+    - {fileID: 21300000, guid: 187376baf81bb064eb136e671c1f47d8, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Impact/42006_impact_6
+    assets:
+    - {fileID: 2800000, guid: 2f718c6fdb8216f4c94b36e9c1a70585, type: 3}
+    - {fileID: 21300000, guid: 2f718c6fdb8216f4c94b36e9c1a70585, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Impact/42006_impact_7
+    assets:
+    - {fileID: 2800000, guid: 6c84164f400ce154aab97e0d327fb48a, type: 3}
+    - {fileID: 21300000, guid: 6c84164f400ce154aab97e0d327fb48a, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Muzzle/41006_MuzzleNormal1_0
+    assets:
+    - {fileID: 2800000, guid: d59782353db9b9a4c8a7b8d07e3fd444, type: 3}
+    - {fileID: 21300000, guid: d59782353db9b9a4c8a7b8d07e3fd444, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Muzzle/41006_MuzzleNormal1_1
+    assets:
+    - {fileID: 2800000, guid: 9c94a692194d9084f983babedd8fd725, type: 3}
+    - {fileID: 21300000, guid: 9c94a692194d9084f983babedd8fd725, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Muzzle/41006_MuzzleNormal1_2
+    assets:
+    - {fileID: 2800000, guid: 218d973c8e374104eb4495ad4aec36fd, type: 3}
+    - {fileID: 21300000, guid: 218d973c8e374104eb4495ad4aec36fd, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Muzzle/41006_MuzzleNormal1_3
+    assets:
+    - {fileID: 2800000, guid: 90cd7d5d025542748a0893af70225224, type: 3}
+    - {fileID: 21300000, guid: 90cd7d5d025542748a0893af70225224, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Muzzle/41006_MuzzleNormal1_4
+    assets:
+    - {fileID: 2800000, guid: aa62ae00ff008224b9c36b55657538be, type: 3}
+    - {fileID: 21300000, guid: aa62ae00ff008224b9c36b55657538be, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Muzzle/41006_MuzzleNormal1_5
+    assets:
+    - {fileID: 2800000, guid: b567179caa33a9c4fa1f708a03cac748, type: 3}
+    - {fileID: 21300000, guid: b567179caa33a9c4fa1f708a03cac748, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Muzzle/41006_MuzzleNormal1_6
+    assets:
+    - {fileID: 2800000, guid: 61c9964203de5f5419d84647ec6dbc8c, type: 3}
+    - {fileID: 21300000, guid: 61c9964203de5f5419d84647ec6dbc8c, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Muzzle/41006_MuzzleNormal1_7
+    assets:
+    - {fileID: 2800000, guid: 7a5cfdf6dcc73694d9170e7c4b50468e, type: 3}
+    - {fileID: 21300000, guid: 7a5cfdf6dcc73694d9170e7c4b50468e, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Projectile/sdj0001
+    assets:
+    - {fileID: 2800000, guid: 7a296cc4c1713524cb114f93ea081f91, type: 3}
+    - {fileID: 21300000, guid: 7a296cc4c1713524cb114f93ea081f91, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Projectile/sdj0002
+    assets:
+    - {fileID: 2800000, guid: a2cae49cd3bfda8459d448b9666b3620, type: 3}
+    - {fileID: 21300000, guid: a2cae49cd3bfda8459d448b9666b3620, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Projectile/sdj0003
+    assets:
+    - {fileID: 2800000, guid: f07fa8d7f0544aa4bae6067091dfe8a7, type: 3}
+    - {fileID: 21300000, guid: f07fa8d7f0544aa4bae6067091dfe8a7, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Projectile/sdj0004
+    assets:
+    - {fileID: 2800000, guid: 9a4eb7fc55c16474589f54a26f91f868, type: 3}
+    - {fileID: 21300000, guid: 9a4eb7fc55c16474589f54a26f91f868, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Projectile/sdj0005
+    assets:
+    - {fileID: 2800000, guid: 1b53a9eb2f51f674b980a4c9aaab33aa, type: 3}
+    - {fileID: 21300000, guid: 1b53a9eb2f51f674b980a4c9aaab33aa, type: 3}
+  - key: UIResources/VFX/Hero/Runebolt Mage/normal/Projectile/sdj0006
+    assets:
+    - {fileID: 2800000, guid: 9bbf7a2326acdd349b6715ab82914fac, type: 3}
+    - {fileID: 21300000, guid: 9bbf7a2326acdd349b6715ab82914fac, type: 3}
+  - key: UIResources/VFX/Hero/Windclaw Ranger/normal/slash_0
+    assets:
+    - {fileID: 2800000, guid: 3bd4b5dd11fd2bf45a3435cfa529d2d9, type: 3}
+    - {fileID: 21300000, guid: 3bd4b5dd11fd2bf45a3435cfa529d2d9, type: 3}
+  - key: UIResources/VFX/Hero/Windclaw Ranger/normal/slash_1
+    assets:
+    - {fileID: 2800000, guid: f1a1d5ac0fe10684ebb5dedafd15acf6, type: 3}
+    - {fileID: 21300000, guid: f1a1d5ac0fe10684ebb5dedafd15acf6, type: 3}
+  - key: UIResources/VFX/Hero/Windclaw Ranger/normal/slash_2
+    assets:
+    - {fileID: 2800000, guid: 2ce57f47105ebee4aa652dbb902b7bbf, type: 3}
+    - {fileID: 21300000, guid: 2ce57f47105ebee4aa652dbb902b7bbf, type: 3}
+  - key: UIResources/VFX/Hero/Windclaw Ranger/normal/slash_3
+    assets:
+    - {fileID: 2800000, guid: 432e768303bf0864f98604f619a2df32, type: 3}
+    - {fileID: 21300000, guid: 432e768303bf0864f98604f619a2df32, type: 3}
+  - key: UIResources/VFX/Hero/Windclaw Ranger/normal/slash_4
+    assets:
+    - {fileID: 2800000, guid: 1443e0e45f6243146879f9d48212fbf5, type: 3}
+    - {fileID: 21300000, guid: 1443e0e45f6243146879f9d48212fbf5, type: 3}
+  - key: UIResources/VFX/Hero/Windclaw Ranger/normal/slash_5
+    assets:
+    - {fileID: 2800000, guid: 15ee76d83dd86fa4fa14c7b8b6266f59, type: 3}
+    - {fileID: 21300000, guid: 15ee76d83dd86fa4fa14c7b8b6266f59, type: 3}
+  - key: UIResources/VFX/Hero/Windclaw Ranger/normal/slash_6
+    assets:
+    - {fileID: 2800000, guid: 2a3f4895a7c9ef84cb528b7d540c6be2, type: 3}
+    - {fileID: 21300000, guid: 2a3f4895a7c9ef84cb528b7d540c6be2, type: 3}
+  - key: UIResources/VFX/Hero/Windclaw Ranger/normal/slash_7
+    assets:
+    - {fileID: 2800000, guid: d5e0a0bb3166f3a4cb95b70e459c3876, type: 3}
+    - {fileID: 21300000, guid: d5e0a0bb3166f3a4cb95b70e459c3876, type: 3}
+  - key: UIResources/VFX/Hero/Windclaw Ranger/normal/slash_8
+    assets:
+    - {fileID: 2800000, guid: 4756b271c05beda49ac437359094bb29, type: 3}
+    - {fileID: 21300000, guid: 4756b271c05beda49ac437359094bb29, type: 3}
   - key: prefabs/BeachItem
     assets:
     - {fileID: 6327522584179283528, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
-    - {fileID: 616409106363019808, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
-    - {fileID: 7202062700808197989, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 9198921445983142549, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
-    - {fileID: 6228259181129207181, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
-    - {fileID: 1966126597939126402, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
-    - {fileID: 7070285795997217619, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 1795046194024118915, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 591234612399574982, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
-    - {fileID: 4816702187435626321, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 3212963743644976978, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
-    - {fileID: 8690704716622005665, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 6228259181129207181, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 8465729890412022266, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 4816702187435626321, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 616409106363019808, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 4332711986383810658, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 1966126597939126402, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 7070285795997217619, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 6477674956628709555, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 2280007001464478174, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
     - {fileID: 6883263927553415975, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 8690704716622005665, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
+    - {fileID: 7202062700808197989, guid: d1cf4e1aa082b4e4199df37b43498547, type: 3}
   - key: prefabs/BoardSelect
     assets:
     - {fileID: 2663392251814759821, guid: 1b8ca868e6afc0748b60c8699e96f42b, type: 3}
@@ -1575,10 +1798,10 @@ MonoBehaviour:
     assets:
     - {fileID: 1078554818521535352, guid: 32820f96ab17c2c4fa94964e4a9ade15, type: 3}
     - {fileID: 6159885642805737438, guid: 32820f96ab17c2c4fa94964e4a9ade15, type: 3}
-    - {fileID: 9042645337779333425, guid: 32820f96ab17c2c4fa94964e4a9ade15, type: 3}
     - {fileID: 4354617310291569017, guid: 32820f96ab17c2c4fa94964e4a9ade15, type: 3}
     - {fileID: 1081919043179405722, guid: 32820f96ab17c2c4fa94964e4a9ade15, type: 3}
     - {fileID: 93960980571118570, guid: 32820f96ab17c2c4fa94964e4a9ade15, type: 3}
+    - {fileID: 9042645337779333425, guid: 32820f96ab17c2c4fa94964e4a9ade15, type: 3}
   - key: prefabs/GoldParticleExampleG
     assets:
     - {fileID: 2380856009490731087, guid: 0629749be7e16754baa85fa64be966b4, type: 3}

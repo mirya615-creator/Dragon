@@ -22313,6 +22313,7 @@ MonoBehaviour:
   skyborneValkyrieReleaseFallbackDelay: 0.38
   skyborneValkyrieExplosionSize: {x: 90, y: 90}
   windclawImpactSize: {x: 110, y: 110}
+  windclawNormalVfxSize: {x: 110, y: 110}
   windclawReleaseFallbackDelay: 0.3
   emberShamanFireballSize: {x: 72, y: 32}
   emberShamanSplashFireballSize: {x: 54, y: 24}
@@ -22321,6 +22322,7 @@ MonoBehaviour:
   emberShamanFireballMaxTravelDuration: 0.3
   emberShamanReleaseFallbackDelay: 0.34
   runeboltMagePathHoldDuration: 0.04
+  runeboltMageImpactSize: {x: 72, y: 72}
   runeboltMagePathFadeDuration: 0.08
   runeboltMageReleaseFallbackDelay: 0.38
   stoneboundWarlockNormalRockSize: {x: 48, y: 48}
@@ -30321,6 +30323,7 @@ MonoBehaviour:
   skyborneValkyrieReleaseFallbackDelay: 0.38
   skyborneValkyrieExplosionSize: {x: 90, y: 90}
   windclawImpactSize: {x: 110, y: 110}
+  windclawNormalVfxSize: {x: 110, y: 110}
   windclawReleaseFallbackDelay: 0.3
   emberShamanFireballSize: {x: 72, y: 32}
   emberShamanSplashFireballSize: {x: 54, y: 24}
@@ -30329,6 +30332,7 @@ MonoBehaviour:
   emberShamanFireballMaxTravelDuration: 0.3
   emberShamanReleaseFallbackDelay: 0.34
   runeboltMagePathHoldDuration: 0.04
+  runeboltMageImpactSize: {x: 72, y: 72}
   runeboltMagePathFadeDuration: 0.08
   runeboltMageReleaseFallbackDelay: 0.38
   stoneboundWarlockNormalRockSize: {x: 48, y: 48}

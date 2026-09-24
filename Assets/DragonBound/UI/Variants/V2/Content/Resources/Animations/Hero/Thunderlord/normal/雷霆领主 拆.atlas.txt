@@ -1,0 +1,81 @@
+
+雷霆领主 拆.png
+size: 1742,1666
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Body
+  rotate: false
+  xy: 863, 587
+  size: 877, 642
+  orig: 879, 644
+  offset: 1, 1
+  index: -1
+FreeArm
+  rotate: true
+  xy: 457, 1256
+  size: 408, 593
+  orig: 410, 599
+  offset: 1, 4
+  index: -1
+HammerArm
+  rotate: false
+  xy: 1052, 1231
+  size: 566, 433
+  orig: 568, 435
+  offset: 1, 1
+  index: -1
+Head
+  rotate: false
+  xy: 2, 2
+  size: 817, 717
+  orig: 820, 720
+  offset: 1, 1
+  index: -1
+LowerBody
+  rotate: false
+  xy: 2, 721
+  size: 859, 533
+  orig: 863, 535
+  offset: 1, 1
+  index: -1
+wangguang
+  rotate: false
+  xy: 2, 1260
+  size: 453, 404
+  orig: 455, 406
+  offset: 1, 1
+  index: -1
+
+雷霆领主 拆2.png
+size: 1207,1294
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Hammer
+  rotate: false
+  xy: 2, 2
+  size: 1203, 1290
+  orig: 1205, 1292
+  offset: 1, 1
+  index: -1
+
+雷霆领主 拆3.png
+size: 1991,1412
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Cape
+  rotate: true
+  xy: 1102, 96
+  size: 1314, 887
+  orig: 1320, 892
+  offset: 4, 1
+  index: -1
+Hair
+  rotate: true
+  xy: 2, 2
+  size: 1408, 1098
+  orig: 1412, 1102
+  offset: 1, 2
+  index: -1

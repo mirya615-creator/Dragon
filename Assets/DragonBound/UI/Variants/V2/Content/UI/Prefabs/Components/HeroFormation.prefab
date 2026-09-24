@@ -491,6 +491,7 @@ MonoBehaviour:
   runeImage: {fileID: 2651064605284809560}
   heroAttackAnimator: {fileID: 0}
   particalBgImage: {fileID: 7030759055314696221}
+  heroAttackSkeleton: {fileID: 8251840913189477176}
 --- !u!1 &2091873405405247172
 GameObject:
   m_ObjectHideFlags: 0
@@ -729,7 +730,7 @@ MonoBehaviour:
   initialFlipX: 0
   initialFlipY: 0
   startingAnimation: Attack
-  startingLoop: 1
+  startingLoop: 0
   timeScale: 1
   freeze: 0
   updateWhenInvisible: 3

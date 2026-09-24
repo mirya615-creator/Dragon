@@ -1,0 +1,68 @@
+
+Runebolt Mage.png
+size: 1975,2006
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+图层 1
+  rotate: false
+  xy: 1173, 924
+  size: 800, 673
+  orig: 803, 675
+  offset: 1, 1
+  index: -1
+图层 4
+  rotate: true
+  xy: 2, 2
+  size: 920, 1184
+  orig: 923, 1187
+  offset: 1, 2
+  index: -1
+图层 5
+  rotate: false
+  xy: 2, 1770
+  size: 343, 234
+  orig: 405, 274
+  offset: 6, 20
+  index: -1
+图层 6
+  rotate: false
+  xy: 347, 1760
+  size: 340, 244
+  orig: 357, 284
+  offset: 10, 20
+  index: -1
+图层 7
+  rotate: false
+  xy: 1224, 1599
+  size: 479, 405
+  orig: 504, 433
+  offset: 11, 19
+  index: -1
+图层 8
+  rotate: true
+  xy: 689, 1610
+  size: 394, 533
+  orig: 427, 642
+  offset: 16, 7
+  index: -1
+图层 9
+  rotate: false
+  xy: 2, 979
+  size: 1169, 629
+  orig: 1203, 665
+  offset: 14, 29
+  index: -1
+
+Runebolt Mage2.png
+size: 1643,1335
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+图层 2
+  rotate: false
+  xy: 2, 2
+  size: 1639, 1331
+  orig: 1642, 1333
+  offset: 1, 1
+  index: -1

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using DragonBound.Recruitment;
 using UnityEngine;
 using UnityEngine.UI;
+using Spine.Unity;
 
 namespace DragonBound.Presentation
 {
@@ -32,10 +33,12 @@ namespace DragonBound.Presentation
         [SerializeField] private Image runeImage;
         [SerializeField] private Animator heroAttackAnimator;
         [SerializeField] private Image particalBgImage;
+        [SerializeField] private SkeletonGraphic heroAttackSkeleton;
 
         private Vector3 connectorScale = Vector3.one;
         private bool connectorScaleCaptured;
         private string configuredAnimationHeroId = string.Empty;
+        private string configuredSpineHeroId = string.Empty;
         private int observedAttackSequence;
         private bool attackSequenceObserved;
         private int lastAttackAnimationFrame = -1;
@@ -247,7 +250,7 @@ namespace DragonBound.Presentation
         public void SetHeroAnimation(string heroId)
         {
             ApplyParticalBackground(heroId);
-
+            ApplyHeroSpineArt(heroId);
             if (heroAttackAnimator == null ||
                 string.Equals(configuredAnimationHeroId, heroId, StringComparison.Ordinal))
             {
@@ -298,6 +301,12 @@ namespace DragonBound.Presentation
                 heroAttackAnimator.transform.localScale = synthesisHeroRevealStarted
                     ? scale * synthesisHeroRevealScaleFactor
                     : scale;
+            }
+            if (heroAttackSkeleton != null)
+            {
+                var spineScale = heroAttackSkeleton.transform.localScale;
+                spineScale.x = mirrored ? -Mathf.Abs(spineScale.x) : Mathf.Abs(spineScale.x);
+                heroAttackSkeleton.transform.localScale = spineScale;
             }
 
             if (particalBgImage != null)
@@ -543,6 +552,33 @@ namespace DragonBound.Presentation
             particalBgImage.gameObject.SetActive(sprite != null);
         }
 
+        private void ApplyHeroSpineArt(string heroId)
+        {
+            if (heroAttackSkeleton == null ||
+                string.Equals(configuredSpineHeroId, heroId, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            configuredSpineHeroId = heroId ?? string.Empty;
+            var skeleton = HeroSpineArtCatalog.Load(heroId);
+            if (skeleton == null)
+            {
+                heroAttackSkeleton.gameObject.SetActive(false);
+                return;
+            }
+
+            heroAttackSkeleton.gameObject.SetActive(true);
+            heroAttackSkeleton.skeletonDataAsset = skeleton;
+            heroAttackSkeleton.Initialize(true);
+            // Idle: hold the authored setup pose; the attack clip is triggered per attack.  
+            heroAttackSkeleton.AnimationState.SetEmptyAnimation(0, 0f);
+            heroAttackSkeleton.Skeleton.SetToSetupPose();
+            heroAttackSkeleton.Update(0f);
+
+        }
+
+
         public void ObserveAttackSequence(int attackSequence)
         {
             attackSequence = Mathf.Max(0, attackSequence);
@@ -564,7 +600,13 @@ namespace DragonBound.Presentation
 
         public bool PlayAttackAnimation(bool useSkillAnimation = false)
         {
+            if (heroAttackAnimator == null)
+            {
+                return PlaySpineAttackAnimation();
+            }
+
             var desiredController = useSkillAnimation && skillAttackController != null
+
                 ? skillAttackController
                 : defaultAttackController;
             if (heroAttackAnimator == null ||
@@ -618,6 +660,28 @@ namespace DragonBound.Presentation
                 RestoreDefaultPoseAfterPlayback(desiredController, playbackVersion));
             return true;
         }
+
+        private bool PlaySpineAttackAnimation()
+        {
+            if (heroAttackSkeleton == null ||
+                !heroAttackSkeleton.gameObject.activeInHierarchy ||
+                heroAttackSkeleton.Skeleton == null)
+            {
+                return false;
+            }
+            // Play the authored swing once, then fall back to the setup pose so the hero reads  
+            // as idle until the next attack.  
+            var entry = heroAttackSkeleton.AnimationState.SetAnimation(
+            0, HeroSpineArtCatalog.AttackAnimationName, false);
+            if (entry == null)
+            {
+                return false;
+            }
+            heroAttackSkeleton.AnimationState.AddEmptyAnimation(0, 0f, 0f);
+            return true;
+
+        }
+
 
         private IEnumerator RestoreDefaultPoseAfterPlayback(
             RuntimeAnimatorController playedController,
@@ -1528,6 +1592,63 @@ namespace DragonBound.Presentation
                 : string.Empty;
         }
     }
+
+    /// <summary>  
+    /// Maps formal hero ids to the authored Spine skeleton used by the V2 hero attack art. Keys  
+    /// live under the active variant's Resources/Animations/Hero folder, so V1 keeps resolving  
+    /// Animator controllers while V2 resolves Spine skeletons from the same hero id.  
+    /// </summary>  
+    public static class HeroSpineArtCatalog
+    {
+        private const string DefaultAttackAnimationName = "Attack";
+
+        private static readonly IReadOnlyDictionary<string, string> SkeletonResourcePaths =
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [DragonBoundHeroIds.CrownSwordLeader] =
+                    "Animations/Hero/Oathcrown Blademaster/normal/Spine/誓冠剑士 拆_SkeletonData",
+                [DragonBoundHeroIds.WindclawRanger] =
+                    "Animations/Hero/Windclaw Ranger/normal/Spine/WindclawRanger_SkeletonData",
+                [DragonBoundHeroIds.RuneboltMage] =
+                "Animations/Hero/Runebolt Mage/normal/Spine/Runebolt Mage_SkeletonData"
+
+            };
+
+        private static readonly Dictionary<string, SkeletonDataAsset> SkeletonCache =
+            new Dictionary<string, SkeletonDataAsset>(StringComparer.Ordinal);
+        private static readonly HashSet<string> MissingSkeletonWarnings =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        public static string AttackAnimationName => DefaultAttackAnimationName;
+
+        public static SkeletonDataAsset Load(string heroId)
+        {
+            if (string.IsNullOrWhiteSpace(heroId) ||
+                !SkeletonResourcePaths.TryGetValue(heroId.Trim(), out var resourcePath))
+            {
+                return null;
+            }
+
+            if (SkeletonCache.TryGetValue(resourcePath, out var cached))
+            {
+                return cached;
+            }
+
+            // Probe silently: UiAssets.Load logs an error on a miss, and most heroes have no  
+            // Spine art yet, so an unregistered key is an expected state rather than a failure.  
+            var registry = UiAssets.Active;
+            var skeleton = registry != null ? registry.Load<SkeletonDataAsset>(resourcePath) : null;
+            if (skeleton == null && MissingSkeletonWarnings.Add(resourcePath))
+            {
+                Debug.LogWarning(
+                    $"Hero Spine skeleton '{resourcePath}' is unavailable for hero '{heroId}'.");
+            }
+
+            SkeletonCache[resourcePath] = skeleton;
+            return skeleton;
+        }
+    }
+
 
     /// <summary>
     /// Resolves the optional formation background authored below

@@ -612,7 +612,7 @@ namespace DragonBound.Recruitment
                     DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.StormHat, 8f, 1.75f, 3.00f,
                     HeroAttackType.PiercingLine, PurpleLevels(), DragonBoundSkillIds.RuneboltMage,
                     Targets(HeroTargetPriority.Frontmost),
-                    new Dictionary<string, float> { { "PierceLength", 5f }, { "PierceWidth", 0.35f } },
+                    new Dictionary<string, float> { { "PierceLength", 5f }, { "PierceWidth", 1.2f } },
                     new Dictionary<string, float[]> { { "MaxTargetsByLevel", new[] { 4f, 5f, 6f } } }),
                 Hero(DragonBoundHeroIds.Stonebinder, "石缚术士", "Stonebound Warlock", HeroRecipeRarity.Purple,
                     DragonBoundComponentIds.RuneStaff, DragonBoundComponentIds.StoneheartHat, 10f, 1.45f, 2.75f,
